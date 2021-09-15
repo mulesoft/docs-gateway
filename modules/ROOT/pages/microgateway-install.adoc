@@ -1,0 +1,30 @@
+= Install the Flex Gateway
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+== Install as a Docker Container Image
+
+```
+docker load --input peregrine.tar
+
+docker run -it -p 8080:8080 -v flex-config.yaml:/etc/peregrine/conf.d/custom/app.yaml mulesoft/peregrine
+```
+
+== Install as a Linux Service
+
+```
+wget -qO- https://peregrine-repos.s3.us-west-2.amazonaws.com/ubuntu/pubkey.gpg | sudo apt-key add -
+
+echo "deb https://peregrine-repos.s3.us-west-2.amazonaws.com/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/mulesoft.list
+
+sudo apt update
+
+sudo apt install peregrine
+```
+
+== Install as a Kubernetes Application
+
+== Install as a Kubernetes Ingress Controller
+
