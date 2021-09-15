@@ -1,0 +1,62 @@
+= Install and Run Flex Gateway
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+== Install and Run as a Docker Container Image
+
+. https://drive.google.com/file/d/1xR2kQqV5BUdIqk8LUbdW8LSdjlF2dP8P/view?usp=sharing[Download the Flex Gateway container image^].
+. Copy the container image `.tar` file into a directory of your choice.
+. Open Terminal and navigate to the directory containing the container image `.tar` file.
+. Load the Flex Gateway container image by executing the following command:
++
+----
+docker load --input anypoint-flex-gateway.tar
+----
+
+. Verify the installation was successful by executing the following command: 
++
+----
+docker images
+----
++
+The Flex Gateway container image should appear in the resulting list: 
++
+----
+REPOSITORY                                TAG       IMAGE ID       CREATED        SIZE
+mulesoft/anypoint-flex-gateway            latest    1c1fbdbf819b   9 days ago     279MB
+----
+
+. https://drive.google.com/file/d/1Uq1YA8UZCRCLhmg7-nMsUPjafNjFzAPQ/view?usp=sharing[Download the sample Flex Gateway configuration file^].
+. Copy the sample configuration `.yaml` file into a directory of your choice (typically the same directory as the container image `.tar` file.)
+. Run the Flex Gateway by executing the following Docker command: 
++
+----
+docker run -it -p 8080:8080 -v /absolute/path/to/sample/config.yaml:/etc/peregrine/conf.d/custom/app.yaml mulesoft/anypoint-flex-gateway
+----
+
+== Install and Run as a Linux Service
+
+=== Installation
+
+----
+wget -qO- https://peregrine-repos.s3.us-west-2.amazonaws.com/ubuntu/pubkey.gpg | sudo apt-key add -
+
+echo "deb https://peregrine-repos.s3.us-west-2.amazonaws.com/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/mulesoft.list
+
+sudo apt update
+
+sudo apt install peregrine
+----
+
+=== Launch
+
+----
+sudo service peregrine start
+----
+
+== Install and Run as a Kubernetes Application
+
+== Install and Run as a Kubernetes Ingress Controller
+
