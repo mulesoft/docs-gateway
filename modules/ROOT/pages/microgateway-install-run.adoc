@@ -55,32 +55,53 @@ CONTAINER ID   IMAGE                            COMMAND   CREATED      STATUS   
 c2a360f8c9ed   mulesoft/anypoint-flex-gateway   "/init"   8 days ago   Up 8 days   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp 
 ----
 
-== Install and Run as a Linux Service
+== Install and Run as a Ubuntu Service
 
-In addition to "sandboxing" Flex Gateway as a Docker container image, you can install and run Flex Gateway as a Linux service. The Linux instance is typically run virtually as a node in a virtual machine cluster, thereby guaranteeing that each virtual machine (with its associated Flex Gateway) is standalone and encapsulated. 
+In addition to "sandboxing" Flex Gateway as a Docker container image, you can install and run Flex Gateway as a Ubuntu service. The Ubuntu instance is typically run virtually as a node in a virtual machine cluster, thereby guaranteeing that each virtual machine (with its running Flex Gateway) is standalone and encapsulated. 
 
-The following procedure demonstrates how to install and run Flex Gateway as a service in a Linux instance.
+The following procedure demonstrates how to install and run Flex Gateway as a service in a Ubuntu instance.
 
 === Procedure
 
-. Retrieve the required Flex Gateway public package keys and add them to the `apt` key server:
+. Retrieve the public package keys and add them to the Advanced Package Tool (APT) key server by executing the following command:
++ 
 ----
 wget -qO- https://peregrine-repos.s3.us-west-2.amazonaws.com/ubuntu/pubkey.gpg | sudo apt-key add -
 ----
 
+. Add the Flex Gateway package repository by storing the type of distribution archive (Debian), as well as the repository URL and Ubuntu distribution code name. Execute the following command: 
++
 ----
 echo "deb https://peregrine-repos.s3.us-west-2.amazonaws.com/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/mulesoft.list
+----
 
+. Update the package list by executing the following command: 
++
+----
 sudo apt update
-
-sudo apt install peregrine
 ----
 
-
-
+. Install the Flex Gateway package from the updated repository by executing the following command:
++
 ----
-sudo service peregrine start
+sudo apt install anypoint-flex-gateway
 ----
+
+. Run the Flex Gateway by executing the following command:
++
+----
+sudo service anypoint-flex-gateway start
+----
+
+. Verify that the Flex Gateway service is running successfully by executing the following command: 
++
+----
+service --status-all
+----
++
+A list of all services displays. Locate the `anypoint-flex-gateway` service, which will be successfully running if the value of its `status` is `+`, as in the following:   
++
+`[ + ]  anypoint-flex-gateway`
 
 == Install and Run as a Kubernetes Application
 
