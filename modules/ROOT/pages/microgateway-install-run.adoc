@@ -14,7 +14,7 @@ The following procedure demonstrates how to install and run a "containerized" Fl
 
 . https://drive.google.com/file/d/1xR2kQqV5BUdIqk8LUbdW8LSdjlF2dP8P/view?usp=sharing[Download the Flex Gateway container image^].
 . Copy the container image tar archive into a directory of your choice.
-. Open a command line client and navigate to the directory containing the container image tar archive
+. Open a command line client and navigate to the directory containing the container image tar archive.
 . Load ("install") the Flex Gateway container image by executing the following command:
 +
 ----
@@ -42,7 +42,7 @@ mulesoft/anypoint-flex-gateway            latest    1c1fbdbf819b   9 days ago   
 docker run -it -p 8080:8080 -v /absolute/path/to/sample/config.yaml:/etc/peregrine/conf.d/custom/config.yaml mulesoft/anypoint-flex-gateway
 ----
 
-. Verify that the container image is running successfully by consulting Docker Dashboard (in Docker Desktop), or by executing the following command: 
+. Verify that the container image is running successfully by executing the following command: 
 +
 ----
 docker ps
@@ -57,11 +57,18 @@ c2a360f8c9ed   mulesoft/anypoint-flex-gateway   "/init"   8 days ago   Up 8 days
 
 == Install and Run as a Linux Service
 
-=== Installation
+In addition to "sandboxing" Flex Gateway as a Docker container image, you can install and run Flex Gateway as a Linux service. The Linux instance is typically run virtually as a node in a virtual machine cluster, thereby guaranteeing that each virtual machine (with its associated Flex Gateway) is standalone and encapsulated. 
 
+The following procedure demonstrates how to install and run Flex Gateway as a service in a Linux instance.
+
+=== Procedure
+
+. Retrieve the required Flex Gateway public package keys and add them to the `apt` key server:
 ----
 wget -qO- https://peregrine-repos.s3.us-west-2.amazonaws.com/ubuntu/pubkey.gpg | sudo apt-key add -
+----
 
+----
 echo "deb https://peregrine-repos.s3.us-west-2.amazonaws.com/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/mulesoft.list
 
 sudo apt update
@@ -69,7 +76,7 @@ sudo apt update
 sudo apt install peregrine
 ----
 
-=== Launch
+
 
 ----
 sudo service peregrine start
