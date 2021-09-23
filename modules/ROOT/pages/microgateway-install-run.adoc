@@ -134,9 +134,112 @@ A list of all services displays. Locate the `anypoint-flex-gateway` service, whi
 
 == Install and Run as a Kubernetes Application
 
-Install and run a containerized Flex Gateway on top of a Kubernetes cluster. To do so, you create a Kubernetes deployment configuration, which instructs Kubernetes how to create and update the Flex Gateway instance. Create this deployment configuration by using the Kubernetes command line interface, Kubectl.
+You can install and run a containerized Flex Gateway on top of a Kubernetes cluster. To do so, you create a Kubernetes deployment configuration, which instructs Kubernetes how to create and update the Flex Gateway instance. Create this deployment configuration by using the Kubernetes command line interface, Kubectl.
 
 The following procedure demonstrates how to install and run Flex Gateway as an application running in a Kubernetes cluster.
+
+=== Before You Begin
+
+Deploying Flex Gateway on Kubernetes requires a dedicated Kubernetes cluster that is provisioned and operational. 
+
+=== Procedure
+
+. Configure your network to support Flex Gateway on Kubernetes.
++
+The following ports must be configured correctly:
++
+[%header%autowidth.spread]
+|===
+| Port | Layer 4 Protocol | Layer 5 Protocol | Source | Destination | Description
+| x | TCP | HTTPS | Internet | All nodes | Allow inbound requests to Flex Gateway
+| x | TCP | x | All nodes | Internet | x
+| x | TCP | x | All nodes | Internet | x
+|===
++
+The following hostnames must be configured correctly:
++
+[%header,cols="4*a"]
+|===
+| Port | Protocol | Hostnames | Description
+| x | x | x | x
+| x | x | x | x
+| x | x | x | x
+|===
+
+. Install Flex Gateway.
++
+You can execute `docker load` and then `docker push` to a registry (you can host a private registry in Kubernetes or use a public one).
+
+. After the installation has completed, insert the Mule license key.
++
+.. Base64 encode the new Mule `.lic` license file provided by MuleSoft:
++
+* On MacOS, run the following command:
++
+----
+base64 -b0 license.lic
+----
++
+* On Unix, run the following command:
++
+----
+base64 -w0 license.lic
+----
++
+* On Windows, a shell terminal emulator (such as cygwin) or access to a Unix-based computer is required.
++
+... Transfer to your Unix environment if necessary.
+... Run the following command to Base64 encode the license key:
++
+----
+base64 -w0 license.lic
+----
+
+.. Insert the Mule license key:
++
+----
+<command> apply mule-license BASE64_ENCODED_LICENSE
+----
+
+.. To verify the Mule license key has applied correctly, run:
++
+----
+<command> get mule-license
+----
+
+. Run Flex Gateway:
++
+----
+kubectl create deployment <...>
+----
+
+. Verify that the Flex Gateway service is running successfully. 
+.. View the deployment: 
++
+----
+kubectl get deployments
+----
++
+The output is similar to: 
++
+----
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+anypoint-flex-gateway   1/1     1            1           1m
+----
++
+.. View the Pod: 
++
+----
+kubectl get pods <...>
+----
++
+The output is similar to: 
++
+----
+NAME                                     READY     STATUS    RESTARTS   AGE
+anypoint-flex-gateway-5f76cf6ccf-br9b5   1/1       Running   0          1m
+----
+
 
 == Install and Run as a Kubernetes Ingress Controller
 
