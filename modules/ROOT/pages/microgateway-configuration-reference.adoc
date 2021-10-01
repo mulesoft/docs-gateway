@@ -6,7 +6,7 @@ endif::[]
 
 Flex Gateway can be configured via different types of data sources. A common data source is YAML, which can contain one or more resources. Management of multiple resources can be simplified by grouping them together in the same file (separated by `---` in YAML). Alternatively, Flex Gateway can be configured through the Kubernetes Kubectl command line.
 
-The following describes the available configuration resources.
+The following reference describes the available configuration resources.
 
 == API Instance
 
@@ -109,5 +109,40 @@ spec:
 |
 |
 |
+
+|===
+
+== Service
+
+Register a service by creating a service definition file with a ‘.yaml’ file extension. The definition includes the following: 
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Service
+metadata:
+  name: <service name>        # example: hello-service-instance
+  namespace: <namespace name> # example: e-commerce
+spec:
+  address: <service address including port> # example: http://helloworld-v1:5000/ 
+----
+
+[cols="1,1,1,1"]
+|===
+|Parameter |Required or Optional |Default Value |Description
+
+|`metadata.name`
+|Required
+|N/A
+|The service identifier.
+
+|`metadata.namespace`
+|Optional
+|`default`
+|
+
+|`spec.address`
+|Required
+|N/A
+|The service address (and port).
 
 |===
