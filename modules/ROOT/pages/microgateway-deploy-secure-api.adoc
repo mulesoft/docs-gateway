@@ -1,4 +1,4 @@
-= Configure Flex Gateway
+= Deploy and Secure an API
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -6,7 +6,7 @@ endif::[]
 
 Modify `.yaml` configuration files to deploy and secure services. You can do so directly within the Docker container filesystem. Or, for Kubernetes environments, you can apply configuration `.yaml` files via the Kubectl command line. With either method, the format of the Flex Gateway configuration files is the same.
 
-This document describes how to configure Flex Gateway to run a secure service.
+This document describes how to configure Flex Gateway to deploy a secure service.
 
 == Before You Begin
 
@@ -14,7 +14,9 @@ A Flex Gateway instance must be deployed. See xref:microgateway-install-run.adoc
 
 == Procedure
 
-. Configure the API instance. Create a `.yaml` configuration file with the following snippet:
+=== Configure the API Instance and Service
+
+. Configure the API instance by creating a `.yaml` configuration file with the following snippet:
 +
 ----
 ---
@@ -29,7 +31,7 @@ spec:
 +
 This snippet specifies an `ApiInstance` with metadata that describes the instance identifier. The `metadata.name` value is used as the target reference for other resources, such as policy bindings.
 
-. Configure the Service. Append the following snippet to the `.yaml` configuration file:
+. Configure the service by appending the following snippet to the `.yaml` configuration file:
 +
 ----
 ---
@@ -44,7 +46,7 @@ spec:
 +
 This snippet specifies a `Service` with metadata that describes the service identifier. The `metadata.namespace` value matches the namespace specified in the `ApiInstance` configuration. The `spec.address` is the address of the API implementation.
 
-. Configure policy binding. Append the following snippet to the `.yaml` configuration file: 
+. Configure policy binding by appending the following snippet to the `.yaml` configuration file: 
 +
 ----
 ---
@@ -113,7 +115,9 @@ The result should include the following:
   ...
 ----
 
-. Now that the service is running behind Flex Gateway, you can secure the service with a simple authentication policy. Append the following snippet to the `.yaml` configuration file: 
+=== Secure the Service
+
+. With the service running behind Flex Gateway, and you can secure the service using a simple authentication policy. Append the following snippet to the `.yaml` configuration file (now located in the Flex Gateway configuration directory): 
 +
 ----
 ---
@@ -136,23 +140,20 @@ spec:
    password: bar
 ----
 +
-This snippet binds an `ingress-http-auth` policy to the API instance, requiring requests to include the basic credentials defined in `.config`.
-+
-Executing the previous `curl` command now results in an authorization error:
+This snippet binds an `ingress-http-auth` policy to the API instance -  requiring requests to include the basic credentials defined in `config.username` and `config.password`.
+
+. Test the service *without* the required credentials by executing the following command:
 +
 ----
 curl http://127.0.0.1:8080/api/jsonplaceholder/users
 ----
++
+An authorization error is now returned.
 
-. Test the service with the required credentials by executing the following command: 
+. Test the service, this time *with* the required credentials: 
 +
 ----
 curl -u foo:bar http://127.0.0.1:8080/api/jsonplaceholder/users
 ----
 +
-Output similar to before is returned.
-
-
-
-
-
+The request is authorized and the correct response is returned.
