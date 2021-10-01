@@ -4,9 +4,9 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Modify `.yaml` configuration files to deploy and secure services. You can do so directly within the Docker container filesystem. Or, for Kubernetes environments, you can apply configuration `.yaml` files via the Kubectl command line. With either method, the format of the Flex Gateway configuration files is the same.
+Modify configuration files to deploy and secure services. You can do so directly within the Docker container (or Ubuntu) filesystem. Alternatively, for Kubernetes environments, you can apply configuration files via the Kubectl command line. With either method, the format of the configuration files is the same.
 
-This document describes how to configure Flex Gateway to deploy a secure service.
+This procedure describes how to configure Flex Gateway by defining YAML, and how to deploy a secure service.
 
 == Before You Begin
 
@@ -14,9 +14,9 @@ A Flex Gateway instance must be deployed. See xref:microgateway-install-run.adoc
 
 == Procedure
 
-=== Configure the API Instance and Service
+=== Configure and Deploy the Service
 
-. Configure the API instance by creating a `.yaml` configuration file with the following snippet:
+. Configure the API instance by creating a YAML (`.yaml`) configuration file with the following snippet:
 +
 ----
 ---
@@ -31,7 +31,7 @@ spec:
 +
 This snippet specifies an `ApiInstance` with metadata that describes the instance identifier. The `metadata.name` value is used as the target reference for other resources, such as policy bindings.
 
-. Configure the service by appending the following snippet to the `.yaml` configuration file:
+. Configure the service by appending the following snippet to the YAML configuration file:
 +
 ----
 ---
@@ -46,7 +46,7 @@ spec:
 +
 This snippet specifies a `Service` with metadata that describes the service identifier. The `metadata.namespace` value matches the namespace specified in the `ApiInstance` configuration. The `spec.address` is the address of the API implementation.
 
-. Configure policy binding by appending the following snippet to the `.yaml` configuration file: 
+. Configure policy binding by appending the following snippet to the YAML configuration file: 
 +
 ----
 ---
@@ -75,9 +75,9 @@ spec:
 +
 This snippet binds an `ingress-http-route` policy to the API instance, routing traffic specified in `rules.path` to the proxy address specified in the `Service` configuration snippet.
 
-. Copy the `.yaml` configuration file into the Flex Gateway configuration directory, located within the Docker container filesystem (or VM filesystem): `/etc/peregrine/conf.d/custom/`. Flex Gateway automatically reloads this change and immediately begins running the service.
+. Copy the YAML configuration file into the Flex Gateway configuration directory, located within the Docker container filesystem (or Ubuntu filesystem): `/etc/peregrine/conf.d/custom/`. Flex Gateway automatically reloads this change and immediately begins running the service.
 +
-Alternatively, for Kubuernetes you can apply the configuration using `kubectl apply`).
+Alternatively, for Kubuernetes environments, you can apply the configuration using the Kubectl command line. Kubernetes manifests can be defined in either YAML or JSON.
 
 . Test the service by executing the following command: 
 +
@@ -117,7 +117,7 @@ The result should include the following:
 
 === Secure the Service
 
-. With the service running behind Flex Gateway, and you can secure the service using a simple authentication policy. Append the following snippet to the `.yaml` configuration file (now located in the Flex Gateway configuration directory): 
+. With the service running behind Flex Gateway, you can secure the service using a simple authentication policy. Append the following snippet to the YAML configuration file (now located in the Flex Gateway configuration directory): 
 +
 ----
 ---

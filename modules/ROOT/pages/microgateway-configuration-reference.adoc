@@ -1,0 +1,113 @@
+= Configuration Reference
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Flex Gateway can be configured via different types of data sources. A common data source is YAML, which can contain one or more resources. Management of multiple resources can be simplified by grouping them together in the same file (separated by `---` in YAML). Alternatively, Flex Gateway can be configured through the Kubernetes Kubectl command line.
+
+The following describes the available configuration resources.
+
+== API Instance
+
+Configure an API instance by creating a definition file with a ‘.yaml’ file extension. The definition includes the following: 
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: <api instance name>   # example: hello-peregrine-instance
+  namespace: <namespace name> # example: e-commerce
+spec:
+  address: <proxy address including port> # example: http://0.0.0.0:8080/ 
+----
+
+[cols="1,1,1,1"]
+|===
+|Parameter |Required or Optional |Default Value |Description
+
+|`metadata.name`
+|Required
+|N/A
+|The API instance identifier that is used as a target reference for other resources, such as policy bindings.
+
+|`metadata.namespace`
+|Optional
+|`default`
+|
+
+|`spec.address`
+|Required
+|N/A
+|The proxy address (and port) of the API implementation.
+
+|===
+
+== Policy Binding
+Apply a policy to an API instance by creating a policy binding definition file with a `.yaml` file extension. The definition includes the following:
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: <policy binding name> # example: policy-binding-instance
+  namespace: <namespace name> # example: e-commerce
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: <api instance name>    # example: hello-peregrine-instance
+    namespace: <namespace name>  # example: e-commerce
+  policyRef:
+    kind: Extension
+    name: <policy name>           # example: basic-auth
+    namespace: <policy namespace> # example: gateway
+  config: <Policy configuration>
+  rules:
+  - path: <rule path> # example: /api/helloworld/.*
+----
+
+[cols="1,1,1,1"]
+|===
+|Parameter |Required or Optional |Default Value |Description
+
+|`metadata.name`
+|Required
+|N/A
+|The identifier of the policy binding.
+
+|`metadata.namespace`
+|Optional
+|`default`
+|
+
+|`spec.targetRef.name`
+|Required
+|N/A
+|The API instance identifier to which the policy is bound to.
+
+|`spec.targetRef.namespace`
+|Optional
+|The value of `metadata.namespace`
+|The namespace where the target is defined.
+
+|`spec.policyRef.name`
+|Required
+|N/A
+|The policy name. See the list of available policies.
+
+|`spec.policyRef.namespace`
+|Optional
+|The value of `metadata.namespace`
+|The namespace where the policy is defined. For provided policies, the value of this field should be `gateway`.
+
+|`spec.config`
+|Optional
+|`{}`
+|The policy configuration. The content of this field depends on the specified policy. See the list of available policies.
+
+|`spec.rules`
+|
+|
+|
+
+|===
