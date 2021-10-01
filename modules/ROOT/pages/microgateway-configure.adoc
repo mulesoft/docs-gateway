@@ -3,3 +3,79 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
+
+Modify `.yaml` configuration files to deploy and secure services. You can do so directly within the Docker container filesystem. Or, for Kubernetes environments, you can apply configuration `.yaml` files via the Kubectl command line. With either method, the format of the Flex Gateway configuration files is the same.
+
+This document describes how to configure Flex Gateway to run a secure service.
+
+== Before You Begin
+
+A Flex Gateway instance must be deployed. See xref:microgateway-install-run.adoc[Install and Run Flex Gateway].
+
+== Procedure
+
+=== Configure the API/Service
+
+. Create a `.yaml` configuration file with the following `ApiInstance` snippet:
++
+----
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: hello-flex-gateway-instance
+  namespace: e-commerce
+spec:
+  address: http://0.0.0.0:8080/
+----
++
+This snippet specifies an `ApiInstance` with metadata that describes the instance identifier. The `metadata.name` value is used as the target reference for other resources, such as policy bindings.
+
+. Append the following `Service` snippet to the `.yaml` configuration file:
++
+----
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Service
+metadata:
+  name: helloworld-v1
+  namespace: e-commerce
+spec:
+  address: https://jsonplaceholder.typicode.com:443/
+----
++
+This snippet specifies a `Service` with metadata that describes the service identifier. The `metadata.namespace` value matches the namespace specified in the `ApiInstance` configuration. The `spec.address` is the address of the API implementation.
+
+=== Configure Policy Binding
+
+. Append the following `PolicyBinding` snippet to the `.yaml` configuration file: 
++
+----
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: ingress-http-route
+  namespace: e-commerce
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: hello-flex-gateway-instance
+    namespace: e-commerce
+  policyRef:
+    kind: Extension
+    name: route
+    namespace: gateway
+  config:
+    destinationRef:
+      kind: Service
+      name: helloworld-v1
+      namespace: e-commerce
+  rules:
+  - path: /api/jsonplaceholder(/.*)
+----
++
+
+
+
+
