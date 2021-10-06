@@ -35,17 +35,17 @@ The following procedure demonstrates how to install and run a "containerized" Fl
 
 === Before You Begin
 
-Installation requires a Docker-enabled environment with appropriate Docker permissions.
+Installation requires a Docker-enabled environment with appropriate Docker permissions. See https://docs.docker.com/compose/install/[Install Docker Compose^].
 
 === Procedure
 
 . https://drive.google.com/file/d/1xR2kQqV5BUdIqk8LUbdW8LSdjlF2dP8P/view?usp=sharing[Download the Flex Gateway container image^].
 . Copy the container image tar archive into a directory of your choice.
 . Open a command line client and navigate to the directory containing the container image tar archive.
-. Load ("install") the Flex Gateway container image by executing the following command:
+. Install the Flex Gateway container image by executing the following command:
 +
 ----
-docker load --input anypoint-flex-gateway.tar
+docker load --input peregrine.tar
 ----
 
 . Verify the installation was successful by executing the following command: 
@@ -57,8 +57,8 @@ docker images
 The Flex Gateway container image should appear in the resulting list: 
 +
 ----
-REPOSITORY                                TAG       IMAGE ID       CREATED        SIZE
-mulesoft/anypoint-flex-gateway            latest    1c1fbdbf819b   9 days ago     279MB
+REPOSITORY                      TAG       IMAGE ID       CREATED        SIZE
+mulesoft/peregrine              latest    1c1fbdbf819b   9 days ago     279MB
 ----
 
 . https://drive.google.com/file/d/1Uq1YA8UZCRCLhmg7-nMsUPjafNjFzAPQ/view?usp=sharing[Download the sample Flex Gateway configuration file^].
@@ -66,7 +66,7 @@ mulesoft/anypoint-flex-gateway            latest    1c1fbdbf819b   9 days ago   
 . Run the Flex Gateway by executing the following command: 
 +
 ----
-docker run -it -p 8080:8080 -v /absolute/path/to/sample/config.yaml:/etc/peregrine/conf.d/custom/config.yaml mulesoft/anypoint-flex-gateway
+docker run -it -p 8080:8080 -v /absolute/path/to/sample/app.yaml:/etc/peregrine/conf.d/custom/app.yaml mulesoft/peregrine
 ----
 
 . Verify that the container image is running successfully by executing the following command: 
@@ -78,8 +78,8 @@ docker ps
 The Flex Gateway process should appear in the resulting list: 
 +
 ----
-CONTAINER ID   IMAGE                            COMMAND   CREATED      STATUS      PORTS                                       
-c2a360f8c9ed   mulesoft/anypoint-flex-gateway   "/init"   8 days ago   Up 8 days   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp 
+CONTAINER ID   IMAGE                    COMMAND   CREATED      STATUS      PORTS                                       
+c2a360f8c9ed   mulesoft/peregrine       "/init"   8 days ago   Up 8 days   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp 
 ----
 
 == Install and Run as an Ubuntu Service
