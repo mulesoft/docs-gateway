@@ -84,7 +84,7 @@ c2a360f8c9ed   mulesoft/peregrine       "/init"   8 days ago   Up 8 days   0.0.0
 
 == Install and Run as an Ubuntu Service
 
-In addition to sandboxing Flex Gateway as a Docker container image, you can install and run Flex Gateway as an Ubuntu service. The Ubuntu instance is typically run virtually as a node in a virtual machine cluster, thereby guaranteeing that each virtual machine (with its running Flex Gateway) is standalone and encapsulated. 
+In addition to sandboxing Flex Gateway as a Docker container image, you can install and run Flex Gateway as an Ubuntu LTS (Focal Fossa) service. The Ubuntu instance is typically run virtually as a node in a virtual machine cluster, thereby guaranteeing that each virtual machine (with its running Flex Gateway) is standalone and encapsulated. 
 
 The following procedure demonstrates how to install and run Flex Gateway as a service in an Ubuntu instance.
 
@@ -177,7 +177,7 @@ peregrine-5f76cf6ccf-br9b5               1/1       Running   0          1m
 
 == Install and Run as a Kubernetes Ingress Controller
 
-You can install Flex Gateway as an Ingress controller - a specialized Kubernetes application that routes external traffic to internal applications and services. The following procedures demonstrate how to install and run Flex Gateway as an Ingress controller. Installation phases are divided by typical roles: 
+You can install Flex Gateway as an Ingress controller - a specialized Kubernetes application that routes external traffic to internal applications and services. The following procedures demonstrate how to install and run Flex Gateway as an Ingress controller. Installation phases are divided by typical roles, and should be run sequentially (each role depends on the completion of previous roles' procedures): 
 
 * An Infrastructure Provider adds the Flex Gateway repository to the cluster, and adds supporting platform components, such as the Grafana repository.
 * A Cluster Operator configures cluster-specific functionality such as local storage and logging. 
@@ -252,7 +252,7 @@ kubectl --namespace monitoring port-forward svc/grafana 8080:80 &
 open http://localhost:8080/
 ---- 
 +
-Log in to Grafana with the following credentials:
+Log in with the following credentials:
 + 
 * username: admin 
 * password: peregrine
@@ -298,7 +298,7 @@ apiinstance.gateway.mulesoft.com/ingress-https   http://0.0.0.0:443/
 apiinstance.gateway.mulesoft.com/ingress-http    http://0.0.0.0:80/
 ----
 
-. Forward the Ingress port to `localhost`: 
+. Launch the Ingress and forward the Ingress port to `localhost`: 
 +
 ----
 kubectl --namespace gateway port-forward svc/ingress 8000:80
@@ -433,6 +433,27 @@ REVISION: 1
 TEST SUITE: None
 ----
 
+. Verify that the `httpbin` application is running: 
++
+----
+curl -v http://localhost:8080/httpbin/headers
+----
++
+The command returns something resembling the following: 
++
+----
+{
+  "headers": {
+    "Accept": "*/*",
+    "Host": "httpbin.default.svc",
+    "User-Agent": "curl/7.64.1",
+    "X-Envoy-Expected-Rq-Timeout-Ms": "15000",
+    "X-Envoy-Original-Path": "/httpbin/headers",
+    "X-Request-Id": "05131cb4-0838-44ec-87d6-db04fb8c9ecf"
+  }
+}
+----
+
 . Install the `whoami` application, and create an ingress that routes traffic from `/whoami/`` to the `ingress-http` `ApiInstance` in namespace `gateway`: 
 +
 ----
@@ -478,10 +499,4 @@ open http://localhost:8080/d/WMcWrCv7k/peregrine
 +
 ----
 sum by (status_code) (rate({job="peregrine",kind="accessLog"} | json | line_format "{{.message}}" | json [5m]))
-----
-
-. Verify that the `httpbin` application is running: 
-+
-----
-curl -v http://localhost:8080/httpbin/headers
 ----
