@@ -186,10 +186,10 @@ You can install Flex Gateway as an Ingress controller - a specialized Kubernetes
 
 === Dependencies
 
-* https://docs.docker.com/compose/install/[Docker^], a platform that delivers applications in packages called containers.
-* https://k3d.io/v5.0.0/#installation[K3d^], a tool used to create Kubernetes clusters.
-* https://kubernetes.io/docs/tasks/tools/#kubectl[kubectl^], a tool used to interact with Kubernetes clusters.
-* https://helm.sh/docs/intro/install/[Helm^], a tool used to install Peregrine, monitoring tools and applications.
+* https://docs.docker.com/compose/install/[Docker,^] a platform that delivers applications in packages called containers.
+* https://k3d.io/v5.0.0/#installation[K3d,^] a tool used to create Kubernetes clusters.
+* https://kubernetes.io/docs/tasks/tools/#kubectl[kubectl,^] a tool used to interact with Kubernetes clusters.
+* https://helm.sh/docs/intro/install/[Helm,^] a tool used to install Peregrine, monitoring tools and applications.
 
 === Prepare the Environment
 
@@ -198,11 +198,24 @@ You can install Flex Gateway as an Ingress controller - a specialized Kubernetes
 ----
 k3d cluster create demo-milestone3 --k3s-arg "--disable=traefik@server:0" --port '80:80@server:0'
 ----
++
+The command should return the following: 
++
+----
+INFO[0042] Cluster 'demo-milestone3' created successfully!
+----
 
 . https://drive.google.com/file/d/1eFxLbBIHHgOxL8XnVmBhwYzom1Xd-gfT/view?usp=sharing[Download the Flex Gateway container^] and import the Docker image: 
 +
 ----
 k3d image import -c demo-milestone3 peregrine.tar
+----
++
+The command should return the following: 
++
+----
+INFO[0016] Successfully imported image(s)
+INFO[0016] Successfully imported 1 image(s) into 1 cluster(s)
 ----
 
 === Procedure: As the Infrastructure Provider
@@ -214,8 +227,19 @@ helm repo add grafana https://grafana.github.io/helm-charts \
     && helm repo add peregrine https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/helm \
     && helm repo up
 ----
++
+The command should return the following: 
++
+----
+"grafana" has been added to your repositories
+"peregrine" has been added to your repositories
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "peregrine" chart repository
+...Successfully got an update from the "grafana" chart repository
+Update Complete. ⎈Happy Helming!⎈
+----
 
-. https://drive.google.com/file/d/1oDHbwk46TsdO_GaJIefo8fAMFf7CDhYV/view?usp=sharing[Download the grafana-values.yaml file^] and configure Grafana:
+. https://drive.google.com/file/d/1oDHbwk46TsdO_GaJIefo8fAMFf7CDhYV/view?usp=sharing[Download the "grafana-values.yaml" file^] and configure Grafana:
 +
 ----
 helm -n monitoring upgrade -i --wait --create-namespace grafana grafana/grafana -f grafana-values.yaml
@@ -230,8 +254,8 @@ open http://localhost:8080/
 +
 Log in to Grafana with the following credentials:
 + 
-* user:admin 
-* password:peregrine
+* username: admin 
+* password: peregrine
 
 . Install Loki (a log aggregator): 
 +
@@ -245,6 +269,17 @@ helm -n monitoring upgrade -i --wait --create-namespace loki grafana/loki
 ----
 helm -n gateway upgrade -i --wait --create-namespace ingress peregrine/peregrine --set image.name=mulesoft/peregrine,ingress.enabled=true
 ----
++
+The command should return something like the following: 
++
+----
+NAME: ingress
+LAST DEPLOYED: Tue Oct 19 13:08:07 2021
+NAMESPACE: gateway
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+----
 
 . Verify that the Flex Gateway Ingress Controller is running:
 +
@@ -255,14 +290,12 @@ kubectl -n gateway get svc,apiinstances
 The command returns output similar to the following: 
 +
 ----
-NAME READY STATUS RESTARTS AGE
-pod/peregrine-59cbfd695c-5v5f8 1/1 Running 4 19h
+NAME              TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)                      AGE
+service/ingress   LoadBalancer   10.43.64.139   172.19.0.3    80:30426/TCP,443:31828/TCP   118s
 
-NAME TYPE CLUSTER-IP EXTERNAL-IP PORT(S) AGE
-service/peregrine ClusterIP 182.41.44.514 <none> 80/TCP 5d18h
-
-NAME READY UP-TO-DATE AVAILABLE AGE
-deployment/peregrine 1/1 1 1 19h
+NAME                                             ADDRESS
+apiinstance.gateway.mulesoft.com/ingress-https   http://0.0.0.0:443/
+apiinstance.gateway.mulesoft.com/ingress-http    http://0.0.0.0:80/
 ----
 
 . Forward the Ingress port to `localhost`: 
@@ -270,8 +303,10 @@ deployment/peregrine 1/1 1 1 19h
 ----
 kubectl --namespace gateway port-forward svc/ingress 8000:80
 ----
++
+The Ingress is now awaiting connections.
 
-. Verify that the URL and port are accessible: 
+. Open a new shell and verify that the URL and port are accessible: 
 +
 ----
 curl -v http://localhost:8000/
@@ -386,6 +421,17 @@ EOF
 ----
 helm -n default upgrade -i --wait --create-namespace httpbin peregrine/httpbin --set ingress.enabled=true,ingress.name=ingress-http.gateway
 ----
++
+The command should return something like the following:toc:
++
+----
+NAME: httpbin
+LAST DEPLOYED: Tue Oct 19 13:27:17 2021
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+----
 
 . Install the `whoami` application, and create an ingress that routes traffic from `/whoami/`` to the `ingress-http` `ApiInstance` in namespace `gateway`: 
 +
@@ -399,12 +445,13 @@ helm -n default upgrade -i --wait --create-namespace whoami peregrine/whoami --s
 curl -v http://localhost:8000/whoami/get 
 ----
 +
-The command returns the following headers added by the `rate-limit` policy: 
+The command returns the following headers, as added by the `rate-limit` policy: 
 +
 ----
-< x-ratelimit-remaining: 1
-< x-ratelimit-limit: 3
-< x-ratelimit-reset: 6871
+< HTTP/1.1 200 OK
+< x-ratelimit-remaining: 0
+< x-ratelimit-limit: 1
+< x-ratelimit-reset: 2000
 ----
 
 . Luanch the Grafana dashboard to view the Flex Gateway logs:
@@ -433,87 +480,8 @@ open http://localhost:8080/d/WMcWrCv7k/peregrine
 sum by (status_code) (rate({job="peregrine",kind="accessLog"} | json | line_format "{{.message}}" | json [5m]))
 ----
 
-. Verify that the service is running: 
+. Verify that the `httpbin` application is running: 
 +
 ----
-curl -v http://$INGRESS_IP/httpbin/headers
+curl -v http://localhost:8080/httpbin/headers
 ----
-
-
-
-
-// ----
-// helm add repo <peregrine-helm-chart-repo-uri>
-// helm install -n <namespace> --atomic mgw-peregrine mgw-peregrine
-// ----
-
-// . Verify that the Flex Gateway Ingress pod is running by executing the following: 
-// +
-// ----
-// kubectl get pods --all-namespaces -l app=mgw-peregrine
-// ----
-// +
-// The output is similar to: 
-// +
-// ----
-// NAMESPACE       NAME                             READY   STATUS    RESTARTS   AGE
-// <namespace>     mgw-peregrine-5d55d8b9dc-v46bg   1/1     Running   0          2m14s
-// ----
-
-// . Verify that the Flex Gateway Ingress service is running by executing the following: 
-// +
-// ----
-// kubectl get services mgw-peregrine
-// ----
-// +
-// The output is similar to: 
-// +
-// ----
-// NAME            TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)                      AGE
-// mgw-peregrine   LoadBalancer   10.21.252.165   192.168.86.11   80:30451/TCP,443:31967/TCP   47s
-// ----
-
-// . Create a configuration file that contains the required `apiVersion`, `kind`, and `metadata` fields:
-// +
-// ----
-// # ingress-http.apiinstance.yaml
-// apiVersion: gateway.mulesoft.com/v1alpha1
-// kind: ApiInstance
-// metadata:
-//   name: ingress-http
-// spec:
-//   address: <proxy address including port> # example: http://0.0.0.0:8080/ 
-// ----
-
-// . Apply the configuration by executing the following command: 
-// +
-// ----
-// kubectl -n <namespace> apply -f ingress-http.apiinstance.yaml
-// ----
-
-// . Associate an Ingress definition with the `ApiInstance` using the `kubernetes.io/ingress.class` annotation. Create a configuration file that contains the following: 
-// +
-// ----
-// # helloworld.ingress.yaml
-// apiVersion: networking.k8s.io/v1beta1
-// kind: Ingress
-// metadata:
-//   name: helloworld
-//   annotations:
-//      kubernetes.io/ingress.class: ingress-http
-// spec:
-//   rules:
-//   - host: helloworld.example.com
-//     http:
-//       paths:
-//       - path: /
-//         backend:
-//           serviceName: helloworld
-//           servicePort: 5000
-// ----
-
-// . Apply the Ingress definition configuration by executing the following command:
-// +
-// ----
-// kubectl -n <namespace> apply -f helloworld.ingress.yaml
-// ----
