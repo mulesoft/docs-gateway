@@ -177,24 +177,29 @@ peregrine-5f76cf6ccf-br9b5               1/1       Running   0          1m
 
 == Install and Run as a Kubernetes Ingress Controller
 
-The following procedures demonstrate how to install and run Flex Gateway as a Kubernetes Ingress controller.
+You can install Flex Gateway as an Ingress controller - a specialized Kubernetes application that routes external traffic to internal applications and services. The following procedures demonstrate how to install and run Flex Gateway as an Ingress controller. Installation phases are divided by typical roles: 
+
+* An Infrastructure Provider adds the Flex Gateway repository to the cluster, and adds supporting platform components, such as the Grafana repository.
+* A Cluster Operator configures cluster-specific functionality such as local storage and logging. 
+* An API Administrator secures services by applying polices. 
+* An Application Developer builds the containerized apps driven by business requirements.
 
 === Dependencies
 
-* https://docs.docker.com/compose/install/[Docker^] - a platform that delivers applications in packages called containers.
-* https://k3d.io/v5.0.0/#installation[K3d^] - used to creates Kubernetes clusters.
-* https://kubernetes.io/docs/tasks/tools/#kubectl[kubectl^] - used to interact with Kubernetes clusters.
-* https://helm.sh/docs/intro/install/[Helm^] - used to install Peregrine, the monitoring tools and applications.
+* https://docs.docker.com/compose/install/[Docker^], a platform that delivers applications in packages called containers.
+* https://k3d.io/v5.0.0/#installation[K3d^], a tool used to create Kubernetes clusters.
+* https://kubernetes.io/docs/tasks/tools/#kubectl[kubectl^], a tool used to interact with Kubernetes clusters.
+* https://helm.sh/docs/intro/install/[Helm^], a tool used to install Peregrine, monitoring tools and applications.
 
 === Prepare the Environment
 
-. Create a Kubernetes cluster: 
+. Create a new Kubernetes cluster with a single server node: 
 +
 ----
 k3d cluster create demo-milestone3 --k3s-arg "--disable=traefik@server:0" --port '80:80@server:0'
 ----
 
-. Download the https://drive.google.com/file/d/1eFxLbBIHHgOxL8XnVmBhwYzom1Xd-gfT/view?usp=sharing[Flex Gateway container^] and import the Docker image: 
+. https://drive.google.com/file/d/1eFxLbBIHHgOxL8XnVmBhwYzom1Xd-gfT/view?usp=sharing[Download the Flex Gateway container^] and import the Docker image: 
 +
 ----
 k3d image import -c demo-milestone3 peregrine.tar
@@ -210,7 +215,7 @@ helm repo add grafana https://grafana.github.io/helm-charts \
     && helm repo up
 ----
 
-. Download the https://drive.google.com/file/d/1oDHbwk46TsdO_GaJIefo8fAMFf7CDhYV/view?usp=sharing[grafana-values.yaml^] file and configure Grafana:
+. https://drive.google.com/file/d/1oDHbwk46TsdO_GaJIefo8fAMFf7CDhYV/view?usp=sharing[Download the grafana-values.yaml file^] and configure Grafana:
 +
 ----
 helm -n monitoring upgrade -i --wait --create-namespace grafana grafana/grafana -f grafana-values.yaml
@@ -235,19 +240,32 @@ helm -n monitoring upgrade -i --wait --create-namespace loki grafana/loki
 ----
 +
 
-. Install Flex Gateway as an Ingress: 
+. Install Flex Gateway as an Ingress Controller: 
 +
 ----
 helm -n gateway upgrade -i --wait --create-namespace ingress peregrine/peregrine --set image.name=mulesoft/peregrine,ingress.enabled=true
 ----
 
-. Verify that the Flex Gateway Ingress is running:
+. Verify that the Flex Gateway Ingress Controller is running:
 +
 ----
 kubectl -n gateway get svc,apiinstances
 ---- 
++
+The command returns output similar to the following: 
++
+----
+NAME READY STATUS RESTARTS AGE
+pod/peregrine-59cbfd695c-5v5f8 1/1 Running 4 19h
 
-. Forward the Ingress port to localhost: 
+NAME TYPE CLUSTER-IP EXTERNAL-IP PORT(S) AGE
+service/peregrine ClusterIP 182.41.44.514 <none> 80/TCP 5d18h
+
+NAME READY UP-TO-DATE AVAILABLE AGE
+deployment/peregrine 1/1 1 1 19h
+----
+
+. Forward the Ingress port to `localhost`: 
 +
 ----
 kubectl --namespace gateway port-forward svc/ingress 8000:80
@@ -259,7 +277,7 @@ kubectl --namespace gateway port-forward svc/ingress 8000:80
 curl -v http://localhost:8000/
 ----
 +
-The command should return a `404 not found` error because an application listening at that address hasn't yet been deployed.
+The command should return a `404 Not Found` error because an application listening at that address hasn't yet been deployed.
 
 === Procedure: As the Cluster Operator
 
@@ -280,7 +298,7 @@ spec:
 EOF
 ----
 
-. Configure logging to forward both `runtimeLogs` and `accessLogs` to Loki, for viewing in Grafana: 
+. Forward (output) both the `runtimeLogs` and `accessLogs` logging objects to Loki, for viewing in Grafana: 
 +
 ----
 cat <<EOF | kubectl apply -f -
@@ -311,7 +329,7 @@ EOF
 
 === Procedure: As the API Administrator
 
-. Apply the *access-log* policy to the `ApiInstance` *ingress-http*, for Grafana viewing: 
+. Apply the `access-log` policy to the  `ingress-http` `ApiInstance`, for viewing in Grafana: 
 +
 ----
 cat <<EOF | kubectl apply -f -
@@ -332,7 +350,7 @@ spec:
 EOF
 ----
 
-. Apply the *rate-limit-local* policy to the `ApiInstance` *ingress-http*: 
+. Apply the `rate-limit-local` policy to the `ingress-http` `ApiInstance`: 
 +
 ----
 cat <<EOF | kubectl apply -f -
@@ -361,27 +379,27 @@ spec:
 EOF
 ----
 
-=== Procedure: As the Developer
+=== Procedure: As the Application Developer
 
-. Install the *httpbin* application, and create an ingress that routes traffic from `/httpbin/` to the `ApiInstance` *ingress-http* in namespace *gateway*: 
+. Install the `httpbin` application, and create an ingress that routes traffic from `/httpbin/` to the `ingress-http` `ApiInstance` in namespace `gateway`:  
 +
 ----
 helm -n default upgrade -i --wait --create-namespace httpbin peregrine/httpbin --set ingress.enabled=true,ingress.name=ingress-http.gateway
 ----
 
-. Install the *whoami* application, and create an ingress that routes traffic from `/whoami/`` to the `ApiInstance` *ingress-http* in namespace *gateway*: 
+. Install the `whoami` application, and create an ingress that routes traffic from `/whoami/`` to the `ingress-http` `ApiInstance` in namespace `gateway`: 
 +
 ----
 helm -n default upgrade -i --wait --create-namespace whoami peregrine/whoami --set ingress.enabled=true,ingress.name=ingress-http.gateway
 ----
 
-. Verify that the *whoami* application is running: 
+. Verify that the `whoami` application is running: 
 +
 ----
 curl -v http://localhost:8000/whoami/get 
 ----
 +
-The following headers added by the *rate-limit* policy should be returned: 
+The command returns the following headers added by the `rate-limit` policy: 
 +
 ----
 < x-ratelimit-remaining: 1
@@ -389,7 +407,7 @@ The following headers added by the *rate-limit* policy should be returned:
 < x-ratelimit-reset: 6871
 ----
 
-. Luanch the Grafana dashboard to view logs and traffic:
+. Luanch the Grafana dashboard to view the Flex Gateway logs:
 +
 ----
 open http://localhost:8080/d/WMcWrCv7k/peregrine
@@ -414,6 +432,14 @@ open http://localhost:8080/d/WMcWrCv7k/peregrine
 ----
 sum by (status_code) (rate({job="peregrine",kind="accessLog"} | json | line_format "{{.message}}" | json [5m]))
 ----
+
+. Verify that the service is running: 
++
+----
+curl -v http://$INGRESS_IP/httpbin/headers
+----
+
+
 
 
 // ----
