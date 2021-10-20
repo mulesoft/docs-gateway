@@ -364,7 +364,7 @@ EOF
 
 === Procedure: As the API Administrator
 
-. Apply the `access-log` policy to the  `ingress-http` `ApiInstance`, for viewing in Grafana: 
+. Apply the `access-log` policy to an `ingress-http` target of type `ApiInstance`, for viewing in Grafana: 
 +
 ----
 cat <<EOF | kubectl apply -f -
@@ -385,7 +385,7 @@ spec:
 EOF
 ----
 
-. Apply the `rate-limit-local` policy to the `ingress-http` `ApiInstance`: 
+. Apply the `rate-limit-local` policy to an `ingress-http` target of type `ApiInstance`. This policy controls incoming API traffic by limiting the number of requests that the API can receive within a given period of time. The following command specifies a limit of 1 request per 2 seconds, or 30 requests per minute, depending on tier.
 +
 ----
 cat <<EOF | kubectl apply -f -
@@ -416,13 +416,13 @@ EOF
 
 === Procedure: As the Application Developer
 
-. Install the `httpbin` application, and create an ingress that routes traffic from `/httpbin/` to the `ingress-http` `ApiInstance` in namespace `gateway`:  
+. Install the `httpbin` application, and create an ingress that routes traffic from `/httpbin/&#42;` to the `ingress-http` instance in namespace `gateway`:  
 +
 ----
 helm -n default upgrade -i --wait --create-namespace httpbin peregrine/httpbin --set ingress.enabled=true,ingress.name=ingress-http.gateway
 ----
 +
-The command should return something like the following:toc:
+The command should return something like the following:
 +
 ----
 NAME: httpbin
@@ -439,7 +439,7 @@ TEST SUITE: None
 curl -v http://localhost:8080/httpbin/headers
 ----
 +
-The command returns something resembling the following: 
+The command returns the incoming request's HTTP headers: 
 +
 ----
 {
@@ -454,7 +454,7 @@ The command returns something resembling the following:
 }
 ----
 
-. Install the `whoami` application, and create an ingress that routes traffic from `/whoami/`` to the `ingress-http` `ApiInstance` in namespace `gateway`: 
+. Install the `whoami` application, and create an ingress that routes traffic from `/whoami/&#42;` to the `ingress-http` instance in namespace `gateway`: 
 +
 ----
 helm -n default upgrade -i --wait --create-namespace whoami peregrine/whoami --set ingress.enabled=true,ingress.name=ingress-http.gateway
@@ -466,7 +466,7 @@ helm -n default upgrade -i --wait --create-namespace whoami peregrine/whoami --s
 curl -v http://localhost:8000/whoami/get 
 ----
 +
-The command returns the following headers, as added by the `rate-limit` policy: 
+The command returns information about the client making the API request, such as headers that have been added by the `rate-limit` policy: 
 +
 ----
 < HTTP/1.1 200 OK
@@ -481,11 +481,11 @@ The command returns the following headers, as added by the `rate-limit` policy:
 open http://localhost:8080/d/WMcWrCv7k/peregrine
 ----
 +
-The Grafana UI contains four graphs: *QPS by Status Code*, *95th percentile of Request Time*, *Runtime Logs*, and *Access Logs*. The *95th percentile of Request Time* graph resembles the following: 
+The Grafana UI contains four graphs: *QPS by Status Code*, *95th percentile of Request Time*, *Runtime Logs*, and *Access Logs*. The graphs resemble the following: 
 +
 image:grafana-request-time.png[65%,65%]
 
-. Run the following Grafana Explorer queries to view logs: 
+. Run the following Grafana Explorer queries to view additional logs: 
 +
 * Runtime logs
 +
