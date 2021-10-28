@@ -1,20 +1,65 @@
-= Deploy and Secure an API
+= Install and Run on a Docker Container Image
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Modify configuration files to deploy and secure services. You can do so directly within the Docker container (or Ubuntu) filesystem. Alternatively, for Kubernetes environments, you can apply configuration files via the Kubectl command line. With either method, the format of the configuration files is the same.
+A Docker container image is a package of software that includes everything needed to run an application. You install and run Flex Gateway as a container image in your local environment during application development - enabling you to test and iterate quickly within Continuous-Integration and Continuous Delivery (CI/CD) workflows. 
 
-This procedure describes how to configure Flex Gateway by defining YAML, and how to deploy a secure service.
+The following procedure demonstrates how to install and run a "containerized" Flex Gateway in your local environment.
 
-== Before You Begin
+== Dependencies
 
-A Flex Gateway instance must be deployed. See xref:microgateway-install-run.adoc[Install and Run Flex Gateway].
+Installation requires a Docker-enabled environment with appropriate Docker permissions. See https://docs.docker.com/compose/install/[Install Docker Compose^].
 
 == Procedure
 
-=== Configure and Deploy the Service
+=== Install as a Docker Container Image
+
+. https://drive.google.com/file/d/1xR2kQqV5BUdIqk8LUbdW8LSdjlF2dP8P/view?usp=sharing[Download the Flex Gateway container image^].
+. Copy the container image tar archive into a directory of your choice.
+. Open a command line client and navigate to the directory containing the container image tar archive.
+. Install the Flex Gateway container image by executing the following command:
++
+----
+docker load --input peregrine.tar
+----
+
+. Verify the installation was successful by executing the following command: 
++
+----
+docker images
+----
++
+The Flex Gateway container image should appear in the resulting list: 
++
+----
+REPOSITORY                      TAG       IMAGE ID       CREATED        SIZE
+mulesoft/peregrine              latest    1c1fbdbf819b   9 days ago     279MB
+----
+
+. https://drive.google.com/file/d/1Uq1YA8UZCRCLhmg7-nMsUPjafNjFzAPQ/view?usp=sharing[Download the sample Flex Gateway configuration file^].
+. Copy the sample configuration `.yaml` file into a directory of your choice (typically the same directory as the container image tar archive.)
+. Run Flex Gateway by executing the following command: 
++
+----
+docker run -it -p 8080:8080 -v /absolute/path/to/app.yaml:/etc/peregrine/conf.d/custom/app.yaml mulesoft/peregrine
+----
+
+. Verify that the container image is running successfully by executing the following command: 
++
+----
+docker ps
+----
++
+The Flex Gateway process should appear in the resulting list: 
++
+----
+CONTAINER ID   IMAGE                    COMMAND   CREATED      STATUS      PORTS                                       
+c2a360f8c9ed   mulesoft/peregrine       "/init"   8 days ago   Up 8 days   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp 
+----
+
+=== Configure and Deploy a Sample Service
 
 . Configure the API instance by creating a YAML (`.yaml`) configuration file with the following snippet:
 +
@@ -115,7 +160,7 @@ The result should include the following:
   ...
 ----
 
-=== Secure the Service
+=== Secure the Sample Service
 
 . With the service running behind Flex Gateway, you can secure the service using a simple authentication policy. Append the following snippet to the YAML configuration file (now located in the Flex Gateway configuration directory): 
 +

@@ -1,0 +1,185 @@
+= Install and Run as a Kubernetes Ingress Controller
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+You can install Anypoint Flex Gateway as an Ingress controller - a specialized Kubernetes application that routes external traffic to internal applications and services. The following procedures demonstrate how to install and run Flex Gateway as an Ingress controller.
+
+== Dependencies
+
+* https://kubernetes.io/docs/tasks/tools/#kubectl[kubectl,^] a tool used to interact with Kubernetes clusters.
+* https://helm.sh/docs/intro/install/[Helm,^] a tool used to install Peregrine, monitoring tools and applications.
+
+== Prepare the Environment
+
+. Create a new Kubernetes cluster with a single server node: 
++
+----
+k3d cluster create demo-milestone3 --k3s-arg "--disable=traefik@server:0" --port '80:80@server:0'
+----
++
+The command should return the following: 
++
+----
+INFO[0042] Cluster 'demo-milestone3' created successfully!
+----
+
+. https://drive.google.com/file/d/1eFxLbBIHHgOxL8XnVmBhwYzom1Xd-gfT/view?usp=sharing[Download the Flex Gateway container^] and import the Docker image: 
++
+----
+k3d image import -c demo-milestone3 peregrine.tar
+----
++
+The command should return the following: 
++
+----
+INFO[0016] Successfully imported image(s)
+INFO[0016] Successfully imported 1 image(s) into 1 cluster(s)
+----
+
+== Procedure 
+
+=== Install as an Ingress Controller
+
+. Execute the following `helm upgrade` command to install Flex Gateway: 
++
+----
+helm -n gateway upgrade -i --wait --create-namespace ingress peregrine/peregrine --set image.name=mulesoft/peregrine,ingress.enabled=true
+----
++
+The command should return something like the following: 
++
+----
+NAME: ingress
+LAST DEPLOYED: Tue Oct 19 13:08:07 2021
+NAMESPACE: gateway
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+----
+
+. Verify that the Flex Gateway Ingress Controller is running:
++
+----
+kubectl -n gateway get svc,apiinstances
+---- 
++
+The command returns output similar to the following: 
++
+----
+NAME              TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)                      AGE
+service/ingress   LoadBalancer   10.43.64.139   172.19.0.3    80:30426/TCP,443:31828/TCP   118s
+
+NAME                                             ADDRESS
+apiinstance.gateway.mulesoft.com/ingress-https   http://0.0.0.0:443/
+apiinstance.gateway.mulesoft.com/ingress-http    http://0.0.0.0:80/
+----
+
+. Launch the Ingress and forward the Ingress port to `localhost`: 
++
+----
+kubectl --namespace gateway port-forward svc/ingress 8000:80
+----
++
+The Ingress is now awaiting connections.
+
+. Open a new shell and verify that the URL and port are accessible: 
++
+----
+curl -v http://localhost:8000/
+----
++
+The command should return a `404 Not Found` error because an application listening at that address hasn't yet been deployed.
+
+=== Secure the Ingress
+
+. Apply the `rate-limit-local` policy to an `ingress-http` target of type `ApiInstance`. This policy controls incoming API traffic by limiting the number of requests that the API can receive within a given period of time. The following command specifies a limit of 1 request per 2 seconds, or 30 requests per minute, depending on tier.
++
+----
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: ingress-http-ratelimit
+  namespace: gateway
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: ingress-http
+  policyRef:
+    kind: Extension
+    name: rate-limit-local
+  config:
+    headers: true
+    tiers:
+    - timePeriod: 2
+      maximumRequests: 1
+      timeUnit: SECONDS
+    - timePeriod: 1
+      maximumRequests: 30
+      timeUnit: MINUTES
+EOF
+----
+
+=== Install Sample Applications
+
+. Install the `httpbin` application, and create an ingress that routes traffic from `/httpbin/&#42;` to the `ingress-http` instance in namespace `gateway`:  
++
+----
+helm -n default upgrade -i --wait --create-namespace httpbin peregrine/httpbin --set ingress.enabled=true,ingress.name=ingress-http.gateway
+----
++
+The command should return something like the following:
++
+----
+NAME: httpbin
+LAST DEPLOYED: Tue Oct 19 13:27:17 2021
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+----
+
+. Verify that the `httpbin` application is running: 
++
+----
+curl -v http://localhost:8080/httpbin/headers
+----
++
+The command returns the incoming request's HTTP headers: 
++
+----
+{
+  "headers": {
+    "Accept": "*/*",
+    "Host": "httpbin.default.svc",
+    "User-Agent": "curl/7.64.1",
+    "X-Envoy-Expected-Rq-Timeout-Ms": "15000",
+    "X-Envoy-Original-Path": "/httpbin/headers",
+    "X-Request-Id": "05131cb4-0838-44ec-87d6-db04fb8c9ecf"
+  }
+}
+----
+
+. Install the `whoami` application, and create an ingress that routes traffic from `/whoami/&#42;` to the `ingress-http` instance in namespace `gateway`: 
++
+----
+helm -n default upgrade -i --wait --create-namespace whoami peregrine/whoami --set ingress.enabled=true,ingress.name=ingress-http.gateway
+----
+
+. Verify that the `whoami` application is running: 
++
+----
+curl -v http://localhost:8000/whoami/get 
+----
++
+The command returns information about the client making the API request, such as headers that have been added by the `rate-limit` policy: 
++
+----
+< HTTP/1.1 200 OK
+< x-ratelimit-remaining: 0
+< x-ratelimit-limit: 1
+< x-ratelimit-reset: 2000
+----
