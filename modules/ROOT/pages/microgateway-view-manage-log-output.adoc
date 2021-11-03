@@ -3,3 +3,66 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
+
+Anypoint Flex Gateway enables you to push metrics to https://fluentbit.io/[Fluentbit] logging services.
+
+Two Fluentbit output plugins are supported:
+
+* The https://docs.fluentbit.io/manual/pipeline/outputs/file[File^] plugin writes log output to a local file.
+* The https://docs.fluentbit.io/manual/pipeline/outputs/http#example-sumo-logic-http-collector[HTTP^] plugin delivers your log output to an HTTP endpoint, like Sumo Logic.
+
+== Configuration Examples
+
+Configure Flex Gateway to send formatted runtime and access logs to a file called `log.txt` (Fluentbit File output), located within the container's `/peregrine/` directory. As an example, the following definition specifies a `spec.logging.outputs.type` value of `file`:
+
+----
+apiVersion: config.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: metrics-config
+spec:
+  logging:
+    outputs:
+    - name: default
+      type: file
+      parameters:
+        file: ./peregrine/log.txt
+        format: template
+        template: |
+          [{runtime}][{loglevel}][{kind}] {message}
+    runtimeLogs:
+      logLevel: info
+      outputs:
+      - default
+    accessLogs:
+      outputs:
+      - default
+----
+
+In addition to configuring logging for Fluentbit File output, you can also configure for Fluentbit HTTP output. As an example, the following definition specifies a `spec.logging.outputs.type` value of `http`:
+
+----
+apiVersion: config.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: metrics-config
+spec:
+  logging:
+    outputs:
+    - name: default
+      type: http
+      parameters:
+        host: collectors.au.sumologic.com
+        port: 443
+        URI: /receiver/v1/http/[PrivateKey]
+        format: json_lines
+        json_date_key: timestamp
+        json_date_format: iso8601
+    runtimeLogs:
+      logLevel: info
+      outputs:
+      - default
+    accessLogs:
+      outputs:
+      - default
+----
