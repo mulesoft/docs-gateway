@@ -1,0 +1,44 @@
+= Default Policies
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+== Basic Authentication
+
+Specify the username and password to use for authentication. 
+
+----
+- policyRef:
+    name: basic-authentication
+  config:
+    username: <string>
+    password: <string>
+----
+
+Example authentication of a request made via `curl`: 
+----
+curl -v -u chris:admin http://127.0.0.1:8080/api/users/1
+----
+
+== Rate Limiting
+
+Control incoming API traffic by limiting the number of requests that the API can receive within a given period of time.
+
+----
+- policyRef:
+    name: rate-limit-local
+  policySpecs:
+    - config:
+        headers: true
+        tiers:
+          - timePeriod: <int>
+            timeUnit: <string>
+            maximumRequests: <int>
+----
+
+Available `timeUnit` values:
+
+* MINUTES
+* HOURS
+* DAYS

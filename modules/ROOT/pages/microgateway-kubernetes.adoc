@@ -25,7 +25,7 @@ The command should return the following:
 INFO[0042] Cluster 'demo-milestone3' created successfully!
 ----
 
-. https://drive.google.com/file/d/1eFxLbBIHHgOxL8XnVmBhwYzom1Xd-gfT/view?usp=sharing[Download the Flex Gateway container^] and import the Docker image: 
+. https://drive.google.com/file/d/1eFxLbBIHHgOxL8XnVmBhwYzom1Xd-gfT/view?usp=sharing[Download the Flex Gateway container^] and import the Docker container image: 
 +
 ----
 k3d image import -c demo-milestone3 peregrine.tar
@@ -39,8 +39,6 @@ INFO[0016] Successfully imported 1 image(s) into 1 cluster(s)
 ----
 
 == Procedure 
-
-=== Install as an Ingress Controller
 
 . Execute the following `helm upgrade` command to install Flex Gateway: 
 +
@@ -92,94 +90,69 @@ curl -v http://localhost:8000/
 +
 The command should return a `404 Not Found` error because an application listening at that address hasn't yet been deployed.
 
-=== Secure the Ingress
-
-. Apply the `rate-limit-local` policy to an `ingress-http` target of type `ApiInstance`. This policy controls incoming API traffic by limiting the number of requests that the API can receive within a given period of time. The following command specifies a limit of 1 request per 2 seconds, or 30 requests per minute, depending on tier.
+. Apply the following configuration: 
 +
 ----
 cat <<EOF | kubectl apply -f -
 ---
 apiVersion: gateway.mulesoft.com/v1alpha1
-kind: PolicyBinding
+kind: ApiInstance
 metadata:
-  name: ingress-http-ratelimit
-  namespace: gateway
+  name: ingress-http
 spec:
-  targetRef:
-    kind: ApiInstance
-    name: ingress-http
-  policyRef:
-    kind: Extension
-    name: rate-limit-local
-  config:
-    headers: true
-    tiers:
-    - timePeriod: 2
-      maximumRequests: 1
-      timeUnit: SECONDS
-    - timePeriod: 1
-      maximumRequests: 30
-      timeUnit: MINUTES
+  address: http://0.0.0.0:8080
+  services:
+    jsonplaceholder:
+      address: https://jsonplaceholder.typicode.com:443/
+      routes:
+        - rules:
+            - path: /api(/users/.*)
+            - path: /api(/comments/.*)
+  policies:
+    - policyRef:
+        name: basic-authentication
+      config:
+        username: foo
+        password: bar
 EOF
 ----
++
+The configuration creates a service called `jsonplaceholder`, specifies its implementation address, and then defines path rules.
++
+Additionally, the configuration applies a policy called `basic-authentication`, and specifies credentials that incoming requests use when accessing the `jsonplaceholder` service.
 
-=== Install Sample Applications
-
-. Install the `httpbin` application, and create an ingress that routes traffic from `/httpbin/&#42;` to the `ingress-http` instance in namespace `gateway`:  
+. Test the service by executing the following command: 
 +
 ----
-helm -n default upgrade -i --wait --create-namespace httpbin peregrine/httpbin --set ingress.enabled=true,ingress.name=ingress-http.gateway
+curl -v -u foo:bar http://127.0.0.1:8080/api/users/1
 ----
 +
-The command should return something like the following:
+The result should include the following: 
 +
 ----
-NAME: httpbin
-LAST DEPLOYED: Tue Oct 19 13:27:17 2021
-NAMESPACE: default
-STATUS: deployed
-REVISION: 1
-TEST SUITE: None
-----
-
-. Verify that the `httpbin` application is running: 
-+
-----
-curl -v http://localhost:8080/httpbin/headers
-----
-+
-The command returns the incoming request's HTTP headers: 
-+
-----
-{
-  "headers": {
-    "Accept": "*/*",
-    "Host": "httpbin.default.svc",
-    "User-Agent": "curl/7.64.1",
-    "X-Envoy-Expected-Rq-Timeout-Ms": "15000",
-    "X-Envoy-Original-Path": "/httpbin/headers",
-    "X-Request-Id": "05131cb4-0838-44ec-87d6-db04fb8c9ecf"
-  }
-}
-----
-
-. Install the `whoami` application, and create an ingress that routes traffic from `/whoami/&#42;` to the `ingress-http` instance in namespace `gateway`: 
-+
-----
-helm -n default upgrade -i --wait --create-namespace whoami peregrine/whoami --set ingress.enabled=true,ingress.name=ingress-http.gateway
-----
-
-. Verify that the `whoami` application is running: 
-+
-----
-curl -v http://localhost:8000/whoami/get 
-----
-+
-The command returns information about the client making the API request, such as headers that have been added by the `rate-limit` policy: 
-+
-----
-< HTTP/1.1 200 OK
-< x-ratelimit-remaining: 0
-< x-ratelimit-limit: 1
-< x-ratelimit-reset: 2000
+[
+  {
+    "id": 1,
+    "name": "Leanne Graham",
+    "username": "Bret",
+    "email": "Sincere@april.biz",
+    "address": {
+      "street": "Kulas Light",
+      "suite": "Apt. 556",
+      "city": "Gwenborough",
+      "zipcode": "92998-3874",
+      "geo": {
+        "lat": "-37.3159",
+        "lng": "81.1496"
+      }
+    },
+    "phone": "1-770-736-8031 x56442",
+    "website": "hildegard.org",
+    "company": {
+      "name": "Romaguera-Crona",
+      "catchPhrase": "Multi-layered client-server neural-net",
+      "bs": "harness real-time e-markets"
+    }
+  },
+  ...
 ----

@@ -4,22 +4,26 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Flex Gateway can be configured via different types of data sources. A common data source is YAML, which can contain one or more resources. Management of multiple resources can be simplified by grouping them together in the same file (separated by `---` in YAML). Alternatively, Flex Gateway can be configured through the Kubernetes Kubectl command line.
+Anypoint Flex Gateway supports two YAML configuration models: inline, and resource-based. Inline configurations enable you to nest objects, thereby simplifying entity definitions. Resource-based configurations enable you to separate objects into multiple files or resources, thereby assisting with modularity.
+
+Examples of inline configuration definitions are included in the installation procedures: 
+
+* xref:microgateway-kubernetes.adoc[Install and Run as a Kubernetes Ingress Controller]
+* xref:microgateway-linux.adoc[Install and Run as an Ubuntu Service]
+* xref:microgateway-docker.adoc[Install and Run as a Docker Container Image]
 
 The following reference describes the available configuration resources.
 
 == API Instance
 
-Configure an API instance by creating a definition file with a ‘.yaml’ file extension. The definition includes the following: 
-
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: ApiInstance
 metadata:
-  name: <api instance name>   # example: hello-peregrine-instance
-  namespace: <namespace name> # example: e-commerce
+  name: <api instance name>  
+  namespace: <namespace name>
 spec:
-  address: <proxy address including port> # example: http://0.0.0.0:8080/ 
+  address: <proxy address including port>
 ----
 
 [cols="2,1,1,3"]
@@ -43,27 +47,38 @@ spec:
 
 |===
 
-== Policy Binding
-Apply a policy to an API instance by creating a policy binding definition file with a `.yaml` file extension. The definition includes the following:
+The following example specifies an `ApiInstance` with metadata that describes the instance identifier. The `metadata.name` value is used as the target reference for other resources, such as policy bindings: 
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: hello-flex-gateway-instance
+  namespace: e-commerce
+spec:
+  address: http://0.0.0.0:8080/
+----
+
+== Policy Binding 
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: PolicyBinding
 metadata:
-  name: <policy binding name> # example: policy-binding-instance
-  namespace: <namespace name> # example: e-commerce
+  name: <policy binding name>
+  namespace: <namespace name>
 spec:
   targetRef:
     kind: ApiInstance
-    name: <api instance name>    # example: hello-peregrine-instance
-    namespace: <namespace name>  # example: e-commerce
+    name: <api instance name>  
+    namespace: <namespace name> 
   policyRef:
     kind: Extension
-    name: <policy name>           # example: basic-auth
-    namespace: <policy namespace> # example: gateway
+    name: <policy name>     
+    namespace: <policy namespace>
   config: <Policy configuration>
   rules:
-  - path: <rule path> # example: /api/helloworld/.*
+  - path: <rule path> 
 ----
 
 [cols="2,1,1,3"]
@@ -112,18 +127,64 @@ spec:
 
 |===
 
-== Service
+The following example binds an `ingress-http-route` policy to the API instance, routing traffic specified in `rules.path` to the proxy address specified in the `Service` configuration snippet: 
 
-Register a service by creating a service definition file with a ‘.yaml’ file extension. The definition includes the following: 
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: ingress-http-route
+  namespace: e-commerce
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: hello-flex-gateway-instance
+    namespace: e-commerce
+  policyRef:
+    kind: Extension
+    name: route
+    namespace: gateway
+  config:
+    destinationRef:
+      kind: Service
+      name: helloworld-v1
+      namespace: e-commerce
+  rules:
+  - path: /api/jsonplaceholder(/.*)
+----
+
+The following example binds an `ingress-http-auth` policy to the API instance -  requiring requests to include the basic credentials defined in `config.username` and `config.password`:
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+ name: ingress-http-auth
+ namespace: e-commerce
+spec:
+ targetRef:
+   kind: ApiInstance
+   name: hello-flex-gateway-instance
+   namespace: e-commerce
+ policyRef:
+   kind: Extension
+   name: basic-authentication
+   namespace: gateway
+ config:
+   username: foo
+   password: bar
+----
+
+== Service
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Service
 metadata:
-  name: <service name>        # example: hello-service-instance
-  namespace: <namespace name> # example: e-commerce
+  name: <service name>        
+  namespace: <namespace name> 
 spec:
-  address: <service address including port> # example: http://helloworld-v1:5000/ 
+  address: <service address including port> 
 ----
 
 [cols="2,1,1,3"]
@@ -146,3 +207,77 @@ spec:
 |The service address (and port).
 
 |===
+
+The following example specifies a `Service` with metadata that describes the service identifier. The `metadata.namespace` value matches the namespace specified in the `ApiInstance` configuration. The `spec.address` is the address of the API implementation: 
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Service
+metadata:
+  name: helloworld-v1
+  namespace: e-commerce
+spec:
+  address: https://jsonplaceholder.typicode.com:443/
+----
+
+== Configuration
+
+Define a desired gateway state by creating a `Configuration` entity. `Configuration` entities specify the runtime behavior of APIs managed by the instance. The definition includes the following: 
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: <value>           
+  namespace: <namespace name>      
+spec: 
+  <spec object> 
+----
+
+[cols="2,1,1,3"]
+|===
+|Parameter |Required or Optional |Default Value |Description
+
+|`metadata.name`
+|Required
+|N/A
+|The Configuration entity.
+
+|`metadata.namespace`
+|Optional
+|`default`
+|The namespace value used to isolate Configuration entities.
+
+|`spec`
+|Required
+|N/A
+|The persistent configuration object that defines gateway characteristics. Objects include: `logging`, `sharedStorage`, `tls`, `platformConnection`, `forwardProxy`, `automatedPolicy`.
+
+|===
+
+=== Logging
+
+The `logging` object configures the delivery of runtime/access logs enabled via the message logging policy. Logs are delivered to any supported https://fluentbit.io/[Fluentbit^] output.
+
+----
+apiVersion: config.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: <value>
+  namespace: <namespace name>
+spec:
+  logging:
+    outputs:
+    - name:
+      type: 
+      [type_parameters]: 
+  runtimeLog:
+    logLevel: 
+    outputs: <value>
+  accessLog:
+    outputs: <value>
+----
+
+=== Shared Storage
+
+The `sharedStorage` object configures running the gateway in high availability environments. Shared storage requires a https://redis.io/[redis database^] to be installed, running, and accessible.

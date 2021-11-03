@@ -14,8 +14,6 @@ Installation requires a Docker-enabled environment with appropriate Docker permi
 
 == Procedure
 
-=== Install as a Docker Container Image
-
 . https://drive.google.com/file/d/1xR2kQqV5BUdIqk8LUbdW8LSdjlF2dP8P/view?usp=sharing[Download the Flex Gateway container image^].
 . Copy the container image tar archive into a directory of your choice.
 . Open a command line client and navigate to the directory containing the container image tar archive.
@@ -38,20 +36,43 @@ REPOSITORY                      TAG       IMAGE ID       CREATED        SIZE
 mulesoft/peregrine              latest    1c1fbdbf819b   9 days ago     279MB
 ----
 
-. https://drive.google.com/file/d/1Uq1YA8UZCRCLhmg7-nMsUPjafNjFzAPQ/view?usp=sharing[Download the sample Flex Gateway configuration file^].
-. Copy the sample configuration `.yaml` file into a directory of your choice (typically the same directory as the container image tar archive.)
-+ 
-The file contains an `ApiInstance` with metadata that describes the instance identifier. The `metadata.name` value is used as the target reference for other resources, such as policy bindings.
-+
-A `Service` is also defined with metadata that describes the service identifier. The `metadata.namespace` value matches the namespace specified in the `ApiInstance` configuration. The `spec.address` is the address of the API implementation.
-+
-Lastly, a `ibasic-authentication` policy binds to the API instance - requiring requests to include the basic credentials defined in `config.username` and `config.password`.
+. Create a configuration file called `app.yaml` and save it in the same directory as your container image tar archive.
 
-. Run Flex Gateway by executing the following command: 
+. Copy the following into `app.yaml`, then save:
++
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: ingress-http
+spec:
+  address: http://0.0.0.0:8080
+  services:
+    jsonplaceholder:
+      address: https://jsonplaceholder.typicode.com:443/
+      routes:
+        - rules:
+            - path: /api(/users/.*)
+            - path: /api(/comments/.*)
+  policies:
+    - policyRef:
+        name: basic-authentication
+      config:
+        username: foo
+        password: bar
+----
++
+The configuration creates a service called `jsonplaceholder`, specifies its implementation address, and then defines path rules.
++
+Additionally, the configuration applies a policy called `basic-authentication`, and specifies credentials that incoming requests use when accessing the `jsonplaceholder` service.
+
+. Run Flex Gateway by executing the following command. Include the absolute path to the `app.yaml` file created in the previous step (the file typically resides in the same directory as the downloaded container image tar archive.) 
 +
 ----
 docker run -it -p 8080:8080 -v /absolute/path/to/app.yaml:/etc/peregrine/conf.d/custom/app.yaml mulesoft/peregrine
 ----
++
+In addition to running Docker, the command instructs the running instance to listen at a given port, and to mount the port on the image in the directory path.
 
 . Verify that the container image is running successfully by executing the following command: 
 +
@@ -69,7 +90,7 @@ c2a360f8c9ed   mulesoft/peregrine       "/init"   8 days ago   Up 8 days   0.0.0
 . Test the service by executing the following command: 
 +
 ----
-curl -u foo:bar http://127.0.0.1:8080/api/jsonplaceholder/users
+curl -v -u foo:bar http://127.0.0.1:8080/api/users/1
 ----
 +
 The result should include the following: 
@@ -101,204 +122,3 @@ The result should include the following:
   },
   ...
 ----
-
-// === Example: Configure and Deploy a Simple API
-
-// . Configure and deploy the API instance by creating a YAML (`.yaml`) definition file that contains the following:
-// +
-// ----
-// kind: ApiInstance
-// metadata:
-// name: orders
-// spec:
-// address: http://0.0.0.0:8080/api/v1/orders
-// services:
-// - name: orders-backend
-//   address: http://orders.e-commerce.svc:5000
-// policies:
-// - policyRef:
-//     name: openid-oauth-policy
-//   policySpecs:
-//     - config:
-//         identityProvider:
-//           authHeader: bearer
-//           tokenUrl: https://acme.sso.com/oauth2/token
-//           authorizeUrl: https://acme.sso.com/oauth2/authorize
-//           clientId: LlZNTCY/aS9aNlpwdEdadClde0ZWLGtwcg==
-//           clientSecret: TjxKW0MvdHAiPjlKcHk4cm5yQ3AiLjozezY=
-//         timeout: 10000
-//         scopes: id:read,cart:read,orders:write
-// - policyRef:
-//     name: local-rate-limit
-//     namespace: gateway
-//   policySpecs:
-//     - config:
-//         headers: true
-//         tiers:
-//           - timePeriod: 1
-//             timeUnit: MINUTES
-//             maximumRequests: 5
-//           - timePeriod: 1
-//             timeUnit: HOURS
-//             maximumRequests: 20
-// - policyRef:
-//     name: orders-caching
-//     namespace: gateway
-//   policySpecs:
-//     - config:
-//       maxEntries: 10000
-//       ttl: 600
-// ----
-
-// . Copy the YAML configuration file into the Flex Gateway configuration directory, located within the Docker container filesystem (or Ubuntu filesystem): `/etc/peregrine/conf.d/custom/`. Flex Gateway automatically reloads this change and immediately begins running the service.
-
-// . Test the service by executing the following command: 
-// +
-// ----
-// curl http://127.0.0.1:8080/api/v1/orders
-// ----
-
-
-// === Configure and Deploy a Sample Service
-
-// . Configure the API instance by creating a YAML (`.yaml`) configuration file with the following snippet:
-// +
-// ----
-// ---
-// apiVersion: gateway.mulesoft.com/v1alpha1
-// kind: ApiInstance
-// metadata:
-//   name: hello-flex-gateway-instance
-//   namespace: e-commerce
-// spec:
-//   address: http://0.0.0.0:8080/
-// ----
-// +
-// This snippet specifies an `ApiInstance` with metadata that describes the instance identifier. The `metadata.name` value is used as the target reference for other resources, such as policy bindings.
-
-// . Configure the service by appending the following snippet to the YAML configuration file:
-// +
-// ----
-// ---
-// apiVersion: gateway.mulesoft.com/v1alpha1
-// kind: Service
-// metadata:
-//   name: helloworld-v1
-//   namespace: e-commerce
-// spec:
-//   address: https://jsonplaceholder.typicode.com:443/
-// ----
-// +
-// This snippet specifies a `Service` with metadata that describes the service identifier. The `metadata.namespace` value matches the namespace specified in the `ApiInstance` configuration. The `spec.address` is the address of the API implementation.
-
-// . Configure policy binding by appending the following snippet to the YAML configuration file: 
-// +
-// ----
-// ---
-// apiVersion: gateway.mulesoft.com/v1alpha1
-// kind: PolicyBinding
-// metadata:
-//   name: ingress-http-route
-//   namespace: e-commerce
-// spec:
-//   targetRef:
-//     kind: ApiInstance
-//     name: hello-flex-gateway-instance
-//     namespace: e-commerce
-//   policyRef:
-//     kind: Extension
-//     name: route
-//     namespace: gateway
-//   config:
-//     destinationRef:
-//       kind: Service
-//       name: helloworld-v1
-//       namespace: e-commerce
-//   rules:
-//   - path: /api/jsonplaceholder(/.*)
-// ----
-// +
-// This snippet binds an `ingress-http-route` policy to the API instance, routing traffic specified in `rules.path` to the proxy address specified in the `Service` configuration snippet.
-
-// . Copy the YAML configuration file into the Flex Gateway configuration directory, located within the Docker container filesystem (or Ubuntu filesystem): `/etc/peregrine/conf.d/custom/`. Flex Gateway automatically reloads this change and immediately begins running the service.
-// +
-// Alternatively, for Kubuernetes environments, you can apply the configuration using the Kubectl command line. Kubernetes manifests can be defined in either YAML or JSON.
-
-// . Test the service by executing the following command: 
-// +
-// ----
-// curl http://127.0.0.1:8080/api/jsonplaceholder/users
-// ----
-// +
-// The result should include the following: 
-// +
-// ----
-// [
-//   {
-//     "id": 1,
-//     "name": "Leanne Graham",
-//     "username": "Bret",
-//     "email": "Sincere@april.biz",
-//     "address": {
-//       "street": "Kulas Light",
-//       "suite": "Apt. 556",
-//       "city": "Gwenborough",
-//       "zipcode": "92998-3874",
-//       "geo": {
-//         "lat": "-37.3159",
-//         "lng": "81.1496"
-//       }
-//     },
-//     "phone": "1-770-736-8031 x56442",
-//     "website": "hildegard.org",
-//     "company": {
-//       "name": "Romaguera-Crona",
-//       "catchPhrase": "Multi-layered client-server neural-net",
-//       "bs": "harness real-time e-markets"
-//     }
-//   },
-//   ...
-// ----
-
-// === Secure the Sample Service
-
-// . With the service running behind Flex Gateway, you can secure the service using a simple authentication policy. Append the following snippet to the YAML configuration file (now located in the Flex Gateway configuration directory): 
-// +
-// ----
-// ---
-// apiVersion: gateway.mulesoft.com/v1alpha1
-// kind: PolicyBinding
-// metadata:
-//  name: ingress-http-auth
-//  namespace: e-commerce
-// spec:
-//  targetRef:
-//    kind: ApiInstance
-//    name: ingress-http
-//    namespace: e-commerce
-//  policyRef:
-//    kind: Extension
-//    name: basic-auth
-//    namespace: gateway
-//  config:
-//    username: foo
-//    password: bar
-// ----
-// +
-// This snippet binds an `ingress-http-auth` policy to the API instance -  requiring requests to include the basic credentials defined in `config.username` and `config.password`.
-
-// . Test the service *without* the required credentials by executing the following command:
-// +
-// ----
-// curl http://127.0.0.1:8080/api/jsonplaceholder/users
-// ----
-// +
-// An authorization error is now returned.
-
-// . Test the service, this time *with* the required credentials: 
-// +
-// ----
-// curl -u foo:bar http://127.0.0.1:8080/api/jsonplaceholder/users
-// ----
-// +
-// The request is authorized and the correct response is returned.
