@@ -85,7 +85,7 @@ The Ingress is now awaiting connections.
 . Open a new shell and verify that the URL and port are accessible: 
 +
 ----
-curl -v http://localhost:8000/
+curl -v http://127.0.0.1:8000/
 ----
 +
 The command should return a `404 Not Found` error because an application listening at that address hasn't yet been deployed.
@@ -100,7 +100,7 @@ kind: ApiInstance
 metadata:
   name: ingress-http
 spec:
-  address: http://0.0.0.0:8080
+  address: http://0.0.0.0:8000
   services:
     jsonplaceholder:
       address: https://jsonplaceholder.typicode.com:443/
@@ -124,7 +124,7 @@ Additionally, the configuration applies a policy called `basic-authentication`, 
 . Test the service by executing the following command: 
 +
 ----
-curl -v -u foo:bar http://127.0.0.1:8080/api/users/1
+curl -v -u foo:bar http://127.0.0.1:8000/api/users/1
 ----
 +
 The result should include the following: 
