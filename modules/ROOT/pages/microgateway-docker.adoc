@@ -14,13 +14,13 @@ Installation requires a Docker-enabled environment with appropriate Docker permi
 
 == Procedure
 
-. https://drive.google.com/file/d/1xR2kQqV5BUdIqk8LUbdW8LSdjlF2dP8P/view?usp=sharing[Download the Flex Gateway container image^].
+. https://drive.google.com/file/d/1lWC0aDvaVVD6RhkqeEt1u5ZVPlP9kyZT/view?usp=sharing[Download the Flex Gateway container image^].
 . Copy the container image tar archive into a directory of your choice.
 . Open a command line client and navigate to the directory containing the container image tar archive.
 . Install the Flex Gateway container image by executing the following command:
 +
 ----
-docker load --input peregrine.tar
+docker load --input flex-gateway-1.0.0-alpha.1.tar
 ----
 
 . Verify the installation was successful by executing the following command: 
@@ -33,7 +33,7 @@ The Flex Gateway container image should appear in the resulting list:
 +
 ----
 REPOSITORY                      TAG       IMAGE ID       CREATED        SIZE
-mulesoft/peregrine              latest    1c1fbdbf819b   9 days ago     279MB
+mulesoft/flex-gateway           latest    1c1fbdbf819b   9 days ago     333MB
 ----
 
 . Create a configuration file called `app.yaml` and save it in the same directory as your container image tar archive.
@@ -69,7 +69,7 @@ Additionally, the configuration applies a policy called `basic-authentication`, 
 . Run Flex Gateway by executing the following command. Include the absolute path to the `app.yaml` file created in the previous step (the file typically resides in the same directory as the downloaded container image tar archive.) 
 +
 ----
-docker run -it -p 8080:8080 -v /absolute/path/to/app.yaml:/etc/peregrine/conf.d/custom/app.yaml mulesoft/peregrine
+docker run -it -p 8080:8080 -v /absolute/path/to/app.yaml:/etc/peregrine/conf.d/custom/app.yaml mulesoft/flex-gateway:1.0.0-alpha.1
 ----
 +
 In addition to running Docker, the command instructs the running instance to listen at a given port, and to mount the port on the image in the directory path.
@@ -83,8 +83,8 @@ docker ps
 The Flex Gateway process should appear in the resulting list: 
 +
 ----
-CONTAINER ID   IMAGE                    COMMAND   CREATED      STATUS      PORTS                                       
-c2a360f8c9ed   mulesoft/peregrine       "/init"   8 days ago   Up 8 days   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp 
+CONTAINER ID   IMAGE                                     COMMAND   CREATED      STATUS      PORTS                                       
+c2a360f8c9ed   mulesoft/flex-gateway:1.0.0-alpha.1       "/init"   8 days ago   Up 8 days   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp 
 ----
 
 . Test the service by executing the following command: 
@@ -122,3 +122,5 @@ The result should include the following:
   },
   ...
 ----
+
+A secured service is now running behind Flex Gateway.

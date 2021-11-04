@@ -16,19 +16,19 @@ You can install Anypoint Flex Gateway as an Ingress controller - a specialized K
 . Create a new Kubernetes cluster with a single server node: 
 +
 ----
-k3d cluster create demo-milestone3 --k3s-arg "--disable=traefik@server:0" --port '80:80@server:0'
+k3d cluster create flex-gateway-1 --k3s-arg "--disable=traefik@server:0" --port '80:80@server:0'
 ----
 +
 The command should return the following: 
 +
 ----
-INFO[0042] Cluster 'demo-milestone3' created successfully!
+INFO[0042] Cluster 'flex-gateway-1' created successfully!
 ----
 
-. https://drive.google.com/file/d/1eFxLbBIHHgOxL8XnVmBhwYzom1Xd-gfT/view?usp=sharing[Download the Flex Gateway container^] and import the Docker container image: 
+. https://drive.google.com/file/d/1lWC0aDvaVVD6RhkqeEt1u5ZVPlP9kyZT/view?usp=sharing[Download the Flex Gateway container^] and import the Docker container image: 
 +
 ----
-k3d image import -c demo-milestone3 peregrine.tar
+k3d image import -c flex-gateway-1 flex-gateway-1.0.0-alpha.1.tar
 ----
 +
 The command should return the following: 
@@ -43,7 +43,7 @@ INFO[0016] Successfully imported 1 image(s) into 1 cluster(s)
 . Execute the following `helm upgrade` command to install Flex Gateway: 
 +
 ----
-helm -n gateway upgrade -i --wait --create-namespace ingress peregrine/peregrine --set image.name=mulesoft/peregrine,ingress.enabled=true
+helm -n gateway upgrade -i --wait --create-namespace ingress peregrine/peregrine --set image.name=mulesoft/flex-gateway:1.0.0-alpha.1,ingress.enabled=true
 ----
 +
 The command should return something like the following: 
