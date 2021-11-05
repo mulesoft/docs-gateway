@@ -74,21 +74,26 @@ apiinstance.gateway.mulesoft.com/ingress-https   http://0.0.0.0:443/
 apiinstance.gateway.mulesoft.com/ingress-http    http://0.0.0.0:80/
 ----
 
-. Launch the Ingress and forward the Ingress port to `localhost`: 
+. Launch the Ingress and forward the local connection to a specific port: 
 +
 ----
-kubectl --namespace gateway port-forward svc/ingress 8000:80
+kubectl --namespace gateway port-forward service/ingress 8000:80
 ----
 +
-The Ingress is now awaiting connections.
+The command returns the following output: 
++
+----
+Forwarding from 127.0.0.1:8000 -> 80
+Forwarding from [::1]:8000 -> 80
+----
 
-. Open a new shell and verify that the URL and port are accessible: 
+. Open a new terminal and verify that the URL and port are accessible: 
 +
 ----
 curl -v http://127.0.0.1:8000/
 ----
 +
-The command should return a `404 Not Found` error because an application listening at that address hasn't yet been deployed.
+The command returns a `404 Not Found` error because an application listening at that address hasn't yet been deployed.
 
 . Apply the following configuration: 
 +
@@ -156,3 +161,5 @@ The result should include the following:
   },
   ...
 ----
+
+A secured service is now running behind Flex Gateway.
