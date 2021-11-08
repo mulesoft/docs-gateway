@@ -16,8 +16,11 @@ You can install Anypoint Flex Gateway as an Ingress controller - a specialized K
 . Create a new Kubernetes cluster with a single server node: 
 +
 ----
-k3d cluster create flex-gateway-1 --k3s-arg "--disable=traefik@server:0" --port '80:80@server:0'  --port '443:443@server:0'  --port '8080:8080@server:0'
+k3d cluster create flex-gateway-1 --k3s-arg "--disable=traefik@server:0" --port '443:443@server:0'
 ----
+// ----
+// k3d cluster create flex-gateway-1 --k3s-arg "--disable=traefik@server:0" --port '80:80@server:0'  --port '443:443@server:0'  --port '8080:8080@server:0'
+// ----
 +
 The command should return the following: 
 +
@@ -77,20 +80,20 @@ apiinstance.gateway.mulesoft.com/ingress-http    http://0.0.0.0:80/
 . Launch and forward the local connection to port 80:  
 +
 ----
-kubectl --namespace gateway port-forward service/ingress 8000:80
+kubectl --namespace gateway port-forward service/ingress 8080:80
 ----
 +
 The command returns the following: 
 +
 ----
-Forwarding from 127.0.0.1:8000 -> 80
-Forwarding from [::1]:8000 -> 80
+Forwarding from 127.0.0.1:8080 -> 80
+Forwarding from [::1]:8080 -> 80
 ----
 
 . Open a new terminal and verify that the URL and port are accessible: 
 +
 ----
-curl -v http://127.0.0.1:8000/
+curl -v http://127.0.0.1:8080/
 ----
 +
 The command returns a `404 Not Found` error because an application listening at that address hasn't yet been deployed.
@@ -183,7 +186,7 @@ Additionally, the configuration applies a policy called `basic-authentication`, 
 . Test the service by executing the following command: 
 +
 ----
-curl -v -u foo:bar http://127.0.0.1:8000/api/users/1
+curl -v -u foo:bar http://127.0.0.1:8080/api/users/1
 ----
 +
 The result should include the following: 
