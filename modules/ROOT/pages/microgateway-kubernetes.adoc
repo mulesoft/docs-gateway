@@ -16,7 +16,7 @@ You can install Anypoint Flex Gateway as an Ingress controller - a specialized K
 . Create a new Kubernetes cluster with a single server node: 
 +
 ----
-k3d cluster create flex-gateway-1 --k3s-arg "--disable=traefik@server:0" --port '80:80@server:0'
+k3d cluster create flex-gateway-1 --k3s-arg "--disable=traefik@server:0" --port '80:80@server:0'  --port '443:443@server:0'  --port '8080:8080@server:0'
 ----
 +
 The command should return the following: 
@@ -43,7 +43,7 @@ INFO[0016] Successfully imported 1 image(s) into 1 cluster(s)
 . Execute the following `helm upgrade` command to install Flex Gateway: 
 +
 ----
-helm -n gateway upgrade -i --wait --create-namespace ingress peregrine/peregrine --set image.name=mulesoft/flex-gateway:1.0.0-alpha.1,ingress.enabled=true
+helm -n gateway upgrade -i --wait --create-namespace ingress peregrine/peregrine --set image.name=mulesoft/flex-gateway:1.0.0-alpha.1
 ----
 +
 The command should return something like the following: 
@@ -104,21 +104,75 @@ apiVersion: gateway.mulesoft.com/v1alpha1
 kind: ApiInstance
 metadata:
   name: ingress-http
+  namespace: app
 spec:
-  address: http://0.0.0.0:8000
-  services:
-    jsonplaceholder:
-      address: https://jsonplaceholder.typicode.com:443/
-      routes:
-        - rules:
-            - path: /api(/users/.*)
-            - path: /api(/comments/.*)
-  policies:
-    - policyRef:
-        name: basic-authentication
-      config:
-        username: foo
-        password: bar
+  address: http://0.0.0.0:8080/
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Service
+metadata:
+  name: jsonplaceholder
+  namespace: app
+spec:
+  address: https://jsonplaceholder.typicode.com:443/
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: jsonplaceholder-route
+  namespace: app
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: ingress-http
+    namespace: app
+  policyRef:
+    kind: Extension
+    name: route
+    namespace: gateway
+  config:
+    destinationRef:
+      kind: Service
+      name: jsonplaceholder
+      namespace: app
+  rules:
+    - path: /api/jsonplaceholder(/.*)
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: app-auth
+  namespace: app
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: ingress-http
+    namespace: app
+  policyRef:
+    kind: Extension
+    name: basic-authentication
+    namespace: gateway
+  config:
+    username: foo
+    password: bar
+  rules:
+    - methods: POST
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: app-access-logs
+  namespace: app
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: ingress-http
+    namespace: app
+  policyRef:
+    kind: Extension
+    name: access-log
+    namespace: gateway
+  config: {}
 EOF
 ----
 +

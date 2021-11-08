@@ -4,13 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-A Docker container image is a package of software that includes everything needed to run an application. You install and run Flex Gateway as a container image in your local environment during application development - enabling you to test and iterate quickly within Continuous-Integration and Continuous Delivery (CI/CD) workflows. 
-
 The following procedure demonstrates how to install and run a "containerized" Flex Gateway in your local environment.
-
-== Dependencies
-
-Installation requires a Docker-enabled environment with appropriate Docker permissions. See https://docs.docker.com/compose/install/[Install Docker Compose^].
 
 == Procedure
 
@@ -32,8 +26,8 @@ docker images
 The Flex Gateway container image should appear in the resulting list: 
 +
 ----
-REPOSITORY                      TAG       IMAGE ID       CREATED        SIZE
-mulesoft/flex-gateway           latest    1c1fbdbf819b   9 days ago     333MB
+REPOSITORY                   TAG              IMAGE ID       CREATED        SIZE
+mulesoft/flex-gateway        1.0.0-alpha.1    1c1fbdbf819b   9 days ago     333MB
 ----
 
 . Create a configuration file called `app.yaml` and save it in the same directory as your container image tar archive.
@@ -73,8 +67,10 @@ docker run -it -p 8080:8080 -v /absolute/path/to/app.yaml:/etc/peregrine/conf.d/
 ----
 +
 In addition to running Docker, the command instructs the running instance to listen at a given port, and to mount the port on the image in the directory path.
++
+NOTE: `docker run` does not return. Open a new terminal to continue. 
 
-. Verify that the container image is running successfully by opening a new terminal and executing the following command: 
+. Verify that the container image is running successfully executing the following command: 
 +
 ----
 docker ps
