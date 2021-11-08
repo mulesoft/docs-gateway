@@ -6,9 +6,8 @@ endif::[]
 
 Anypoint Flex Gateway supports two YAML configuration models: inline, and resource-based. Inline configurations enable you to nest objects, thereby simplifying entity definitions. Resource-based configurations enable you to separate objects into multiple files or resources, thereby assisting with modularity.
 
-Examples of inline configuration definitions are included in the installation procedures: 
+Examples of inline configuration definitions are included in the following installation procedures: 
 
-* xref:microgateway-kubernetes.adoc[Install and Run as a Kubernetes Ingress Controller]
 * xref:microgateway-linux.adoc[Install and Run as an Ubuntu Service]
 * xref:microgateway-docker.adoc[Install and Run as a Docker Container Image]
 
@@ -47,7 +46,9 @@ spec:
 
 |===
 
-The following example specifies an `ApiInstance` with metadata that describes the instance identifier. The `metadata.name` value is used as the target reference for other resources, such as policy bindings: 
+=== API Instance Example
+
+The following resource specifies an `ApiInstance` with metadata that describes the instance identifier. The `metadata.name` value is used as the target reference for other resources, such as policy bindings: 
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -127,7 +128,9 @@ spec:
 
 |===
 
-The following example binds an `ingress-http-route` policy to the API instance, routing traffic specified in `rules.path` to the proxy address specified in the `Service` configuration snippet: 
+=== Policy Binding Examples 
+
+The following resource binds an `ingress-http-route` policy to the API instance, routing traffic specified in `rules.path` to the proxy address specified in the `Service` configuration snippet: 
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -153,7 +156,7 @@ spec:
   - path: /api/jsonplaceholder(/.*)
 ----
 
-The following example binds an `ingress-http-auth` policy to the API instance -  requiring requests to include the basic credentials defined in `config.username` and `config.password`:
+The following resource binds an `ingress-http-auth` policy to the API instance -  requiring requests to include the basic credentials defined in `config.username` and `config.password`:
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -208,7 +211,9 @@ spec:
 
 |===
 
-The following example specifies a `Service` with metadata that describes the service identifier. The `metadata.namespace` value matches the namespace specified in the `ApiInstance` configuration. The `spec.address` is the address of the API implementation: 
+=== Service Example
+
+The following resource defines a `Service` with metadata that describes the service identifier. The `metadata.namespace` value matches the namespace specified in the `ApiInstance` configuration. The `spec.address` is the address of the API implementation: 
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
