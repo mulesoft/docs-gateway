@@ -16,11 +16,8 @@ You can install Anypoint Flex Gateway as an Ingress controller - a specialized K
 . Create a new Kubernetes cluster with a single server node: 
 +
 ----
-k3d cluster create flex-gateway-1 --k3s-arg "--disable=traefik@server:0" --port '443:443@server:0'
+k3d cluster create flex-gateway-1 --k3s-arg "--disable=traefik@server:*" --port '80:80@server:*' --port '443:443@server:*'
 ----
-// ----
-// k3d cluster create flex-gateway-1 --k3s-arg "--disable=traefik@server:0" --port '80:80@server:0'  --port '443:443@server:0'  --port '8080:8080@server:0'
-// ----
 +
 The command should return the following: 
 +
@@ -42,11 +39,22 @@ INFO[0016] Successfully imported 1 image(s) into 1 cluster(s)
 ----
 
 == Procedure 
-
-. Execute the following `helm upgrade` command to install Flex Gateway: 
+. Add the helm repository: 
 +
 ----
-helm -n gateway upgrade -i --wait --create-namespace ingress peregrine/peregrine --set image.name=mulesoft/flex-gateway:1.0.0-alpha.1
+helm repo add flex-gateway https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/helm
+----
+
+. Update the helm repository:
++
+----
+helm repo up
+----
+
+. Install the *flex-gateway* helm chart into namespace *gateway* with ingress:  
++
+----
+helm -n gateway upgrade -i --wait --create-namespace ingress flex-gateway/flex-gateway
 ----
 +
 The command should return something like the following: 
@@ -60,141 +68,123 @@ REVISION: 1
 TEST SUITE: None
 ----
 
-. Verify that the Flex Gateway Ingress Controller is running:
+. Execute the following command to verify *apiinstances* created during installation: 
 +
 ----
-kubectl -n gateway get svc,apiinstances
+kubectl -n gateway get apiinstances
 ---- 
 +
 The command returns output similar to the following: 
 +
 ----
-NAME              TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)                      AGE
-service/ingress   LoadBalancer   10.43.64.139   172.19.0.3    80:30426/TCP,443:31828/TCP   118s
-
-NAME                                             ADDRESS
-apiinstance.gateway.mulesoft.com/ingress-https   http://0.0.0.0:443/
-apiinstance.gateway.mulesoft.com/ingress-http    http://0.0.0.0:80/
+NAME            ADDRESS
+ingress-http    http://0.0.0.0:80
+ingress-https   http://0.0.0.0:443
 ----
 
-. Create a namespace for a sample application: 
-+
-----
-kubectl create namespace app
-----
-
-. Forward the local connection to port 80:  
-+
-----
-kubectl --namespace gateway port-forward service/ingress 8080:80
-----
-+
-The command returns the following: 
-+
-----
-Forwarding from 127.0.0.1:8080 -> 80
-Forwarding from [::1]:8080 -> 80
-----
-+
-NOTE: `kubectl port-forward` does not return. Open a new terminal to continue. 
-
-. Verify that the URL and port are accessible: 
-+
-----
-curl -v http://127.0.0.1:8080/
-----
-+
-The command returns a `404 Not Found` error because an application listening at that address hasn't yet been deployed.
-
-. Apply the following configuration: 
+. Install a sample application named "jsonplaceholder", and create the ingress to route traffic: 
 +
 ----
 cat <<EOF | kubectl apply -f -
 ---
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: ApiInstance
-metadata:
-  name: ingress-http
-  namespace: app
-spec:
-  address: http://0.0.0.0:8080/
----
-apiVersion: gateway.mulesoft.com/v1alpha1
+apiVersion: v1
 kind: Service
 metadata:
   name: jsonplaceholder
-  namespace: app
+  labels:
+    app: jsonplaceholder
+    service: jsonplaceholder
 spec:
-  address: https://jsonplaceholder.typicode.com:443/
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  selector:
+    app: jsonplaceholder
 ---
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: PolicyBinding
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: jsonplaceholder-route
-  namespace: app
+  name: jsonplaceholder
 spec:
-  targetRef:
-    kind: ApiInstance
-    name: ingress-http
-    namespace: app
-  policyRef:
-    kind: Extension
-    name: route
-    namespace: gateway
-  config:
-    destinationRef:
-      kind: Service
-      name: jsonplaceholder
-      namespace: app
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jsonplaceholder
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: jsonplaceholder
+        version: v1
+    spec:
+      containers:
+      - image: svenwal/jsonplaceholder
+        imagePullPolicy: IfNotPresent
+        name: jsonplaceholder
+        ports:
+        - name: http
+          containerPort: 3000
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jsonplaceholder
+spec:
+  ingressClassName: ingress-http.gateway
   rules:
-    - path: /api/jsonplaceholder(/.*)
+  - http:
+      paths:
+      - path: /api(/users/.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: jsonplaceholder
+            port:
+              number: 80
+EOF
+----
+
+. Apply the *basic-authentication* policy to the `ingress-http` API Instance, using `foo` as the username and `bar` as the password
++
+----
+cat <<EOF | kubectl -n gateway apply -f -
 ---
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: PolicyBinding
 metadata:
-  name: app-auth
-  namespace: app
+  name: ingress-http-auth
 spec:
   targetRef:
-    kind: ApiInstance
     name: ingress-http
-    namespace: app
   policyRef:
-    kind: Extension
     name: basic-authentication
-    namespace: gateway
   config:
     username: foo
     password: bar
-  rules:
-    - methods: POST
----
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: PolicyBinding
-metadata:
-  name: app-access-logs
-  namespace: app
-spec:
-  targetRef:
-    kind: ApiInstance
-    name: ingress-http
-    namespace: app
-  policyRef:
-    kind: Extension
-    name: access-log
-    namespace: gateway
-  config: {}
 EOF
 ----
-+
-The configuration creates a service called `jsonplaceholder`, specifies its implementation address, and then defines path rules.
-+
-Additionally, the configuration applies a policy called `basic-authentication`, and specifies credentials that incoming requests use when accessing the `jsonplaceholder` service.
 
-. Test the service by executing the following command: 
+. Verify that the API Instance is protected by requesting access without the authentication credentials:
 +
 ----
-curl -v -u foo:bar http://127.0.0.1:8080/api/users/1
+curl -v http://127.0.0.1/api/users/1
+---- 
++
+The result includes the following: 
++
+----
+HTTP/1.1 401 Unauthorized
+----
+
+. Verify that the API Instance returns correct data when authentication credentials are included: 
++
+----
+curl -v -u foo:bar http://127.0.0.1/api/users/1
 ----
 +
 The result should include the following: 
