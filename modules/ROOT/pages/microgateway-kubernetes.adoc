@@ -77,7 +77,13 @@ apiinstance.gateway.mulesoft.com/ingress-https   http://0.0.0.0:443/
 apiinstance.gateway.mulesoft.com/ingress-http    http://0.0.0.0:80/
 ----
 
-. Launch and forward the local connection to port 80:  
+. Create a namespace for a sample application: 
++
+----
+kubectl create namespace app
+----
+
+. Forward the local connection to port 80:  
 +
 ----
 kubectl --namespace gateway port-forward service/ingress 8080:80
@@ -89,8 +95,10 @@ The command returns the following:
 Forwarding from 127.0.0.1:8080 -> 80
 Forwarding from [::1]:8080 -> 80
 ----
++
+NOTE: `kubectl port-forward` does not return. Open a new terminal to continue. 
 
-. Open a new terminal and verify that the URL and port are accessible: 
+. Verify that the URL and port are accessible: 
 +
 ----
 curl -v http://127.0.0.1:8080/
