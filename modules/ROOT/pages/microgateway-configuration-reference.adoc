@@ -383,9 +383,61 @@ spec:
 |`logging.outputs[#].name`
 |Required
 |N/A
-|TBD
+|The name of this output to later refer to in runtime and access logs configurations.
+
+|`logging.outputs[#].type`
+|Required
+|N/A
+|A Fluentbit-supported output type.
+
+|`logging.outputs[#].parameters`
+|Required
+|N/A
+|A map of parameters for the specific Fluentbit output type
+
+|`logging.accessLogs.outputs`
+|Optional
+|Empty
+|A list of output names to redirect access logs to.
+
+|`logging.runtimeLogs.outputs`
+|Optional
+|Empty
+|A list of output names to redirect runtime logs to.
+
+|`logging.runtimeLogs.logLevel`
+|Optional
+|`info`
+|
 
 |===
+
+==== Logging Example
+
+----
+apiVersion: config.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: logging
+spec:
+  logging:
+    outputs:
+    - name: log-to-file
+      type: file
+      parameters:
+        path: /var/log/
+        file: log.txt
+        format: template
+        template: |
+          [{runtime}][{loglevel}][{kind}] {message}
+    runtimeLogs:
+      logLevel: info
+      outputs:
+      - log-to-file
+    accessLogs:
+      outputs:
+      - log-to-file
+----
 
 === Shared Storage
 
@@ -395,9 +447,80 @@ The `sharedStorage` object configures running the gateway in high availability e
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Configuration
 metadata:
-  name: shared-storage
+ name: shared-storage
 spec:
-  sharedStorage:
-    redis:
-      address: redishost.something:6379
+ sharedStorage:
+   redis:
+     address: <redis instance host:port>
+     username: <redis user username>
+     password: <redis user password>
+     db: <redis database name>
 ----
+
+[cols="2,1,1,3"]
+|===
+|Parameter |Required or Optional |Default Value |Description
+
+|`sharedStorage.redis.address`
+|Required
+|N/A
+|The redis instance address in `host:port` format.
+
+|`sharedStorage.redis.username`
+|Optional
+|Empty
+|The redis user name.
+
+|`sharedStorage.redis.password`
+|Optional
+|Empty
+|The redis user password.
+
+|`sharedStorage.redis.db`
+|Optional 
+|0
+|The redis database number to use.
+
+|===
+
+==== Shared Storage Example
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+ name: shared-storage
+spec:
+ sharedStorage:
+   redis:
+     address: redis.e-commerce.svc:6379
+     username: ecomm-user
+     password: ecomm-pwd-123
+     DB: 7
+----
+
+=== Internal Metrics
+
+The `internalMetrics` object controls whether internal usage metrics are sent to Mulesoft.
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+ name: internal-metrics
+spec:
+ internalMetrics:
+   enabled: true
+----
+
+[cols="2,1,1,3"]
+|===
+|Parameter |Required or Optional |Default Value |Description
+
+|`internalMetrics.enabled`
+|Optional
+|`true`
+|Whether internal usage metrics are enabled and sent to MuleSoft.
+
+|===
+
