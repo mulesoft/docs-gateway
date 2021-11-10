@@ -33,7 +33,7 @@ spec:
   policies: # optional array of policies
     - policyRef:
         name: <name of the policy>
-        name: <optional namespace of the policy>
+        namespace: <optional namespace of the policy>
       config: # optional policy configuration
       rules: # optional policy rules
 ----
@@ -123,7 +123,6 @@ apiVersion: gateway.mulesoft.com/v1alpha1
 kind: ApiInstance
 metadata:
   name: hello-flex-gateway-instance
-  namespace: e-commerce
 spec:
   address: http://0.0.0.0:8080/
 ----
@@ -138,16 +137,18 @@ metadata:
   namespace: <namespace name>
 spec:
   targetRef:
-    kind: ApiInstance
     name: <api instance name>  
-    namespace: <namespace name> 
+    namespace: <optional api instance namespace> 
   policyRef:
-    kind: Extension
     name: <policy name>     
-    namespace: <policy namespace>
-  config: <Policy configuration>
-  rules:
-  - path: <rule path> 
+    namespace: <optional policy namespace>
+  config: # optional policy configuration
+  rules: # optional policy rules
+  - path: <path regular expression> 
+    methods: <methods regular expression>
+    host: <host regular expression>
+    headers: <headers map>
+      <header-name>: <header value regular expression>
 ----
 
 [cols="2,1,1,3"]
@@ -182,65 +183,87 @@ spec:
 |`spec.policyRef.namespace`
 |Optional
 |The value of `metadata.namespace`
-|The namespace where the policy is defined. For provided policies, the value of this field should be `gateway`.
+|The namespace where the policy is defined. For provided policies, the value of this field should be `default`.
 
 |`spec.config`
 |Optional
-|`{}`
+|Empty
 |The policy configuration. The content of this field depends on the specified policy. See the list of available policies.
 
 |`spec.rules`
-|
-|
-|
+|Optional
+|Empty
+|An array of rules that will determine if the policy applies to a given request. These rules are checked in an OR fashion. The first one to hold will enable applying the policy to the request. The attributes in each rule object apply in an AND fashion. If path and host are defined, both must match for that rule to hold true.
+
+|`spec.rules[#].path`
+|Optional
+|`.*`
+|A regular expression to match the request path. 
+ 
+Capture groups in this regular expression will be used to define path rewriting when routing the request upstream. 
+
+If "path: /api(/.*)", requests with the path /api/orders will be routed upstream as /orders.
+
+Multiple capture groups can be specified, and the replacement will be the concatenation of all captured substrings.
+
+|`spec.rules[#].host`
+|Optional
+|`.*`
+|A regular expression to match the request host.
+
+|`spec.rules[#].methods`
+|Optional
+|`.*`
+|A regular expression to match the request method.
+
+|`spec.rules[#].headers`
+|Optional
+|Empty
+|A map of header names and value regular expressions that must be present in the request.
+
+Each entry's key is the expected header name and the value is a regular expression to match the header value.
 
 |===
 
 === Policy Binding Examples 
 
-The following resource binds an `ingress-http-route` policy to the API instance, routing traffic specified in `rules.path` to the proxy address specified in the `Service` configuration snippet: 
+The following resource binds a `route` policy to the API instance, routing traffic specified by the `rules` to the proxy address specified in the `Service` configuration snippet: 
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: PolicyBinding
 metadata:
-  name: ingress-http-route
-  namespace: e-commerce
+  name: hello-flex-gateway-route
+  namespace: e-commerce 
 spec:
   targetRef:
-    kind: ApiInstance
     name: hello-flex-gateway-instance
-    namespace: e-commerce
   policyRef:
-    kind: Extension
     name: route
-    namespace: gateway
+    namespace: default
   config:
     destinationRef:
-      kind: Service
-      name: helloworld-v1
+      name: jsonplaceholder
       namespace: e-commerce
   rules:
   - path: /api/jsonplaceholder(/.*)
 ----
 
-The following resource binds an `ingress-http-auth` policy to the API instance -  requiring requests to include the basic credentials defined in `config.username` and `config.password`:
+The following resource binds a `basic-authentication` policy to the API instance -  requiring requests to include the basic credentials defined in `config.username` and `config.password`:
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: PolicyBinding
 metadata:
- name: ingress-http-auth
+ name: hello-flex-gateway-auth
  namespace: e-commerce
 spec:
  targetRef:
-   kind: ApiInstance
    name: hello-flex-gateway-instance
    namespace: e-commerce
  policyRef:
-   kind: Extension
    name: basic-authentication
-   namespace: gateway
+   namespace: default
  config:
    username: foo
    password: bar
@@ -275,7 +298,7 @@ spec:
 |`spec.address`
 |Required
 |N/A
-|The service address (and port).
+|The service address URL, including protocol, host and port.
 
 |===
 
@@ -287,7 +310,7 @@ The following resource defines a `Service` with metadata that describes the serv
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Service
 metadata:
-  name: helloworld-v1
+  name: jsonplaceholder
   namespace: e-commerce
 spec:
   address: https://jsonplaceholder.typicode.com:443/
@@ -295,7 +318,7 @@ spec:
 
 == Configuration
 
-Define a desired gateway state by creating a `Configuration` entity. `Configuration` entities specify the runtime behavior of APIs managed by the instance. The definition includes the following: 
+Define a desired gateway state by creating a `Configuration` entity. `Configuration` entities specify several runtime configuration aspects for Flex Gateway itself, like logging, shared storage, etc. The definition includes the following: 
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -304,7 +327,9 @@ metadata:
   name: <value>           
   namespace: <namespace name>      
 spec: 
-  <spec object> 
+  logging: # logging configuration
+  sharedStorage: # shared storage configuration
+  internalMetrics: # internal metrics configuration
 ----
 
 [cols="2,1,1,3"]
@@ -324,7 +349,7 @@ spec:
 |`spec`
 |Required
 |N/A
-|The persistent configuration object that defines gateway characteristics. Objects include: `logging`, `sharedStorage`, `tls`, `platformConnection`, `forwardProxy`, `automatedPolicy`.
+|The configuration object that defines gateway characteristics. Objects include: `logging`, `sharedStorage`, `tls`, `internalMetrics`.
 
 |===
 
@@ -350,6 +375,17 @@ spec:
   accessLog:
     outputs: <value>
 ----
+
+[cols="2,1,1,3"]
+|===
+|Parameter |Required or Optional |Default Value |Description
+
+|`logging.outputs[#].name`
+|Required
+|N/A
+|TBD
+
+|===
 
 === Shared Storage
 
