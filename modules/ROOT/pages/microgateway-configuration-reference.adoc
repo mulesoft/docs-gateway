@@ -20,9 +20,22 @@ apiVersion: gateway.mulesoft.com/v1alpha1
 kind: ApiInstance
 metadata:
   name: <api instance name>  
-  namespace: <namespace name>
+  namespace: # optional namespace name
 spec:
-  address: <proxy address including port>
+  address: <proxy address including port and path>
+  services: # optional map of upstream services
+    <name>:
+      address: <service address>
+      routes: # optional array of routes to service
+        - config: # optional route configuration
+            destinationPath: <optional base path to upstream service>
+          rules: # optional route rules
+  policies: # optional array of policies
+    - policyRef:
+        name: <name of the policy>
+        name: <optional namespace of the policy>
+      config: # optional policy configuration
+      rules: # optional policy rules
 ----
 
 [cols="2,1,1,3"]
@@ -42,7 +55,62 @@ spec:
 |`spec.address`
 |Required
 |N/A
-|The proxy address (and port) of the API implementation.
+|The proxy address URL, including protocol, host, port and optional path. If the base path is specified, it must be absent in any `rules.path` attribute.
+
+|`spec.services`
+|Optional
+|Empty
+|A map of named services and their routes.
+
+|`spec.services[name].address`
+|Required
+|N/A
+|The service address (and port).
+
+|`spec.services[name].routes`
+|Optional
+|Empty
+|An array of routes configured for this API instance towards the service. If left empty, a default route will be established to the service that will route all traffic.
+
+|`spec.services[name].routes[#].config`
+|Optional
+|Empty
+|The configuration for this route. If left empty, a default configuration will be applied with an empty `destinationPath`.
+
+|`spec.services[name].routes[#].config.destinationPath`
+|Optional
+|Empty
+|The path to prepend to forwarded requests to the upstream service. For example, if "destinationPath: /api/v1", requests to this API instance with a path like "/orders" will be routed upstream to "/api/v1/orders".
+
+|`spec.services[name].routes[#].rules`
+|Optional
+|Empty
+|An array of rules for this route. Refer to xref:microgateway-configuration-reference.adoc#policy-binding[spec.rules] in Policy Binding.
+
+|`spec.policies`
+|Optional
+|Empty
+|An array of policies to apply to this API Instance.
+
+|`spec.policies[#].policyRef.name`
+|Required
+|N/A
+|The policy name. See xref:microgateway-policies-reference.adoc[Policy Definition Guide] for the list of available policies.
+
+|`spec.policies[#].policyRef.namespace`
+|Optional
+|The value of `metadata.namespace`
+|The namespace where the policy is defined. For provided policies, the value of this field should be `default`.
+
+|`spec.policies[#].config`
+|Optional
+|Empty
+|The policy's configuration. Refer to xref:microgateway-configuration-reference.adoc#policy-binding[spec.config] in Policy Binding.
+
+|`spec.policies[#].rules`
+|Optional
+|Empty
+|An array of rules for applying this policy to the API Instance. Refer to xref:microgateway-configuration-reference.adoc#policy-binding[spec.rules] in Policy Binding.
 
 |===
 
@@ -286,3 +354,14 @@ spec:
 === Shared Storage
 
 The `sharedStorage` object configures running the gateway in high availability environments. Shared storage requires a https://redis.io/[redis database^] to be installed, running, and accessible.
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: shared-storage
+spec:
+  sharedStorage:
+    redis:
+      address: redishost.something:6379
+----
