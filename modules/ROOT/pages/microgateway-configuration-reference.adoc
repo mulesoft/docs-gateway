@@ -483,7 +483,9 @@ spec:
 
 |===
 
-==== Shared Storage Example
+==== Redis Shared Storage Example
+
+The Redis storage service is an implementation of a REST API object store that functions as a bridge between the object store interface and a Redis backend.
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -497,6 +499,23 @@ spec:
      username: ecomm-user
      password: ecomm-pwd-123
      DB: 7
+----
+
+==== Local Shared Storage Example
+
+The local storage service is an implementation of a REST API object store that saves data in memory. All data is lost when Flex Gateway is stopped or restarted.
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+ name: rtm-config
+ namespace: sales
+spec:
+ sharedStorage:
+   local:
+     enabled: true
+
 ----
 
 === Internal Metrics
