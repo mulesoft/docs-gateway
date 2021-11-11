@@ -405,11 +405,6 @@ spec:
 |Empty
 |A list of output names to redirect runtime logs to.
 
-|`logging.runtimeLogs.logLevel`
-|Optional
-|`info`
-|
-
 |===
 
 ==== Logging Example
@@ -425,7 +420,7 @@ spec:
     - name: log-to-file
       type: file
       parameters:
-        path: /var/log/
+        path: /var/log
         file: log.txt
         format: template
         template: |
@@ -441,7 +436,7 @@ spec:
 
 === Shared Storage
 
-The `sharedStorage` object configures running the gateway in high availability environments. Shared storage requires a https://redis.io/[redis database^] to be installed, running, and accessible.
+The `sharedStorage` object configures the gateway for storage shared. Setting up https://redis.io/[Redis^] is recommended for production workflows, though defining it is optional. If Redis is not defined, shared storage services at port 4000 are still available but will use an in-memory implementation. 
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
