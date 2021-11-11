@@ -4,35 +4,20 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-The following procedure demonstrates how to install and run Flex Gateway as a Linux service.
+The following procedure demonstrates how to install and run Flex Gateway as a service on a Debian-based distribution.
 
 == Procedure 
 
-. Retrieve the public package keys and add them to the Advanced Package Tool (APT) key server by executing the following command:
-+ 
+. Retrieve the public package keys, add the package repository, update the package list, and install the package via the commands in the following block: 
++
 ----
 curl -XGET https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/ubuntu/pubkey.gpg | sudo apt-key add -
-----
-
-. Add the Flex Gateway package repository by storing the type of distribution archive (Debian), as well as the repository URL and Ubuntu distribution code name. Execute the following command: 
-+
-----
 echo "deb https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/mulesoft.list
-----
-
-. Update the package list by executing the following command: 
-+
-----
 sudo apt update
+sudo apt install -y peregrine
 ----
 
-. Install the Flex Gateway package from the updated repository by executing the following command:
-+
-----
-sudo apt install peregrine
-----
-
-. Run the Flex Gateway by executing the following command:
+. Run Flex Gateway by executing the following command:
 +
 ----
 sudo service peregrine start
@@ -80,7 +65,7 @@ The configuration creates a service called `jsonplaceholder`, specifies its impl
 +
 Additionally, the configuration applies a policy called `basic-authentication`, and specifies credentials that incoming requests use when accessing the `jsonplaceholder` service.
 
-. Verify that the service is protected by requesting access without the authentication credentials:
+. Verify that the API is protected by requesting access without the authentication credentials:
 +
 ----
 curl -v http://127.0.0.1:8080/api/users/1
@@ -92,7 +77,7 @@ The result includes the following:
 HTTP/1.1 401 Unauthorized
 ----
 
-. Verify that the service returns correct data when authentication credentials are included: 
+. Verify that the API returns correct data when authentication credentials are included: 
 +
 ----
 curl -v -u foo:bar http://127.0.0.1:8080/api/users/1
