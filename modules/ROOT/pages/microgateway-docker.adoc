@@ -83,7 +83,19 @@ CONTAINER ID   IMAGE                                     COMMAND   CREATED      
 c2a360f8c9ed   mulesoft/flex-gateway:1.0.0-alpha.1       "/init"   8 days ago   Up 8 days   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp 
 ----
 
-. Test the service by executing the following command: 
+. Verify that the service is protected by requesting access without the authentication credentials:
++
+----
+curl -v http://127.0.0.1:8080/api/users/1
+---- 
++
+The result includes the following: 
++
+----
+HTTP/1.1 401 Unauthorized
+----
+
+. Verify that the service returns correct data when authentication credentials are included: 
 +
 ----
 curl -v -u foo:bar http://127.0.0.1:8080/api/users/1
@@ -124,4 +136,4 @@ A secured service is now running behind Flex Gateway.
 == Next Steps
 
 * xref:microgateway-view-manage-log-output.adoc[View and Manage Log Output].
-* Refer to the xref:microgateway-configuration-reference.adoc[Configuration Reference].
+* Refer to the xref:microgateway-configuration-reference.adoc[Declarative Configuration Reference Guide].
