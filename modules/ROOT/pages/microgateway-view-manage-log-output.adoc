@@ -10,7 +10,9 @@ The following examples describe how to configure Flex Gateway for use with the F
 
 == File Configuration Example
 
-Configure Flex Gateway to send formatted runtime and access logs to a file called `log.txt` (Fluentbit https://docs.fluentbit.io/manual/v/1.7/pipeline/outputs/file[File^] output), located within the container's `/var/log` directory. As an example, the following definition specifies a `spec.logging.outputs.type` value of `file`:
+Configure Flex Gateway to send formatted runtime and access logs to a file called `log.txt` (Fluentbit https://docs.fluentbit.io/manual/v/1.7/pipeline/outputs/file[File^] output), located within `/var/log` directory. As an example, the following definition specifies a `spec.logging.outputs.type` value of `file`:
+
+NOTE: For Docker, in `spec.logging.output.parameters.path`, replace `/var/log` with the absolute path to the mounted configuration directory.
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -23,7 +25,7 @@ spec:
     - name: default
       type: file
       parameters:
-        path: /var/log
+        path: /var/log  # Docker: replace this value with the absolute path to the mounted configuration directory
         file: log.txt
         format: template
         template: |
