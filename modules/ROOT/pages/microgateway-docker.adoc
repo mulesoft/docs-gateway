@@ -11,7 +11,7 @@ The following procedure demonstrates how to install and run Flex Gateway using D
 . Download the Flex Gateway container image by executing the following command: 
 +
 ----
-curl -o flex-gateway-1.0.0-beta.1.tar https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gateway-1.0.0-beta.1.tar
+curl -o flex-gateway-1.0.0-beta.3.tar https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gateway-1.0.0-beta.3.tar
 ----
 
 . Move the container image into a directory of your choice.
@@ -19,7 +19,7 @@ curl -o flex-gateway-1.0.0-beta.1.tar https://peregrine:48bcfd4617c9cce@d8wbbsqf
 . Install the container image by executing the following command:
 +
 ----
-docker load --input flex-gateway-1.0.0-beta.1.tar
+docker load --input flex-gateway-1.0.0-beta.3.tar
 ----
 
 . Verify the installation was successful by executing the following command: 
@@ -32,7 +32,7 @@ The Flex Gateway container image should appear in the resulting list:
 +
 ----
 REPOSITORY                   TAG              IMAGE ID       CREATED        SIZE
-mulesoft/flex-gateway        1.0.0-beta.1     1c1fbdbf819b   9 days ago     334MB
+mulesoft/flex-gateway        1.0.0-beta.3     1c1fbdbf819b   9 days ago     334MB
 ----
 
 . Create a configuration file called `app.yaml` (this filename can be anything) and save it in the same directory as your container image.
@@ -68,7 +68,7 @@ Additionally, the configuration applies a policy called `basic-authentication`, 
 . Run Flex Gateway by executing the following command, replacing `/absolute/path/to/configuration/directory/` with the absolute path to the configuration directory containing the `app.yaml` file created in the previous step. 
 +
 ----
-docker run -it -p 8080:8080 -v /absolute/path/to/configuration/directory/:/etc/peregrine/conf.d/custom/ mulesoft/flex-gateway:1.0.0-beta.1
+docker run -it -p 8080:8080 -v /absolute/path/to/configuration/directory/:/etc/peregrine/conf.d/custom/ mulesoft/flex-gateway:1.0.0-beta.3
 ----
 +
 In addition to running Docker, the command instructs the running instance to listen at a given port, and to mount the configuration on the image.
@@ -85,7 +85,7 @@ The Flex Gateway process should appear in the resulting list:
 +
 ----
 CONTAINER ID   IMAGE                                     COMMAND   CREATED      STATUS      PORTS                                       
-c2a360f8c9ed   mulesoft/flex-gateway:1.0.0-beta.1        "/init"   8 days ago   Up 8 days   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp 
+c2a360f8c9ed   mulesoft/flex-gateway:1.0.0-beta.3        "/init"   8 days ago   Up 8 days   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp 
 ----
 
 . Verify that the service is protected by requesting access without the authentication credentials:
