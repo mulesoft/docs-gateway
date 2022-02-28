@@ -1,0 +1,129 @@
+= Registering and Running a Flex Gateway in Connected Mode with a Username/Password
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+[cols="1,1"]
+|===
+
+|image:install-docker-logo.png[25%,25%,xref="flex-connected-register-run.adoc#register-and-run-a-flex-gateway-in-a-docker-container"]
+
+|image:install-linux-logo.png[20%,20%,xref="flex-connected-register-run.adoc#register-and-run-a-flex-gateway-as-a-linux-service"]
+
+|xref:flex-connected-register-run.adoc#register-and-run-a-flex-gateway-in-a-docker-container[Register and Run a Flex Gateway in a Docker Container]
+
+|xref:flex-connected-register-run.adoc#register-and-run-a-flex-gateway-as-a-linux-service[Register and Run a Flex Gateway as a Linux Service]
+
+|===
+
+== Prerequisites
+
+* xref:flex-installing-using-docker.adoc[Install a Flex Gateway using Docker]
+* Collect the following information from your Anypoint Platform instance: 
+** *Organization Id* for the organization where you want to run Flex Gateway
+** *Environment Id* for the environment where you want to run Flex Gateway
+** *Username* and *Password* of a user with _Admin_ permissions for Runtime Manager
+
+== Register and Run a Flex Gateway in a Docker Container
+
+To register a Flex Gateway with Anypoint Platform using a username/password you must
+enter the registration command followed by the start command. 
+
+Each command includes information specific to your Anypoint Platform instance and *must be edited before* executing.
+
+Before executing the registration command below, replace the following sample content with your own: 
+
+* `--username` = the username for an Anypoint Platform user with _Admin_ permissions for Runtime Manager
+* `--password` = the password for an Anypoing Platform user with _Admin_ permissions for Runtime Manager
+* `--environment` = the Environment Id for the environment in Anypoint Platform where you want the Flex Gateway to run
+* `--organization` = your Organization Id in Anypoint Platform
+* `--anypoint-url` = your Anypoint Platform instance URL 
+* `my-gateway` = the name you want to assign to this Flex Gateway instance
+
+
+=== Registration Command
+
+[source]
+----
+docker run --entrypoint -w /registration "$(pwd)":/registration mulesoft/flex-gateway:1.0.0-beta.5 \
+flexctl register -v \
+--username=john \
+--password=doe \
+--environment=334f8328-1355-4ad6-961d-1930a3ada25b \
+--organization=40223f70-02d1-4027-910f-ebd662a7ee54 \
+--anypoint-url=https://devx.anypoint.mulesoft.com \
+my-gateway
+----
+
+After you have executed the command, you should see your new Flex Gateway in Runtime Manager
+after clicking *Flex Gateway* in the left navigation. 
+
+The gateway's status will be disconnected for now. You will need to start the gateway to connect it.
+
+Before executing the start command below, replace the `.conf` file UUID with the UUID of the `.conf` file
+in the folder where you have stored the Flex Gateway Docker image.
+
+=== Start command
+
+[source]
+----
+docker run --rm \
+-v $(pwd)/:/etc/peregrine/rtm \
+-p 8081:8081 \
+-e MGW_RTM_ARM_AGENT_URL=wss://arm-mcm2-service.kdev.msap.io:443/agent \
+-e MGW_DATASOURCE_RTM_ENABLED=true \
+-e MGW_RTM_ARM_AGENT_CONFIG=/etc/peregrine/rtm/076ccaab-86a7-444d-8fbb-6620bafde086.conf \
+mulesoft/flex-gateway:1.0.0-beta.5
+----
+
+== Register and Run a Flex Gateway as a Linux Service
+
+To register a Flex Gateway with Anypoint Platform using a username/password you must
+enter the registration command followed by the start command. 
+
+Each command includes information specific to your Anypoint Platform instance and *must be edited before* executing.
+
+Before executing the registration command below, replace the following sample content with your own: 
+
+* `--username` = the username for an Anypoint Platform user with _Admin_ permissions for Runtime Manager
+* `--password` = the password for an Anypoing Platform user with _Admin_ permissions for Runtime Manager
+* `--environment` = the Environment Id for the environment in Anypoint Platform where you want the Flex Gateway to run
+* `--organization` = your Organization Id in Anypoint Platform
+* `--anypoint-url` = your Anypoint Platform instance URL 
+* `my-gateway` = the name you want to assign to this Flex Gateway instance
+
+=== Registration Command
+
+[source]
+----
+flexctl -v register \
+--username=john \
+--password=doe \
+--environment=334f8328-1355-4ad6-961d-1930a3ada25b \
+--organization=40223f70-02d1-4027-910f-ebd662a7ee54 \
+--anypoint-url=https://devx.anypoint.mulesoft.com \
+my-gateway
+----
+
+After you have executed the command, you should see your new Flex Gateway in Runtime Manager
+after clicking *Flex Gateway* in the left navigation. 
+
+The gateway's status will be disconnected for now. You need to start the gateway to connect it.
+
+Before executing the start command below, replace the `.conf` file UUID with the UUID of the `.conf` file
+in the Flex Gateway configuration directory, `/etc/peregrine/conf.d/custom/` and replace the MGW_NAME` with
+the name you have given your Linux service.
+
+=== Start command
+
+[source]
+----
+service flex-gateway start \
+-e MGW_RTM_ARM_AGENT_URL=wss://arm-mcm2-service.kdev.msap.io:443/agent \
+-e MGW_DATASOURCE_RTM_ENABLED=true \
+-e MGW_RTM_ARM_AGENT_CONFIG=/etc/peregrine/rtm/076ccaab-86a7-444d-8fbb-6620bafde086.conf \
+-e MGW_NAME=ubuntu
+----
+
+
