@@ -1,0 +1,116 @@
+= Publishing a Simple API
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+For local mode, publish an API running behind Flex Gateway by modifying YAML configuration data. API YAML configuration for Docker and Linux can be modified via `.yaml` files. API YAML configuration for Kubernetes can be modified via `kubectl apply`.
+
+The following procedure demonstrates how to publish an unsecured API with a single upstream service. 
+
+== Before You Begin 
+
+Before getting started, ensure that you have:
+
+* Flex Gateway installed and running in local mode. See xref:flex-installing.adoc[Installing Flex Gateway] for more information on installing and running the gateway. 
+
+To publish an API behind a gateway running as a Docker container image:
+
+. Open a terminal and navigate to the directory containing the Flex Gateway image.
+
+. Create a new configuration file with a `.yaml` extension. Name the file.
+
+. Copy and paste the following into the `.yaml` file: 
++
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: animal-facts-api
+spec:
+  address: http://0.0.0.0:8080
+  services:       
+    cats:
+      address: https://cat-fact.herokuapp.com:443/
+      routes:
+        - rules:
+            - path: /api/cats(/.*)
+----
+
+. Save the file. 
++
+This forces a refresh, thereby allowing you to modify and add configuration details without having to explicitly stop and start the gateway. 
++
+The container logs should now include the following: 
++
+----
+[agent][info] Generating config
+[agent][info] Gateway default/18b4e890fe7d: Adding ApiInstance default/animal-facts-api http://0.0.0.0:8080
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/cats(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:animal-facts-api-cats Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Policy default/envoy.filters.http.router
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/monitoring_metrics http://0.0.0.0:9881
+[agent][debug] generating service monitoring_metrics.default.svc hostname: 0.0.0.0 port: 9881
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/animal-facts-api-cats https://cat-fact.herokuapp.com:443/
+[agent][debug] generating service animal-facts-api-cats.default.svc hostname: cat-fact.herokuapp.com port: 443
+[agent][info] Writing envoy bootstrap configuration to /tmp/envoy.json
+[envoy][info] cds: add 2 cluster(s), remove 2 cluster(s)
+[envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
+----
+
+. Access the API by executing the following command:
++
+----
+curl http://localhost:8080/api/cats/facts -v
+----
++
+The response should include the following JSON output:
++
+----
+[
+   {
+      "status":{
+         "verified":true,
+         "sentCount":1
+      },
+      "_id":"58e008800aac31001185ed07",
+      "user":"58e007480aac31001185ecef",
+      "text":"Wikipedia has a recording of a cat meowing, because why not?",
+      "__v":0,
+      "source":"user",
+      "updatedAt":"2020-08-23T20:20:01.611Z",
+      "type":"cat",
+      "createdAt":"2018-03-06T21:20:03.505Z",
+      "deleted":false,
+      "used":false
+   },
+   {
+      "status":{
+         "verified":true,
+         "sentCount":1
+      },
+      "_id":"58e008630aac31001185ed01",
+      "user":"58e007480aac31001185ecef",
+      "text":"They have an organ that allows the cats to taste-sense the air.",
+      "__v":0,
+      "source":"user",
+      "updatedAt":"2020-08-23T20:20:01.611Z",
+      "type":"cat",
+      "createdAt":"2018-02-07T21:20:02.903Z",
+      "deleted":false,
+      "used":false
+   }
+]
+----
+
+== See Also
+ 
+Note: Do not change heading
+
+Don’t use this section as filler. Link only to relevant related info and not just any info that is “kinda” related.
+
+Must contain: unordered list
+* xref:file-name.adoc[link-text]
+* xref:file-name.adoc#paragraph-target[link text]
+* xref:repo-name::filename.adoc[link text]
+* https://www.url.com[link-text^]
+////
