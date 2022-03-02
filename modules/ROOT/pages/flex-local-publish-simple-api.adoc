@@ -34,9 +34,9 @@ Before getting started, ensure that you have:
 
 To publish an API behind a gateway running on Linux:
 
-. Create a configuration file called `orders.yaml` and save it in the Flex Gateway configuration directory: `/etc/peregrine/conf.d/custom/`. This directory can contain multiple configuration files.
+. Create a configuration file with a `.yaml` file extension. Name the file (it can be named anything), then save the file in the Flex Gateway configuration directory: `/etc/peregrine/conf.d/custom/`. This directory can contain multiple configuration files.
 
-. Copy and paste the following into `orders.yaml`:
+. Copy and paste the following into the file`:
 +
 [source]
 ----
@@ -54,7 +54,7 @@ spec:
             - path: /api/orders(/.*)
 ----
 
-. Save `orders.yaml`. 
+. Save the file. 
 +
 This forces a refresh, thereby allowing you to modify and add configuration details without having to explicitly stop and start the gateway. 
 +
@@ -75,11 +75,11 @@ The logs would include something the following:
 [envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
 ----
 
-. Access the API by executing the following command:
+. Retrieve all orders by accessing your `orders` API:
 +
 [source]
 ----
-curl http://localhost:8080/api/orders/1 -v
+curl http://localhost:8080/api/orders/ -v
 ----
 +
 The response would include the following output:
@@ -92,6 +92,13 @@ The response would include the following output:
       userId:1,
       date:2021-10-10,
       products:[{productId:2,quantity:4},{productId:1,quantity:10},{productId:5,quantity:2}]
+   }
+   /*...*/
+   {
+      id:20,
+      userId:1,
+      date:2021-11-14,
+      products:[{productId:5,quantity:2},{productId:8,quantity:7},{productId:9,quantity:12}]
    }
 ]
 ----
@@ -107,9 +114,9 @@ To publish an API behind a gateway running as a Docker container image:
 
 . Open a terminal and navigate to the directory containing the Flex Gateway image.
 
-. Create a new configuration file with a `.yaml` extension. Name the file `orders.yaml`.
+. Create a configuration file with a `.yaml` file extension. Name the file (it can be named anything), then save the file in the the directory containing the Flex Gateway image. This directory can contain multiple configuration files.
 
-. Copy and paste the following into the `orders.yaml` file: 
+. Copy and paste the following into the file: 
 +
 [source]
 ----
@@ -127,7 +134,7 @@ spec:
             - path: /api/orders(/.*)
 ----
 
-. Save `orders.yaml`. 
+. Save the file. 
 +
 This forces a refresh, thereby allowing you to modify and add configuration details without having to explicitly stop and start the gateway. 
 +
@@ -148,11 +155,11 @@ The container logs would include something the following:
 [envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
 ----
 
-. Access the API by executing the following command:
+. Retrieve all orders by accessing your `orders` API:
 +
 [source]
 ----
-curl http://localhost:8080/api/orders/1 -v
+curl http://localhost:8080/api/orders/ -v
 ----
 +
 The response would include the following output:
@@ -166,10 +173,15 @@ The response would include the following output:
       date:2021-10-10,
       products:[{productId:2,quantity:4},{productId:1,quantity:10},{productId:5,quantity:2}]
    }
+   /*...*/
+   {
+      id:20,
+      userId:1,
+      date:2021-11-14,
+      products:[{productId:5,quantity:2},{productId:8,quantity:7},{productId:9,quantity:12}]
+   }
 ]
 ----
-
-
 
 // == See Also
  

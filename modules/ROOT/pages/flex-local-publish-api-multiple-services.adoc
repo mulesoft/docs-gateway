@@ -1,0 +1,216 @@
+= Publishing an API with Multiple Upstream Services
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+For local mode, you publish an API running behind Flex Gateway by modifying YAML configuration data. API YAML configuration for Docker and Linux can be modified via `.yaml` files. API YAML configuration for Kubernetes can be modified via `kubectl apply`.
+
+The following demonstrates a typical YAML configuration for an unsecured API with multiple upstream services. 
+
+[cols="1,1,1"]
+|===
+
+|image:install-linux-logo.png[20%,20%,xref="flex-local-publish-api-multiple-services.adoc#publish-an-api-running-behind-flex-gateway-on-linux"]
+
+|image:install-docker-logo.png[25%,25%,xref="flex-local-publish-api-multiple-services.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container"]
+
+|image:install-kubernetes-logo.png[20%,20%,xref="flex-local-publish-api-multiple-services.adoc#kubernetes"]
+
+|xref:flex-local-publish-api-multiple-services.adoc#publish-an-api-running-behind-flex-gateway-on-linux[Publish an API running behind Flex Gateway on Linux]
+
+|xref:flex-local-publish-api-multiple-services.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container[Publish an API running behind Flex Gateway in a Docker Container]
+
+|xref:flex-local-publish-api-multiple-services.adoc#kubernetes[Publish an API running behind Flex Gateway on Kubernetes ]
+
+|===
+
+== Publish an API running behind Flex Gateway on Linux 
+
+Before getting started, ensure that you have:
+
+* Flex Gateway installed and running in local mode. See xref:flex-install.adoc[Installing Flex Gateway] for more information on installing and running the gateway. 
+* Your upstream service URL. The following example refers to fictional `products-api` and `users-api` services, but you can specify your API names under the `metadata.name` nodes, and specify service details under the `spec.services` nodes.
+
+To publish an API behind a gateway running on Linux:
+
+. Create a configuration file with a `.yaml` file extension. Name the file (it can be named anything), then save the file in the Flex Gateway configuration directory: `/etc/peregrine/conf.d/custom/`. This directory can contain multiple configuration files.
+
+. Copy and paste the following into the file:
++
+[source]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: products-users-api
+spec:
+  address: http://0.0.0.0:8080
+  services:
+    products:
+      address: https://<your products URL>:<your port>/
+      routes:
+        - rules:
+            - path: /api/products(/.*)
+          config:
+            destinationPath: /api            
+    users:
+      address: https://<your users URL>:<your port>/
+      routes:
+        - rules:
+            - path: /api/users(/.*)
+----
+
+. Save the file. 
++
+This forces a refresh, thereby allowing you to modify and add configuration details without having to explicitly stop and start the gateway. 
++
+The logs would include something the following: 
++
+[source]
+----
+[agent][info] Generating config
+[agent][info] Gateway default/18b4e890fe7d: Adding ApiInstance default/products-users-api http://0.0.0.0:8080
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/products(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-products Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/users(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-users Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Policy default/envoy.filters.http.router
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/monitoring_metrics http://0.0.0.0:9881
+[agent][debug] generating service monitoring_metrics.default.svc hostname: 0.0.0.0 port: 9881
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/products-users-api-products https://<your products URL>:<your port>/
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/products-users-api-users https://<your users URL>:<your port>/
+[agent][debug] generating service products-users-api-products.default.svc hostname: <your products URL> port: <your port>
+[agent][debug] generating service products-users-api-users.default.svc hostname: <your users URL> port: <your port>
+[agent][info] Writing envoy bootstrap configuration to /tmp/envoy.json
+[envoy][info] cds: add 2 cluster(s), remove 2 cluster(s)
+[envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
+----
+
+. Retrieve the first product in your store by accessing the `products` API, appending `1` to the address:
++
+[source]
+----
+curl http://localhost:8080/api/products/1 -v
+----
++
+The response would include the following output:
++
+[source]
+----
+[
+  {
+    "id":1,
+    "title":"Book: Information Architecture for the Web and Beyond",
+    "price":59.99,
+    "description":"This popular guide provides essential design concepts",
+    "category":"web design",
+    "image":"https://<your ecommerce site>/img/81fPKd-2AYL._AC_SL1500_.jpg",
+    "rating":{
+      "rate":3.9,
+      "count":120
+    }
+  }
+]
+----
+
+== Publish an API running behind Flex Gateway in a Docker Container 
+
+Before getting started, ensure that you have:
+
+* Flex Gateway installed and running in local mode. See xref:flex-install.adoc[Installing Flex Gateway] for more information on installing and running the gateway. 
+* Your upstream service URL. The following example refers to a fictional `orders-api` service, but you can specify your API name under `metadata.name`, and specify service details under `spec.services`.
+
+To publish an API behind a gateway running as a Docker container image:
+
+. Open a terminal and navigate to the directory containing the Flex Gateway image.
+
+. Create a configuration file with a `.yaml` file extension. Name the file (it can be named anything), then save the file in the the directory containing the Flex Gateway image. This directory can contain multiple configuration files.
+
+. Copy and paste the following into the file: 
++
+[source]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: products-users-api
+spec:
+  address: http://0.0.0.0:8080
+  services:
+    products:
+      address: https://<your products URL>:<your port>/
+      routes:
+        - rules:
+            - path: /api/products(/.*)
+          config:
+            destinationPath: /api            
+    users:
+      address: https://<your users URL>:<your port>/
+      routes:
+        - rules:
+            - path: /api/users(/.*)
+----
+
+. Save the file. 
++
+This forces a refresh, thereby allowing you to modify and add configuration details without having to explicitly stop and start the gateway. 
++
+The container logs would include something the following: 
++
+[source]
+----
+[agent][info] Generating config
+[agent][info] Gateway default/18b4e890fe7d: Adding ApiInstance default/products-users-api http://0.0.0.0:8080
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/products(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-products Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/users(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-users Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Policy default/envoy.filters.http.router
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/monitoring_metrics http://0.0.0.0:9881
+[agent][debug] generating service monitoring_metrics.default.svc hostname: 0.0.0.0 port: 9881
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/products-users-api-products https://<your products URL>:<your port>/
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/products-users-api-users https://<your users URL>:<your port>/
+[agent][debug] generating service products-users-api-products.default.svc hostname: <your products URL> port: <your port>
+[agent][debug] generating service products-users-api-users.default.svc hostname: <your users URL> port: <your port>
+[agent][info] Writing envoy bootstrap configuration to /tmp/envoy.json
+[envoy][info] cds: add 2 cluster(s), remove 2 cluster(s)
+[envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
+----
+
+. Retrieve the first product in your store by accessing the `products` API, appending `1` to the address:
++
+[source]
+----
+curl http://localhost:8080/api/products/1 -v
+----
++
+The response would include the following output:
++
+[source]
+----
+[
+  {
+    "id":1,
+    "title":"Book: Information Architecture for the Web and Beyond",
+    "price":59.99,
+    "description":"This popular guide provides essential design concepts",
+    "category":"web design",
+    "image":"https://<your ecommerce site>/img/81fPKd-2AYL._AC_SL1500_.jpg",
+    "rating":{
+      "rate":3.9,
+      "count":120
+    }
+  }
+]
+----
+
+
+
+// == See Also
+ 
+// Note: Do not change heading
+
+// Don’t use this section as filler. Link only to relevant related info and not just any info that is “kinda” related.
+
+// Must contain: unordered list
+// * xref:file-name.adoc[link-text]
+// * xref:file-name.adoc#paragraph-target[link text]
+// * xref:repo-name::filename.adoc[link text]
+// * https://www.url.com[link-text^]
