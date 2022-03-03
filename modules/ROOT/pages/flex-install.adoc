@@ -24,22 +24,27 @@ Install Flex Gateway as a Kubernetes Ingress Controller, as a Linux Service, or 
 
 Before getting started, ensure you have installed the following: 
 
-* curl 
-* vim
-* gnupg2
-* lsb-release
-* systemctl
+* link:https://curl.se/[curl] 
+* link:https://www.vim.org/[vim]
+* link:https://gnupg.org/[gnupg2]
+* link:https://refspecs.linuxfoundation.org/LSB_3.0.0/LSB-PDA/LSB-PDA/lsbrelease.html[lsb-release]
+* link:https://man7.org/linux/man-pages/man1/systemctl.1.html[systemctl]
 
-.To install Flex Gateway as a Linux Service: 
+=== Install Commands
 
-Retrieve the public package keys and add the package repository, update the package list, update apt-get,
-and install the Flex Gateway package using the following commands: 
+To install Flex Gateway as a Linux Service, execute the command block below which does the following actions:  
+
+* Retrieve the public package keys and add the package repository.
+* Update the package list.
+* Update apt-get.
+* Install the Flex Gateway package using the following.
 
 [source,ssh]
 ----
 curl -XGET https://flex-packages.devx.anypoint.mulesoft.com/ubuntu/pubkey.gpg | sudo apt-key add -
 
-echo "deb https://flex-packages.devx.anypoint.mulesoft.com/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/mulesoft.list
+echo "deb https://flex-packages.devx.anypoint.mulesoft.com/ubuntu $(lsb_release -cs) main" \
+| sudo tee /etc/apt/sources.list.d/mulesoft.list
 
 sudo apt update
 
@@ -48,13 +53,14 @@ sudo apt install -y peregrine
 
 == Install in a Docker Container
 
-.To install Flex Gateway in a Docker Container: 
+To install Flex Gateway in a Docker Container: 
 
 . Download the Flex Gateway Docker image using the following command: 
 +
 [source,ssh]
 ----
-curl -o flex-gateway-1.0.0-beta.5.tar https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gateway-1.0.0-beta.5.tar
+curl -o flex-gateway-1.0.0-beta.5.tar \
+https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gateway-1.0.0-beta.5.tar
 ----
 
 . Move the container image into a directory of your choice.
