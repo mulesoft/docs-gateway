@@ -7,21 +7,15 @@ endif::[]
 
 Install Flex Gateway as a Kubernetes Ingress Controller, as a Linux Service, or in a Docker container. 
 
-[cols="1,1,1"]
+[cols="1a,1a,1a"]
 |===
-
 |image:install-linux-logo.png[20%,20%,xref="flex-install.adoc#install-as-a-linux-service"]
-
 |image:install-docker-logo.png[25%,25%,xref="flex-install.adoc#install-in-a-docker-container"]
-
 |image:install-kubernetes-logo.png[20%,20%,xref="flex-install.adoc#install-as-a-kubernetes-ingress-controller"]
 
 |xref:flex-install.adoc#install-as-a-linux-service[Install as a Linux Service]
-
 |xref:flex-install.adoc#install-in-a-docker-container[Install in a Docker Container]
-
 |xref:flex-local-installing-running.adoc#install-and-run-as-a-kubernetes-ingress-controller[Install as a Kubernetes Ingress Controller]
-
 |===
 
 == Install as a Linux Service
@@ -41,7 +35,7 @@ Before getting started, ensure you have installed the following:
 Retrieve the public package keys and add the package repository, update the package list, update apt-get,
 and install the Flex Gateway package using the following commands: 
 
-[source]
+[source,ssh]
 ----
 curl -XGET https://flex-packages.devx.anypoint.mulesoft.com/ubuntu/pubkey.gpg | sudo apt-key add -
 
@@ -58,7 +52,7 @@ sudo apt install -y peregrine
 
 . Download the Flex Gateway Docker image using the following command: 
 +
-[source]
+[source,ssh]
 ----
 curl -o flex-gateway-1.0.0-beta.5.tar https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gateway-1.0.0-beta.5.tar
 ----
@@ -69,21 +63,21 @@ curl -o flex-gateway-1.0.0-beta.5.tar https://peregrine:48bcfd4617c9cce@d8wbbsqf
 
 . Install the container image using the following command: 
 +
-[source]
+[source,ssh]
 ----
 docker load --input flex-gateway-1.0.0-beta.5.tar
 ----
 
 You can verify the installation was successful using the following command: 
 
-[source]
+[source,ssh]
 ----
 docker images
 ----
 
 The Flex Gateway container image should appear in the resulting list, for example: 
 
-[source]
+[source,text]
 ----
 REPOSITORY                   TAG              IMAGE ID       CREATED        SIZE
 mulesoft/flex-gateway        1.0.0-beta.5     1c1fbdbf819b   9 days ago     334MB
@@ -103,31 +97,35 @@ The following procedures demonstrate how to install and run Flex Gateway as an i
 
 . Create a new Kubernetes cluster with a single server node using the following command: 
 +
-[source]
+[source,kubernetes]
 ----
 k3d cluster create flex-gateway-1 --k3s-arg "--disable=traefik@server:*" --port '80:80@server:*' --port '443:443@server:*'
 ----
 +
 The command should return the following success message: 
 +
+[source,text]
 ----
 INFO[0042] Cluster 'flex-gateway-1' created successfully!
 ----
 
 . Download the Flex Gateway container image using the following command: 
 +
+[source,ssh]
 ----
 curl -o flex-gateway-1.0.0-beta.5.tar https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gateway-1.0.0-beta.5.tar
 ----
 
 . Import the container image using the following command: 
 +
+[source,kubernetes]
 ----
 k3d image import -c flex-gateway-1 flex-gateway-1.0.0-beta.5.tar
 ----
 +
 The command should return the following success messages: 
 +
+[source,text]
 ----
 INFO[0016] Successfully imported image(s)
 INFO[0016] Successfully imported 1 image(s) into 1 cluster(s)
@@ -137,24 +135,28 @@ INFO[0016] Successfully imported 1 image(s) into 1 cluster(s)
 
 . Add the Flex Gateway helm repository using the following command: 
 +
+[source,kubernetes]
 ----
 helm repo add flex-gateway https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/helm
 ----
 
 . Update the helm repository using the following command:
 +
+[source,kubernetes]
 ----
 helm repo up
 ----
 
 . Install the *flex-gateway* helm chart into the *gateway* namespace with ingress using the following command:  
 +
+[source,kubernetes]
 ----
 helm -n gateway upgrade -i --wait --create-namespace ingress flex-gateway/flex-gateway
 ----
 +
 The command should return something like the following: 
 +
+[source,text]
 ----
 NAME: ingress
 LAST DEPLOYED: Tue Oct 19 13:08:07 2021
@@ -165,15 +167,24 @@ TEST SUITE: None
 ----
 
 You can verify *apiinstances* was created during installation using the following command: 
-+
+
+[source,kubernetes]
 ----
 kubectl -n gateway get apiinstances
 ---- 
-+
+
 The command returns output similar to the following: 
-+
+
+[source,text]
 ----
 NAME            ADDRESS
 ingress-http    http://0.0.0.0:80
 ingress-https   http://0.0.0.0:443
 ----
+
+== See Also
+
+* xref:flex-gateway-overview.adoc[Anypoint Flex Gateway]
+* xref:flex-gateway-getting-started.adoc[Get Started with Flex Gateway]
+* xref:flex-conn-reg-run.adoc[Register and Run in Connected Mode]
+* xref:flex-local-reg-run.adoc[Register and Run in Local Mode]
