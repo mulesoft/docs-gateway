@@ -15,13 +15,13 @@ The following demonstrates a typical YAML configuration for an unsecured API wit
 
 |image:install-docker-logo.png[25%,25%,xref="flex-local-publish-simple-api.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container"]
 
-|image:install-kubernetes-logo.png[20%,20%,xref="flex-local-publish-simple-api.adoc#kubernetes"]
+|image:install-kubernetes-logo.png[20%,20%,xref="flex-local-publish-simple-api.adoc#publish-an-api-running-behind-flex-gateway-as-an-ingress-controller"]
 
 |xref:flex-local-publish-simple-api.adoc#publish-an-api-running-behind-flex-gateway-on-linux[Publish an API running behind Flex Gateway on Linux]
 
 |xref:flex-local-publish-simple-api.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container[Publish an API running behind Flex Gateway in a Docker Container]
 
-|xref:flex-local-publish-simple-api.adoc#kubernetes[Publish an API running behind Flex Gateway on Kubernetes ]
+|xref:flex-local-publish-simple-api.adoc#publish-an-api-running-behind-flex-gateway-as-an-ingress-controller[Publish an API running behind Flex Gateway on Kubernetes]
 
 |===
 
@@ -30,7 +30,7 @@ The following demonstrates a typical YAML configuration for an unsecured API wit
 Before getting started, ensure that you have:
 
 * Flex Gateway installed and running in local mode. See xref:flex-install.adoc[Installing Flex Gateway] for more information on installing and running the gateway. 
-* Your upstream service URL. The following example refers to a fictional `orders-api` service, but you can specify your API name under `metadata.name`, and specify service details under `spec.services`.
+* Your upstream service URL. The following example refers to a fictional `orders-api` service, but you can specify your own API name under `metadata.name`, and specify service details under `spec.services`.
 
 To publish an API behind a gateway running on Linux:
 
@@ -82,7 +82,7 @@ The logs would include something the following:
 curl http://localhost:8080/api/orders/ -v
 ----
 +
-The response would include the following output:
+The response could include the following output:
 +
 [source]
 ----
@@ -103,12 +103,14 @@ The response would include the following output:
 ]
 ----
 
+An unsecured API is now running behind Flex Gateway.
+
 == Publish an API running behind Flex Gateway in a Docker Container 
 
 Before getting started, ensure that you have:
 
 * Flex Gateway installed and running in local mode. See xref:flex-install.adoc[Installing Flex Gateway] for more information on installing and running the gateway. 
-* Your upstream service URL. The following example refers to a fictional `orders-api` service, but you can specify your API name under `metadata.name`, and specify service details under `spec.services`.
+* Your upstream service URL. The following example refers to a fictional `orders-api` service, but you can specify your own API name under `metadata.name`, and specify service details under `spec.services`.
 
 To publish an API behind a gateway running as a Docker container image:
 
@@ -162,7 +164,7 @@ The container logs would include something the following:
 curl http://localhost:8080/api/orders/ -v
 ----
 +
-The response would include the following output:
+The response could include the following output:
 +
 [source]
 ----
@@ -182,6 +184,127 @@ The response would include the following output:
    }
 ]
 ----
+
+An unsecured API is now running behind Flex Gateway.
+
+== Publish an API running behind Flex Gateway as an Ingress Controller 
+
+Before getting started, ensure that you have:
+
+* Flex Gateway installed and running in local mode. See xref:flex-install.adoc[Installing Flex Gateway] for more information on installing and running the gateway. 
+* A Docker image stored in a Docker repository. The following example refers to a fictional `orders-api` application, but you can specify your own Docker repository and Docker image in the `Deployment` configuration resource (under `spec.spec.image`).
+
+To publish an API behind a gateway running as an Ingress Controller:
+
+. Install a Docker image named "orders-api" from a given repository. This can be accomplished by passing YAML configuration data into the `kubectl apply` command. 
++
+The following YAML example defines two configuration resources: `Service`, and `Deployment`. The `Service` resource declares the `orders-api` micro-service. The `Deployment` resource declares the desired deployment state by specifying information such as the number of replicas to create, and the Docker image to sideload.
++
+[source]
+----
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders-api
+  labels:
+    app: orders-api
+    service: orders-api
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  selector:
+    app: orders-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orders-api
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: orders-api
+        version: v1
+    spec:
+      containers:
+      - image: <repository>/<dockerfile>
+        imagePullPolicy: IfNotPresent
+        name: orders-api
+        ports:
+        - name: http
+          containerPort: 3000
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+EOF
+----
+
+. Create the ingress to route traffic. This can be accomplished by passing YAML configuration data into the `kubectl apply` command. 
++
+The following YAML example defines one configuration resource: `Ingress`.
++
+[source]
+----
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: orders-api
+spec:
+  ingressClassName: ingress-http.gateway
+  rules:
+  - http:
+      paths:
+      - path: /api/orders(/.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: orders-api
+            port:
+              number: 80
+EOF
+----
+
+. Retrieve all orders by accessing your `orders` API:
++
+[source]
+----
+curl http://localhost/api/orders/ -v
+----
++
+The response could include the following output:
++
+[source]
+----
+[
+   {
+      id:1,
+      userId:1,
+      date:2021-10-10,
+      products:[{productId:2,quantity:4},{productId:1,quantity:10},{productId:5,quantity:2}]
+   }
+   /*...*/
+   {
+      id:20,
+      userId:1,
+      date:2021-11-14,
+      products:[{productId:5,quantity:2},{productId:8,quantity:7},{productId:9,quantity:12}]
+   }
+]
+----
+
+An unsecured API is now running behind Flex Gateway.
 
 // == See Also
  
