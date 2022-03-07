@@ -1,0 +1,80 @@
+= Secure an API with Basic Authentication and Rate Limiting
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+For local mode, you publish an API running behind Flex Gateway by modifying YAML configuration data. API YAML configuration for Docker and Linux can be modified via `.yaml` files. API YAML configuration for Kubernetes can be modified via `kubectl apply`.
+
+The following demonstrates a typical YAML configuration for an API with multiple upstream services, all secured with basic authentication and rate limiting. 
+
+[cols="1,1,1"]
+|===
+
+|image:install-linux-logo.png[20%,20%,xref="flex-local-secure-api-with-basic-auth-policy.adoc#publish-an-api-running-behind-flex-gateway-on-linux"]
+
+|image:install-docker-logo.png[25%,25%,xref="flex-local-secure-api-with-basic-auth-policy.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container"]
+
+|image:install-kubernetes-logo.png[20%,20%,xref="flex-local-secure-api-with-basic-auth-policy.adoc#publish-an-api-running-behind-flex-gateway-as-an-ingress-controller"]
+
+|xref:flex-local-secure-api-with-basic-auth-policy.adoc#publish-an-api-running-behind-flex-gateway-on-linux[Publish an API running behind Flex Gateway on Linux]
+
+|xref:flex-local-secure-api-with-basic-auth-policy.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container[Publish an API running behind Flex Gateway in a Docker Container]
+
+|xref:flex-local-secure-api-with-basic-auth-policy.adoc#publish-an-api-running-behind-flex-gateway-as-an-ingress-controller[Publish an API running behind Flex Gateway on Kubernetes]
+
+|===
+
+== Publish an API running behind Flex Gateway on Linux 
+
+Before getting started, ensure that you have:
+
+* Flex Gateway installed and running in local mode. See xref:flex-install.adoc[Installing Flex Gateway] for more information on installing and running the gateway. 
+* Your upstream service URLs. The following example refers to fictional `products-api` and `users-api` services, but you can specify your API names under the `metadata.name` nodes, and specify service details under the `spec.services` nodes.
+
+To publish an API behind a gateway running on Linux:
+
+. Create a configuration file with a `.yaml` file extension. Name the file (it can be named anything), then save the file in the Flex Gateway configuration directory: `/etc/peregrine/conf.d/custom/`. This directory can contain multiple configuration files.
+
+. Copy and paste the following into the file:
++
+[source]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: products-users-api
+spec:
+  address: http://0.0.0.0:8080
+  services:
+    products:
+      address: https://<your products URL>:<your port>/
+      routes:
+        - rules:
+            - path: /api/products(/.*)
+            - path: /api/products-featured(/.*)
+          config:
+            destinationPath: /api            
+    users:
+      address: https://<your users URL>:<your port>/
+      routes:
+        - rules:
+            - path: /api/users(/.*)
+  policies:
+    - policyRef:
+        name: http-basic-authentication-flex
+      config:
+        username: foo
+        password: bar 
+     - policyRef:
+        name: rate-limit       
+      config:
+        exposeHeaders: true
+        rateLimits:
+            - maximumRequests: 3
+            timePeriodInMilliseconds: 6000
+----
+
+. Save the file. 
++
+This forces a refresh, thereby allowing you to modify and add configuration details without having to explicitly stop and start the gateway.
