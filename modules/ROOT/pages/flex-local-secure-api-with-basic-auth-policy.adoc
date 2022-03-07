@@ -78,3 +78,211 @@ spec:
 . Save the file. 
 +
 This forces a refresh, thereby allowing you to modify and add configuration details without having to explicitly stop and start the gateway.
++
+The logs would include something the following: 
++
+[source]
+----
+[agent][info] Generating config
+[agent][info] Gateway default/18b4e890fe7d: Adding ApiInstance default/products-users-api http://0.0.0.0:8080
+[agent][info] Gateway default/4191c977e1ce: Adding Policy default/animal-facts-api-http-basic-authentication-flex-1
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/products(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-products Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/users(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-users Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Policy default/envoy.filters.http.router
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/monitoring_metrics http://0.0.0.0:9881
+[agent][debug] generating service monitoring_metrics.default.svc hostname: 0.0.0.0 port: 9881
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/products-users-api-products https://<your products URL>:<your port>/
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/products-users-api-users https://<your users URL>:<your port>/
+[agent][debug] generating service products-users-api-products.default.svc hostname: <your products URL> port: <your port>
+[agent][debug] generating service products-users-api-users.default.svc hostname: <your users URL> port: <your port>
+[agent][info] Writing envoy bootstrap configuration to /tmp/envoy.json
+[envoy][info] cds: add 2 cluster(s), remove 2 cluster(s)
+[envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
+----
+
+. Access the `products` API without providing authentication information: 
++
+[source]
+----
+curl http://localhost:8080/api/products/1 -v
+----
++
+The response would include the following output:
++
+[source]
+----
+HTTP/1.1 401 Unauthorized
+----
+
+. Retrieve the first product in your store by accessing the `products` API, appending `1` to the address, and providing authentication information:
++
+[source]
+----
+curl -u foo:bar http://localhost:8080/api/users/1 -v
+----
++
+The response would include the following output:
++
+[source]
+----
+[
+  {
+    "id":1,
+    "title":"Book: Information Architecture for the Web and Beyond",
+    "price":59.99,
+    "description":"This popular guide provides essential design concepts",
+    "category":"web design",
+    "image":"https://<your ecommerce site>/img/81fPKd-2AYL._AC_SL1500_.jpg",
+    "rating":{
+      "rate":3.9,
+      "count":120
+    }
+  }
+]
+----
+
+. Validate rate limiting by executing the following command more than X times in a minute:
++
+[source]
+----
+curl -u foo:bar http://localhost:8080/api/users/1 -v
+----
++
+The response would include the following output:
++
+[source]
+----
+HTTP/1.1 429 Too Many Requests
+----
+
+== Publish an API running behind Flex Gateway in a Docker Container 
+
+Before getting started, ensure that you have:
+
+* Flex Gateway installed and running in local mode. See xref:flex-install.adoc[Installing Flex Gateway] for more information on installing and running the gateway. 
+* Your upstream service URLs. The following example refers to fictional `products-api` and `users-api` services, but you can specify your API names under the `metadata.name` nodes, and specify service details under the `spec.services` nodes.
+
+To publish an API behind a gateway running as a Docker container image:
+
+. Open a terminal and navigate to the directory containing the Flex Gateway image.
+
+. Create a configuration file with a `.yaml` file extension. Name the file (it can be named anything), then save the file in the the directory containing the Flex Gateway image. This directory can contain multiple configuration files.
+
+. Copy and paste the following into the file:
++
+[source]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: products-users-api
+spec:
+  address: http://0.0.0.0:8080
+  services:
+    products:
+      address: https://<your products URL>:<your port>/
+      routes:
+        - rules:
+            - path: /api/products(/.*)
+            - path: /api/products-featured(/.*)
+          config:
+            destinationPath: /api            
+    users:
+      address: https://<your users URL>:<your port>/
+      routes:
+        - rules:
+            - path: /api/users(/.*)
+  policies:
+    - policyRef:
+        name: http-basic-authentication-flex
+      config:
+        username: foo
+        password: bar 
+    - policyRef:
+        name: rate-limiting-flex       
+      config:
+        exposeHeaders: true
+        rateLimits:
+            - maximumRequests: 3
+              timePeriodInMilliseconds: 6000
+----
+
+. Save the file. 
++
+This forces a refresh, thereby allowing you to modify and add configuration details without having to explicitly stop and start the gateway.
++
+The logs would include something the following: 
++
+[source]
+----
+[agent][info] Generating config
+[agent][info] Gateway default/18b4e890fe7d: Adding ApiInstance default/products-users-api http://0.0.0.0:8080
+[agent][info] Gateway default/4191c977e1ce: Adding Policy default/animal-facts-api-http-basic-authentication-flex-1
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/products(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-products Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/users(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-users Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Policy default/envoy.filters.http.router
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/monitoring_metrics http://0.0.0.0:9881
+[agent][debug] generating service monitoring_metrics.default.svc hostname: 0.0.0.0 port: 9881
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/products-users-api-products https://<your products URL>:<your port>/
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/products-users-api-users https://<your users URL>:<your port>/
+[agent][debug] generating service products-users-api-products.default.svc hostname: <your products URL> port: <your port>
+[agent][debug] generating service products-users-api-users.default.svc hostname: <your users URL> port: <your port>
+[agent][info] Writing envoy bootstrap configuration to /tmp/envoy.json
+[envoy][info] cds: add 2 cluster(s), remove 2 cluster(s)
+[envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
+----
+
+. Access the `products` API without providing authentication information: 
++
+[source]
+----
+curl http://localhost:8080/api/products/1 -v
+----
++
+The response would include the following output:
++
+[source]
+----
+HTTP/1.1 401 Unauthorized
+----
+
+. Retrieve the first product in your store by accessing the `products` API, appending `1` to the address, and providing authentication information:
++
+[source]
+----
+curl -u foo:bar http://localhost:8080/api/users/1 -v
+----
++
+The response would include the following output:
++
+[source]
+----
+[
+  {
+    "id":1,
+    "title":"Book: Information Architecture for the Web and Beyond",
+    "price":59.99,
+    "description":"This popular guide provides essential design concepts",
+    "category":"web design",
+    "image":"https://<your ecommerce site>/img/81fPKd-2AYL._AC_SL1500_.jpg",
+    "rating":{
+      "rate":3.9,
+      "count":120
+    }
+  }
+]
+----
+
+. Validate rate limiting by executing the following command more than X times in a minute:
++
+[source]
+----
+curl -u foo:bar http://localhost:8080/api/users/1 -v
+----
++
+The response would include the following output:
++
+[source]
+----
+HTTP/1.1 429 Too Many Requests
+----
