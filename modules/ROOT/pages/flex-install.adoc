@@ -32,13 +32,13 @@ Before getting started, ensure you have installed the following:
 
 === Install Commands
 
-To install Flex Gateway as a Linux Service, execute the command block below which does the following actions:  
-
+. To install Flex Gateway as a Linux Service, execute the command block below which does the following actions:  
++
 * Retrieve the public package keys and add the package repository.
 * Update the package list.
 * Update apt-get.
 * Install the Flex Gateway package using the following.
-
++
 [source,ssh]
 ----
 curl -XGET https://flex-packages.devx.anypoint.mulesoft.com/ubuntu/pubkey.gpg | sudo apt-key add -
@@ -49,6 +49,25 @@ echo "deb https://flex-packages.devx.anypoint.mulesoft.com/ubuntu $(lsb_release 
 sudo apt update
 
 sudo apt install -y peregrine
+----
+
+. Verify that the Flex Gateway service is running successfully by executing the following command:
++
+[source,ssh]
+----
+systemctl list-units peregrine*
+----
++
+A list of services displays. Flex Gateway is successfully running if each service has a status of `active`:
++
+[source,ssh]
+----
+  UNIT                           LOAD   ACTIVE SUB     DESCRIPTION
+  peregrine-fluent-reloader.path loaded active waiting peregrine-fluent-reloader.path
+  peregrine-agent.service        loaded active running peregrine-agent.service
+  peregrine-envoy.service        loaded active running peregrine-envoy.service
+  peregrine-fluent.service       loaded active running peregrine-fluent.service
+  peregrine.service              loaded active exited  Application
 ----
 
 == Install in a Docker Container

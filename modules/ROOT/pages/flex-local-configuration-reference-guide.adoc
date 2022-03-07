@@ -254,7 +254,7 @@ spec:
   - path: /api/jsonplaceholder(/.*)
 ----
 
-The following resource binds a `basic-authentication` policy to the API instance -  requiring requests to include the basic credentials defined in `config.username` and `config.password`:
+The following resource binds a `http-basic-authentication-flex` policy to the API instance -  requiring requests to include the basic credentials defined in `config.username` and `config.password`:
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -267,7 +267,7 @@ spec:
    name: hello-flex-gateway-instance
    namespace: e-commerce
  policyRef:
-   name: basic-authentication
+   name: http-basic-authentication-flex
    namespace: default
  config:
    username: foo
@@ -537,7 +537,7 @@ spec:
             - path: /api(/comments/.*)
   policies:
     - policyRef:
-        name: basic-authentication
+        name: http-basic-authentication-flex
       config:
         username: foo
         password: bar
@@ -585,7 +585,7 @@ spec:
   targetRef:
     name: ingress-http
   policyRef:
-    name: basic-authentication
+    name: http-basic-authentication-flex
   config:
     username: foo
     password: bar
