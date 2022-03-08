@@ -70,16 +70,16 @@ A list of services displays. Flex Gateway is successfully running if each servic
   peregrine.service              loaded active exited  Application
 ----
 
-== Install in a Docker Container
+== Install in a Docker Container 
 
 To install Flex Gateway in a Docker Container: 
 
 . Download the Flex Gateway Docker image using the following command: 
 +
-[source,ssh]
+[source,ssh,subs=attributes+]
 ----
-curl -o flex-gateway-1.0.0-beta.6.tar \
-https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gateway-1.0.0-beta.6.tar
+curl -o flex-gateway-{gateway-ver-var}.tar \
+https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gateway-{gateway-ver-var}.tar
 ----
 
 . Move the container image into a directory of your choice.
@@ -88,9 +88,9 @@ https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gatew
 
 . Install the container image using the following command: 
 +
-[source,ssh]
+[source,ssh,subs=attributes+]
 ----
-docker load --input flex-gateway-1.0.0-beta.6.tar
+docker load --input flex-gateway-{gateway-ver-var}.tar
 ----
 
 You can verify the installation was successful using the following command: 
@@ -102,10 +102,10 @@ docker images
 
 The Flex Gateway container image should appear in the resulting list, for example: 
 
-[source,text]
+[source,text,subs=attributes+]
 ----
 REPOSITORY                   TAG              IMAGE ID       CREATED        SIZE
-mulesoft/flex-gateway        1.0.0-beta.6     1c1fbdbf819b   9 days ago     334MB
+mulesoft/flex-gateway        {gateway-ver-var}     1c1fbdbf819b   9 days ago     334MB
 ----
 
 == Install as a Kubernetes Ingress Controller
@@ -136,16 +136,16 @@ INFO[0042] Cluster 'flex-gateway-1' created successfully!
 
 . Download the Flex Gateway container image using the following command: 
 +
-[source,ssh]
+[source,ssh,subs=attributes+]
 ----
-curl -o flex-gateway-1.0.0-beta.6.tar https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gateway-1.0.0-beta.6.tar
+curl -o flex-gateway-{gateway-ver-var}.tar https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gateway-{gateway-ver-var}.tar
 ----
 
 . Import the container image using the following command: 
 +
-[source,kubernetes]
+[source,kubernetes,subs=attributes+]
 ----
-k3d image import -c flex-gateway-1 flex-gateway-1.0.0-beta.6.tar
+k3d image import -c flex-gateway-1 flex-gateway-{gateway-ver-var}.tar
 ----
 +
 The command should return the following success messages: 

@@ -122,9 +122,9 @@ After replacing the sample content, register your Flex Gateway by executing the 
 // end::conn-reg-command-heading[]
 // tag::conn-user-docker-reg-command[]
 
-[source]
+[source,ssh,subs=attributes+]
 ----
-docker run --entrypoint -w /registration "$(pwd)":/registration mulesoft/flex-gateway:1.0.0-beta.5 \
+docker run --entrypoint -w /registration "$(pwd)":/registration mulesoft/flex-gateway:{gateway-ver-var} \
 flexctl register -v \
 --username=john \
 --password=doe \
@@ -135,9 +135,9 @@ my-gateway
 ----
 // end::conn-user-docker-reg-command[]
 // tag::conn-app-docker-reg-command[]
-[source]
+[source,ssh,subs=attributes+]
 ----
-docker run --entrypoint -w /registration "$(pwd)":/registration mulesoft/flex-gateway:1.0.0-beta.5 \
+docker run --entrypoint -w /registration "$(pwd)":/registration mulesoft/flex-gateway:{gateway-ver-var} \
 flexctl register -v \
 --client-id=714e98tj0ik73f68c2mab2e952802342 \
 --client-secret=e93rbbd85B479s2K7v88N5927T60s5D4 \
@@ -184,7 +184,7 @@ The gateway's status is disconnected for now. You need to start the gateway to c
 Before executing the start command below, replace the `.conf` file UUID with the UUID of the `.conf` file
 in the folder where you have stored the Flex Gateway Docker image.
 
-[source]
+[source,ssh,subs=attributes+]
 ----
 docker run --rm \
 -v $(pwd)/:/etc/peregrine/rtm \
@@ -192,7 +192,7 @@ docker run --rm \
 -e MGW_RTM_ARM_AGENT_URL=wss://arm-mcm2-service.kdev.msap.io:443/agent \
 -e MGW_DATASOURCE_RTM_ENABLED=true \
 -e MGW_RTM_ARM_AGENT_CONFIG=/etc/peregrine/rtm/076ccaab-86a7-444d-8fbb-6620bafde086.conf \
-mulesoft/flex-gateway:1.0.0-beta.5
+mulesoft/flex-gateway:{gateway-ver-var}
 ----
 // end::conn-start-command[]
 // tag::conn-before-restart-command[]
