@@ -1,0 +1,30 @@
+= IP Allowlist
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+The *IP Allowlist* policy allows a list or a range of specified IP addresses access to a protected resource when a match is found between a source IP address and a list of individual IP addresses or range of IP addresses.
+
+== Definition
+
+----
+- policyRef:
+    name: ip-allowlist-flex
+  config:
+    ips: <array> // REQUIRED
+    ipExpression: <string> // OPTIONAL, default: "#[attributes.headers['x-forwarded-for']]"
+----
+
+== Example
+
+----
+- policyRef:
+    name: ip-allowlist-flex
+  config:
+    ips:
+      - "192.168.1.1"
+      - "192.168.3.1/30"
+      - "192.168.2"
+      - "192.160"
+----
