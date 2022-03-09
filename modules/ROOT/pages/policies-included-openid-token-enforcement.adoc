@@ -1,0 +1,41 @@
+= OpenID Connect OAuth 2.0 Token Enforcement
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+The *OpenID Connect Access Token Enforcement* policy restricts access to a protected resource to only those HTTP requests that provide a valid Oauth2 token belonging to a client application with API access. The policy does not generate tokens but only validates them.
+
+This policy is available only to an organization that is configured to use the OpenID Connect dynamic client registration as a client-management solution.
+
+== Definition
+
+----
+- policyRef:
+    name: openidconnect-access-token-enforcement-flex
+  config:
+    authenticationTimeout: <int> // OPTIONAL, default: 10000
+    scopes: <string> // OPTIONAL, default: ""
+    secureTrustStore: <bool> // OPTIONAL, default: false
+    scopeValidationCriteria: <string> // OPTIONAL, default: "AND"
+    exposeHeaders: <bool> // OPTIONAL, default: false
+    skipClientIdValidation: <bool> // OPTIONAL, default: true
+    maxFederationExpirationTime: <int> // OPTIONAL, default: -1
+    maxCacheSize: <int> // OPTIONAL, default: 1000
+----
+
+== Example
+
+----
+- policyRef:
+    name: openidconnect-access-token-enforcement-flex
+  config:
+    authenticationTimeout: 12000,
+    scopes: "read",
+    secureTrustStore: true,
+    scopeValidationCriteria: "OR",
+    exposeHeaders: true,
+    skipClientIdValidation: false,
+    maxFederationExpirationTime: 50,
+    maxCacheSize: 500
+----
