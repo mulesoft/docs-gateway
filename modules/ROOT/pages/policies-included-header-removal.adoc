@@ -1,0 +1,37 @@
+= Header Removal
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+The *Header Removal* policy removes all listed headers from a request or a response of a message when you specify an inbound and outbound map of the headers that you want to remove with a key-value pair.
+
+== Definition
+
+[source]
+----
+- policyRef:
+    name: header-removal-flex
+  config:
+    inboundHeaders: <array> // OPTIONAL, default: []
+    outboundHeaders: <array> // OPTIONAL, default: []
+----
+
+== Example
+
+[source]
+----
+- policyRef:
+    name: header-removal-flex
+    config:
+    inboundHeaders:
+        - "Cache-Control"
+        - "Access-Control.*"
+    outboundHeaders:
+        - "Access-Control-Allow-Credentials"
+----
+
+Because every header that matches a *Header Removal* policy parameter is removed from the message, you must be careful about how you configure that parameter.
+
+For instance, the example `inboundHeaders` configuration removes any header starting with the word `Access-Control`, such as the `Access-Control-Allow-Credentials` and `Access-Control-Allow-Origin` headers from a message. The configuration also removes the `Cache-Control` header.
+
