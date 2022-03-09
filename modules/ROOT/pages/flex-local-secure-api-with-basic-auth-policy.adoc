@@ -15,13 +15,13 @@ The following demonstrates a typical YAML configuration for an API with multiple
 
 |image:install-docker-logo.png[25%,25%,xref="flex-local-secure-api-with-basic-auth-policy.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container"]
 
-|image:install-kubernetes-logo.png[20%,20%,xref="flex-local-secure-api-with-basic-auth-policy.adoc#publish-an-api-running-behind-flex-gateway-as-an-ingress-controller"]
+|image:install-kubernetes-logo.png[20%,20%,xref="flex-local-secure-api-with-basic-auth-policy.adoc#publish-an-api-running-behind-flex-gateway-on-kubernetes"]
 
 |xref:flex-local-secure-api-with-basic-auth-policy.adoc#publish-an-api-running-behind-flex-gateway-on-linux[Publish an API running behind Flex Gateway on Linux]
 
 |xref:flex-local-secure-api-with-basic-auth-policy.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container[Publish an API running behind Flex Gateway in a Docker Container]
 
-|xref:flex-local-secure-api-with-basic-auth-policy.adoc#publish-an-api-running-behind-flex-gateway-as-an-ingress-controller[Publish an API running behind Flex Gateway on Kubernetes]
+|xref:flex-local-secure-api-with-basic-auth-policy.adoc#publish-an-api-running-behind-flex-gateway-on-kubernetes[Publish an API running behind Flex Gateway on Kubernetes]
 
 |===
 
@@ -64,28 +64,30 @@ spec:
     - policyRef:
         name: http-basic-authentication-flex
       config:
-        username: foo
-        password: bar 
+        username: chris
+        password: admin
     - policyRef:
-        name: rate-limiting-flex       
+        name: rate-limiting-flex
       config:
         exposeHeaders: true
         rateLimits:
-            - maximumRequests: 3
-              timePeriodInMilliseconds: 6000
+          - maximumRequests: 3
+            timePeriodInMilliseconds: 6000
+        keySelector: "#[attributes.queryParams['identifier']]"
 ----
 
 . Save the file. 
 +
 This forces a refresh, thereby allowing you to modify and add configuration details without having to explicitly stop and start the gateway.
 +
-The logs would include something the following: 
+The logs would include the following: 
 +
 [source]
 ----
 [agent][info] Generating config
 [agent][info] Gateway default/18b4e890fe7d: Adding ApiInstance default/products-users-api http://0.0.0.0:8080
-[agent][info] Gateway default/4191c977e1ce: Adding Policy default/animal-facts-api-http-basic-authentication-flex-1
+[agent][info] Gateway default/4191c977e1ce: Adding Policy default/products-users-api-users-http-basic-authentication-flex-1
+[agent][info] Gateway default/4191c977e1ce: Adding Policy default/products-users-api-users-rate-limiting-flex-2
 [agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/products(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-products Namespace:default}
 [agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/users(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-users Namespace:default}
 [agent][info] Gateway default/18b4e890fe7d: Adding Policy default/envoy.filters.http.router
@@ -107,7 +109,7 @@ The logs would include something the following:
 curl http://localhost:8080/api/products/1 -v
 ----
 +
-The response would include the following output:
+The response would include the following:
 +
 [source]
 ----
@@ -118,10 +120,10 @@ HTTP/1.1 401 Unauthorized
 +
 [source]
 ----
-curl -u foo:bar http://localhost:8080/api/users/1 -v
+curl -u chris:admin http://localhost:8080/api/users/1 -v
 ----
 +
-The response would include the following output:
+The response would include the following:
 +
 [source]
 ----
@@ -141,14 +143,14 @@ The response would include the following output:
 ]
 ----
 
-. Validate rate limiting by executing the following command more than X times in a minute:
+. Validate rate limiting by executing the following command more than three times in six seconds:
 +
 [source]
 ----
-curl -u foo:bar http://localhost:8080/api/users/1 -v
+curl -u chris:admin http://localhost:8080/api/users/1 -v
 ----
 +
-The response would include the following output:
+The response would include the following:
 +
 [source]
 ----
@@ -196,28 +198,30 @@ spec:
     - policyRef:
         name: http-basic-authentication-flex
       config:
-        username: foo
-        password: bar 
+        username: chris
+        password: admin
     - policyRef:
-        name: rate-limiting-flex       
+        name: rate-limiting-flex
       config:
         exposeHeaders: true
         rateLimits:
-            - maximumRequests: 3
-              timePeriodInMilliseconds: 6000
+          - maximumRequests: 3
+            timePeriodInMilliseconds: 6000
+        keySelector: "#[attributes.queryParams['identifier']]"
 ----
 
 . Save the file. 
 +
 This forces a refresh, thereby allowing you to modify and add configuration details without having to explicitly stop and start the gateway.
 +
-The logs would include something the following: 
+The logs would include the following: 
 +
 [source]
 ----
 [agent][info] Generating config
 [agent][info] Gateway default/18b4e890fe7d: Adding ApiInstance default/products-users-api http://0.0.0.0:8080
-[agent][info] Gateway default/4191c977e1ce: Adding Policy default/animal-facts-api-http-basic-authentication-flex-1
+[agent][info] Gateway default/4191c977e1ce: Adding Policy default/products-users-api-users-http-basic-authentication-flex-1
+[agent][info] Gateway default/4191c977e1ce: Adding Policy default/products-users-api-users-rate-limiting-flex-2
 [agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/products(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-products Namespace:default}
 [agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/users(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-users Namespace:default}
 [agent][info] Gateway default/18b4e890fe7d: Adding Policy default/envoy.filters.http.router
@@ -239,7 +243,7 @@ The logs would include something the following:
 curl http://localhost:8080/api/products/1 -v
 ----
 +
-The response would include the following output:
+The response would include the following:
 +
 [source]
 ----
@@ -250,10 +254,10 @@ HTTP/1.1 401 Unauthorized
 +
 [source]
 ----
-curl -u foo:bar http://localhost:8080/api/users/1 -v
+curl -u chris:admin http://localhost:8080/api/users/1 -v
 ----
 +
-The response would include the following output:
+The response would include the following:
 +
 [source]
 ----
@@ -273,16 +277,18 @@ The response would include the following output:
 ]
 ----
 
-. Validate rate limiting by executing the following command more than X times in a minute:
+. Validate rate limiting by executing the following command more than three times in six seconds:
 +
 [source]
 ----
-curl -u foo:bar http://localhost:8080/api/users/1 -v
+curl -u chris:admin http://localhost:8080/api/users/1 -v
 ----
 +
-The response would include the following output:
+The response would include the following:
 +
 [source]
 ----
 HTTP/1.1 429 Too Many Requests
 ----
+
+== Publish an API running behind Flex Gateway on Kubernetes

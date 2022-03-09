@@ -1,0 +1,36 @@
+= Basic Authentication: Simple
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Specify the username and password to use for authentication. 
+
+== Definition
+
+[source]
+----
+- policyRef:
+    name: http-basic-authentication-flex
+  config:
+    username: <string> // REQUIRED
+    password: <string> // REQUIRED
+----
+
+== Example
+
+[source]
+----
+- policyRef:
+    name: http-basic-authentication-flex
+  config:
+    username: chris
+    password: admin
+----
+
+Example authentication of a request made via `curl`: 
+
+[source]
+----
+curl -v -u chris:admin http://localhost:8080/api/users/1
+----
