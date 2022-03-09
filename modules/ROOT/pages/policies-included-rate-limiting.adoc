@@ -4,7 +4,9 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Control incoming API traffic by limiting the number of requests that the API can receive within a given period of time.
+The *Rate Limiting* policy enables you to control the incoming traffic to an API by limiting the number of requests that the API can receive within a given period of time. After the limit is reached, the policy rejects all requests, thereby avoiding any additional load on the backend API.
+
+When you configure the Rate Limiting policy, you can specify any number of pairs of quota (number of requests) and time window (time period) values.
 
 == Definition
 
@@ -17,9 +19,8 @@ Control incoming API traffic by limiting the number of requests that the API can
       - maximumRequests: <int> // REQUIRED
         timePeriodInMilliseconds: <int> // REQUIRED
     keySelector: <string> // REQUIRED
-    exposeHeaders: <bool> // REQUIRED
-    clusterizable: <bool> // OPTIONAL, default: false
-    allowNotMatched: <bool> // OPTIONAL, default: false
+    exposeHeaders: <bool> // OPTIONAL, default: false
+    clusterizable: <bool> // OPTIONAL, default: true
 ----
 
 == Example

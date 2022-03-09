@@ -1,0 +1,38 @@
+= IP Blocklist
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+The *IP Blocklist* policy restricts access to a protected resource when a match is found between a source IP address and either a list of individual IP addresses or a range of IP addresses.
+
+Blocklist access based on the IP address of the request in any of the following ways:
+
+* Define a specific IP address by enumerating it in the white space, for example, 192.168.1.1.
+* Define a subset of addresses by identifying a subnet mask, for example, 192.168.3.1/30 includes the consolidated range 192.168.3.0 through 192.168.3.3.
+* Define a whole range of IP addresses by specifying the relevant octets of the IP address that you want to permit, for example, setting 192.160 will include IP addresses from 192.160.0.0 through 192.160.255.255.
+
+== Definition
+
+[source]
+----
+- policyRef:
+    name: ip-blocklist-flex
+  config:
+    ips: <array> // REQUIRED
+    ipExpression: <string> // OPTIONAL, default: "#[attributes.headers['x-forwarded-for']]"
+----
+
+== Example
+
+[source]
+----
+- policyRef:
+    name: ip-blocklist-flex
+    config:
+    ips:
+        - "192.168.1.1"
+        - "192.168.3.1/30"
+        - "192.168.2"
+        - "192.160"
+----
