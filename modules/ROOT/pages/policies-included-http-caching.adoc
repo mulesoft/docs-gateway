@@ -1,0 +1,36 @@
+= HTTP Caching
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+The *HTTP Caching* policy enables you to cache HTTP responses for reuse. Caching these responses speeds up the response time for user requests and reduces the load on the backend. For example, if your backend exposes an endpoint for which the responses to requests are not likely to change, you can reuse the HTTP responses and bypass the backend request processing by using the *HTTP Caching* policy.
+
+== Definition
+
+----
+- policyRef:
+    name: http-caching-flex
+  config:
+    httpCachingKey: <string> // OPTIONAL, default: "#[attributes.requestPath]"
+    maxCacheEntries: <int> // OPTIONAL, default: 10000
+    ttl: <int> // OPTIONAL, default: 600
+    useHttpCacheHeaders: <bool> // OPTIONAL, default: true
+    invalidationHeader: <string> // OPTIONAL, default: ""
+    requestExpression: <string> // OPTIONAL, default: "#[attributes.method == 'GET' or attributes.method == 'HEAD']"
+    responseExpression: <string> // OPTIONAL, default: "#[[200, 203, 204, 206, 300, 301, 404, 405, 410, 414, 501] contains attributes.statusCode]"
+----
+
+== Example
+
+----
+- policyRef:
+    name: http-caching-flex
+  config:
+    httpCachingKey: "#[attributes.requestPath]"
+    maxCacheEntries: 10000
+    ttl: 500
+    useHttpCacheHeaders: false
+    requestExpression: "#[attributes.method == 'GET' or attributes.method == 'HEAD']"
+    responseExpression: "#[[200, 203, 204, 206, 300, 301, 404, 405, 410, 414, 501] contains attributes.statusCode]"
+----
