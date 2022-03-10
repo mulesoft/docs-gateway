@@ -22,22 +22,33 @@ The CORS (Cross-Origin Resource Sharing) standard specifies HTTP headers for ser
 ----
 - policyRef:
     name: cors-flex
-  config:
+    config:
+    publicResource: false
+    supportCredentials: true
     originGroups:
-        - name: Pepe
-            origins:
-              - http://www.mulesoft.com
-              - http://www.google.com
-            accessControlMaxAge: 20
-            allowedMethods:
-              - methodName: CONNECT
-                isAllowed: true
-              - methodName: DELETE
-                isAllowed: false
-            headers:
-              - X-My-Header
-            exposedHeaders:
-              - X-Expose-Header
-    publicResource: true
-    supportCredentials: false
+        - origins:
+            - http://www.the-origin-of-time.com
+        accessControlMaxAge: 30
+        allowedMethods:
+            - isAllowed: true
+            methodName: POST
+            - isAllowed: true
+            methodName: PUT
+            - isAllowed: true
+            methodName: GET
+            - isAllowed: false
+            methodName: CONNECT
+            - isAllowed: false
+            methodName: DELETE
+            - isAllowed: false
+            methodName: OPTIONS
+            - isAllowed: false
+            methodName: PATCH
+            - isAllowed: false
+            methodName: TRACE
+        headers:
+            - x-allow-origin
+            - x-yet-another-valid-header
+        exposedHeaders:
+            - x-forwarded-for
 ----
