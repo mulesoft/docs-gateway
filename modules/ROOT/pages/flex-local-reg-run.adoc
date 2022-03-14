@@ -1,5 +1,85 @@
-= Registering and Running a Flex Gateway in Local Mode
+= Registering and Running in Local Mode
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
+
+[cols="1a,1a"]
+|===
+
+|image:install-linux-logo.png[20%,20%,xref="flex-local-reg-run.adoc#register-and-run-flex-gateway-as-a-linux-service"]
+
+|image:install-docker-logo.png[25%,25%,xref="flex-local-reg-run.adoc#register-and-run-flex-gateway-using-docker"]
+
+
+|xref:flex-local-reg-run.adoc#register-and-run-flex-gateway-as-a-linux-service[Register and Run Flex Gateway as a Linux Service]
+
+|xref:flex-local-reg-run.adoc#register-and-run-flex-gateway-using-docker[Register and Run Flex Gateway using Docker]
+
+|===
+
+== Before You Begin
+
+* xref:flex-install.adoc[Install Flex Gateway]
+
+== Register and Run Flex Gateway as a Linux Service
+
+. Run Flex Gateway by executing the following command:
++
+----
+sudo service peregrine start
+----
+
+. Verify that the Flex Gateway service is running successfully by executing the following command:
++
+----
+systemctl list-units peregrine*
+----
++
+A list of services displays. Flex Gateway is successfully running if each service has a status of `active`:
++
+----
+  UNIT                           LOAD   ACTIVE SUB     DESCRIPTION
+  peregrine-fluent-reloader.path loaded active waiting peregrine-fluent-reloader.path
+  peregrine-agent.service        loaded active running peregrine-agent.service
+  peregrine-envoy.service        loaded active running peregrine-envoy.service
+  peregrine-fluent.service       loaded active running peregrine-fluent.service
+  peregrine.service              loaded active exited  Application
+----
+
+== Register and Run Flex Gateway using Docker
+
+. Run Flex Gateway by executing the following command, replacing `/absolute/path/to/configuration/directory/` with the absolute path to the configuration directory containing the YAML configuration files created in the installation steps.
++
+[subs=attributes+]
+----
+docker run -it -p 8080:8080 -v \
+/absolute/path/to/configuration/directory/:/etc/peregrine/conf.d/custom/ \
+mulesoft/flex-gateway:{gateway-ver-var}
+----
++
+In addition to running Docker, the command instructs the running instance to listen at a given port, and to mount the configuration on the image.
++
+[NOTE]
+====
+`docker run` does not return. Open a new terminal to continue.
+====
+
+. Verify that the container image is running successfully executing the following command:
++
+----
+docker ps
+----
++
+The Flex Gateway process should appear in the resulting list:
++
+[subs=attributes+]
+----
+CONTAINER ID   IMAGE                                     COMMAND   CREATED      STATUS      PORTS
+c2a360f8c9ed   mulesoft/flex-gateway:{gateway-ver-var}        "/init"   8 days ago   Up 8 days   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp
+---- 
+
+== See Also
+
+* xref:flex-gateway-getting-started.adoc[Getting Started with Flex Gateway]
+* xref:flex-local-manage.adoc[Managing Flex Gateway in Local Mode]
