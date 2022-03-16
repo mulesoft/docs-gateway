@@ -51,6 +51,7 @@ Before registering Flex Gateway, you must complete the following tasks:
 *** Read Gateways
 *** Manage Servers
 *** Read Servers
+*** View Organization
 ** Save the *Id* and *Secret* of the Connected app you configure.
 
 // end::prerequisites-conn-app[]
@@ -58,10 +59,10 @@ Before registering Flex Gateway, you must complete the following tasks:
 
 * xref:flex-install.adoc[Install a Flex Gateway]
 * Collect the following information from your Anypoint Platform instance: 
-** *Organization ID* for the organization where you want to run Flex Gateway.
+** The *Organization ID* for the organization where you want to run Flex Gateway
 +
 See link:https://docs.mulesoft.com/access-management/organization#find-your-organization-id[Find your Organization ID] for more information on how to find your Organization ID.
-** *Environment ID* for the environment where you want to run Flex Gateway.
+** The *Environment ID* for the environment where you want to run Flex Gateway
 +
 See xref:api-manager::latest-overview-concept#what-api-manager-looks-like[What API Manager Looks Like]
 for more information on how to find your Environment ID.
@@ -69,7 +70,7 @@ for more information on how to find your Environment ID.
 // end::prerequisites[]
 // tag::prerequisites-conn-user[]
 
-** *Username* and *Password* of a user with _Admin_ permissions for Runtime Manager
+** The *Username* and *Password* of a user with _Admin_ permissions for Runtime Manager
 
 // end::prerequisites-conn-user[]
 // tag::conn-user-docker-heading[]
@@ -87,7 +88,8 @@ for more information on how to find your Environment ID.
 // tag::conn-reg-command-intro[]
 To register a Flex Gateway with Anypoint Platform you must enter the registration
 command and then the start command. Each command includes information specific
-to your Anypoint Platform instance and *must be edited before* executing.
+to your Anypoint Platform instance and *must be updated before* executing. See
+<<Before You Begin>> for more information on how to find the information you will need.
 
 === Replace Sample Content
 
@@ -109,7 +111,7 @@ Before executing the registration command, replace the following sample content 
 
 * `--environment` = the Environment Id for the environment in Anypoint Platform where you want the Flex Gateway to run
 * `--organization` = your Organization ID in Anypoint Platform
-* `--anypoint-url` = your Anypoint Platform instance URL 
+* `--anypoint-url` = your Anypoint Platform instance base URL 
 * `my-gateway` = the name you want to assign to this Flex Gateway instance
 
 // end::conn-replace-content[]
@@ -175,6 +177,15 @@ my-gateway
 After you have executed the command, you should see your new Flex Gateway in Runtime Manager
 after clicking *Flex Gateway* in the left navigation. 
 
+You should also see three new files where you executed the command, similar to the following: 
+
+* `6eb79785-c2f0-4e06-b574-8a030a321d74.conf`
+* `6eb79785-c2f0-4e06-b574-8a030a321d74.key`
+* `6eb79785-c2f0-4e06-b574-8a030a321d74.pem`
+
+Determine the path where these files live by using the command, `pwd`, then save the path and the UUID,
+or name, of the `.conf` file for later use. For example, `/etc/peregrine/rtm/6eb79785-c2f0-4e06-b574-8a030a321d74.conf`.
+
 The gateway's status is disconnected for now. You need to start the gateway to connect it.
 // end::conn-after-reg[]
 // tag::conn-start-command[]
@@ -195,15 +206,7 @@ docker run --rm \
 mulesoft/flex-gateway:{gateway-ver-var}
 ----
 // end::conn-start-command[]
-// tag::conn-before-restart-command[]
-You should see three new files where you executed the command, similar to the following: 
-
-* `6eb79785-c2f0-4e06-b574-8a030a321d74.conf`
-* `6eb79785-c2f0-4e06-b574-8a030a321d74.key`
-* `6eb79785-c2f0-4e06-b574-8a030a321d74.pem`
-
-Determine the path where these files live by using the command, `pwd`, then save the path and the UUID
-of the file for later use. 
+// tag::conn-create-config-folder-file[]
 
 === Create Configuration Folder and File
 
@@ -223,7 +226,7 @@ Finally, edit the file with vim using the following command:
 sudo vi env.conf
 ----
 
-// end::conn-before-restart-command[]
+// end::conn-create-config-folder-file[]
 // tag::conn-config-content[]
 
 === Add Configuration Content
