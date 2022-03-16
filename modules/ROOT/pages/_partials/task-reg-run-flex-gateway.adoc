@@ -122,57 +122,33 @@ Before executing the registration command, replace the following sample content 
 After replacing the sample content, register your Flex Gateway by executing the following command: 
 
 // end::conn-reg-command-heading[]
-// tag::conn-user-docker-reg-command[]
+// tag::conn-reg-command-1[]
 
 [source,ssh,subs=attributes+]
 ----
+# end::conn-reg-command-1[]
+# tag::conn-docker-reg-command[]
 docker run --entrypoint flexctl -w /registration -v "$(pwd)":/registration mulesoft/flex-gateway:{gateway-ver-var} \
 register \
---username=john \
---password=doe \
---environment=334f8328-1355-4ad6-961d-1930a3ada25b \
---organization=40223f70-02d1-4027-910f-ebd662a7ee54 \
---anypoint-url=https://qax.anypoint.mulesoft.com \
-my-gateway
-----
-// end::conn-user-docker-reg-command[]
-// tag::conn-app-docker-reg-command[]
-[source,ssh,subs=attributes+]
-----
-docker run --entrypoint flexctl -w /registration "$(pwd)":/registration mulesoft/flex-gateway:{gateway-ver-var} \
-register -v \
---client-id=714e98tj0ik73f68c2mab2e952802342 \
---client-secret=e93rbbd85B479s2K7v88N5927T60s5D4 \
---environment=334f8328-1355-4ad6-961d-1930a3ada25b \
---organization=40223f70-02d1-4027-910f-ebd662a7ee54 \
---anypoint-url=https://qax.anypoint.mulesoft.com \
-my-gateway
-----
-// end::conn-app-docker-reg-command[]
-// tag::conn-user-linux-reg-command[]
-[source]
-----
+# end::conn-docker-reg-command[]
+# tag::conn-linux-reg-command[]
 flexctl -v register \
---username=john \
---password=doe \
---environment=334f8328-1355-4ad6-961d-1930a3ada25b \
---organization=40223f70-02d1-4027-910f-ebd662a7ee54 \
---anypoint-url=https://qax.anypoint.mulesoft.com \
+# end::conn-linux-reg-command[]
+# tag::conn-user-reg-command[]
+--username=<your-username> \
+--password=<your-password> \
+# end::conn-user-reg-command[]
+# tag::conn-app-reg-command[]
+--client-id=<your-connected-app-client-id> \
+--client-secret=<your-connected-app-client-secret> \
+# end::conn-app-reg-command[]
+# tag::conn-reg-command-2[]
+--environment=<your-environment-id> \
+--organization=<your-org-id> \
+--anypoint-url=https://<your-instance>.anypoint.mulesoft.com \
 my-gateway
 ----
-// end::conn-user-linux-reg-command[]
-// tag::conn-app-linux-reg-command[]
-[source]
-----
-flexctl -v register \
---client-id=714e98tj0ik73f68c2mab2e952802342 \
---client-secret=e93rbbd85B479s2K7v88N5927T60s5D4 \
---environment=334f8328-1355-4ad6-961d-1930a3ada25b \
---organization=40223f70-02d1-4027-910f-ebd662a7ee54 \
---anypoint-url=https://qax.anypoint.mulesoft.com \
-my-gateway
-----
-// end::conn-app-linux-reg-command[]
+// end::conn-reg-command-2[]
 // tag::conn-after-reg[]
 After you have executed the command, you should see your new Flex Gateway in Runtime Manager
 after clicking *Flex Gateway* in the left navigation. 
@@ -200,7 +176,7 @@ in the folder where you have stored the Flex Gateway Docker image.
 docker run --rm \
 -v $(pwd)/:/etc/peregrine/rtm \
 -p 8081:8081 \
--e MGW_RTM_ARM_AGENT_URL=wss://arm-mcm2-service.kqa.msap.io:443/agent \
+-e MGW_RTM_ARM_AGENT_URL={arm-agent-url} \
 -e MGW_DATASOURCE_RTM_ENABLED=true \
 -e MGW_RTM_ARM_AGENT_CONFIG=/etc/peregrine/rtm/076ccaab-86a7-444d-8fbb-6620bafde086.conf \
 mulesoft/flex-gateway:{gateway-ver-var}
@@ -239,7 +215,7 @@ Add the content below to the `env.conf` file, after replacing the following samp
 [source]
 ----
 [Service]
-Environment=MGW_RTM_ARM_AGENT_URL=wss://arm-mcm2-service.kqa.msap.io:443/agent
+Environment=MGW_RTM_ARM_AGENT_URL={arm-agent-url}
 Environment=MGW_DATASOURCE_RTM_ENABLED=true
 Environment=MGW_RTM_ARM_AGENT_CONFIG=/etc/peregrine/6eb79785-c2f0-4e06-b574-8a030a321d74.conf
 Environment=MGW_NAME=tb_ubuntu_1
