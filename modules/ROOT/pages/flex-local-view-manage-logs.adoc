@@ -8,6 +8,14 @@ Anypoint Flex Gateway enables you to push metrics to https://docs.fluentbit.io/m
 
 The following examples describe how to configure Flex Gateway for use with the File and HTTP outputs.
 
+[NOTE]
+====
+To enable access logging, you must: 
+
+. Configure the File or HTTP output.
+. Apply the `access-log` policy via policy binding. See xref:flex-local-view-manage-logs.adoc#access-logs[Access Logs].
+====
+
 == File Configuration Example
 
 Configure Flex Gateway to send formatted runtime and access logs to a file called `log.txt` (Fluentbit https://docs.fluentbit.io/manual/v/1.7/pipeline/outputs/file[File^] output), located within `/var/log` directory. As an example, the following definition specifies a `spec.logging.outputs.type` value of `file`:
@@ -71,7 +79,7 @@ spec:
 
 == Access Logs
 
-In addition to specifying access log output (as described in the previous examples), access logs must be enabled via policy binding. 
+After specifying access log output (as described in the previous configuration examples), you must enable access logs via policy binding. 
 
 For inline configurations, enable access logs by adding `access-log` to the `spec.policies` section of `ApiInstance`. The following is an inline configuration example:
 
