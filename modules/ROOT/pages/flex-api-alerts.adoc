@@ -1,0 +1,294 @@
+= Flex Gateway API Alerts
+
+Add and configure API alerts that flag unusual API behavior, such as:
+
+* An API response time over 60 seconds
+* More than 1000 API requests in 30 seconds
+
+See xref:add-api-alert-task.adoc[Adding an API Alert].
+//verify whether this link name needs to be changed
+
+API Manager enables you to add the following API alerts to an API instance:
+
+* *Policy Violation*
++
+An infraction of one or more policies governing the API occurs.
+
+* *Request Count*
++
+Users request access to the API more times than allowed in a specified interval of time.
++
+Specify time interval values from 1 through 999999999. To prevent data bursts, intervals are implemented as sliding windows instead of as absolute minute boundaries. See https://www.techopedia.com/definition/869/sliding-window[Sliding Windows].
+
+* *Response Code*
++
+The API returns one of these HTTP codes upon receiving a request: 400, 401, 403, 404, 408, 500, 502, or 503.
+
+* *Response Time*
++
+The response time of the API exceeds a specified timeout period.
+
+API alerts are triggered only when states change, although the first occurrence of a state change might be undetected due to newly created alerts not having defined states.
+
+When configuring an API alert, you select Business Group users to receive email notifications about the alert. Notifications include information about events that trigger alerts as specified by severity level. Users receive the following:
+
+* One email describes the alert:
++
+`Your API, CesarDemoAPI - Basic:151 (Environment: "NewOne"), has received greater than 2 requests within 1 consecutive periods of 1 minutes.`
++
+* Another email notifies you when the alert is resolved.
++
+`Your API Version, jsonplaceholderapi - 1.0.development, is no longer in an alert state. The number of policy violations was not greater than 1 in the last 1 consecutive periods of 1 minutes.`
+
+After an alert is triggered, API Manager sends the first set of two notification emails and stops listening for alerts until the next alert period begins. This technique prevents repeated notification emails.
+
+Note: API Alerts are sent from `no-reply@mulesoft.com`. This cannot be customized.
+
+
+== Add API Alerts
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+
+To track and manage APIs, you can add one or more API alerts to your API instances. Add different xref:using-api-alerts.adoc[types of alerts] based on your requirements.
+
+[NOTE]
+====
+Alerts cannot be added to API instances protected by xref:automated-policies-landing-page.adoc[automated policies].
+====
+
+To add an API alert:
+
+. Navigate to *API Manager* > *API Administration* and click the API instance for which you want to add an alert.
+. From the left navigation pane, select *Alerts* > *Add alert*.
+. Specify the alert options:
+* *Name*:
++
+Type an alert name, for example `trial-alert`.
++
+You can delete an alert anytime if not required.
+* *Severity*:
++
+Select a severity for the alert, for example, *Info*.
+
+
+. Click *Create*.
+
+=== See Also
+
+* xref:using-api-alerts.adoc[Review Alerts Concepts]
+
+//subject/message/recipient from Set Up Basic Alerts for Servers and Mule Apps - add this to the appropriate place in the add alert steps above
+
+* *Subject*
++
+Subject of the alert email to send when the alert is triggered
++
+The subject can include variables.
+See <<alert-variables>>.
+
+* *Message*
++
+Body text for the email to send when the alert is triggered
++
+The message body can include variables.
+See <<alert-variables>>.
+
+* *Recipients*
++
+Recipients of the alert email
++
+You can select up to 20 platform user IDs and enter up to 20 email addresses.
+
+
+== Viewing and Deleting API Alerts
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+
+If you have been granted the *Organization Administrators* role for the master organization, you can view a list of alerts that are generated for APIs in the API Manager.
+
+Before you can view and delete alerts, ensure that you have:
+
+* *Manage Alerts* permission to view and delete API alerts.
+* *View Alerts* permission to only view alerts.
+
+For more information about how to set these permissions, see xref:environment-permission-task.adoc[To Set Permissions].
+
+To view and delete alerts:
+
+. From API Manager, click API Administration > API instance, and select Alerts.
++
+image::new-alerts.png[width=687,height=235]
++
+. Expand an alert in the list.
++
+Details about the alert options appear.
++
+. Click Delete.
+
+
+== Editing, Enabling, or Disabling API Alerts
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+
+When creating an alert, you can select if the alert will be enabled or disabled. You can also edit an existing alert and enable or disable the alert.
+
+. In API Manager click *API Administration* on the left navigation bar.
+. Click the API instance, and version that you want to edit and click *Alerts*.
+. Click the *Edit* button on the alert you want to edit.
++
+image::edit-enable-disable-alerts-task-7e2ac.png[]
+
+=== See Also
+
+* xref:using-api-alerts.adoc[Reviewing Alerts concepts]
+* xref:test-alert-task.adoc[Testing an API Alert]
+
+
+
+
+
+//content pulled from basic alert email template - much of this information is not needed
+== Basic Alert Email Template
+
+You can use the following variables in a basic alert email *Subject* and *Message* fields.
+For the description of each variable, see <<alert-variables>>.
+
+[%header,cols="25a,50a,20a"]
+.Variables for Alerts
+|===
+| Alert Type | Alert | Applicable Variables
+.6+| CloudHub App Alerts
+|*CPU Utilization* .6+|* `${severity}`
+* `${operator}`
+* `${threshold}`
+* `${period}`
+* `${value}`
+* `${condition}`
+* `${organization}`
+* `${environment}`
+* `${alertLink}`
+* `${dashboardLink}`
+* `${resource}`
+| *Memory Utilization*
+| *Thread Count*
+| *Message Count*
+| *Message Error Count*
+| *Message Response Time*
+
+.6+| Anypoint Runtime Fabric App Alerts
+|*CPU Utilization* .6+|* `${severity}`
+* `${operator}`
+* `${threshold}`
+* `${period}`
+* `${value}`
+* `${condition}`
+* `${organization}`
+* `${environment}`
+* `${alertLink}`
+* `${dashboardLink}`
+* `${resource}`
+| *Memory Utilization*
+| *Thread Count*
+| *Message Count*
+| *Message Error Count*
+| *Message Response Time*
+
+.3+|Hybrid App Alerts
+| *Message Count* .3+| * `${severity}`
+* `${operator}`
+* `${threshold}`
+* `${period}`
+* `${value}`
+* `${condition}`
+* `${organization}`
+* `${environment}`
+* `${alertLink}`
+* `${dashboardLink}`
+* `${targetName}`
+* `${resource}`
+| *Message Error Count*
+| *Message Response Time*
+
+.3+|On-premises Server Alerts
+| *CPU Utilization* .3+| * `${severity}`
+* `${operator}`
+* `${threshold}`
+* `${period}`
+* `${value}`
+* `${condition}`
+* `${organization}`
+* `${environment}`
+* `${alertLink}`
+* `${dashboardLink}`
+* `${targetName}`
+| *Memory Utilization*
+| *Thread Count*
+
+.3+|Server Group Alerts
+| *CPU Utilization* .3+| * `${severity}`
+* `${operator}`
+* `${threshold}`
+* `${period}`
+* `${value}`
+* `${condition}`
+* `${organization}`
+* `${environment}`
+* `${alertLink}`
+* `${dashboardLink}`
+* `${memberName}`
+* `${targetName}`
+| *Memory Utilization*
+| *Thread Count*
+
+.3+|Server Cluster Alerts
+| *CPU Utilization* .3+| * `${severity}`
+* `${operator}`
+* `${threshold}`
+* `${period}`
+* `${value}`
+* `${condition}`
+* `${organization}`
+* `${environment}`
+* `${alertLink}`
+* `${dashboardLink}`
+* `${memberName}`
+* `${targetName}`
+| *Memory Utilization*
+| *Thread Count*
+
+|===
+
+[[alert-variables]]
+
+[%header%autowidth.spread]
+[[alert-variables]]
+.Variable Definitions
+|===
+|Variable |Definition
+|`${alertLink}`|URL of the triggered alert
+|`${alertState}`|State of the alert when it was triggered.
+
+Available values are `OK` or `Alerting`.
+|`${comparison}`|* Above, above or equal, equal, below or equal, below
+|`${condition}`|Metric for which the alert is triggered
+|`${environment}`|Name of the environment in which the resource is deployed
+|`${memberName}`|Name of the server within the server group or cluster
+|`${operator}` |An operator, such as `< > =`
+|`${organization}` |Name of the organization that owns the alert
+|`${period}` |Period of time over which to measure
+|`${resource}` a| Name of the item that triggers the alert:
+
+* CloudHub Apps: Name of the app that triggers the alert
+* Hybrid Apps: Name of the resource in the app that triggers the alert
+|`${severity}` | Severity of the alert
+|`${targetName}`|Name of the server, server group, or cluster
+|`${targetState}` |Server state when the alert was triggered
+|`${threshold}` |Count over the period of time that triggers the alert
+|`${value}` | Value of the metric that triggers the alert
+|===
+
+
+//for the testing section, use deployment content from the Flex Gateway documentation. NOTE - verify I have the correct page link for the testing section
