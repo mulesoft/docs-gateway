@@ -121,7 +121,7 @@ spec:
 
 === API Instance Example
 
-The following resource specifies an `ApiInstance` with metadata that describes the instance identifier. The `metadata.name` value is used as the target reference for other resources, such as policy bindings: 
+The following resource specifies an `ApiInstance` with metadata that describes the instance identifier. The `metadata.name` value is used as the target reference for other resources, such as policy bindings. The `spec.services.routes.config.destinationPath` value prepends `/v1/apps` to the specified paths under `rules`, acting in a similar manner as a base path. 
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -130,6 +130,16 @@ metadata:
   name: hello-flex-gateway-instance
 spec:
   address: http://0.0.0.0:8080
+  services:
+    jsonplaceholder:
+      address: https://jsonplaceholder.typicode.com:443/
+      routes:
+        - rules:
+            - path: /api(/users/.*)
+            - path: /api(/comments/.*)
+          config:
+            destinationPath: /v1/apps
+
 ----
 
 == Policy Binding 
@@ -535,6 +545,8 @@ spec:
         - rules:
             - path: /api(/users/.*)
             - path: /api(/comments/.*)
+          config:
+            destinationPath: /v1/apps
   policies:
     - policyRef:
         name: http-basic-authentication-flex
