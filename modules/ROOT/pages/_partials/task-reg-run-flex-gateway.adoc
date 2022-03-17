@@ -1,48 +1,41 @@
 // partial for registering in connected mode with a username and password or connected app in a Docker container or as a Linux service
-// tag::heading-conn-username[]
-= Registering and Running in Connected Mode with a Username and Password
-// end::heading-conn-username[]
-// tag::heading-conn-app[]
-= Registering and Running in Connected Mode with a Connected App
-// end::heading-conn-app[]
+// tag::heading1[]
+= Registering and Running in Connected Mode with a {page-reg-type-title}
+// end::heading1[]
 // tag::page-metadata[]
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 // end::page-metadata[]
+// tag::page-metadata-user[]
+:page-reg-type-title: Username and Password
+:page-reg-type-link1: up
+:page-reg-type-link2: username-and-password
+// end::page-metadata-user[]
+// tag::page-metadata-app[]
+:page-reg-type-title: Connected App
+:page-reg-type-link1: app
+:page-reg-type-link2: connected-app
+// end::page-metadata-app[]
 
-// tag::icon-selection-conn-username[]
+// tag::icon-selection[]
 
-[cols="1a,1a"]
+[cols="1a,1a",subs=attributes+]
 |===
-|image:install-docker-logo.png[25%,25%,xref="flex-conn-register-run-up.adoc#register-and-run-with-a-username-and-password-in-a-docker-container"]
-|image:install-linux-logo.png[20%,20%,xref="flex-conn-reg-run-up.adoc#register-and-run-with-a-username-and-password-as-a-linux-service"]
+|image:install-docker-logo.png[25%,25%,xref="flex-conn-reg-run-{page-reg-type-link1}.adoc#register-and-run-with-a-{page-reg-type-link2}-in-a-docker-container"]
+|image:install-linux-logo.png[20%,20%,xref="flex-conn-reg-run-{page-reg-type-link1}.adoc#register-and-run-with-a-{page-reg-type-link2}-as-a-linux-service"]
 
-|xref:flex-conn-reg-run-up.adoc#register-and-run-with-a-username-and-password-in-a-docker-container[Register and Run with a Username and Password in a Docker Container]
-|xref:flex-conn-reg-run-up.adoc#register-and-run-with-a-username-and-password-as-a-linux-service[Register and Run with a Username and Password as a Linux Service]
-|===
-
-// end::icon-selection-conn-username[]
-
-// tag::icon-selection-conn-app[]
-
-[cols="1a,1a"]
-|===
-|image:install-docker-logo.png[25%,25%,xref="flex-conn-reg-run-app.adoc#register-and-run-with-a-connected-app-in-a-docker-container"]
-|image:install-linux-logo.png[20%,20%,xref="flex-conn-reg-run-app.adoc#register-and-run-with-a-connected-app-as-a-linux-service"]
-
-|xref:flex-conn-reg-run-app.adoc#register-and-run-with-a-connected-app-in-a-docker-container[Register and Run with a Connected App in a Docker Container]
-|xref:flex-conn-reg-run-app.adoc#register-and-run-with-a-connected-app-as-a-linux-service[Register and Run with a Connected App as a Linux Service]
+|xref:flex-conn-reg-run-{page-reg-type-link1}.adoc#register-and-run-with-a-{page-reg-type-link2}-in-a-docker-container[Register and Run with a {page-reg-type-title} in a Docker Container]
+|xref:flex-conn-reg-run-{page-reg-type-link1}.adoc#register-and-run-with-a-{page-reg-type-link2}-as-a-linux-service[Register and Run with a {page-reg-type-title} as a Linux Service]
 |===
 
-// end::icon-selection-conn-app[]
-
+// end::icon-selection[]
 // tag::prerequisites-heading[]
 
 == Before You Begin
 // end::prerequisites-heading[]
-// tag::prerequisites-conn-app[]
+// tag::prerequisites-app[]
 Before registering Flex Gateway, you must complete the following tasks: 
 
 * link:https://docs.mulesoft.com/service-mesh/1.2/obtain-connected-apps-credentials[Configure a Connected App]
@@ -54,7 +47,7 @@ Before registering Flex Gateway, you must complete the following tasks:
 *** View Organization
 ** Save the *Id* and *Secret* of the Connected app you configure.
 
-// end::prerequisites-conn-app[]
+// end::prerequisites-app[]
 // tag::prerequisites[]
 
 * xref:flex-install.adoc[Install a Flex Gateway]
@@ -68,24 +61,18 @@ See xref:api-manager::latest-overview-concept#what-api-manager-looks-like[What A
 for more information on how to find your Environment ID.
 
 // end::prerequisites[]
-// tag::prerequisites-conn-user[]
+// tag::prerequisites-user[]
 
 ** The *Username* and *Password* of a user with _Admin_ permissions for Runtime Manager
 
-// end::prerequisites-conn-user[]
-// tag::conn-user-docker-heading[]
-== Register and Run with a Username and Password in a Docker Container
-// end::conn-user-docker-heading[]
-// tag::conn-app-docker-heading[]
-== Register and Run with a Connected App in a Docker Container
-// end::conn-app-docker-heading[]
-// tag::conn-user-linux-heading[]
-== Register and Run with a Username and Password as a Linux Service
-// end::conn-user-linux-heading[]
-// tag::conn-app-linux-heading[]
-== Register and Run with a Connected App as a Linux Service
-// end::conn-app-linux-heading[]
-// tag::conn-reg-command-intro[]
+// end::prerequisites-user[]
+// tag::docker-heading[]
+== Register and Run with a {page-reg-type-title} in a Docker Container
+// end::docker-heading[]
+// tag::linux-heading[]
+== Register and Run with a {page-reg-type-title} as a Linux Service
+// end::linux-heading[]
+// tag::reg-command-intro[]
 To register a Flex Gateway with Anypoint Platform you must enter the registration
 command and then the start command. Each command includes information specific
 to your Anypoint Platform instance and *must be updated before* executing. See
@@ -95,61 +82,61 @@ to your Anypoint Platform instance and *must be updated before* executing. See
 
 Before executing the registration command, replace the following sample content with your own:
 
-// end::conn-reg-command-intro[] 
-// tag::conn-user-replace-content[]
+// end::reg-command-intro[] 
+// tag::user-replace-content[]
 
 * `--username` = the username for an Anypoint Platform user with _Admin_ permissions for Runtime Manager
 * `--password` = the password for an Anypoint Platform user with _Admin_ permissions for Runtime Manager
-// end::conn-user-replace-content[]
-// tag::conn-app-replace-content[]
+// end::user-replace-content[]
+// tag::app-replace-content[]
 
 * `--client-id` = the Id for the Connected App you configured in Access Management
 * `--client-secret` = the Secret for the Connected App you configured in Access Management
 
-// end::conn-app-replace-content[]
-// tag::conn-replace-content[]
+// end::app-replace-content[]
+// tag::replace-content[]
 
 * `--environment` = the Environment Id for the environment in Anypoint Platform where you want the Flex Gateway to run
 * `--organization` = your Organization ID in Anypoint Platform
 * `--anypoint-url` = your Anypoint Platform instance base URL 
 * `my-gateway` = the name you want to assign to this Flex Gateway instance
 
-// end::conn-replace-content[]
-// tag::conn-reg-command-heading[]
+// end::replace-content[]
+// tag::reg-command-heading[]
 
 === Registration Command
 
 After replacing the sample content, register your Flex Gateway by executing the following command: 
 
-// end::conn-reg-command-heading[]
-// tag::conn-reg-command-1[]
+// end::reg-command-heading[]
+// tag::reg-command-1[]
 
 [source,ssh,subs=attributes+]
 ----
-# end::conn-reg-command-1[]
-# tag::conn-docker-reg-command[]
+# end::reg-command-1[]
+# tag::docker-reg-command[]
 docker run --entrypoint flexctl -w /registration -v "$(pwd)":/registration mulesoft/flex-gateway:{gateway-ver-var} \
 register \
-# end::conn-docker-reg-command[]
-# tag::conn-linux-reg-command[]
+# end::docker-reg-command[]
+# tag::linux-reg-command[]
 flexctl -v register \
-# end::conn-linux-reg-command[]
-# tag::conn-user-reg-command[]
+# end::linux-reg-command[]
+# tag::user-reg-command[]
 --username=<your-username> \
 --password=<your-password> \
-# end::conn-user-reg-command[]
-# tag::conn-app-reg-command[]
+# end::user-reg-command[]
+# tag::app-reg-command[]
 --client-id=<your-connected-app-client-id> \
 --client-secret=<your-connected-app-client-secret> \
-# end::conn-app-reg-command[]
-# tag::conn-reg-command-2[]
+# end::app-reg-command[]
+# tag::reg-command-2[]
 --environment=<your-environment-id> \
 --organization=<your-org-id> \
 --anypoint-url=https://<your-instance>.anypoint.mulesoft.com \
 my-gateway
 ----
-// end::conn-reg-command-2[]
-// tag::conn-after-reg[]
+// end::reg-command-2[]
+// tag::after-reg[]
 After you have executed the command, you should see your new Flex Gateway in Runtime Manager
 after clicking *Flex Gateway* in the left navigation. 
 
@@ -163,8 +150,8 @@ Determine the path where these files live by using the command, `pwd`, then save
 or name, of the `.conf` file for later use. For example, `/etc/peregrine/rtm/6eb79785-c2f0-4e06-b574-8a030a321d74.conf`.
 
 The gateway's status is disconnected for now. You need to start the gateway to connect it.
-// end::conn-after-reg[]
-// tag::conn-start-command[]
+// end::after-reg[]
+// tag::start-command[]
 
 === Start Command
 
@@ -178,11 +165,11 @@ docker run --rm \
 -p 8081:8081 \
 -e MGW_RTM_ARM_AGENT_URL={arm-agent-url} \
 -e MGW_DATASOURCE_RTM_ENABLED=true \
--e MGW_RTM_ARM_AGENT_CONFIG=/etc/peregrine/rtm/076ccaab-86a7-444d-8fbb-6620bafde086.conf \
+-e MGW_RTM_ARM_AGENT_CONFIG=/etc/peregrine/rtm/<UUID-of-your-file>.conf \
 mulesoft/flex-gateway:{gateway-ver-var}
 ----
-// end::conn-start-command[]
-// tag::conn-create-config-folder-file[]
+// end::start-command[]
+// tag::create-config-folder-file[]
 
 === Create Configuration Folder and File
 
@@ -202,8 +189,8 @@ Finally, edit the file with vim using the following command:
 sudo vi env.conf
 ----
 
-// end::conn-create-config-folder-file[]
-// tag::conn-config-content[]
+// end::create-config-folder-file[]
+// tag::config-content[]
 
 === Add Configuration Content
 
@@ -222,19 +209,12 @@ Environment=MGW_NAME=tb_ubuntu_1
 ----
 
 After you have added the content to the `env.conf` file, save the file with ESC + `:wq`.
-// end::conn-config-content[]
+// end::config-content[]
 // tag::restart-command[]
 
 === Restart Commands
 
-First, restart Ubuntu with the following command: 
-
-[source]
-----
-sudo systemctl daemon-reload
-----
-
-Then, restart Flex Gateway with the following command: 
+Restart Flex Gateway with the following command: 
 
 [source]
 ----
@@ -242,6 +222,6 @@ sudo systemctl restart peregrine
 ----
 
 // end::restart-command[]
-// tag::conn-gateway-connected[]
+// tag::gateway-connected[]
 Now if you check in Runtime Manager after clicking *Flex Gateway* in the left navigation, your gateway's status is connected. You may need to refresh the page.
-// end::conn-gateway-connected[]
+// end::gateway-connected[]
