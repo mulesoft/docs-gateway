@@ -4,4 +4,40 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-In order to use HTTPS, the *TLS* policy must be bound to your ApiInstance.
+In order to use HTTPS, the *TLS* policy must be bound to your API instance.
+
+== Definition
+
+----
+- policyRef:
+    name: tls
+  config:
+    certificate:
+        key: <string> // REQUIRED
+        crt: <string> // REQUIRED
+----
+
+
+== Example
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: ingress-http-tls
+spec:
+  targetRef:
+    kind: ApiInstance 
+    name: ingress-http
+  policyRef:
+    name: tls
+  config:
+    certificate:
+      key: |
+        -----BEGIN PRIVATE KEY-----
+        -----END PRIVATE KEY-----
+
+      crt: |
+        -----BEGIN CERTIFICATE-----
+        -----END CERTIFICATE-----
+----
