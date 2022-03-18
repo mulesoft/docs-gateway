@@ -41,3 +41,35 @@ spec:
         -----BEGIN CERTIFICATE-----
         -----END CERTIFICATE-----
 ----
+
+After adding your private key and certificate information, test that the policy was correctly applied. The following `curl` command tests an HTTPS endpoint with an example certificate that matches the certificate specified in the policy binding configuration resource.
+
+----
+curl https://localhost/api/httpbin/get -v --cacert ./tls-certs/test.crt
+----
+
+The command should return information on the TLS handshake, as well as an HTTP status of `200` for the endpoint:
+
+----
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+* TLSv1.2 (IN), TLS handshake, Certificate (11):
+* TLSv1.2 (IN), TLS handshake, Server key exchange (12):
+* TLSv1.2 (IN), TLS handshake, Server finished (14):
+* TLSv1.2 (OUT), TLS handshake, Client key exchange (16):
+* TLSv1.2 (OUT), TLS change cipher, Client hello (1):
+* TLSv1.2 (OUT), TLS handshake, Finished (20):
+* SSL connection using TLSv1.2 / ECDHE-RSA-CHACHA20-POLY1305
+* ALPN, server did not agree to a protocol
+...
+> HTTP/1.1 200 OK
+----
+
+
+[NOTE]
+====
+The configuration `key` and `crt` values must be correctly indented, otherwise `curl` returns the following error when attempting to test the endpoint:
+----
+curl: (35) error:1408F10B:SSL routines:ssl3_get_record:wrong version number
+----
+====
