@@ -8,7 +8,7 @@ With API alerts for Flex Gateway, you can add and configure email notifications 
 See xref:add-api-alert-task.adoc[Adding an API Alert].
 //verify whether this link name needs to be changed
 
-API Manager enables you to add the following API alerts to an API instance:
+You can add the following API alerts to an API instance:
 
 * *Policy Violation*
 +
@@ -40,12 +40,13 @@ When configuring an API alert, you select Business Group users to receive email 
 +
 `Your API Version, jsonplaceholderapi - 1.0.development, is no longer in an alert state. The number of policy violations was not greater than 1 in the last 1 consecutive periods of 1 minutes.`
 
-After an alert is triggered, API Manager sends the first set of two notification emails and stops listening for alerts until the next alert period begins. This technique prevents repeated notification emails.
+After an alert is triggered, the first set of two notification emails is sent and Flex Gateway stops listening for alerts until the next alert period begins. This technique prevents repeated notification emails.
 
-Note: API Alerts are sent from `no-reply@mulesoft.com`. This cannot be customized.
+[Note]
+API Alerts are sent from `no-reply@mulesoft.com`. This cannot be customized.
 
 
-== Add API Alerts
+== Adding API Alerts
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -60,7 +61,7 @@ Alerts cannot be added to API instances protected by xref:automated-policies-lan
 To add an API alert:
 
 . Navigate to *API Manager* > *API Administration* and click the API instance for which you want to add an alert.
-. From the left navigation pane, select *Alerts* > *Add alert*.
+. From the left navigation pane, select *Alerts* > *New alert*.
 . Specify the alert options:
 * *Name*:
 +
@@ -69,16 +70,21 @@ Type an alert name, for example `trial-alert`.
 You can delete an alert anytime if not required.
 * *Severity*:
 +
-Select a severity for the alert, for example, *Info*.
+Select a severity for the alert:
 
-
-. Click *Create*.
-
-=== See Also
-
-* xref:using-api-alerts.adoc[Review Alerts Concepts]
-
-//subject/message/recipient from Set Up Basic Alerts for Servers and Mule Apps - add this to the appropriate place in the add alert steps above
+** *Info*
++
+May be assigned to alerts that do not require immediate attention when triggered. This severity indicates the metric should be passively monitored.
+** *Warning*
++
+May be assigned to alerts that require prompt attention when triggered. This severity indicates an alert should be closely monitored.
+** *Critical*
++
+May be assigned to alerts that require immediate attention when triggered. This severity indicates an alert should receive an immediate response.
+. Specify the alert conditions:
+* *Metric*
+* *Logic*
+. Configure the email notification:
 
 * *Subject*
 +
@@ -100,60 +106,16 @@ Recipients of the alert email
 +
 You can select up to 20 platform user IDs and enter up to 20 email addresses.
 
-
-== Viewing and Deleting API Alerts
-ifndef::env-site,env-github[]
-include::_attributes.adoc[]
-endif::[]
-
-If you have been granted the *Organization Administrators* role for the master organization, you can view a list of alerts that are generated for APIs in the API Manager.
-
-Before you can view and delete alerts, ensure that you have:
-
-* *Manage Alerts* permission to view and delete API alerts.
-* *View Alerts* permission to only view alerts.
-
-For more information about how to set these permissions, see xref:environment-permission-task.adoc[To Set Permissions].
-
-To view and delete alerts:
-
-. From API Manager, click API Administration > API instance, and select Alerts.
-+
-image::new-alerts.png[width=687,height=235]
-+
-. Expand an alert in the list.
-+
-Details about the alert options appear.
-+
-. Click Delete.
-
-
-== Editing, Enabling, or Disabling API Alerts
-ifndef::env-site,env-github[]
-include::_attributes.adoc[]
-endif::[]
-
-When creating an alert, you can select if the alert will be enabled or disabled. You can also edit an existing alert and enable or disable the alert.
-
-. In API Manager click *API Administration* on the left navigation bar.
-. Click the API instance, and version that you want to edit and click *Alerts*.
-. Click the *Edit* button on the alert you want to edit.
-+
-image::edit-enable-disable-alerts-task-7e2ac.png[]
-
-=== See Also
-
-* xref:using-api-alerts.adoc[Reviewing Alerts concepts]
-* xref:test-alert-task.adoc[Testing an API Alert]
-
+. Click *Create*.
 
 
 
 
 //content pulled from basic alert email template - much of this information is not needed
-== Basic Alert Email Template
+=== Basic Alert Email Template
 
-You can use the following variables in a basic alert email *Subject* and *Message* fields.
+You can use the following variables in the *Subject* and *Message* fields for basic email alerts.
+
 For the description of each variable, see <<alert-variables>>.
 
 [%header,cols="25a,50a,20a"]
@@ -290,5 +252,60 @@ Available values are `OK` or `Alerting`.
 |`${value}` | Value of the metric that triggers the alert
 |===
 
+=== See Also
 
+* xref:using-api-alerts.adoc[Review Alerts Concepts]
+
+
+//subject/message/recipient from Set Up Basic Alerts for Servers and Mule Apps - add this to the appropriate place in the add alert steps above
+
+
+
+== Testing API Alerts
 //for the testing section, use deployment content from the Flex Gateway documentation. NOTE - verify I have the correct page link for the testing section
+
+
+== Viewing and Deleting API Alerts
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+
+If you have been granted the *Organization Administrators* role for the master organization, you can view a list of alerts that are generated for APIs in the Flex Gateway.
+
+Before you can view and delete alerts, ensure that you have:
+
+* *Manage Alerts* permission to view and delete API alerts.
+* *View Alerts* permission for view-only access to alerts.
+
+For more information about how to set these permissions, see xref:environment-permission-task.adoc[To Set Permissions].
+
+To view and delete alerts:
+
+. From API Manager, click API Administration > API instance, and select Alerts.
++
+image::new-alerts.png[width=687,height=235]
++
+. Expand an alert in the list.
++
+Details about the alert options appear.
++
+. Click Delete.
+
+
+== Editing, Enabling, or Disabling API Alerts
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+
+When creating an alert, you can select if the alert will be enabled or disabled. You can also edit an existing alert and enable or disable the alert.
+
+. In API Manager click *API Administration* on the left navigation bar.
+. Click the API instance, and version that you want to edit and click *Alerts*.
+. Click *Edit* from the kebab menu on the alert you want to edit.
++
+image::edit-enable-disable-alerts-task-7e2ac.png[]
+
+=== See Also
+
+* xref:using-api-alerts.adoc[Reviewing Alerts concepts]
+* xref:test-alert-task.adoc[Testing an API Alert]
