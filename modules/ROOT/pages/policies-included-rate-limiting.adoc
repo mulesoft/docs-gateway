@@ -44,44 +44,41 @@ In Local Mode, you apply the *Rate Limiting* policy to your API via declarative 
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
-|Parameter | Description | Example | Required
+|Parameter | Required or Optional | Default Value | Description
 
 | `rateLimits` 
-| An array containing one or more rate limit specifications 
-|
-----
-rateLimits:
-  - maximumRequests: 3
-    timePeriodInMilliseconds: 6000
-----
-| Yes
+| Required
+| N/A
+| An map containing one or more rate limit specifications 
 
 | `rateLimits.maximumRequests` 
-| The quota available per window 
-| A positive number
-| Yes
+| Required
+| N/A
+| The quota number available per window
 
 | `rateLimits.timePeriodInMilliseconds` 
-| The amount of time for which the quota is to be applied 
-| A positive number
-| Yes
+| Required
+| N/A
+| The amount of time (a number) for which the quota is to be applied
 
 | `keySelector` 
-| DataWeave or regular expression selector key string
-| `#[attributes.method]` creates one group for each available method in HTTP, for example, the policy rate-limits GET requests independently from POST requests.
-| Yes
+| Required
+| N/A
+| DataWeave or regular expression selector key string  
 
-| `exposeHeaders` 
-| The option that defines whether to expose the  <<response-header,x-ratelimit headers>> as part of the response 
-| A boolean
-| No
+| `exposeHeaders`
+| Optional
+| `false`
+| The boolean option that defines whether to expose the  <<response-header,x-ratelimit headers>> as part of the response 
 
 | `clusterizable` 
-| The option that shares the quota defined for a group among all of the nodes of a Mule cluster 
-| A boolean 
-| No
+| Optional
+| `true`
+| The boolean option that shares the quota defined for a group among all of the nodes of a Mule cluster 
 
 |===
+
+==== Resource Configuration Example
 
 The following defines a rate limit of three requests every six seconds:
 
@@ -92,9 +89,13 @@ The following defines a rate limit of three requests every six seconds:
     rateLimits:
       - maximumRequests: 3
         timePeriodInMilliseconds: 6000
-    keySelector: "#[attributes.queryParams['identifier']]"
+    keySelector: "#[attributes.method]"
     exposeHeaders: true
 ----
+
+//#[attributes.queryParams['identifier']]
+
+The `#[attributes.method]` DataWeave expression creates one group for each available method in HTTP, for example, the policy rate-limits GET requests independently from POST requests.
 
 === Connected Mode
 
