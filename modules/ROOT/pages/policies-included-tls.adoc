@@ -15,6 +15,10 @@ In order to use HTTPS, the *TLS* policy must be bound to your API instance.
     certificate:
         key: <string> // REQUIRED
         crt: <string> // REQUIRED
+    alpn: <array> // OPTIONAL
+    minversion: <string> // OPTIONAL
+    maxversion: <string> // OPTIONAL
+    ciphers: <array> // OPTIONAL
 ----
 
 
@@ -40,9 +44,30 @@ spec:
       crt: |
         -----BEGIN CERTIFICATE-----
         -----END CERTIFICATE-----
+
+    alpn:
+      - http/1.1
+      - h2
+    minversion: "1.1"
+    maxversion: "1.3"
+    ciphers:
+      - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+      - TLS_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+      - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+      - TLS_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_RSA_WITH_AES_128_CBC_SHA
+      - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+      - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+      - TLS_RSA_WITH_AES_256_GCM_SHA384
+      - TLS_RSA_WITH_AES_256_CBC_SHA
 ----
 
-After adding your private key and certificate information, test that the policy was correctly applied. The following `curl` command tests an HTTPS endpoint with an example certificate that matches the certificate specified in the policy binding configuration resource.
+After adding your private key and certificate information, verify that the policy was correctly applied. The following `curl` command tests an HTTPS endpoint with an example certificate that matches the certificate specified in the policy binding configuration resource.
 
 ----
 curl https://localhost/api/httpbin/get -v --cacert ./tls-certs/test.crt
