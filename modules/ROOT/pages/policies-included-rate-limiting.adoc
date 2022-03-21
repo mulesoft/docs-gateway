@@ -7,9 +7,9 @@ endif::[]
 
 == Summary
 
-The *Rate Limiting* policy enables you to control the incoming traffic to an API by limiting the number of requests that the API can receive within a given period of time. After the limit is reached, the policy rejects all requests, thereby avoiding any additional load on the backend API.
+The Rate Limiting policy enables you to control the incoming traffic to an API by limiting the number of requests that the API can receive within a given period of time. After the limit is reached, the policy rejects all requests, thereby avoiding any additional load on the backend API.
 
-When you configure the *Rate Limiting* policy, you can specify any number of pairs of quota (number of requests) and time window (time period) values. 
+When you configure the Rate Limiting policy, you can specify any number of pairs of quota (number of requests) and time window (time period) values. 
 
 [%autowidth.spread,cols="a,a"]
 |===
@@ -23,12 +23,11 @@ When you configure the *Rate Limiting* policy, you can specify any number of pai
 |500 - Quota exceeded by WSDL APIs that use SOAP v1.1. Requests are blocked until the current window completes its processing.
 |===
 
-
 == Configuring Policy Parameters
 
 === Local Mode
 
-In Local Mode, you apply the *Rate Limiting* policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
+In Local Mode, you apply the Rate Limiting policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
 
 ----
 - policyRef:
@@ -99,7 +98,7 @@ The `#[attributes.method]` DataWeave expression creates one group for each avail
 
 === Connected Mode
 
-When you apply the *Rate Limiting* policy to your API from the UI, you can configure the following parameters:
+When you apply the Rate Limiting policy to your API from the UI, you can configure the following parameters:
 
 [%header%autowidth.spread,cols="a,a,a"]
 |===
@@ -116,11 +115,11 @@ When you apply the *Rate Limiting* policy to your API from the UI, you can confi
 
 == How This Policy Works
 
-The *Rate Limiting* policy monitors the number of requests made in the current window (the available quota), allowing the requests to reach the backend only if the available quota is greater than zero. 
+The Rate Limiting policy monitors the number of requests made in the current window (the available quota), allowing the requests to reach the backend only if the available quota is greater than zero. 
 
 You can configure the policy for multiple groups of requests by using identifiers in the policy configuration. Each group has a separate available quota for its window. 
 
-To understand how the *Rate Limiting* policy works, consider an example in which the configuration of 3 requests every 10 seconds allows or restricts incoming requests, based on the quota available in that window:
+To understand how the Rate Limiting policy works, consider an example in which the configuration of 3 requests every 10 seconds allows or restricts incoming requests, based on the quota available in that window:
 
 image::rate-limiting-generic-example.png[Rate Limiting Policy Example,80%]
 
@@ -132,7 +131,7 @@ A rejected request on the other hand, displays a “429 status for HTTP, ” (or
 
 == Examples
 
-Consider the previously described configuration of 3 requests every 10 seconds and how it works when the *Rate Limiting* policy is configured for clusters and uses identifiers.
+Consider the previously described configuration of 3 requests every 10 seconds and how it works when the Rate Limiting policy is configured for clusters and uses identifiers.
 
 === Configuring Identifiers by Using Regular Strings
 
@@ -152,7 +151,7 @@ Each header has its own quota. Header values are case-sensitive. Quotas are crea
 +
 Custom header, payload, query parameter, or expression values each have their own quotas.  
 +
-The identifier, if not sent in the request, defaults to an empty value, having its own quota. This behavior allows the *Rate Limiting* policy to be applied to an API consumed by uncontrolled clients, and at the same time accommodates special buckets for the clients sending the identifier.
+The identifier, if not sent in the request, defaults to an empty value, having its own quota. This behavior allows the Rate Limiting policy to be applied to an API consumed by uncontrolled clients, and at the same time accommodates special buckets for the clients sending the identifier.
 
 The following example shows the order of events that occur over a period of time using the identifier `#[attributes.method]` for a limit of 3 requests every 10 seconds:
 
@@ -170,7 +169,7 @@ For more information, see the fixed-window size bracket in the diagram.
 
 The rate-limiting engine, which is HTTP agnostic, depends solely on the resolution of the DataWeave expression. You can alter the `Identifier` expression in the UI to cover complex rate-limiting scenarios.
 
-For example, you can configure a *Rate Limiting* policy with an identifier that uses one bucket for all Class A and Class C LAN requests and another bucket for everything else. The following image illustrates the second bucket in the previous sentence, which corresponds to 3 requests per 10 seconds quota with the DataWeave expression `#[attributes.queryParam[‘customIdentifier’]]` as the policy identifier:
+For example, you can configure a Rate Limiting policy with an identifier that uses one bucket for all Class A and Class C LAN requests and another bucket for everything else. The following image illustrates the second bucket in the previous sentence, which corresponds to 3 requests per 10 seconds quota with the DataWeave expression `#[attributes.queryParam[‘customIdentifier’]]` as the policy identifier:
 
 image::rate-limiting-configure-identifiers-dataweave.png[Rate Limiting Configure Identifiers with DataWeave,80%]
 
@@ -214,7 +213,7 @@ To configure the Rate Limiting policy for clusters, the Mule runtime engine inst
 
 == Configuring Your Rate Limiting Policy
 
-When you configure your *Rate Limiting* policy, you must consider certain aspects of your environment to help you derive the most value from the policy.
+When you configure your Rate Limiting policy, you must consider certain aspects of your environment to help you derive the most value from the policy.
 
 
 === Choosing Between a Cluster or a Standalone Configuration
@@ -247,7 +246,7 @@ This configuration recommendation applies to both Rate Limiting and Rate Limitin
 
 === Choosing Persistence for Your Rate Limiting Policy
 
-You can configure your *Rate Limiting* policy to use windows that persist as long as days, months, and years. For example, suppose you want to allow your user to consume 1 million requests per year, but you cannot ensure that the node will be up the entire period or will need maintenance, which may result in restarting the Mule runtime engine. 
+You can configure your Rate Limiting policy to use windows that persist as long as days, months, and years. For example, suppose you want to allow your user to consume 1 million requests per year, but you cannot ensure that the node will be up the entire period or will need maintenance, which may result in restarting the Mule runtime engine. 
 
 The algorithm has been running for several months, so the client will lose critical information. Persistence solves this problem by periodically saving the current policy state. In case of a redeployment or a restart, the algorithms are recreated from the last known persisted state or started from a clean state.
 
@@ -301,5 +300,5 @@ No, the feature is available only for RTF, hybrid and standalone Mule setups.
 
 *When should I use Rate Limiting instead of Rate-Limiting SLA or Spike Control?*
 
-Use *Rate Limiting* and *Rate-Limiting SLA* policies for accountability and to enforce a hard limit to a group (using the identifier in *Rate Limiting*) or to a client application (using *Rate-Limiting SLA*). If you want to protect your backend, use the *Spike Control* policy instead.
+Use Rate Limiting and *Rate-Limiting SLA* policies for accountability and to enforce a hard limit to a group (using the identifier in Rate Limiting) or to a client application (using *Rate-Limiting SLA*). If you want to protect your backend, use the *Spike Control* policy instead.
 
