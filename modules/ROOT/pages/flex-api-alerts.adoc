@@ -53,6 +53,8 @@ endif::[]
 
 To track and manage APIs, you can add one or more API alerts to your API instances. Add different xref:using-api-alerts.adoc[types of alerts] based on your requirements.
 
+The maximum number of alerts you can create per API instance depends on your plan. Deleting alerts allows you to create new ones.
+
 [NOTE]
 Alerts cannot be added to API instances protected by xref:automated-policies-landing-page.adoc[automated policies].
 
@@ -81,7 +83,14 @@ May be assigned to alerts that require prompt attention when triggered. This sev
 May be assigned to alerts that require immediate attention when triggered. This severity indicates an alert should receive an immediate response.
 . Specify the alert conditions:
 * *Metric*
++
+Condition that triggers the alert.
+//should any information be added from Sara's "Alert Conditions" section for basic alerts, which lists metrics?
+
 * *Logic*
++
+Indicate when the alert will be triggered based on the occurrence rate defined in the *When number of occurrences are* and *For at least [number of] minutes* fields.
+
 . Configure the email notification:
 
 * *Subject*
@@ -259,6 +268,29 @@ Available values are `OK` or `Alerting`.
 //subject/message/recipient from Set Up Basic Alerts for Servers and Mule Apps - add this to the appropriate place in the add alert steps above
 
 
+[[enabling-alerts]]
+
+== Editing, Enabling, or Disabling API Alerts
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+
+When creating an alert, you can enable or disable an alert by toggling the switch on the right:
+
+* Enabling a disabled alert causes the alert to transition to *Pending* until it is time for evaluation.
++
+Depending on the value, the alert transitions to *OK* or *Alerting*.
+
+* Disabling an alert causes the alert to transition to *Disabled*.
+
+You can also edit an existing alert.
+
+. In API Manager click *API Administration* on the left navigation bar.
+. Click the API instance, and version that you want to edit and click *Alerts*.
+. Click *Edit* from the kebab menu on the alert you want to edit.
++
+image::edit-enable-disable-alerts-task-7e2ac.png[]
+
 
 == Testing API Alerts
 //for the testing section, use deployment content from the Flex Gateway documentation. NOTE - verify I have the correct page link for the testing section
@@ -289,20 +321,6 @@ Details about the alert options appear.
 +
 . Click Delete.
 
-[[enabling-alerts]]
-
-== Editing, Enabling, or Disabling API Alerts
-ifndef::env-site,env-github[]
-include::_attributes.adoc[]
-endif::[]
-
-When creating an alert, you can select if the alert will be enabled or disabled. You can also edit an existing alert.
-
-. In API Manager click *API Administration* on the left navigation bar.
-. Click the API instance, and version that you want to edit and click *Alerts*.
-. Click *Edit* from the kebab menu on the alert you want to edit.
-+
-image::edit-enable-disable-alerts-task-7e2ac.png[]
 
 === See Also
 
