@@ -98,7 +98,7 @@ The following defines a rate limit of three requests every six seconds:
 
 === Connected Mode
 
-When you apply the Rate Limiting policy to your API from the UI, you can configure the following parameters:
+When you apply the *Rate Limiting* policy to your API from the UI, you can configure the following parameters:
 
 [%header%autowidth.spread,cols="a,a,a"]
 |===
@@ -131,7 +131,7 @@ A rejected request on the other hand, displays a “429 status for HTTP, ” (or
 
 == Examples
 
-Consider the previously described configuration of 3 requests every 10 seconds and how it works when the Rate Limiting policy is configured for clusters and uses identifiers.
+Consider the previously described configuration of 3 requests every 10 seconds and how it works when the *Rate Limiting* policy is configured for clusters and uses identifiers.
 
 === Configuring Identifiers by Using Regular Strings
 
@@ -139,7 +139,7 @@ When you use the UI to add identifiers to the policy configuration, you can defi
 
 //If you can split the universe of possible requests into a finite number of groups, you can assign each group with a selector key (String). One Rate Limit algorithm is created per key.  
 
-An `Identifier` in the UI is a non-obligatory parameter.  By default, the `Identifier` has no value. Based on whether you accept the default or provide a value, the policy performs in the following ways:
+An `Identifier` in the UI is a non-obligatory parameter. By default, the `Identifier` has no value. Based on whether you accept the default or provide a value, the policy performs in the following ways:
 
 * Not configured (default)
 +
@@ -151,7 +151,7 @@ Each header has its own quota. Header values are case-sensitive. Quotas are crea
 +
 Custom header, payload, query parameter, or expression values each have their own quotas.  
 +
-The identifier, if not sent in the request, defaults to an empty value, having its own quota. This behavior allows the Rate Limiting policy to be applied to an API consumed by uncontrolled clients, and at the same time accommodates special buckets for the clients sending the identifier.
+The identifier, if not sent in the request, defaults to an empty value, having its own quota. This behavior allows the *Rate Limiting* policy to be applied to an API consumed by uncontrolled clients, and at the same time accommodates special buckets for the clients sending the identifier.
 
 The following example shows the order of events that occur over a period of time using the identifier `#[attributes.method]` for a limit of 3 requests every 10 seconds:
 
@@ -169,7 +169,7 @@ For more information, see the fixed-window size bracket in the diagram.
 
 The rate-limiting engine, which is HTTP agnostic, depends solely on the resolution of the DataWeave expression. You can alter the `Identifier` expression in the UI to cover complex rate-limiting scenarios.
 
-For example, you can configure a Rate Limiting policy with an identifier that uses one bucket for all Class A and Class C LAN requests and another bucket for everything else. The following image illustrates the second bucket in the previous sentence, which corresponds to 3 requests per 10 seconds quota with the DataWeave expression `#[attributes.queryParam[‘customIdentifier’]]` as the policy identifier:
+For example, you can configure a *Rate Limiting* policy with an identifier that uses one bucket for all Class A and Class C LAN requests and another bucket for everything else. The following image illustrates the second bucket in the previous sentence, which corresponds to 3 requests per 10 seconds quota with the DataWeave expression `#[attributes.queryParam[‘customIdentifier’]]` as the policy identifier:
 
 image::rate-limiting-configure-identifiers-dataweave.png[Rate Limiting Configure Identifiers with DataWeave,80%]
 
@@ -183,8 +183,9 @@ This configuration creates a false or a true bucket that corresponds to the loca
 Nevertheless, the policy works correctly because the engine treats the resolved expression as a String. In this case, the value is automatically cast from Boolean to String. You can explicitly define casting in DataWeave by adding `output text/plain ---` to your script.
 
 [NOTE]
-
+====
 The HTTP RFC header names are case-insensitive. Anypoint Connector for MuleSoft HTTP changes header names to lowercase characters. However, the DataWeave key is case-sensitive. Therefore, when creating the `Identifier` expression, remember to reference headers in lowercase.
+====
 
 
 === Configuring Unbound Identifier Sets
@@ -212,7 +213,7 @@ To configure the Rate Limiting policy for clusters, the Mule runtime engine inst
 
 == Configuring Your Rate Limiting Policy
 
-When you configure your Rate Limiting policy, you must consider certain aspects of your environment to help you derive the most value from the policy.
+When you configure your *Rate Limiting* policy, you must consider certain aspects of your environment to help you derive the most value from the policy.
 
 
 === Choosing Between a Cluster or a Standalone Configuration
@@ -245,7 +246,7 @@ This configuration recommendation applies to both Rate Limiting and Rate Limitin
 
 === Choosing Persistence for Your Rate Limiting Policy
 
-You can configure your Rate Limiting policy to use windows that persist as long as days, months, and years. For example, suppose you want to allow your user to consume 1 million requests per year, but you cannot ensure that the node will be up the entire period or will need maintenance, which may result in restarting the Mule runtime engine. 
+You can configure your *Rate Limiting* policy to use windows that persist as long as days, months, and years. For example, suppose you want to allow your user to consume 1 million requests per year, but you cannot ensure that the node will be up the entire period or will need maintenance, which may result in restarting the Mule runtime engine. 
 
 The algorithm has been running for several months, so the client will lose critical information. Persistence solves this problem by periodically saving the current policy state. In case of a redeployment or a restart, the algorithms are recreated from the last known persisted state or started from a clean state.
 
@@ -257,11 +258,10 @@ You can also tweak the persistence frequency rate, which has a default of 10 sec
 
 `throttling.persistent_data_update_freq`
 
-[Note]
-
+[NOTE]
+====
 Persistence is not available on CloudHub.
-
-
+====
 
 == FAQ
 
@@ -300,5 +300,5 @@ No, the feature is available only for RTF, hybrid and standalone Mule setups.
 
 *When should I use Rate Limiting instead of Rate-Limiting SLA or Spike Control?*
 
-Use Rate Limiting and Rate-Limiting SLA policies for accountability and to enforce a hard limit to a group (using the identifier in Rate Limiting) or to a client application (using Rate-Limiting SLA). If you want to protect your backend, use the Spike Control policy instead.
+Use *Rate Limiting* and *Rate-Limiting SLA* policies for accountability and to enforce a hard limit to a group (using the identifier in *Rate Limiting*) or to a client application (using *Rate-Limiting SLA*). If you want to protect your backend, use the *Spike Control* policy instead.
 
