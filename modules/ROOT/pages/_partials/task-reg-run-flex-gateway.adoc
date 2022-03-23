@@ -130,8 +130,16 @@ flexctl -v register \
 --client-id=<your-connected-app-client-id> \
 --client-secret=<your-connected-app-client-secret> \
 # end::app-reg-command[]
-# tag::reg-command-2[]
+# tag::environment-reg-command[]
 --environment=<your-environment-id> \
+# end::environment-reg-command[]
+# tag::token-reg-command[]
+--token=<your-registration-token>
+# end::token-reg-command[]
+# tag::connected-reg-command[]
+--connected=true
+# end::connected-reg-command[]
+# tag::reg-command-2[]
 --organization=<your-org-id> \
 --anypoint-url=https://<your-instance>.anypoint.mulesoft.com \
 my-gateway
@@ -148,7 +156,7 @@ You should also see three new files where you executed the command, similar to t
 * `6eb79785-c2f0-4e06-b574-8a030a321d74.pem`
 
 Determine the path where these files live by using the command, `pwd`, then save the path and the UUID,
-or name, of the `.conf` file for later use. For example, `/etc/peregrine/rtm/6eb79785-c2f0-4e06-b574-8a030a321d74.conf`.
+or name, of the `.conf` file for later use. For example, `/Users/jane/flex-gateway/6eb79785-c2f0-4e06-b574-8a030a321d74.conf`.
 
 The gateway's status is disconnected for now. You need to start the gateway to connect it.
 // end::after-reg[]
@@ -156,13 +164,13 @@ The gateway's status is disconnected for now. You need to start the gateway to c
 
 === Start Command
 
-Before executing the start command below, replace the `.conf` file UUID with the UUID of the `.conf` file
-in the folder where you have stored the Flex Gateway Docker image.
+Before executing the start command below, update the placeholder text with the
+absolute path to the directory with the `.conf` file, and the UUID of the `.conf` file.
 
 [source,ssh,subs=attributes+]
 ----
 docker run --rm \
--v $(pwd)/:/etc/peregrine/rtm \
+-v <absolute-path-to-directory-with-conf-file>/:/etc/peregrine/rtm \
 -p 8081:8081 \
 -e MGW_RTM_ARM_AGENT_URL={arm-agent-url} \
 -e MGW_DATASOURCE_RTM_ENABLED=true \
