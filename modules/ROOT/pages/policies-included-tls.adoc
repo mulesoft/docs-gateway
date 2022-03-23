@@ -4,15 +4,32 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
+[%autowidth.spread,cols="a,a"]
+|===
+>s| Policy Name | Transport Security Layer (TLS)
+>s|Summary      | Enables HTTPS
+>s|Category | Security
+>s| First Mule version available |
+.4+>.^s| Returned Status Codes |
+[%autowidth.spread,cols="a,a"]
+| 
+|===
+
+== Summary
+
 In order to use HTTPS, the Transport Layer Security policy must be bound to your API instance.
 
-== Definition
+== Configuring Policy Parameters
+
+=== Local Mode
+
+In Local Mode, you apply the TLS policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
 
 ----
 - policyRef:
     name: tls
   config:
-    certificate:
+    certificate: // REQUIRED
         key: <string> // REQUIRED
         crt: <string> // REQUIRED
     alpn: <array> // OPTIONAL
@@ -21,8 +38,48 @@ In order to use HTTPS, the Transport Layer Security policy must be bound to your
     ciphers: <array> // OPTIONAL
 ----
 
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
 
-== Example
+| `certificate` 
+| Required
+| N/A
+| 
+
+| `certificate.key` 
+| Required
+| N/A
+| 
+
+| `certificate.crt` 
+| Required
+| N/A
+| 
+
+| `alpn` 
+| Optional
+| 
+|
+
+| `minversion` 
+| Optional
+| 
+|
+
+| `maxversion` 
+| Optional
+| 
+|
+
+| `ciphers` 
+| Optional
+| 
+|
+
+|===
+
+==== Resource Configuration Example
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -90,7 +147,6 @@ The command should return information on the TLS handshake, as well as an HTTP s
 > HTTP/1.1 200 OK
 ----
 
-
 [NOTE]
 ====
 The configuration `key` and `crt` values must be correctly indented, otherwise `curl` returns the following error when attempting to test the endpoint:
@@ -98,3 +154,5 @@ The configuration `key` and `crt` values must be correctly indented, otherwise `
 curl: (35) error:1408F10B:SSL routines:ssl3_get_record:wrong version number
 ----
 ====
+
+=== Connected Mode
