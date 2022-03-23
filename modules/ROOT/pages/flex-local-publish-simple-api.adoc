@@ -4,9 +4,12 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-For local mode, you publish an API running behind Flex Gateway by modifying YAML configuration data. API YAML configuration for Docker and Linux can be modified via `.yaml` files. API YAML configuration for Kubernetes can be modified via `kubectl apply`.
+Publish a simple API running behind Flex Gateway in Local Mode, modifying YAML configuration data by one of the following methods:
 
-The following demonstrates a typical YAML configuration for an unsecured API with a single upstream service. 
+* Linux and Docker: `.yaml` files
+* Kubernetes: `kubectl apply`
+
+The following procedures demonstrate a simple YAML configuration for an unsecured API with a single upstream service. 
 
 [cols="1,1,1"]
 |===
@@ -15,30 +18,33 @@ The following demonstrates a typical YAML configuration for an unsecured API wit
 
 |image:install-docker-logo.png[25%,25%,xref="flex-local-publish-simple-api.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container"]
 
-|image:install-kubernetes-logo.png[20%,20%,xref="flex-local-publish-simple-api.adoc#publish-an-api-running-behind-flex-gateway-as-an-ingress-controller"]
+|image:install-kubernetes-logo.png[20%,20%,xref="flex-local-publish-simple-api.adoc#publish-an-api-running-behind-flex-gateway-as-a-kubernetes-ingress-controller"]
 
-|xref:flex-local-publish-simple-api.adoc#publish-an-api-running-behind-flex-gateway-on-linux[Publish an API running behind Flex Gateway on Linux]
+|xref:flex-local-publish-simple-api.adoc#publish-an-api-running-behind-flex-gateway-on-linux[Publish an API Running Behind Flex Gateway on Linux]
 
-|xref:flex-local-publish-simple-api.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container[Publish an API running behind Flex Gateway in a Docker Container]
+|xref:flex-local-publish-simple-api.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container[Publish an API Running Behind Flex Gateway in a Docker Container]
 
-|xref:flex-local-publish-simple-api.adoc#publish-an-api-running-behind-flex-gateway-as-an-ingress-controller[Publish an API running behind Flex Gateway on Kubernetes]
+|xref:flex-local-publish-simple-api.adoc#publish-an-api-running-behind-flex-gateway-as-a-kubernetes-ingress-controller[Publish an API Running Behind Flex Gateway as a Kubernetes Ingress Controller]
 
 |===
 
-== Publish an API running behind Flex Gateway on Linux 
+== Publish an API Running Behind Flex Gateway on Linux 
 
-Before getting started, ensure that you have:
+=== Before You Begin
 
-* Flex Gateway installed and running in local mode. See xref:flex-install.adoc[Installing Flex Gateway] for more information on installing and running the gateway. 
-* Your upstream service URL. The following example refers to a fictional `orders-api` service, but you can specify your own API name under `metadata.name`, and specify service details under `spec.services`.
+Ensure that you have:
+
+* Flex Gateway installed and running in Local Mode. See xref:flex-install.adoc[Installing Flex Gateway] for more information about installing and running the gateway. 
+* Your upstream service URL. The following example refers to a fictional `orders-api` service, but you can specify your own API name in `metadata.name` and your service details in `spec.services`.
 
 To publish an API behind a gateway running on Linux:
 
-. Create a configuration file with a `.yaml` file extension. Name the file (it can be named anything), then save the file in the Flex Gateway configuration directory: `/etc/peregrine/conf.d/custom/`. This directory can contain multiple configuration files.
+. Create a configuration file with a `.yaml` file extension:
+.. Give the file a custom name.
+.. Save the file in the Flex Gateway configuration directory `/etc/peregrine/conf.d/custom/`. This directory can contain multiple configuration files.
 
-. Copy and paste the following into the file`:
+. Copy and paste the following YAML snippet into the file, substituting your values where indicated:
 +
-[source]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: ApiInstance
@@ -54,13 +60,16 @@ spec:
             - path: /api/orders(/.*)
 ----
 
-. Save the file. 
+. Save the file. The gateway automatically refreshes the configuration. 
+
+. View the logs by executing the following command:
 +
-This forces a refresh, thereby allowing you to modify and add configuration details without having to explicitly stop and start the gateway. 
+----
+journalctl -u peregrine-*
+----
 +
-The logs would include the following: 
+The response looks something like this: 
 +
-[source]
 ----
 [agent][info] Generating config
 [agent][info] Gateway default/18b4e890fe7d: Adding ApiInstance default/animal-facts-api http://0.0.0.0:8080
@@ -75,52 +84,27 @@ The logs would include the following:
 [envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
 ----
 
-. Retrieve all orders by accessing your `orders` API:
-+
-[source]
-----
-curl http://localhost:8080/api/orders/ -v
-----
-+
-The response could include the following:
-+
-[source]
-----
-[
-   {
-      id:1,
-      userId:1,
-      date:2021-10-10,
-      products:[{productId:2,quantity:4},{productId:1,quantity:10},{productId:5,quantity:2}]
-   }
-   /*...*/
-   {
-      id:20,
-      userId:1,
-      date:2021-11-14,
-      products:[{productId:5,quantity:2},{productId:8,quantity:7},{productId:9,quantity:12}]
-   }
-]
-----
+A simple API is now running behind Flex Gateway.
 
-An unsecured API is now running behind Flex Gateway.
+== Publish an API Running Behind Flex Gateway in a Docker Container 
 
-== Publish an API running behind Flex Gateway in a Docker Container 
+=== Before You Begin
 
-Before getting started, ensure that you have:
+Ensure that you have:
 
-* Flex Gateway installed and running in local mode. See xref:flex-install.adoc[Installing Flex Gateway] for more information on installing and running the gateway. 
-* Your upstream service URL. The following example refers to a fictional `orders-api` service, but you can specify your own API name under `metadata.name`, and specify service details under `spec.services`.
+* Flex Gateway installed and running in Local Mode. See xref:flex-install.adoc[Installing Flex Gateway] for more information about installing and running the gateway. 
+* Your upstream service URL. The following example refers to a fictional `orders-api` service, but you can specify your own API name in `metadata.name` and your service details in `spec.services`.
 
 To publish an API behind a gateway running as a Docker container image:
 
 . Open a terminal and navigate to the directory containing the Flex Gateway image.
 
-. Create a configuration file with a `.yaml` file extension. Name the file (it can be named anything), then save the file in the the directory containing the Flex Gateway image. This directory can contain multiple configuration files.
+. Create a configuration file with a `.yaml` file extension:
+.. Give the file a custom name.
+.. Save the file in the directory containing the Flex Gateway image. This directory can contain multiple configuration files.
 
-. Copy and paste the following into the file: 
+. Copy and paste the following YAML snippet into the file, substituting your values where indicated: 
 +
-[source]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: ApiInstance
@@ -136,13 +120,10 @@ spec:
             - path: /api/orders(/.*)
 ----
 
-. Save the file. 
+. Save the file. The gateway automatically refreshes the configuration.
+
+. View the Docker container logs, which look something like this: 
 +
-This forces a refresh, thereby allowing you to modify and add configuration details without having to explicitly stop and start the gateway. 
-+
-The container logs would include the following: 
-+
-[source]
 ----
 [agent][info] Generating config
 [agent][info] Gateway default/18b4e890fe7d: Adding ApiInstance default/animal-facts-api http://0.0.0.0:8080
@@ -157,50 +138,23 @@ The container logs would include the following:
 [envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
 ----
 
-. Retrieve all orders by accessing your `orders` API:
+A simple API is now running behind Flex Gateway.
+
+== Publish an API Running Behind Flex Gateway as a Kubernetes Ingress Controller 
+
+=== Before You Begin
+
+Ensure that you have:
+
+* Flex Gateway installed and running in Local Mode. See xref:flex-install.adoc[Installing Flex Gateway] for more information about installing and running the gateway. 
+* A Docker image stored in a Docker repository. The following example refers to a fictional `orders-api` application, but you can specify your own Docker repository and Docker image in the `Deployment` configuration resource (in `spec.spec.image`).
+
+To publish an API behind a gateway running as an ingress controller:
+
+. Using the `kubectl apply` command, install a Docker image named "orders-api" from a given repository. 
 +
-[source]
-----
-curl http://localhost:8080/api/orders/ -v
-----
+The following YAML snippet defines two configuration resources: `Service`, and `Deployment`. The `Service` resource declares the `orders-api` service. The `Deployment` resource declares the desired deployment state by specifying information such as the number of replicas to create, and the Docker image to sideload.
 +
-The response could include the following:
-+
-[source]
-----
-[
-   {
-      id:1,
-      userId:1,
-      date:2021-10-10,
-      products:[{productId:2,quantity:4},{productId:1,quantity:10},{productId:5,quantity:2}]
-   }
-   /*...*/
-   {
-      id:20,
-      userId:1,
-      date:2021-11-14,
-      products:[{productId:5,quantity:2},{productId:8,quantity:7},{productId:9,quantity:12}]
-   }
-]
-----
-
-An unsecured API is now running behind Flex Gateway.
-
-== Publish an API running behind Flex Gateway as an Ingress Controller 
-
-Before getting started, ensure that you have:
-
-* Flex Gateway installed and running in local mode. See xref:flex-install.adoc[Installing Flex Gateway] for more information on installing and running the gateway. 
-* A Docker image stored in a Docker repository. The following example refers to a fictional `orders-api` application, but you can specify your own Docker repository and Docker image in the `Deployment` configuration resource (under `spec.spec.image`).
-
-To publish an API behind a gateway running as an Ingress Controller:
-
-. Install a Docker image named "orders-api" from a given repository. This can be accomplished by passing YAML configuration data into the `kubectl apply` command. 
-+
-The following YAML example defines two configuration resources: `Service`, and `Deployment`. The `Service` resource declares the `orders-api` micro-service. The `Deployment` resource declares the desired deployment state by specifying information such as the number of replicas to create, and the Docker image to sideload.
-+
-[source]
 ----
 cat <<EOF | kubectl apply -f -
 ---
@@ -249,11 +203,10 @@ spec:
 EOF
 ----
 
-. Create the ingress to route traffic. This can be accomplished by passing YAML configuration data into the `kubectl apply` command. 
+. Again using `kubectl apply`, create the ingress to route traffic. 
 +
 The following YAML example defines one configuration resource: `Ingress`.
 +
-[source]
 ----
 cat <<EOF | kubectl apply -f -
 ---
@@ -276,44 +229,4 @@ spec:
 EOF
 ----
 
-. Retrieve all orders by accessing your `orders` API:
-+
-[source]
-----
-curl http://localhost/api/orders/ -v
-----
-+
-The response could include the following:
-+
-[source]
-----
-[
-   {
-      id:1,
-      userId:1,
-      date:2021-10-10,
-      products:[{productId:2,quantity:4},{productId:1,quantity:10},{productId:5,quantity:2}]
-   }
-   /*...*/
-   {
-      id:20,
-      userId:1,
-      date:2021-11-14,
-      products:[{productId:5,quantity:2},{productId:8,quantity:7},{productId:9,quantity:12}]
-   }
-]
-----
-
-An unsecured API is now running behind Flex Gateway.
-
-// == See Also
- 
-// Note: Do not change heading
-
-// Don’t use this section as filler. Link only to relevant related info and not just any info that is “kinda” related.
-
-// Must contain: unordered list
-// * xref:file-name.adoc[link-text]
-// * xref:file-name.adoc#paragraph-target[link text]
-// * xref:repo-name::filename.adoc[link text]
-// * https://www.url.com[link-text^]
+A simple API is now running behind Flex Gateway.
