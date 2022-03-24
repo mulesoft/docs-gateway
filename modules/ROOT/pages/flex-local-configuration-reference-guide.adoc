@@ -4,18 +4,14 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Anypoint Flex Gateway supports two YAML configuration models: inline, and resource-based (common in Kubernetes). Refer to the xref:flex-local-configuration-reference-guide.adoc#examples[Examples] section for examples of both.
+Anypoint Flex Gateway supports two YAML configuration models: inline, and resource-based.
 
-Additionally, examples of inline configuration definitions are included in the following installation procedures: 
+* The inline model is ideal for concise definitions. 
+* The resource-based model, common in Kubernetes, is ideal for granular definitions.
 
-* xref:flex-installing-as-a-linux-service.adoc[Install and Run as a Linux Service]
-* xref:flex-installing-using-docker.adoc[Install and Run using Docker]
+Refer to the <<examples,Examples>> section for examples of both.
 
-An example of a resource-based configuration definition is included in the following installation procedure: 
-
-* xref:flex-installing-using-kubernetes.adoc[Install and Run as a Kubernetes Ingress Controller]
-
-The following reference describes the available configuration resources.
+The following reference guide describes the available configuration resources.
 
 == API Instance
 
@@ -527,6 +523,7 @@ spec:
      enabled: true
 ----
 
+[[examples]]
 == Examples
 
 === Inline Configuration Example
@@ -540,7 +537,7 @@ spec:
   address: http://0.0.0.0:8080
   services:
     jsonplaceholder:
-      address: https://jsonplaceholder.typicode.com:443/
+      address: https://<your url>:443/
       routes:
         - rules:
             - path: /api(/users/.*)
@@ -571,7 +568,7 @@ kind: Service
 metadata:
   name: jsonplaceholder
 spec:
-  address: https://jsonplaceholder.typicode.com:443/
+  address: https://<your url>:443/
 ---
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: PolicyBinding
