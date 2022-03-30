@@ -30,7 +30,7 @@ The response time of the API exceeds a specified timeout period.
 
 API alerts are triggered only when states change, although the first occurrence of a state change might be undetected due to newly created alerts not having defined states.
 
-When configuring an API alert, you select Business Group users to receive email notifications about the alert. Notifications include information about events that trigger alerts as specified by severity level. Users receive the following:
+When configuring an API alert, you select business group users to receive email notifications about the alert. Notifications include information about events that trigger alerts as specified by severity level. Users receive the following:
 
 * One email describes the alert:
 +
@@ -46,9 +46,6 @@ After an alert is triggered, the first set of two notification emails is sent an
 API Alerts are sent from `no-reply@mulesoft.com`. This cannot be customized.
 
 == Adding API Alerts
-ifndef::env-site,env-github[]
-include::_attributes.adoc[]
-endif::[]
 
 To track and manage APIs, you can add one or more API alerts to your API instances. Add different <<types, types of alerts>> based on your requirements.
 
@@ -88,7 +85,7 @@ Condition that triggers the alert.
 
 * *Logic*
 +
-Indicate when the alert will be triggered based on the occurrence rate defined in the *When number of occurrences are* and *For at least [number of] minutes* fields.
+Indicates when the alert is triggered based on the occurrence rate defined in the *When number of occurrences are* and *For at least [number of] minutes* fields.
 
 . Configure the email notification:
 
@@ -128,8 +125,7 @@ For the description of each variable, see <<alert-variables>>.
 .Variables for Alerts
 |===
 | Alert Type | Alert | Applicable Variables
-.6+| CloudHub App Alerts
-|*CPU Utilization* .6+|* `${severity}`
+|*Total Request Count* .4+|* `${severity}`
 * `${operator}`
 * `${threshold}`
 * `${period}`
@@ -139,94 +135,11 @@ For the description of each variable, see <<alert-variables>>.
 * `${environment}`
 * `${alertLink}`
 * `${dashboardLink}`
-* `${resource}`
-| *Memory Utilization*
-| *Thread Count*
-| *Message Count*
-| *Message Error Count*
-| *Message Response Time*
-
-.6+| Anypoint Runtime Fabric App Alerts
-|*CPU Utilization* .6+|* `${severity}`
-* `${operator}`
-* `${threshold}`
-* `${period}`
-* `${value}`
-* `${condition}`
-* `${organization}`
-* `${environment}`
-* `${alertLink}`
-* `${dashboardLink}`
-* `${resource}`
-| *Memory Utilization*
-| *Thread Count*
-| *Message Count*
-| *Message Error Count*
-| *Message Response Time*
-
-.3+|Hybrid App Alerts
-| *Message Count* .3+| * `${severity}`
-* `${operator}`
-* `${threshold}`
-* `${period}`
-* `${value}`
-* `${condition}`
-* `${organization}`
-* `${environment}`
-* `${alertLink}`
-* `${dashboardLink}`
-* `${targetName}`
-* `${resource}`
-| *Message Error Count*
-| *Message Response Time*
-
-.3+|On-premises Server Alerts
-| *CPU Utilization* .3+| * `${severity}`
-* `${operator}`
-* `${threshold}`
-* `${period}`
-* `${value}`
-* `${condition}`
-* `${organization}`
-* `${environment}`
-* `${alertLink}`
-* `${dashboardLink}`
-* `${targetName}`
-| *Memory Utilization*
-| *Thread Count*
-
-.3+|Server Group Alerts
-| *CPU Utilization* .3+| * `${severity}`
-* `${operator}`
-* `${threshold}`
-* `${period}`
-* `${value}`
-* `${condition}`
-* `${organization}`
-* `${environment}`
-* `${alertLink}`
-* `${dashboardLink}`
-* `${memberName}`
-* `${targetName}`
-| *Memory Utilization*
-| *Thread Count*
-
-.3+|Server Cluster Alerts
-| *CPU Utilization* .3+| * `${severity}`
-* `${operator}`
-* `${threshold}`
-* `${period}`
-* `${value}`
-* `${condition}`
-* `${organization}`
-* `${environment}`
-* `${alertLink}`
-* `${dashboardLink}`
-* `${memberName}`
-* `${targetName}`
-| *Memory Utilization*
-| *Thread Count*
-
+* `${api}`
+* `${policy}`
+| *Average Response Time*
+| *Response Codes*
+| *Policy Violations*
 |===
 
 [[alert-variables]]
@@ -243,17 +156,10 @@ Available values are `OK` or `Alerting`.
 |`${comparison}`|* Above, above or equal, equal, below or equal, below
 |`${condition}`|Metric for which the alert is triggered
 |`${environment}`|Name of the environment in which the resource is deployed
-|`${memberName}`|Name of the server within the server group or cluster
 |`${operator}` |An operator, such as `< > =`
 |`${organization}` |Name of the organization that owns the alert
 |`${period}` |Period of time over which to measure
-|`${resource}` a| Name of the item that triggers the alert:
-
-* CloudHub Apps: Name of the app that triggers the alert
-* Hybrid Apps: Name of the resource in the app that triggers the alert
 |`${severity}` | Severity of the alert
-|`${targetName}`|Name of the server, server group, or cluster
-|`${targetState}` |Server state when the alert was triggered
 |`${threshold}` |Count over the period of time that triggers the alert
 |`${value}` | Value of the metric that triggers the alert
 |===
@@ -266,9 +172,6 @@ Available values are `OK` or `Alerting`.
 [[enabling-alerts]]
 
 == Editing, Enabling, or Disabling API Alerts
-ifndef::env-site,env-github[]
-include::_attributes.adoc[]
-endif::[]
 
 When creating an alert, you can enable or disable an alert by toggling the switch on the right:
 
@@ -292,7 +195,7 @@ You can also edit an existing alert.
 //is the following enough for testing alerts? also, all links go to beta documentation, so wondering if they will work
 The process for testing API alerts begins with creating a Flex Gateway. Follow these steps to get started with Flex Gateway and test alerts:
 
-. xref:https://beta.docs.stgx.mulesoft.com/beta-flex-gateway-ga/gateway/flex-install[Install Flex Gateway]
+. xref:flex-install.adoc[Install Flex Gateway]
 . Register and Run Flex Gateway
 +
 * xref:https://beta.docs.stgx.mulesoft.com/beta-flex-gateway-ga/gateway/flex-conn-reg-run[Register and Run in Connected Mode]
@@ -303,9 +206,6 @@ The process for testing API alerts begins with creating a Flex Gateway. Follow t
 * xref:https://beta.docs.stgx.mulesoft.com/beta-flex-gateway-ga/gateway/flex-local-manage[Manage an API in Local Mode]
 
 == Viewing and Deleting API Alerts
-ifndef::env-site,env-github[]
-include::_attributes.adoc[]
-endif::[]
 
 If you have been granted the *Organization Administrators* role for the master organization, you can view a list of alerts that are generated for APIs in API Manager.
 
@@ -318,7 +218,7 @@ For more information about how to set these permissions, see xref:https://docs.m
 
 To view and delete alerts:
 
-. From API Manager, click *API Administration > API instance*, and select Alerts.
+. From API Manager, click *API Administration > API instance*, and select *Alerts*.
 +
 //image::new-alerts.png[width=687,height=235]
 //should this image be replaced?
