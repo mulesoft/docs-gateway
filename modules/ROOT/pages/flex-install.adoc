@@ -27,8 +27,10 @@ install it as a Kubernetes Ingress controller.
 
 == Install as a Linux Service
 
-Installing Flex Gateway as a Linux service requires that you satisfy installation dependencies,
-run installation commands, and verify successful installation.
+The process of installing Flex Gateway as a Linux service includes the following tasks:
+* Install dependencies
+* Run the installation commands
+* Verify successful installation
 
 === Before You Begin
 
@@ -45,11 +47,11 @@ Before getting started, ensure that you have installed the following:
 To install Flex Gateway as a Linux service:
 
 . Execute the command block below which does the following actions:  
-+
 * Retrieves the public package keys and adds the package repository
 * Updates the package list
 * Updates `apt-get`
 * Installs the Flex Gateway package
+
 +
 [source,ssh]
 ----
@@ -63,14 +65,14 @@ sudo apt update
 sudo apt install -y peregrine
 ----
 
-. Verify that the Flex Gateway service is running successfully by executing the following command:
+. Verify that the Flex Gateway service is running successfully:
 +
 [source,ssh]
 ----
 systemctl list-units peregrine*
 ----
 +
-A list of services displays. Flex Gateway is successfully running if each service has a status of `active`:
+You should see a list of services. Flex Gateway is successfully running if each service has a status of `active`.
 +
 [source,ssh]
 ----
@@ -84,9 +86,9 @@ A list of services displays. Flex Gateway is successfully running if each servic
 
 == Install in a Docker Container 
 
-To install Flex Gateway in a Docker Container: 
+To install Flex Gateway in a Docker container: 
 
-. Download the Flex Gateway Docker image using the following command: 
+. Download the Flex Gateway Docker image: 
 +
 [source,ssh,subs=attributes+]
 ----
@@ -95,25 +97,23 @@ https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gatew
 ----
 
 . Move the container image into a directory of your choice.
-
-. Using the command line interface, navigate to the directory containing the container image.
-
-. Install the container image using the following command: 
+. Using the command-line interface, navigate that directory.
+. Install the container image: 
 +
 [source,ssh,subs=attributes+]
 ----
 docker load --input flex-gateway-{gateway-ver-var}.tar
 ----
 
-You can verify the installation was successful using the following command: 
-
+. Verify the installation was successful: 
++
 [source,ssh]
 ----
 docker images
 ----
-
-The Flex Gateway container image should appear in the resulting list, for example: 
-
++
+You should see the Flex Gateway container image in the resulting list. 
++
 [source,text,subs=attributes+]
 ----
 REPOSITORY                   TAG              IMAGE ID       CREATED        SIZE
@@ -122,45 +122,56 @@ mulesoft/flex-gateway        {gateway-ver-var}     1c1fbdbf819b   9 days ago    
 
 == Install as a Kubernetes Ingress Controller
 
-The following procedures demonstrate how to install and run Flex Gateway as an ingress controller.
+The process of installing Flex Gateway as a Kubernetes Ingress controller includes the following tasks:
 
-=== Dependencies
+* Install dependencies
+* Prepare your environment
+* Run the installation commands
+* Verify successful installation
+
+=== Before You Begin
+
+Before getting started, ensure that you have installed the following:
 
 * A tool to create Kubernetes clusters. The following examples use https://k3d.io/v5.0.0/#installation[k3d^].
-* https://kubernetes.io/docs/tasks/tools/#kubectl[kubectl,^] a tool used to interact with Kubernetes clusters.
-* https://helm.sh/docs/intro/install/[Helm,^] a tool used to install Flex Gateway, monitoring tools and applications. A minimum Helm version of 3.0.0 is required.
+* https://kubernetes.io/docs/tasks/tools/#kubectl[kubectl^], a tool used to interact with Kubernetes clusters.
+* https://helm.sh/docs/intro/install/[Helm^], a tool used to install Flex Gateway, monitoring tools, and applications. A minimum Helm version of 3.0.0 is required.
 
-=== Prepare the Environment
+=== Prepare and Install
 
-. Create a new Kubernetes cluster with a single server node using the following command: 
+. Create a new Kubernetes cluster with a single server node: 
 +
 [source,kubernetes]
 ----
-k3d cluster create flex-gateway-1 --k3s-arg "--disable=traefik@server:*" --port '80:80@server:*' --port '443:443@server:*'
+k3d cluster create flex-gateway-1 \
+--k3s-arg "--disable=traefik@server:*" \
+--port '80:80@server:*' \
+--port '443:443@server:*'
 ----
 +
-The command should return the following success message: 
+The command returns the following success message: 
 +
 [source,text]
 ----
 INFO[0042] Cluster 'flex-gateway-1' created successfully!
 ----
 
-. Download the Flex Gateway container image using the following command: 
+. Download the Flex Gateway container image: 
 +
 [source,ssh,subs=attributes+]
 ----
-curl -o flex-gateway-{gateway-ver-var}.tar https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gateway-{gateway-ver-var}.tar
+curl -o flex-gateway-{gateway-ver-var}.tar \
+https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gateway-{gateway-ver-var}.tar
 ----
 
-. Import the container image using the following command: 
+. Import the Flex Gateway container image: 
 +
 [source,kubernetes,subs=attributes+]
 ----
 k3d image import -c flex-gateway-1 flex-gateway-{gateway-ver-var}.tar
 ----
 +
-The command should return the following success messages: 
+The command returns the following success messages: 
 +
 [source,text]
 ----
@@ -168,30 +179,28 @@ INFO[0016] Successfully imported image(s)
 INFO[0016] Successfully imported 1 image(s) into 1 cluster(s)
 ----
 
-=== Procedure 
-
-. Add the Flex Gateway helm repository using the following command: 
+. Add the Flex Gateway Helm repository: 
 +
 [source,kubernetes]
 ----
 helm repo add flex-gateway https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/helm
 ----
 
-. Update the helm repository using the following command:
+. Update the Helm repository using the following command:
 +
 [source,kubernetes]
 ----
 helm repo up
 ----
 
-. Install the *flex-gateway* helm chart into the *gateway* namespace with ingress using the following command:  
+. Using Ingress, install the *flex-gateway* Helm chart into the *gateway* namespace:  
 +
 [source,kubernetes]
 ----
 helm -n gateway upgrade -i --wait --create-namespace ingress flex-gateway/flex-gateway
 ----
 +
-The command should return something like the following: 
+The command returns something similar to the following: 
 +
 [source,text]
 ----
@@ -203,15 +212,15 @@ REVISION: 1
 TEST SUITE: None
 ----
 
-You can verify *apiinstances* was created during installation using the following command: 
-
-[source]
+. Verify *apiinstances* was created during installation: 
++
+[source,text]
 ----
 kubectl -n gateway get apiinstances
 ---- 
-
++
 The command returns output similar to the following: 
-
++
 [source,text]
 ----
 NAME            ADDRESS
@@ -221,7 +230,6 @@ ingress-https   http://0.0.0.0:443
 
 == See Also
 
-//* xref:flex-gateway-overview.adoc[Anypoint Flex Gateway]
 * xref:flex-gateway-getting-started.adoc[Get Started with Flex Gateway]
 * xref:flex-conn-reg-run.adoc[Register and Run in Connected Mode]
 * xref:flex-local-reg-run.adoc[Register and Run in Local Mode]
