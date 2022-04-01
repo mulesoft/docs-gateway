@@ -179,7 +179,7 @@ or name, of the `.conf` file for later use. For example, `/Users/jane/flex-gatew
 You should also see your new Flex Gateway in Runtime Manager after clicking *Flex Gateway* in the left navigation. 
 The gateway's status is disconnected for now. You need to start the gateway to connect it.
 // end::connected-after-reg[]
-// tag::start-command1[]
+// tag::start-command[]
 
 === Start Command
 
@@ -191,19 +191,10 @@ absolute path to the directory with the `.conf` file, and the UUID of the `.conf
 docker run --rm \
 -v <absolute-path-to-directory-with-conf-file>/:/etc/peregrine/rtm \
 -p 8081:8081 \
--e MGW_RTM_ARM_AGENT_URL={arm-agent-url} \
-// end::start-command1[]
-// tag::connected-start[]
--e MGW_DATASOURCE_RTM_ENABLED=true \
-// end::connected-start[]
-// tag::local-start[]
--e MGW_DATASOURCE_RTM_ENABLED=false \
-// end::local-start[]
-// tag::start-command2[]
 -e MGW_RTM_ARM_AGENT_CONFIG=/etc/peregrine/rtm/<UUID-of-your-file>.conf \
 mulesoft/flex-gateway:{gateway-ver-var}
 ----
-// end::start-command2[]
+// end::start-command[]
 // tag::create-config-folder-file[]
 
 === Create Configuration Folder and File
@@ -225,7 +216,7 @@ sudo vi env.conf
 ----
 
 // end::create-config-folder-file[]
-// tag::config-content1[]
+// tag::config-content[]
 
 === Add Configuration Content
 
@@ -237,21 +228,14 @@ Add the content below to the `env.conf` file, after replacing the following samp
 [source,subs=attributes+]
 ----
 [Service]
-Environment=MGW_RTM_ARM_AGENT_URL={arm-agent-url}
-// end::config-content1[]
-// tag::connected-config[]
-Environment=MGW_DATASOURCE_RTM_ENABLED=true
-// end::connected-config[]
-// tag::local-config[]
-Environment=MGW_DATASOURCE_RTM_ENABLED=false
-// end::local-config[]
-// tag::config-content2[]
+
+// tag::config-content[]
 Environment=MGW_RTM_ARM_AGENT_CONFIG=<path-and-uuid-of-conf-file>.conf
 Environment=MGW_NAME=tb_ubuntu_1
 ----
 
 After you have added the content to the `env.conf` file, save the file with ESC + `:wq`.
-// end::config-content2[]
+// end::config-content[]
 // tag::restart-command[]
 
 === Restart Commands
