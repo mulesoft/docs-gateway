@@ -169,9 +169,9 @@ absolute path to the directory with the `.conf` file, and the UUID of the `.conf
 [source,ssh,subs=attributes+]
 ----
 docker run --rm \
--v <absolute-path-to-directory-with-conf-file>/:/etc/peregrine/rtm \
+-v <absolute-path-to-directory-with-conf-file>/:/etc/flex-gateway/rtm \
 -p 8081:8081 \
--e MGW_RTM_ARM_AGENT_CONFIG=/etc/peregrine/rtm/<UUID-of-your-file>.conf \
+-e FLEX_RTM_ARM_AGENT_CONFIG=/etc/flex-gateway/rtm/<UUID-of-your-file>.conf \
 mulesoft/flex-gateway:{gateway-ver-var}
 ----
 // end::start-command[]
@@ -183,7 +183,7 @@ Before you start the gateway, you must create a directory using the following co
 
 [source]
 ----
-sudo mkdir /etc/systemd/system/peregrine-agent.service.d/
+sudo mkdir /etc/systemd/system/flex-gateway-agent.service.d/
 ----
 
 Afterwards, create a configuration file within that directory and name it `env.conf`.
@@ -209,8 +209,8 @@ Add the content below to the `env.conf` file, after replacing the following samp
 ----
 [Service]
 
-Environment=MGW_RTM_ARM_AGENT_CONFIG=<path-and-uuid-of-conf-file>.conf
-Environment=MGW_NAME=tb_ubuntu_1
+Environment=FLEX_RTM_ARM_AGENT_CONFIG=<path-and-uuid-of-conf-file>.conf
+Environment=FLEX_NAME=tb_ubuntu_1
 ----
 
 After you have added the content to the `env.conf` file, save the file with ESC + `:wq`.
@@ -223,7 +223,7 @@ Restart Flex Gateway with the following command:
 
 [source]
 ----
-sudo systemctl restart peregrine
+sudo systemctl restart flex-gateway
 ----
 
 // end::restart-command[]

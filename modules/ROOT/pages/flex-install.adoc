@@ -28,6 +28,7 @@ install it as a Kubernetes Ingress controller.
 == Install as a Linux Service
 
 The process of installing Flex Gateway as a Linux service includes the following tasks:
+
 * Install dependencies
 * Run the installation commands
 * Verify successful installation
@@ -62,26 +63,33 @@ echo "deb [arch=amd64] https://flex-packages.devx.anypoint.mulesoft.com/ubuntu $
 
 sudo apt update
 
-sudo apt install -y peregrine
+sudo apt install -y flex-gateway
+----
+
+. Start the Flex Gateway service:
++
+[source,ssh]
+----
+sudo systemctl start flex-gateway
 ----
 
 . Verify that the Flex Gateway service is running successfully:
 +
 [source,ssh]
 ----
-systemctl list-units peregrine*
+systemctl list-units flex-gateway*
 ----
 +
 You should see a list of services. Flex Gateway is successfully running if each service has a status of `active`.
 +
 [source,ssh]
 ----
-  UNIT                           LOAD   ACTIVE SUB     DESCRIPTION
-  peregrine-fluent-reloader.path loaded active waiting peregrine-fluent-reloader.path
-  peregrine-agent.service        loaded active running peregrine-agent.service
-  peregrine-envoy.service        loaded active running peregrine-envoy.service
-  peregrine-fluent.service       loaded active running peregrine-fluent.service
-  peregrine.service              loaded active exited  Application
+  UNIT                              LOAD   ACTIVE SUB     DESCRIPTION
+  flex-gateway-fluent-reloader.path loaded active waiting flex-gateway-fluent-reloader.path
+  flex-gateway-agent.service        loaded active running flex-gateway-agent.service
+  flex-gateway-envoy.service        loaded active running flex-gateway-envoy.service
+  flex-gateway-fluent.service       loaded active running flex-gateway-fluent.service
+  flex-gateway.service              loaded active exited  Application
 ----
 
 == Install in a Docker Container 
