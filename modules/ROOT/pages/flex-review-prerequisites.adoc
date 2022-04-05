@@ -4,11 +4,55 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Before you download and install Anypoint Flex Gateway, ensure that you review and fulfill the hostname and port allowlist requirements.
+Before you download and install Anypoint Flex Gateway, ensure that you review and fulfill the following prerequisites.
+
+== Software Requirements
+
+=== Kubernetes
+
+Running Flex Gateway on Kubernetes requires:
+
+* An https://kubernetes.io/releases/[active version of Kubernetes^].
+
+* Ingress v1 (stable), which requires specifying `apiVersion: networking.k8s.io/v1` as the API version in your configuration resources.
+
+* A cloud provider, for example:
+
+** Google Kubernetes Engine (GKE)
+** Amazon Elastic Kubernetes Service (Amazon EKS)
+** Azure Kubernetes Service (AKS)
+
+* A minimum Helm version of 3.0.0.
+
+=== Linux
+
+Running Flex Gateway on Linux requires:
+
+* Any standard Long Term Support (LTS) version of Ubuntu and Debian, for example:
+
+** Ubuntu Bionic
+** Ubuntu Focal
+** Debian 9 Stretch
+
+[NOTE]
+====
+Red Hat Enterprise Linux (RHEL) is not supported.
+====
+
+== Hardware Requirements
+
+Flex Gateway requires the following minimum hardware configuration:
+
+* 0.2 vCPU
+* 200 MB memory
+
+A single service with no applied policies adds 2.65 milliseconds to the 90th percentile latency, and requires: 
+
+* 0.35 vCPU and 40 MB memory for every 1000 requests per second
 
 == Ports, IPs, and Hostnames Allow list Requirements
 
-For Anypoint Flex Gateway to communicate with MuleSoft-managed online Anypoint Platform APIs and services, you must add the following hostnames and ports of external resources to the allowlist:
+For Flex Gateway to communicate with MuleSoft-managed online Anypoint Platform APIs and services, you must add the following hostnames and ports of external resources to the allowlist:
 
 [%header%autowidth.spread]
 |===
@@ -23,3 +67,4 @@ For Anypoint Flex Gateway to communicate with MuleSoft-managed online Anypoint P
 |*EU*|*exchange-files.eu1.anypoint.mulesoft.com* | 443| Connected| Required to download policies| HTTPS
 |*EU*|*arm-mcm2-service.kprod-eu.msap.io* | 443| Both| Required to communicate with the Transport Layer| mTLS
 |===
+ 
