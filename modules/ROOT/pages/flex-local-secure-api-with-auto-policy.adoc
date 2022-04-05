@@ -1,4 +1,4 @@
-= Secure an API with an Automated Policy
+= Secure an API with an Automated Resource-Level Policy
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -8,7 +8,12 @@ Publish an API running behind Flex Gateway in Local Mode, modifying YAML configu
 
 * Linux and Docker: `.yaml` files
 
-The following procedures demonstrate applying a simple resource-based YAML configuration for an API with multiple upstream services, all secured with an automated authentication policy. 
+The following procedures demonstrate applying a simple resource-based YAML configuration for an API with multiple upstream services, all secured with an automated resource-level authentication policy. 
+
+Refer to the following for more information:
+
+* xref:policies-automated-overview.adoc[Automated Policies]
+* xref:policies-resource-level-overview.adoc[Resource-Level Policies]
 
 [NOTE]
 ====
@@ -36,8 +41,6 @@ Before getting started, ensure that you have:
 
 * Flex Gateway installed and running in local mode. See xref:flex-install.adoc[Installing Flex Gateway] for more information about installing and running the gateway. 
 * Your upstream service URLs. The following example refers to fictional `products-api` and `users-api` services, but you can specify your own API name in `metadata.name` and your service details in `spec.services`.
-
-Additionally, refer to xref:policies-automated-overview.adoc[Automated Policies] for more information.
 
 === Publish an API
 
@@ -105,7 +108,7 @@ spec:
     password: admin
 ----
 +
-The `PolicyBinding` resource applies a basic authentication policy to both `ApiInstance` resources. You accomplish this by specifying a customizable label in `spec.targetRef.selector.labels`. The specified label matches the label defined in the `ApiInstance` `metadata.labels` property, which binds the policy to that resource.
+The `PolicyBinding` resource applies a basic authentication policy to both `ApiInstance` resources. You accomplish this by specifying a customizable label in `spec.targetRef.selector.labels`. The specified label matches the label defined in the `ApiInstance` `metadata.labels` property, which associates the automated policy with that resource.
 
 . Save the file. The gateway automatically refreshes the configuration.
 +
@@ -136,7 +139,37 @@ The response looks something like this:
 [envoy][info] cds: added/updated 0 cluster(s), skipped 2 unmodified cluster(s)
 ----
 
-Two APIs secured with the an automated basic authentication policy are now running behind Flex Gateway.
+. Test the APIs with a tool such as `curl`, specifying the given authentication credentials. The automated authentication policy secures both APIs.
+
+. Apply resource-level granularity to the automated authentication policy by substituting the `PolicyBinding` resource with the following:
++
+----
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: security-protection
+spec:
+  targetRef:
+    kind: Selector
+    selector:
+      kind: ApiInstance
+      labels:
+        secured-by-automated-policy: yes
+  policyRef:
+    name: http-basic-authentication-flex
+  config:
+    username: chris
+    password: admin
+  rules:
+   - methods: GET
+----
++
+In this example, the automated authentication policy is applied only to the `GET` method resource, as specified in `spec.rules`.
+
+. Save the file. The gateway automatically refreshes the configuration.
+
+Two APIs secured with the an automated resource-level authentication policy are now running behind Flex Gateway.
 
 == Publish an API Running Behind Flex Gateway in a Docker Container 
 
@@ -146,8 +179,6 @@ Before getting started, ensure that you have:
 
 * Flex Gateway installed and running in local mode. See xref:flex-install.adoc[Installing Flex Gateway] for more information about installing and running the gateway. 
 * Your upstream service URLs. The following example refers to fictional `products-api` and `users-api` services, but you can specify your own API name in `metadata.name` and your service details in `spec.services`.
-
-Additionally, refer to xref:policies-automated-overview.adoc[Automated Policies] for more information.
 
 === Publish an API
 
@@ -242,4 +273,34 @@ The `PolicyBinding` resource applies a basic authentication policy to both `ApiI
 [envoy][info] cds: added/updated 0 cluster(s), skipped 2 unmodified cluster(s)
 ----
 
-Two APIs secured with the an automated basic authentication policy are now running behind Flex Gateway.
+. Test the APIs with a tool such as `curl`, specifying the given authentication credentials. The automated authentication policy secures both APIs.
+
+. Apply resource-level granularity to the automated authentication policy by substituting the `PolicyBinding` resource with the following:
++
+----
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: security-protection
+spec:
+  targetRef:
+    kind: Selector
+    selector:
+      kind: ApiInstance
+      labels:
+        secured-by-automated-policy: yes
+  policyRef:
+    name: http-basic-authentication-flex
+  config:
+    username: chris
+    password: admin
+  rules:
+   - methods: GET
+----
++
+In this example, the automated authentication policy is applied only to the `GET` method resource, as specified in `spec.rules`.
+
+. Save the file. The gateway automatically refreshes the configuration.
+
+Two APIs secured with the an automated resource-level authentication policy are now running behind Flex Gateway.
