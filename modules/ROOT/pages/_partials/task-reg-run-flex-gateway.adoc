@@ -212,18 +212,44 @@ Environment=FLEX_NAME=tb_ubuntu_1
 
 After you have added the content to the `env.conf` file, save the file with ESC + `:wq`.
 // end::config-content[]
-// tag::restart-command[]
+// tag::linux-start-commands[]
 
-=== Restart Commands
+=== Start Commands
 
-Restart Flex Gateway with the following command: 
+Reload the `env.conf` configuration with the following command:
 
 [source]
 ----
-sudo systemctl restart flex-gateway
+sudo systemctl daemon-reload
 ----
 
-// end::restart-command[]
+Start Flex Gateway with the following command: 
+
+[source]
+----
+sudo systemctl start flex-gateway
+----
+
+Verify that the Flex Gateway service is running successfully:
+
+[source,ssh]
+----
+systemctl list-units flex-gateway*
+----
+
+You should see a list of services. Flex Gateway is successfully running if each service has a status of `active`.
+
+[source,ssh]
+----
+  UNIT                              LOAD   ACTIVE SUB     DESCRIPTION
+  flex-gateway-fluent-reloader.path loaded active waiting flex-gateway-fluent-reloader.path
+  flex-gateway-agent.service        loaded active running flex-gateway-agent.service
+  flex-gateway-envoy.service        loaded active running flex-gateway-envoy.service
+  flex-gateway-fluent.service       loaded active running flex-gateway-fluent.service
+  flex-gateway.service              loaded active exited  Application
+----
+
+// end::linux-start-commands[]
 // tag::gateway-connected[]
 Now if you check in Runtime Manager after clicking *Flex Gateway* in the left navigation, your gateway's status is connected. You may need to refresh the page.
 // end::gateway-connected[]
