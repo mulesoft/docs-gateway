@@ -105,7 +105,11 @@ spec:
     password: admin
 ----
 +
-The `PolicyBinding` resource applies a basic authentication policy to both `ApiInstance` resources. You accomplish this by specifying a customizable label in `spec.targetRef.selector.labels`. The specified label matches the label defined in the `ApiInstance` `metadata.labels` property, which associates the automated policy with that resource.
+Applying an automated policy to multiple API instances requires that you specify the `Selector` `kind` in your policy binding. The example `PolicyBinding` resource includes a `spec.targetRef.kind` value of `Selector`, and a `spec.targetRef.selector.kind` value of `ApiInstance`.
++
+The example resource also applies a basic authentication policy to two API instances. It defines a `secured-by-automated-policy` label (the label name is customizable) in `spec.targetRef.selector.labels`. This label matches the label defined in the `ApiInstance` `metadata.labels` property, which associates the automated policy with that resource.
++
+Alternatively, automated policies can be applied to all API instances by omitting the labels.
 
 . Save the file. The gateway automatically refreshes the configuration.
 +
@@ -245,7 +249,11 @@ spec:
     password: admin
 ----
 +
-The `PolicyBinding` resource applies a basic authentication policy to both `ApiInstance` resources. You accomplish this by specifying a customizable label in `spec.targetRef.selector.labels`. The specified label matches the label defined in the `ApiInstance` `metadata.labels` property, which binds the policy to that resource.
+Applying an automated policy to multiple API instances requires that you specify the `Selector` `kind` in your policy binding. The example `PolicyBinding` resource includes a `spec.targetRef.kind` value of `Selector`, and a `spec.targetRef.selector.kind` value of `ApiInstance`.
++
+The example resource also applies a basic authentication policy to two API instances. It defines a `secured-by-automated-policy` label (the label name is customizable) in `spec.targetRef.selector.labels`. This label matches the label defined in the `ApiInstance` `metadata.labels` property, which associates the automated policy with that resource.
++
+Alternatively, automated policies can be applied to all API instances by omitting the labels.
 
 . Save the file. The gateway automatically refreshes the configuration.
 
