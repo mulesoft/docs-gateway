@@ -4,14 +4,23 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Anypoint Flex Gateway supports two YAML configuration models: inline, and resource-based.
+Anypoint Flex Gateway running in Local Mode supports two configuration models:
 
-* The inline model is ideal for concise definitions. 
-* The resource-based model, common in Kubernetes, is ideal for granular definitions.
+* The resource-based model, common in Kubernetes, is ideal for granular definitions. Resources each contain one of the following values for configuration `kind`:
+** `ApiInstance`
+** `Service`
+** `PolicyBinding`
+** `Configuration`
+
+* The inline model is ideal for concise definitions, but is less versatile (for example, automated policies can only be applied in resource-based definitions.) 
++
+Inline definitions contain a single `ApiInstance` value for configuration `kind`, under which services and policies are both defined.
+
+image:gateway-configuration-models.png[width=65%]
 
 Refer to the <<examples,Examples>> section for examples of both.
 
-The following reference guide describes the available configuration resources.
+This reference guide describes the available resources that are applicable to either resource-based configurations or inline configurations.
 
 == API Instance
 
