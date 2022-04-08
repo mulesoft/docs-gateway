@@ -26,6 +26,53 @@ This policy works with both Apache log4j and Apache log4j2.
 
 You must have the Anypoint Platform Organization Administrators role or have permission to create or manage APIs.
 
+== How This Policy Works
+
+Logging a policy consists of the following sequence:
+
+. A request is sent to the API.
+. The message is logged if the following conditions are true:
+** The level and category of the log defined in the policy are included in the appropriate gateway configuration file.
+** Either the conditional field of the policy was not set, or was set and the condition was met.
+. The API response is returned. Message Logging Policy does not interfere with the execution of any policy nor its flow.
+. The message appears in the application log.
+
+== About the Logging Format
+
+A message log uses the following format:
+
+* Flex:
+`<date> [flex-gateway-envoy][<level>] wasm log <policy-name>.<namespace>.<api-name>.<namespace>.<scv>  main: <category>: <message>`
+
+* Mule:
+`<date> <thread name> <level> <category>: <message>`
+
+
+`date` is the message logging date and timestamp.
+
+`thread name` is the name of the event thread in which the message appears.
+
+`level` is the logging level or type of the message, such as INFO, WARN, ERROR, and DEBUG .
+
+`category` indicates a custom prefix to the log message. The default value is `logging.<policy name>`.
+
+`message`: displays the message to be logged, for example, `the payload`:
+
+
+== Logging States During Events
+
+Message logging occurs at specific intervals during a request flow:
+
+* Before logging configuration:
++
+image::apim-message-logging-policy-states-1.png[State before logging an API flow]
+* After logging configuration:
++
+image::apim-message-logging-policy-states-2.png[State after logging an API flow]
+* Error handler after API flow (Mule 4 only):
++
+image::apim-message-logging-policy-states-3.png[State after the error handler executes]
+
 == Configuring Policy Parameters
 
 === Local Mode
@@ -111,7 +158,7 @@ All transactions that occur before the API is called are to be logged.
 +
 All transactions that occur after the API is called are to be logged.
 
-Following this configuration, whenever customers access the Les Vetments catalogue or add or remove items from their carts, or when an item is added or removed from the Les Vetments catalog, logs are generated:
+Following this configuration, whenever customers access the Les Vetments catalogue or add or remove items from their carts, or when an item is added or removed from the Les Vetments catalog, logs are generated in Mule 4:
 
 [source,text,linenums]
 ----
@@ -193,7 +240,7 @@ To customize the log messages based on the event and the action performed, Les V
 `#['User ' ++ authentication.clientId ++ ' performed action ' ++ attributes.method ++ ' on ' ++ attributes.requestPath ++ ' with Payload: ' ++ payload]`
 
 
-==== Example of Message Logging Policy Configured in XML
+==== Example of Message Logging Policy Configured in XML for Mule 4
 
 The following flow shows an example logging policy:
 
@@ -231,51 +278,6 @@ The following flow shows an example logging policy:
 </http-policy:proxy>
 </mule>
 ----
-
-== How This Policy Works
-
-Logging a policy consists of the following sequence:
-
-. A request is sent to the API.
-. The message is logged if the following conditions are true:
-** The level and category of the log defined in the policy are included in the logger defined in the log4j2.xml configuration file.
-** Either the conditional field of the policy was not set, or was set and the condition was met.
-. The API response is returned. Message Logging Policy does not interfere with the execution of any policy nor its flow.
-. The message appears in the application log.
-
-== About the Logging Format
-
-A message log uses the following format: 
-
-`<date> <thread name> <level> <category>: <message>`
-
-`date` is the message logging date and timestamp.
-
-`thread name` is the name of the event thread in which the message appears.
-
-`level` is the logging level or type of the message, such as INFO, WARN, ERROR, and DEBUG (log4j level).
-
-For more information, see https://www.tutorialspoint.com/log4j/log4j_logging_levels.htm[log4j Logging Levels^].
-
-`category` typically indicates the package and class where the logging occurred. The default value is `org.mule.runtime.logging.policy-<policy id>`.
-
-`message`: displays the message to be logged, for example, `the payload`:
-
-`2018-01-25 18:57:29,907 [WrapperListener_start_runner] INFO org.mule: the payload`
-
-== Logging States During Events
-
-Message logging occurs at specific intervals during a request flow:
-
-* Before logging an API flow:
-+
-image::apim-message-logging-policy-states-1.png[State before logging an API flow]
-* After logging an API flow:
-+
-image::apim-message-logging-policy-states-2.png[State after logging an API flow]
-* Error handler after API flow:
-+
-image::apim-message-logging-policy-states-3.png[State after the error handler executes]
 
 == See Also
 
