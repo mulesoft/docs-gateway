@@ -37,7 +37,7 @@ In Local Mode, you apply the Rate Limiting policy to your API via declarative co
     rateLimits: <array> // REQUIRED
       - maximumRequests: <int> // REQUIRED
         timePeriodInMilliseconds: <int> // REQUIRED
-    keySelector: <string> // REQUIRED
+    keySelector: <string> // OPTIONAL
     exposeHeaders: <bool> // OPTIONAL, default: false
     clusterizable: <bool> // OPTIONAL, default: true
 ----
@@ -62,9 +62,10 @@ In Local Mode, you apply the Rate Limiting policy to your API via declarative co
 | The amount of time (a number) for which the quota is to be applied
 
 | `keySelector` 
-| Required
+| Optional
 | N/A
-| DataWeave or regular expression selector key string  
+| DataWeave expression selector key string that creates a group with independent counters for each value resolved by the expression.
+For example, `#[attributes.queryParams['identifier']]` creates an independent counter group for requests containing an `identifier` query parameter.
 
 | `exposeHeaders`
 | Optional
@@ -80,7 +81,7 @@ In Local Mode, you apply the Rate Limiting policy to your API via declarative co
 
 ==== Resource Configuration Example
 
-The following defines a rate limit of three requests every six seconds:
+The following example defines a rate limit of three requests every six seconds:
 
 ----
 - policyRef:
@@ -105,7 +106,7 @@ When you apply the Rate Limiting policy to your API from the UI, you can configu
 |===
 |Parameter | Description | Example
 |Identifier | The selector key using a DataWeave or regular String | `#[attributes.method]` creates one group for each available method in HTTP, for example, the policy rate-limits GET requests independently from POST requests.
-|# of Reqs | The quota available per window | A positive number
+|Number of Reqs | The quota available per window | A positive number
 |Time Period | The amount of time for which the quota is to be applied | A positive number
 |Time Unit | The time in milliseconds, seconds, minutes, or hours | Minutes
 |Clusterizable | The option that shares the quota defined for a group among all of the nodes of a Mule cluster | checked or unchecked
