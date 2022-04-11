@@ -106,20 +106,18 @@ mulesoft/flex-gateway        {gateway-ver-var}     1c1fbdbf819b   9 days ago    
 
 The process of installing Flex Gateway as a Kubernetes Ingress controller includes the following tasks:
 
-* Install dependencies
 * Prepare your environment
+* Run the registration command
 * Run the installation commands
 * Verify successful installation
 
-=== Before You Begin
+=== Prepare Your Environment
 
-Before getting started, ensure that you have installed the following:
+Before preparing and installing, ensure that you have installed:
 
 * A tool to create Kubernetes clusters. The following examples use https://k3d.io/v5.0.0/#installation[k3d^].
 * https://kubernetes.io/docs/tasks/tools/#kubectl[kubectl^], a tool used to interact with Kubernetes clusters.
 * https://helm.sh/docs/intro/install/[Helm^], a tool used to install Flex Gateway, monitoring tools, and applications. A minimum Helm version of 3.0.0 is required.
-
-=== Prepare and Install
 
 . Create a new Kubernetes cluster with a single server node: 
 +
@@ -160,6 +158,109 @@ The command returns the following success messages:
 INFO[0016] Successfully imported image(s)
 INFO[0016] Successfully imported 1 image(s) into 1 cluster(s)
 ----
+
+=== Run the Registration Command
+
+You can register Flex Gateway for Kubernetes in one of the following ways:
+
+* <<register-with-username-password,Register with a username and password>>.
+* <<register-with-connected-app,Register with a connected app>>.
+* <<register-with-token,Register with a token>>.
+
+[[register-with-username-password]]
+==== Register with a Username and Password
+
+Before registering Flex Gateway with a username and password, you must collect the following information from your Anypoint Platform instance:
+
+* The *Organization ID* for the organization where you want to run Flex Gateway
++
+See link:https://docs.mulesoft.com/access-management/organization#find-your-organization-id[Find your Organization ID] for more information on how to find your Organization ID.
+* The *Environment ID* for the environment where you want to run Flex Gateway
++
+See xref:api-manager::latest-overview-concept#what-api-manager-looks-like[What API Manager Looks Like]
+for more information on how to find your Environment ID.
+* The *Username* and *Password* of a user with _Admin_ permissions for Runtime Manager
+
+===== Substitute Collected Information
+
+To register a Flex Gateway with Anypoint Platform, you must enter the registration command with information collected from your Anypoint Platform instance.
+
+// Register with a username and password in a Docker container
+include::partial$task-reg-run-flex-gateway.adoc[tags=user-replace-content;environment-replace-content;replace-content]
+
+===== Registration Command
+
+After replacing the sample content, register your Flex Gateway by executing the following command. Specify if you want to run in Connected Mode by setting `--connected=true`, or in Local Mode by setting `--connected=false`.
+
+include::partial$task-reg-run-flex-gateway.adoc[tags=reg-command-1;docker-reg-command;user-reg-command;environment-reg-command;connected-reg-command;reg-command-2]
+
+With registration complete, you can proceed to <<install,Run the Installation Commands>>
+
+[[register-with-connected-app]]
+==== Register with a Connected App
+
+Before registering Flex Gateway with a connected app, you must first configure the app:
+
+* link:https://docs.mulesoft.com/service-mesh/1.2/obtain-connected-apps-credentials[Configure a Connected App]
+** Include the following scopes:
+*** Add Gateways
+*** Read Gateways
+*** Manage Servers
+*** Read Servers
+*** View Organization
+** Save the *Id* and *Secret* of the Connected app you configure.
+
+You must then collect the following information from your Anypoint Platform instance:
+
+* The *Organization ID* for the organization where you want to run Flex Gateway
++
+See link:https://docs.mulesoft.com/access-management/organization#find-your-organization-id[Find your Organization ID] for more information on how to find your Organization ID.
+* The *Environment ID* for the environment where you want to run Flex Gateway
++
+See xref:api-manager::latest-overview-concept#what-api-manager-looks-like[What API Manager Looks Like]
+for more information on how to find your Environment ID.
+
+===== Substitute Collected Information
+
+To register a Flex Gateway with Anypoint Platform, you must enter the registration command with information collected from your Anypoint Platform instance.
+
+// Register with a connected app in a Docker container
+include::partial$task-reg-run-flex-gateway.adoc[tags=app-replace-content;environment-replace-content;replace-content]
+
+===== Registration Command
+
+After replacing the sample content, register your Flex Gateway by executing the following command. Specify if you want to run in Connected Mode by setting `--connected=true`, or in Local Mode by setting `--connected=false`.
+
+include::partial$task-reg-run-flex-gateway.adoc[tags=reg-command-1;docker-reg-command;app-reg-command;environment-reg-command;connected-reg-command;reg-command-2]
+
+With registration complete, you can proceed to <<install,Run the Installation Commands>>
+
+[[register-with-token]]
+==== Register with a Token
+
+Before registering Flex Gateway with a username and password, you must collect the following information from your Anypoint Platform instance:
+
+* The registration *token* for the environment in Anypoint Platform where you want to run Flex Gateway
++
+Navigate to Runtime Manager, select *Flex Gateway* in the left navigation, and click *Add Gateway* to generate set of instructions that includes a command block with the registration token.
+
+===== Substitute Collected Information
+
+To register a Flex Gateway with Anypoint Platform, you must enter the registration command with information collected from your Anypoint Platform instance.
+
+// Register with a token in a Docker container
+include::partial$task-reg-run-flex-gateway.adoc[tags=token-replace-content;replace-content]
+
+===== Registration Command
+
+After replacing the sample content, register your Flex Gateway by executing the following command. Specify if you want to run in Connected Mode by setting `--connected=true`, or in Local Mode by setting `--connected=false`.
+
+include::partial$task-reg-run-flex-gateway.adoc[tags=reg-command-1;docker-reg-command;token-reg-command;connected-reg-command;reg-command-2]
+
+With registration complete, you can proceed to <<install,Run the Installation Commands>>
+
+[[install]]
+=== Run the Installation Commands
 
 . Add the Flex Gateway Helm repository: 
 +
