@@ -159,6 +159,7 @@ INFO[0016] Successfully imported image(s)
 INFO[0016] Successfully imported 1 image(s) into 1 cluster(s)
 ----
 
+[[run-registration-command]]
 === Run the Registration Command
 
 You can register Flex Gateway for Kubernetes in one of the following ways:
@@ -262,25 +263,38 @@ With registration complete, you can proceed to <<install,Run the Installation Co
 [[install]]
 === Run the Installation Commands
 
-. Add the Flex Gateway Helm repository: 
+. Create the namespace in which Flex Gateway will be installed: 
 +
 [source,kubernetes]
 ----
-helm repo add flex-gateway https://flex-packages.stgx.anypoint.mulesoft.com/helm
+kubectl create namespace gateway
 ----
 
-. Update the Helm repository using the following command:
+. You should see three new files where you executed the <<run-registration-command,registration command>>, similar to the following:
++
+`e1bd8346-51f2-4a4b-b421-7e0ed57e98d4.conf`
++
+`e1bd8346-51f2-4a4b-b421-7e0ed57e98d4.key`
++
+`e1bd8346-51f2-4a4b-b421-7e0ed57e98d4.pem`
++
+Create a Kubernetes secret from these files:
 +
 [source,kubernetes]
 ----
-helm repo up
+kubectl -n gateway create secret generic e1bd8346-51f2-4a4b-b421-7e0ed57e98d4 \
+--from-file=platform.conf=e1bd8346-51f2-4a4b-b421-7e0ed57e98d4.conf \
+--from-file=platform.key=e1bd8346-51f2-4a4b-b421-7e0ed57e98d4.key \
+--from-file=platform.pem=e1bd8346-51f2-4a4b-b421-7e0ed57e98d4.pem
 ----
 
-. Using Ingress, install the *flex-gateway* Helm chart into the *gateway* namespace:  
+. Using Ingress, install the *flex-gateway* Helm chart into the *gateway* namespace. Specify the UUID from the filenames mentioned in the previous step. 
 +
 [source,kubernetes]
 ----
-helm -n gateway upgrade -i --wait --create-namespace ingress flex-gateway/flex-gateway
+helm -n gateway upgrade -i --wait ingress flex-gateway/flex-gateway \
+--set registerSecretName=e1bd8346-51f2-4a4b-b421-7e0ed57e98d4 \
+--devel
 ----
 +
 The command returns something similar to the following: 
