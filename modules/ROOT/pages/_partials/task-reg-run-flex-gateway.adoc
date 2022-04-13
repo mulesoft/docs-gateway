@@ -170,6 +170,29 @@ docker run --rm \
 mulesoft/flex-gateway:{gateway-ver-var}
 ----
 // end::start-command[]
+// tag::start-command-local[]
+
+=== Start Command
+
+Before executing the start command below, update the placeholder text with the absolute path to the directory with the `.conf` file, and the UUID of the `.conf` file. Additionally, update the absolute path to the directory where your Flex Gateway configuration files will reside. 
+
+[source,ssh,subs=attributes+]
+----
+docker run --rm \
+-v <absolute-path-to-directory-with-conf-file>/:/etc/flex-gateway/rtm \
+-v <absolute-path-to-directory-with-gateway-configuration-files>/:/usr/local/share/mulesoft/flex-gateway/conf.d \
+-p 8081:8081 \
+-e FLEX_RTM_ARM_AGENT_CONFIG=/etc/flex-gateway/rtm/<UUID-of-your-file>.conf \
+mulesoft/flex-gateway:{gateway-ver-var}
+----
+
+The Docker logs should include this line:
+
+[source,ssh]
+----
+[flex-gateway-envoy][info] all dependencies initialized. starting workers
+----
+// end::start-command-local[]
 // tag::create-config-folder-file[]
 
 === Create Configuration Folder and File
