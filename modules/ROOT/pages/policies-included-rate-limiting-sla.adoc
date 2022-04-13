@@ -31,7 +31,7 @@ Additionally, you can configure the policy to run in a Mule runtime engine (Mule
 
 == Configuring Policy Parameters
 
-=== Local Mode
+=== Local Mode for Flex
 
 In Local Mode, you apply the Rate-Limiting SLA policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
 
@@ -40,7 +40,7 @@ In Local Mode, you apply the Rate-Limiting SLA policy to your API via declarativ
     name: rate-limiting-sla-based-flex
   config:
     clientIdExpression: <string> // OPTIONAL, default: "#[attributes.headers['client_id']]"
-    clientSecretExpression: <string> // REQUIRED
+    clientSecretExpression: <string> // Optional
     exposeHeaders: <bool> // OPTIONAL, default: true
     clusterizable: <bool> // OPTIONAL, default: false
 ----
@@ -57,10 +57,10 @@ In Local Mode, you apply the Rate-Limiting SLA policy to your API via declarativ
 This example looks for an HTTP header called `client_id`` and uses its value.
 
 | `clientSecretExpression` 
-| Required
-| N/A
+| Optional
+| If it's empty doesn't validate the secret associated to the API
 | A DataWeave expression that resolves the Client application's client secret for a contract of the API. Example:
-`#[attributes.headers['client_secret']]`
+`#[attributes.headers['client_secret']]`.
 
 | `exposeHeaders` 
 | Optional
@@ -74,7 +74,7 @@ This example looks for an HTTP header called `client_id`` and uses its value.
 
 |===
 
-==== Resource Configuration Example
+==== Flex Resource Configuration Example
 
 The following defines a rate limit of three requests every six seconds:
 

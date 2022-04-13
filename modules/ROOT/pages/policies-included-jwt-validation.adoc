@@ -30,7 +30,7 @@ The JWT Validation policy validates the signature of the token and asserts the v
 
 == Configuring Policy Parameters
 
-=== Local Mode
+=== Local Mod for Flex
 
 In Local Mode, you apply the JWT Validation policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
 
@@ -45,15 +45,104 @@ In Local Mode, you apply the JWT Validation policy to your API via declarative c
 
 |Parameter | Required or Optional | Default Value | Description
 
-| 
-| 
-| 
-| 
+| signingMethod
+| OPTIONAL
+| rsa
+| Key singing method. Possible values are: rsa, hmac, none
 
-|  
-| 
-| 
-| 
+| signingKeyLength
+| OPTIONAL
+| 256
+| Length of the key
+
+| textKey
+| OPTIONAL
+| "your-(256\|384\|512)-bit-secret/your-public-pem-certificate"
+|
+
+
+| jwtOrigin
+| OPTIONAL
+| httpBearerAuthenticationHeader
+|
+
+| jwtKeyOrigin
+| OPTIONAL
+| text
+|
+
+| jwksUrl
+| OPTIONAL
+| "http://your-jwks-service.example:80/base/path"
+|
+
+| jwksServiceTimeToLive
+| OPTIONAL
+| 60
+|
+
+| jwksServiceConnectionTimeout
+| OPTIONAL
+| 10000
+|
+
+| validateAudClaim
+| OPTIONAL
+| false
+|
+
+| mandatoryAudClaim
+| OPTIONAL
+| false
+|
+
+| mandatoryNbfClaim
+| OPTIONAL
+| false
+|
+
+| mandatoryExpClaim
+| OPTIONAL
+| false
+|
+
+| supportedAudiences
+| OPTIONAL
+| ""
+|
+
+| validateCustomClaim
+| OPTIONAL
+| false
+|
+
+| mandatoryCustomClaims
+| OPTIONAL
+| Empty array
+|
+
+| nonMandatoryCustomClaims
+| OPTIONAL
+| Empty array
+|
+
+| jwtExpression
+| OPTIONAL
+| "#[attributes.headers['jwt']]"
+|
+
+| skipClientIdValidation
+| OPTIONAL
+| false
+|
+
+| clientIdExpression
+| OPTIONAL
+| "#[vars.claimSet.client_id]"
+|
+
+
+
 
 |===
 
