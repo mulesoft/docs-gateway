@@ -26,11 +26,11 @@ Upon receiving a request, the API returns an HTTP code of 400, 401, 403, 404, 40
 
 * *Policy Violation*
 +
-An infraction of one policy governing the API occurs.
+An infraction of a specified policy governing the API occurs.
 
-API alerts are triggered only when states change, although the first occurrence of a state change might be undetected due to newly created alerts not having defined states.
+API alerts are triggered only when states change, although the first occurrence of a state change might be undetected due to newly created alerts not having defined states. In addition, alerts are only triggered if the alert conditions are met for the specified period of time. For example, an alert is configured to trigger when an API returns an HTTP code of 500 five or more times within a 10-minute period. If the API returns a code of 500 once within a 10-minute period, the alert is not triggered.
 
-When configuring an API alert, you select business group users to receive email notifications about the alert. Notifications include information about events that trigger alerts as specified by severity level. Users receive the following:
+When configuring an API alert, you can select business group users and users outside your organization to receive email notifications about the alert. Notifications include information about events that trigger alerts as specified by severity level. Users receive the following:
 
 * One email describes the alert:
 +
@@ -48,6 +48,8 @@ API Alerts are sent from `no-reply@mulesoft.com`. This cannot be customized.
 == Adding API Alerts
 
 To track and manage APIs, you can add one or more API alerts to your API instances. Add different <<types, types of alerts>> based on your requirements.
+
+Users can have six to ten active alerts. Pausing or deleting an alert allows you to create new alerts once you have reached the maximum number of alerts.
 
 The maximum number of alerts you can create per API instance depends on your plan. Organizations that have a Gold or Platinum subscription can create up to six alerts per API instance. Organizations that have a Titanium subscription can create up to ten alerts per API instance. Deleting alerts allows you to create new ones.
 
@@ -136,7 +138,7 @@ For the description of each variable, see <<alert-variables>>.
 * `${condition}`
 * `${organization}`
 * `${environment}`
-* `${alertLink}`
+* `${apiLink}`
 * `${dashboardLink}`
 * `${api}`
 * `${policy}`
@@ -177,9 +179,9 @@ Available values are `OK` or `Alerting`.
 
 [[enabling-alerts]]
 
-== Editing, Enabling, or Disabling API Alerts
+== Editing, Enabling, or Pausing API Alerts
 
-When creating an alert, you can enable or disable an alert by toggling the switch on the right:
+Alerts are enabled by default when they are created. This setting cannot be modified.
 
 * Enabling a disabled alert causes the alert to transition to *Pending* until it is time for evaluation.
 +
