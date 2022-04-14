@@ -3,9 +3,10 @@
 // tag::prerequisites-heading[]
 
 == Before You Begin
+
+Before registering Flex Gateway, you must complete the following tasks:
 // end::prerequisites-heading[]
-// tag::app-prerequisites[]
-Before registering Flex Gateway, you must complete the following tasks: 
+// tag::app-prerequisites[] 
 
 * link:https://docs.mulesoft.com/service-mesh/1.2/obtain-connected-apps-credentials[Configure a Connected App]
 ** Include the following scopes:
@@ -197,7 +198,9 @@ The Docker logs should include this line:
 
 === Create Configuration Folder and File
 
-Before you start the gateway, you must create a directory using the following command: 
+Before executing the start command, you must create a  configuration directory and file and edit the contents of that file.
+
+First create the configuration directory using the following command: 
 
 [source]
 ----
@@ -221,14 +224,14 @@ sudo vi env.conf
 Add the content below to the `env.conf` file, after replacing the following sample content with your own: 
 
 *  `<path-and-uuid-of-conf-file>.conf` = the path and UUID of the `.conf` file that was created when you registered the gateway
-* `<name-for-my-gateway>` = a name for your Linux instance
+* `<name-for-flex-replica>` = a name for your Flex Replica
 
 [source,subs=attributes+]
 ----
 [Service]
 
 Environment=FLEX_RTM_ARM_AGENT_CONFIG=<path-and-uuid-of-conf-file>.conf
-Environment=FLEX_NAME=<name-for-my-gateway>
+Environment=FLEX_NAME=<name-for-flex-replica>
 ----
 
 After you have added the content to the `env.conf` file, save the file with ESC + `:wq`.

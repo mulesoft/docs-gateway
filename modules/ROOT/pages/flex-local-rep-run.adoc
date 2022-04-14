@@ -1,0 +1,41 @@
+= Adding Flex Replicas in Local Mode
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+[cols="1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="flex-local-rep-run.adoc#"]
+|image:install-docker-logo.png[25%,25%,xref="flex-local-rep-run.adoc#"]
+
+|xref:flex-local-rep-run.adoc#[Add a Flex Replica as a Linux Service]
+|xref:flex-local-rep-run.adoc#[Add a Flex Replica in a Docker Container]
+|===
+
+== Before You Begin
+
+Before getting started, ensure you have completed the following tasks:
+
+* xref:flex-install.adoc[Install a Flex Gateway]
+* xref:flex-local-reg-run[Register and Run in Local Mode]
+
+== Add a Flex Replica as a Linux Service
+
+. Copy the three registration files to a directory on your
+Linux machine or VM. For example: 
+
+* `6eb79785-c2f0-4e06-b574-8a030a321d74.conf`
+* `6eb79785-c2f0-4e06-b574-8a030a321d74.key`
+* `6eb79785-c2f0-4e06-b574-8a030a321d74.pem`
+
+Determine the path where these files live by using the command, `pwd`, then save the path and the UUID,
+or name, of the `.conf` file for later use. For example, `/Users/jane/flex-gateway/6eb79785-c2f0-4e06-b574-8a030a321d74.conf`.
+
+include::partial$task-reg-run-flex-gateway.adoc[tags=create-config-folder-file,config-content,linux-start-commands]
+
+== Add a Flex Replica in a Docker Container
+
+To add a Flex Replica in a Docker Container you must run the Flex Gateway start command using the file path and name of the same `.conf` file created during registration. If you are running the container locally, you will also need to use a different port.
+
+include::partial$task-reg-run-flex-gateway.adoc[tags=start-command-local]
