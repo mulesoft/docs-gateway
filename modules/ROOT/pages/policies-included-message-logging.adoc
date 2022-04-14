@@ -36,9 +36,16 @@ In Local Mode, you apply the Message Logging policy to your API via declarative 
 - policyRef:
     name: message-logging-flex
   config:
-    loggingConfiguration: <array> 
+    loggingConfiguration: <array>
+      - itemName: <string> // REQUIRED
+        itemData: //REQUIRED
+          message: <dataweave> // REQUIRED
+          conditional: <dataweave> // OPTIONAL
+          category: <string> // OPTIONAL
+          level: <string> // REQUIRED
+          firstSection: <bool> // OPTIONAL
+          secondSection: <bool> // OPTIONAL
 ----
-
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
@@ -46,14 +53,34 @@ In Local Mode, you apply the Message Logging policy to your API via declarative 
 |Parameter | Required or Optional | Default Value | Description
 
 | `loggingConfiguration` 
-| 
-| 
-| 
+| Required
+| N/A
+| Array of configurations
 
-|  
-| 
-| 
-| 
+| `loggingConfiguration.itemName`
+| Required
+| N/A
+| Configuration name
+
+| `loggingConfiguration.itemData.message`
+| Required
+| N/A
+| DataWeave expression that resolves to the message log
+
+| `loggingConfiguration.itemData.conditional`
+| Optional
+| `true`
+| DataWeave expression that resolves to whether the message should be logged
+
+| `loggingConfiguration.itemData.category`
+| Optional
+| Default category
+| Log message prefix that indicates the package and class where the log is executed
+
+| `loggingConfiguration.itemData.category`
+| Optional
+| Default category
+| Log message prefix that indicates the package and class where the log is executed
 
 |===
 
@@ -64,6 +91,18 @@ In Local Mode, you apply the Message Logging policy to your API via declarative 
     name: message-logging-flex
   config:
     loggingConfiguration:
+      - itemName: "Config 1"
+        itemData:
+          - message: "#[payload]"
+            conditional: "#[attributes.queryParams['QueryParam']=='someValue']"
+            level: "ERROR"
+            firstSection: true
+      - itemName: "Config 2"
+        itemData:
+          - message: "#['literal string']"
+            level: "WARN"
+            seccondSection: true
+            firstSection: true
 ----
 
 === Connected Mode
@@ -76,9 +115,9 @@ image::apim-message-logging-policy-ui.png[Message Logging Policy UI]
 |===
 |Parameter |Description | Required?
 |Message |A DataWeave expression to use for extracting the message to be logged
-Note: If the payload is used as part of the message log, do not configure the Listener as nonrepeatable.|Required
+Note for Mule 4 Gateway: If the payload is used as part of the message log, do not configure the Listener as non-repeatable.|Required
 |Conditional |A DataWeave Boolean expression used to specify whether a message is to be logged |Optional
-|Category |A prefix in the log message that indicates the package and class where the log is executed. If no category is set, the default value is `org.mule.runtime.logging.policy-<policy id>`. |Optional
+|Category |A prefix in the log message that indicates the package and class where the log is executed. |Optional
 |Level |Defines the level of message to log: INFO, WARN, ERROR, or DEBUG |Required
 |Before Calling API |Set to cause your logging policy to log messages before the API endpoint is called, taking into account the order in which this policy is applied |Optional
 |After Calling API |Set to cause your logging policy to log messages after the API endpoint is called, taking into account the order in which this policy is applied |Optional

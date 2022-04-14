@@ -44,10 +44,10 @@ In Local Mode, you apply the Header Injection policy to your API via declarative
 - policyRef:
     name: header-injection-flex
   config:
-    inboundHeaders:
+    inboundHeaders: <array> // OPTIONAL, default: []
       - name: <string> // REQUIRED
         value: <string> // REQUIRED
-    outboundHeaders:
+    outboundHeaders: <array> // OPTIONAL, default: []
       - name: <string> // REQUIRED
         value: <string> // REQUIRED
 ----
@@ -58,8 +58,8 @@ In Local Mode, you apply the Header Injection policy to your API via declarative
 |Parameter | Required or Optional | Default Value | Description
 
 | `inboundHeaders` 
-| Required
-| N/A
+| Optional
+| Empty array
 | Map of header names or regular expressions to be injected at the beginning of the message processing, for example, `host, content.*` 
 
 | `inboundHeaders.name` 
@@ -73,8 +73,8 @@ In Local Mode, you apply the Header Injection policy to your API via declarative
 | A string 
 
 | `outboundHeaders` 
-| Required
-| N/A
+| Optional
+| Empty array
 | List of header names or regular expressions to be injected at the end of the message processing, for example, `content-type` 
 
 | `outboundHeaders.name` 
@@ -88,6 +88,11 @@ In Local Mode, you apply the Header Injection policy to your API via declarative
 | A string 
 
 |===
+
+[NOTE]
+====
+`inboundHeaders` and `outboundHeaders` can not both be empty.
+====
 
 ==== Resource Configuration Example
 

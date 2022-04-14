@@ -45,25 +45,110 @@ In Local Mode, you apply the JWT Validation policy to your API via declarative c
 
 |Parameter | Required or Optional | Default Value | Description
 
-| 
-| 
-| 
-| 
+| `signingMethod`
+| Optional
+| `rsa`
+| String containing the key signing method. Supported values: `rsa`, `hmac`, `none`
 
-|  
-| 
-| 
-| 
+| `signingKeyLength`
+| Optional
+| 256
+| Number indicating key length
+
+| `textKey`
+| Optional
+| `your-(256\|384\|512)-bit-secret/your-public-pem-certificate`
+|
+
+| `jwtOrigin`
+| Optional
+| `httpBearerAuthenticationHeader`
+|
+
+| `jwtKeyOrigin`
+| Optional
+| `text`
+|
+
+| `jwksUrl`
+| Optional
+| `http://your-jwks-service.example:80/base/path`
+|
+
+| `jwksServiceTimeToLive`
+| Optional
+| 60
+|
+
+| `jwksServiceConnectionTimeout`
+| Optional
+| 10000
+|
+
+| `validateAudClaim`
+| Optional
+| `false`
+|
+
+| `mandatoryAudClaim`
+| Optional
+| `false`
+|
+
+| `mandatoryNbfClaim`
+| Optional
+| `false`
+|
+
+| `mandatoryExpClaim`
+| Optional
+| `false`
+|
+
+| `supportedAudiences`
+| Optional
+| Empty string
+|
+
+| `validateCustomClaim`
+| Optional
+| `false`
+|
+
+| `mandatoryCustomClaims`
+| Optional
+| Empty array
+|
+
+| `nonMandatoryCustomClaims`
+| Optional
+| Empty array
+|
+
+| `jwtExpression`
+| Optional
+| `#[attributes.headers['jwt']]`
+|
+
+| `skipClientIdValidation`
+| Optional
+| `false`
+|
+
+| `clientIdExpression`
+| Optional
+| `#[vars.claimSet.client_id]`
+|
 
 |===
 
-==== Resource Configuration Example
+// ==== Resource Configuration Example
 
-----
-- policyRef:
-    name: jwt-validation-flex
-  config:
-----
+// ----
+// - policyRef:
+//     name: jwt-validation-flex
+//   config:
+// ----
 
 === Connected Mode
 
