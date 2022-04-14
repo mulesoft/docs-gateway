@@ -10,4 +10,42 @@ xref:flex-gateway-getting-started.adoc[Get Started with Flex Gateway]
 
 == Architecture
 
+The following diagram describes overall Flex Gateway architecture, for both Local and Connected modes. Connected Mode includes the Anypoint Platform component. Local Mode is mostly disconnected from Anypoint Platform.
+
 image::gateway-architecture-diagram.png[width=85%]
+
+Flex Gateway consists of:
+
+* <<controller-processes,Controller Processes>>
+* <<envoy,Envoy>>
+* <<fluentbit,Fluentbit>>
+
+[[controller-processes]]
+=== Flex Gateway Controller Processes
+
+Flex Gateway bundles and extends an Envoy distribution, adapting a configuration language into Envoy's configuration language. This is accomplished via the controller processes:
+
+* RCM Agent interacts with the Anypoint Platform control plane. For example, creating an API in API Manager sends a configuration to RCM Agent, which in turn configures the API for the Configuration Service.
+* Configuration Service configures Envoy via the xDS Envoy API.
+* Kubernetes Operator interacts with the Kubernetes API when running Flex Gateway in Kubernetes.
+* Object Store Service enables internal objects storage capabilities.
+
+[[envoy]]
+=== Envoy
+
+Flex Gateway includes policies that extend the bundled Envoy distribution via the Wasm API. This is accomplished with the following components:
+
+* Envoy Core provides the extensible Wasm filters.
+* Proxy-Wasm API bridges Envoy Core functionality and included Flex Gateway policies.
+* Envoy Tracing enables access logging.
+* Included Flex Gateway policies are custom Wasm components.
+
+[[fluentbit]]
+=== Fluentbit
+
+The Controller Processes and Envoy components send metrics and logs into Fluentbit, which is bundled inside of Flex Gateway. Flex Gateway uses Fluentbit to push logs and metrics to one or more different outputs. Examples of outputs include:
+
+* Local file
+* Anypoint Platform (for metering data)
+* Sumo Logic
+

@@ -30,14 +30,14 @@ In Local Mode, you apply the CORS policy to your API via declarative configurati
 - policyRef:
     name: cors-flex
   config:
-    originGroups: <array> // REQUIRED
+    originGroups: <array> // OPTIONAL, default: []
       - origins: 
         accessControlMaxAge:
         allowedMethods:
           methodName: 
           - isAllowed: 
-        headers:
-        exposedHeaders:
+        headers: <array> // OPTIONAL, default: []
+        exposedHeaders: <array> // OPTIONAL, default: []
     publicResource: <bool> // OPTIONAL, default: true
     supportCredentials: <bool> // OPTIONAL, default: false
 ----
@@ -47,44 +47,44 @@ In Local Mode, you apply the CORS policy to your API via declarative configurati
 |Parameter | Required or Optional | Default Value | Description
 
 | `originGroups` 
-| Required
-| N/A
-| 
+| Optional
+| Empty array
+| List containing groups of origins
 
 | `originGroups.origins` 
-| 
-| 
-| 
+| Optional
+| Empty array
+| List of origins to be included in the group. For example, http://www.the-origin-of-time.com
 
 | `originGroups.origins.accessControlMaxAge` 
-| 
-| 
-| 
+| Optional
+| 30
+| Duration in seconds that a preflight response can be cached without sending another preflight request
 
 | `originGroups.origins.allowedMethods` 
-| 
-| 
-| 
+| Optional
+| CONNECT, DELETE, GET, OPTIONS, PATCH, POST, PUT, TRACE
+| Allowed HTTP methods
 
 | `originGroups.origins.allowedMethods.methodName` 
-| 
-| 
-| 
+| Required
+| N/A
+| Method name
 
 | `originGroups.origins.allowedMethods.methodName.isAllowed` 
-| 
-| 
-| 
+| Required
+| N/A
+| A boolean indicating if a method is allowed
 
 | `originGroups.origins.headers` 
-| 
-| 
-| 
+| Optional
+| Empty array
+| HTTP headers used for preflight requests
 
 | `originGroups.origins.exposedHeaders` 
-| 
-| 
-| 
+| Optional
+| Empty array
+| Headers that browser JavaScript is allowed to access
 
 | `publicResource` 
 | Optional

@@ -44,7 +44,10 @@ In Local Mode, you apply the Client ID Enforcement policy to your API via declar
 ----
 - policyRef:
     name: client-id-enforcement-flex
-  config: 
+  config:
+    credentialsOriginHasHttpBasicAuthenticationHeader: // OPTIONAL <enum> default: customExpression
+    clientIdExpression: // OPTIONAL <dataweave expression> default: #[attributes.headers['client_id']]
+    clientSecretExpression: // REQUIRED <dataweave expression>
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -52,25 +55,30 @@ In Local Mode, you apply the Client ID Enforcement policy to your API via declar
 
 |Parameter | Required or Optional | Default Value | Description
 
-| 
-| 
-| 
-| 
+| credentialsOriginHasHttpBasicAuthenticationHeader
+| OPTIONAL
+| customExpression
+| Either `httpBasicAuthenticationHeader`` or `customExpression`` values are allowed. Indicates whether to extract header from the Basic Auth header or use a custom expression
 
-|  
-| 
-| 
-| 
+| clientIdExpression
+| OPTIONAL
+| #[attributes.headers['client_id']]
+| Custom expression that is used in case `credentialsOriginHasHttpBasicAuthenticationHeader` is set to `customExpression`
+
+| clientSecretExpression
+| REQUIRED
+| N/A
+| Expression to extract the client secret
 
 |===
 
-==== Resource Configuration Example
+// ==== Resource Configuration Example
 
-----
-- policyRef:
-    name: client-id-enforcement-flex
-  config:
-----
+// ----
+// - policyRef:
+//     name: client-id-enforcement-flex
+//   config:
+// ----
 
 === Connected Mode
 

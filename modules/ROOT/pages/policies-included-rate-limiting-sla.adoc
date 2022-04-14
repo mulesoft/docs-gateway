@@ -40,7 +40,7 @@ In Local Mode, you apply the Rate-Limiting SLA policy to your API via declarativ
     name: rate-limiting-sla-based-flex
   config:
     clientIdExpression: <string> // OPTIONAL, default: "#[attributes.headers['client_id']]"
-    clientSecretExpression: <string> // REQUIRED
+    clientSecretExpression: <string> // OPTIONAL
     exposeHeaders: <bool> // OPTIONAL, default: true
     clusterizable: <bool> // OPTIONAL, default: false
 ----
@@ -57,8 +57,8 @@ In Local Mode, you apply the Rate-Limiting SLA policy to your API via declarativ
 This example looks for an HTTP header called `client_id`` and uses its value.
 
 | `clientSecretExpression` 
-| Required
-| N/A
+| Optional
+| An empty value indicates that the API secret is not validated
 | A DataWeave expression that resolves the Client application's client secret for a contract of the API. Example:
 `#[attributes.headers['client_secret']]`
 
