@@ -106,35 +106,22 @@ mulesoft/flex-gateway        {gateway-ver-var}     1c1fbdbf819b   9 days ago    
 
 The process of installing Flex Gateway as a Kubernetes Ingress controller includes the following tasks:
 
-* Prepare your environment
-* Run the registration command
-* Run the installation commands
-* Verify successful installation
+* <<prepare-your-environment,Prepare your environment>>
+* <<run-registration-command,Run the registration command>>
+* <<install,Run the installation commands>>
+// * <<configure-helm-chart,Configure the Helm Chart>>
 
+These tasks apply to both connected and local modes.
+
+[[prepare-your-environment]]
 === Prepare Your Environment
 
 Before preparing and installing, ensure that you have installed:
 
-* A tool to create Kubernetes clusters. The following examples use https://k3d.io/v5.0.0/#installation[k3d^].
+* A tool to manage container images. The following example uses https://k3d.io/v5.0.0/#installation[k3d^].
+// * A tool to create Kubernetes clusters. The following examples use https://k3d.io/v5.0.0/#installation[k3d^].
 * https://kubernetes.io/docs/tasks/tools/#kubectl[kubectl^], a tool used to interact with Kubernetes clusters.
 * https://helm.sh/docs/intro/install/[Helm^], a tool used to install Flex Gateway, monitoring tools, and applications. A minimum Helm version of 3.0.0 is required.
-
-. Create a new Kubernetes cluster with a single server node: 
-+
-[source,kubernetes]
-----
-k3d cluster create flex-gateway-1 \
---k3s-arg "--disable=traefik@server:*" \
---port '80:80@server:*' \
---port '443:443@server:*'
-----
-+
-The command returns the following success message: 
-+
-[source,text]
-----
-INFO[0042] Cluster 'flex-gateway-1' created successfully!
-----
 
 . Download the Flex Gateway container image: 
 +
@@ -149,14 +136,6 @@ https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gatew
 [source,kubernetes,subs=attributes+]
 ----
 k3d image import -c flex-gateway-1 flex-gateway-{gateway-ver-var}.tar
-----
-+
-The command returns the following success messages: 
-+
-[source,text]
-----
-INFO[0016] Successfully imported image(s)
-INFO[0016] Successfully imported 1 image(s) into 1 cluster(s)
 ----
 
 [[run-registration-command]]
@@ -270,7 +249,7 @@ With registration complete, you can proceed to <<install,Run the Installation Co
 kubectl create namespace gateway
 ----
 
-. You should see three new files where you executed the <<run-registration-command,registration command>>, similar to the following:
+. You should see three new files where you executed the <<run-registration-command,registration command>>. They look similar to the following. Note your UUID, which is the filename minus the file type.
 +
 `e1bd8346-51f2-4a4b-b421-7e0ed57e98d4.conf`
 +
@@ -278,14 +257,14 @@ kubectl create namespace gateway
 +
 `e1bd8346-51f2-4a4b-b421-7e0ed57e98d4.pem`
 +
-Create a Kubernetes secret from these files:
+Create a Kubernetes secret from your files:
 +
 [source,kubernetes]
 ----
-kubectl -n gateway create secret generic e1bd8346-51f2-4a4b-b421-7e0ed57e98d4 \
---from-file=platform.conf=e1bd8346-51f2-4a4b-b421-7e0ed57e98d4.conf \
---from-file=platform.key=e1bd8346-51f2-4a4b-b421-7e0ed57e98d4.key \
---from-file=platform.pem=e1bd8346-51f2-4a4b-b421-7e0ed57e98d4.pem
+kubectl -n gateway create secret generic <UUID-of-your-file> \
+--from-file=platform.conf=<UUID-of-your-file>.conf \
+--from-file=platform.key=<UUID-of-your-file>.key \
+--from-file=platform.pem=<UUID-of-your-file>.pem
 ----
 
 . Add the Flex Gateway Helm repository:
@@ -302,12 +281,12 @@ helm repo add flex-gateway https://flex-packages.stgx.anypoint.mulesoft.com/helm
 helm repo up
 ----
 
-. Using Ingress, install the *flex-gateway* Helm chart into the *gateway* namespace. Specify the UUID from the filenames mentioned in the previous step. 
+. Using Ingress, install the *flex-gateway* Helm chart into the *gateway* namespace. Specify the UUID from the filenames created for creating the Kubernetes secret. 
 +
 [source,kubernetes]
 ----
 helm -n gateway upgrade -i --wait ingress flex-gateway/flex-gateway \
---set registerSecretName=e1bd8346-51f2-4a4b-b421-7e0ed57e98d4 \
+--set registerSecretName=<UUID-of-your-file> \
 --devel
 ----
 +
