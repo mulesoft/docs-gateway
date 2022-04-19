@@ -109,7 +109,6 @@ The process of installing Flex Gateway as a Kubernetes Ingress controller includ
 * <<prepare-your-environment,Prepare your environment>>
 * <<run-registration-command,Run the registration command>>
 * <<install,Run the installation commands>>
-// * <<configure-helm-chart,Configure the Helm Chart>>
 
 These tasks apply to both connected and local modes.
 
@@ -121,7 +120,9 @@ Before preparing and installing, ensure that you have installed:
 * A tool to manage container images. The following example uses https://k3d.io/v5.0.0/#installation[k3d^].
 // * A tool to create Kubernetes clusters. The following examples use https://k3d.io/v5.0.0/#installation[k3d^].
 * https://kubernetes.io/docs/tasks/tools/#kubectl[kubectl^], a tool used to interact with Kubernetes clusters.
-* https://helm.sh/docs/intro/install/[Helm^], a tool used to install Flex Gateway, monitoring tools, and applications. A minimum Helm version of 3.0.0 is required.
+* https://helm.sh/docs/intro/install/[Helm^], a tool used to install Flex Gateway, monitoring tools, and applications. A minimum Helm version of 3.0.0 is required. 
++
+Refer to the <<helm-chart-options,Helm Chart Configuration Options>> for information about customizing the chart.
 
 . Download the Flex Gateway container image: 
 +
@@ -317,6 +318,89 @@ NAME            ADDRESS
 ingress-http    http://0.0.0.0:80
 ingress-https   http://0.0.0.0:443
 ----
+
+[[helm-chart-options]]
+=== Helm Chart Configuration Options
+
+The following table describes the configurable options of the Flex Gateway Ingress Controller chart.
+
+[cols="a,a,a"]
+|===
+|Parameter |Default Value |Description
+
+|`image.name`
+|mulesoft/flex-gateway:{gateway-ver-var}
+|
+
+|`image.pullPolicy`
+|ifNotPresent
+|The pull policy for the Ingress Controller image
+
+|`image.pullSecretName`
+|""
+|The name of the secret that contains Docker registry credentials. The secret must exist in the same namespace as the helm release.
+
+|`replicaCount`
+|1
+|The number of Ingress Controller deployment replicas
+
+|`autoscaling.enabled`
+|false
+|
+
+|`autoscaling.minReplicas`
+|2
+|The minimum number of replicas that the autoscaler is allowed to create
+
+|`autoscaling.maxReplicas`
+|11
+|The maximum number of replicas that the autoscaler is allowed to create
+
+|`autoscaling.targetCPUUtilizationPercentage`
+|50
+|The average CPU usage percentage of all deployed pods
+
+|`autoscaling.targetMemoryUtilizationPercentage`
+|50
+|The average memory usage percentage of all deployed pods
+
+|`resources.limits.cpu`
+|500m
+|
+
+|`resources.limits.memory`
+|256mi
+|
+
+|`service.enabled`
+|true
+|
+
+|`service.type`
+|LoadBalancer
+|
+
+|`service.http.enabled`
+|true
+|
+
+|`service.http.port`
+|80
+|
+
+|`service.https.enabled`
+|true
+|
+
+|`service.http.port`
+|443
+|
+
+|`registerSecretName`
+|null
+|
+
+|===
 
 == See Also
 
