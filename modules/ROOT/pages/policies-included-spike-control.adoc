@@ -12,11 +12,12 @@ endif::[]
 >s|Summary      | Regulates API traffic
 >s|Category | Quality of Service
 >s| First Mule version available | v4.1.0
+>s| First Flex version available | v1.0.0
 .4+>.^s| Returned Status Codes |
 [%autowidth.spread,cols="a,a"]
 | 429 - The number of requests by HTTP APIs exceeded the configured limit. Request rejected after specified number of reattempts.
-| 400 - The number of requests by WSDL APIs that use SOAP v1.2 exceeded the configured limit. Request rejected after specified number of reattempts.
-| 500 - The number of requests by WSDL APIs that use SOAP v1.1 exceeded the configured limit. Request rejected after specified number of reattempts.
+| 400 - The number of requests by WSDL APIs that use SOAP v1.2 exceeded the configured limit. Request rejected after specified number of reattempts (Mule only).
+| 500 - The number of requests by WSDL APIs that use SOAP v1.1 exceeded the configured limit. Request rejected after specified number of reattempts (Mule only).
 |===
 
 == Summary
@@ -27,7 +28,7 @@ The Spike Control policy regulates your API request traffic by limiting the numb
 
 The Spike Control policy does not perform quota enforcement. The configuration parameters are restricted to protect the API and backend. Therefore, to ensure maximum performance, configure these parameters to the lowest possible value. 
 
-=== Local Mode
+=== Local Mode (Flex)
 
 In Local Mode, you apply the Spike Control policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
 
@@ -35,10 +36,10 @@ In Local Mode, you apply the Spike Control policy to your API via declarative co
 - policyRef:
     name: spike-control-flex
   config:
-    maximumRequests: <int> // OPTIONAL, default: 1 
-    timePeriodInMilliseconds: <int> // OPTIONAL, default: 1000
-    delayTimeInMillis: <int> // OPTIONAL, default: 1000
-    delayAttempts: <int> // OPTIONAL, default: 1
+    maximumRequests: <int> // REQUIRED, default: 1
+    timePeriodInMilliseconds: <int> // REQUIRED, default: 1000
+    delayTimeInMillis: <int> // REQUIRED, default: 1000
+    delayAttempts: <int> // REQUIRED, default: 1
     queuingLimit: <int> // OPTIONAL, default: 0
     exposeHeaders: <bool> // OPTIONAL, default: false
 ----
@@ -48,22 +49,22 @@ In Local Mode, you apply the Spike Control policy to your API via declarative co
 |Parameter | Required or Optional | Default Value | Description
 
 | `maximumRequests` 
-| Optional
+| Required
 | 1
 | Number of allowed requests in the time window
 
 | `timePeriodInMilliseconds` 
-| Optional
+| Required
 | 1000
 | Time window size
 
 | `delayTimeInMillis` 
-| Optional
+| Required
 | 1000
 | The amount of time for which each request is retained before retrying, in the event there is no quota remaining
 
 | `delayAttempts` 
-| Optional
+| Required
 | 1
 | The number of times a request is retried before it is rejected
 
@@ -75,7 +76,7 @@ In Local Mode, you apply the Spike Control policy to your API via declarative co
 | `exposeHeaders` 
 | Optional
 | `false`
-| Enabled only for internal APIs. Allows the policy to return information about the algorithm behavior in the X-RateLimit headers
+| Enable it only for internal APIs. Allows the policy to return information about the algorithm behavior in the X-RateLimit headers
 
 |===
 
@@ -105,7 +106,7 @@ When you apply the policy to your API from the UI, the following parameters are 
 | Delay Time in Milliseconds | The amount of time for which each request is retained before retrying (in milliseconds) in case there is no quota remaining | Yes
 | Delay Attempts | The number of times a request is retried before it is rejected | Yes
 | Queuing Limit | The number of requests that can be queued at the any given time | No
-| Expose Headers | Enabled only for internal APIs, allows the policy to return information about the algorithm behavior in the X-RateLimit headers | No
+| Expose Headers | Enable it only for internal APIs, allows the policy to return information about the algorithm behavior in the X-RateLimit headers | No
 | Method & Resource conditions | The option to add configurations to only a select few or all methods and resources of the API | Yes
 |===
 
@@ -113,7 +114,7 @@ To enforce request quotas, see the xref:policies-included-rate-limiting-sla.adoc
 
 == How This Policy Works
 
-The Spike Control policy uses the  _Sliding Window Algorithm_ to display only that portion of information that matches the requirements that you configure in the policy, for reducing spikes in traffic and protecting the Mule runtime engine (Mule) instance. The window self-adjusts its display size to accommodate results over time. 
+The Spike Control policy uses a  _Sliding Window Algorithm_ which reduces spikes in traffic and protects the gateway instance. The window self-adjusts its display size to accommodate results over time.
 
 If the current window has no remaining request quota, without closing the connection to the client, the Spike Control policy allows requests to be queued for processing later. For your policy to queue the requests, you must configure the policy parameters, as shown in the following example:
 
@@ -123,7 +124,7 @@ If the current window has no remaining request quota, without closing the connec
 * `Delay Attempts`: 1
 * `Queuing Limit`: 5
 
-Queuing a request requires retaining a thread and an HTTP connection. When you specify a `Queuing Limit` for the policy, the parameter protects the server from running out of resources and ensures that the API does not fail in case of an attack.
+Queuing a request requires retaining a thread and an HTTP connection. When you specify a `Queuing Limit` for the policy, the parameter protects the gateway from running out of resources and ensures that the API does not fail in case of an attack.
 
 == Request Timelines
 
@@ -136,7 +137,7 @@ image::spike-control.png[Accepted,Rejected, Queued Requests Timeline]
 The quota increases to 1 after one second (the `window size` value) passes from request #1.
 . Request #3 arrives. 
 +
-Because no quota is available, the request is queued for 499 milliseconds. Request #3 consumes the quota that was available after request #2.
+Because no quota is available, the request is queued for 499 milliseconds.
 . Request #4 arrives. 
 +
 Because there still is no quota available, the request is queued for 499 milliseconds.
@@ -146,7 +147,7 @@ Because there still is no quota available, the request is queued for 499 millise
 Quota returns to 0 until request #2 ages 1 second.
 . Request #4 delay concludes and it must be reprocessed.
 +
-Request #4 is rejected. Requests #2 and #3 have not aged enough because there are no more delays.
+Request #4 is rejected. Requests #2 and #3 have not aged a second yet and there is no quota available. Request #4 have no more delays.
 . Request #5 arrives.
 +
 Because request #2 has already aged more than a second, the request is accepted.
@@ -188,7 +189,7 @@ By default, the X-RateLimit headers are disabled in the response. You can enable
 
 *Can I configure Spike Control in a Mule cluster?*
 
-No, the policy protects a Mule instance. If you have a Mule cluster in your architecture, use the Spike Control policy to protect each instance separately.
+No, the policy protects a gateway instances. If you have a Mule cluster in your architecture, use the Spike Control policy to protect each instance separately.
 
 *When should I use Rate Limiting instead of Rate Limiting SLA or Spike Control?*
 
