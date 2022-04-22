@@ -24,6 +24,13 @@ The Rate Limiting policy enables you to control the incoming traffic to an API b
 
 When you configure the Rate Limiting policy, you can specify any number of pairs of quota (number of requests) and time window (time period) values. 
 
+[NOTE]
+====
+A Rate Limiting policy applied to a Flex Gateway API is scoped to replicas, not the gateway. 
+
+For example, 5 replicas have been created in a single Flex Gateway registration. You configure the Rate Limiting policy for 10 requests per minute. Each replica will have a limit of 10 requests per minute.
+====
+
 == Configuring Policy Parameters
 
 === Local Mode
@@ -39,7 +46,6 @@ In Local Mode, you apply the Rate Limiting policy to your API via declarative co
         timePeriodInMilliseconds: <int> // REQUIRED
     keySelector: <string> // OPTIONAL
     exposeHeaders: <bool> // OPTIONAL, default: false
-    clusterizable: <bool> // OPTIONAL, default: true
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -73,10 +79,12 @@ For example, `#[attributes.queryParams['identifier']]` creates an independent co
 | `false`
 | The boolean option that defines whether to expose the  <<response-header,x-ratelimit headers>> as part of the response 
 
-| `clusterizable` 
-| Optional
-| `true`
-| The boolean option that shares the quota defined for a group among all of the nodes of a Mule cluster 
+// | `clusterizable` 
+// | Optional
+// | `true`
+// | The boolean option that shares the quota defined for a group among all of the nodes of a Mule cluster 
+//
+// clusterizable: <bool> // OPTIONAL, default: true
 
 |===
 
@@ -110,7 +118,7 @@ When you apply the Rate Limiting policy to your API from the UI, you can configu
 |Number of Reqs | The quota available per window | A positive number
 |Time Period | The amount of time for which the quota is to be applied | A positive number
 |Time Unit | The time in milliseconds, seconds, minutes, or hours | Minutes
-|Clusterizable | The option that shares the quota defined for a group among all of the nodes of a Mule cluster | checked or unchecked
+|Clusterizable | The option that shares the quota defined for a group among all of the nodes of a Mule cluster. This option is not available for Flex Gateway. | checked or unchecked
 | Expose Headers| The option that defines whether to expose the  <<response-header,x-ratelimit headers>> as part of the response | checked or unchecked
 |===
 
