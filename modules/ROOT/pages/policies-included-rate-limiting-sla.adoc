@@ -29,6 +29,13 @@ Each request must be identified by a client ID and an optional client secret (de
 
 Additionally, you can configure the policy to run in a Mule runtime engine (Mule) cluster. In a clusterized policy configuration, the quota is shared among all nodes in the cluster. For more information about how these options work, see <<examples,Examples>>.
 
+[NOTE]
+====
+A Rate-Limiting SLA policy applied to a Flex Gateway API is scoped to replicas, not the gateway. 
+
+For example, five replicas have been created in a single Flex Gateway registration. You configure the Rate-Limiting SLA policy for ten requests per minute. This request limit is applied *per* replica, not the five replicas.
+====
+
 == Configuring Policy Parameters
 
 === Local Mode
@@ -42,7 +49,6 @@ In Local Mode, you apply the Rate-Limiting SLA policy to your API via declarativ
     clientIdExpression: <string> // OPTIONAL, default: "#[attributes.headers['client_id']]"
     clientSecretExpression: <string> // OPTIONAL
     exposeHeaders: <bool> // OPTIONAL, default: true
-    clusterizable: <bool> // OPTIONAL, default: false
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -67,10 +73,12 @@ This example looks for an HTTP header called `client_id`` and uses its value.
 | `true`
 | The boolean option that defines whether to expose the  <<response-header,x-ratelimit headers>> as part of the response
 
-| `clusterizable` 
-| Optional
-| `false`
-| The boolean option that shares the quota defined for a group among all of the nodes of a Mule cluster
+// | `clusterizable` 
+// | Optional
+// | `false`
+// | The boolean option that shares the quota defined for a group among all of the nodes of a Mule cluster
+
+// clusterizable: <bool> // OPTIONAL, default: false
 
 |===
 
@@ -102,7 +110,7 @@ This example looks for an HTTP header called ‘client_id’ and uses its value.
 |Client Secret Expression | A DataWeave expression that resolves the Client application’s client secret for a contract of the API | 
 This is an optional value.
 Example: `#[attributes.headers['client_secret']]`
-|Clusterizable | The option that shares the quota defined for a group among all of the nodes of a Mule cluster| This feature requires the Mule runtime running as part of a Mule cluster.
+|Clusterizable | The option that shares the quota defined for a group among all of the nodes of a Mule cluster| This feature requires the Mule runtime running as part of a Mule cluster. This option is not available for Flex Gateway.
 checked or unchecked
 | Expose Headers| Defines whether to expose the <<response-header,x-ratelimit headers,>> as part of the response | Checked or unchecked
 |===
