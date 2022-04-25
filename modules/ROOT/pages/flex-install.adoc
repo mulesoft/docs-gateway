@@ -1,0 +1,409 @@
+= Installing Flex Gateway
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+
+You can install Flex Gateway as a Linux service, in a Docker container, or as a Kubernetes Ingress controller.
+
+* If you want to run your Flex Gateway inside of a virtual machine (VM), install
+it as a Linux service. 
+* If you want try the product quickly or demonstrate some of the product's capabilities in a non-production
+scenario, install it in a Docker container.
+* If you want use Flex Gateway as a load balancer at the edge of a Kubernetes cluster,
+install it as a Kubernetes Ingress controller.
+
+[cols="1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="flex-install.adoc#install-as-a-linux-service"]
+|image:install-docker-logo.png[25%,25%,xref="flex-install.adoc#install-in-a-docker-container"]
+|image:install-kubernetes-logo.png[20%,20%,xref="flex-install.adoc#install-as-a-kubernetes-ingress-controller"]
+
+|xref:flex-install.adoc#install-as-a-linux-service[Install as a Linux Service]
+|xref:flex-install.adoc#install-in-a-docker-container[Install in a Docker Container]
+|xref:flex-install.adoc#install-as-a-kubernetes-ingress-controller[Install as a Kubernetes Ingress Controller]
+|===
+
+== Install as a Linux Service
+
+The process of installing Flex Gateway as a Linux service includes the following tasks:
+
+* Install dependencies
+* Run the installation commands
+* Verify successful installation
+
+=== Before You Begin
+
+Before getting started, ensure that you have installed the following: 
+
+* link:https://curl.se/[curl] 
+* link:https://www.vim.org/[vim]
+* link:https://gnupg.org/[gnupg2]
+* link:https://refspecs.linuxfoundation.org/LSB_3.0.0/LSB-PDA/LSB-PDA/lsbrelease.html[lsb-release]
+* link:https://man7.org/linux/man-pages/man1/systemctl.1.html[systemctl]
+
+=== Run Installation Commands
+
+To install Flex Gateway as a Linux service:
+
+. Execute the command block below which does the following actions:  
+* Retrieves the public package keys and adds the package repository
+* Updates the package list
+* Updates `apt-get`
+* Installs the Flex Gateway package
+
++
+[source,ssh]
+----
+curl -XGET https://flex-packages.stgx.anypoint.mulesoft.com/ubuntu/pubkey.gpg | sudo apt-key add -
+
+echo "deb [arch=amd64] https://flex-packages.stgx.anypoint.mulesoft.com/ubuntu $(lsb_release -cs) main" \
+| sudo tee /etc/apt/sources.list.d/mulesoft.list
+
+sudo apt update
+
+sudo apt install -y flex-gateway
+----
+
+== Install in a Docker Container 
+
+To install Flex Gateway in a Docker container: 
+
+. Download the Flex Gateway Docker image: 
++
+[source,ssh,subs=attributes+]
+----
+curl -o flex-gateway-{gateway-ver-var}.tar \
+https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gateway-{gateway-ver-var}.tar
+----
+
+. Move the container image into a directory of your choice.
+. Using the command-line interface, navigate that directory.
+. Install the container image: 
++
+[source,ssh,subs=attributes+]
+----
+docker load --input flex-gateway-{gateway-ver-var}.tar
+----
+
+. Verify the installation was successful: 
++
+[source,ssh]
+----
+docker images
+----
++
+You should see the Flex Gateway container image in the resulting list. 
++
+[source,text,subs=attributes+]
+----
+REPOSITORY                   TAG               IMAGE ID       CREATED        SIZE
+mulesoft/flex-gateway        {gateway-ver-var}     1c1fbdbf819b   9 days ago     334MB
+----
+
+== Install as a Kubernetes Ingress Controller
+
+The process of installing Flex Gateway as a Kubernetes Ingress controller includes the following tasks:
+
+* <<prepare-your-environment,Prepare your environment>>
+* <<run-registration-command,Run the registration command>>
+* <<install,Run the installation commands>>
+
+These tasks apply to both connected and local modes.
+
+[[prepare-your-environment]]
+=== Prepare Your Environment
+
+Before preparing and installing, ensure that you have installed:
+
+* A tool to manage container images. The following example uses https://k3d.io/v5.0.0/#installation[k3d^].
+// * A tool to create Kubernetes clusters. The following examples use https://k3d.io/v5.0.0/#installation[k3d^].
+* https://kubernetes.io/docs/tasks/tools/#kubectl[kubectl^], a tool used to interact with Kubernetes clusters.
+* https://helm.sh/docs/intro/install/[Helm^], a tool used to install Flex Gateway, monitoring tools, and applications. A minimum Helm version of 3.0.0 is required. 
++
+Refer to the <<helm-chart-options,Helm Chart Configuration Options>> for information about customizing the chart.
+
+. Download the Flex Gateway container image: 
++
+[source,ssh,subs=attributes+]
+----
+curl -o flex-gateway-{gateway-ver-var}.tar \
+https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gateway-{gateway-ver-var}.tar
+----
+
+. Import the Flex Gateway container image: 
++
+[source,kubernetes,subs=attributes+]
+----
+k3d image import -c flex-gateway-1 flex-gateway-{gateway-ver-var}.tar
+----
+
+[[run-registration-command]]
+=== Run the Registration Command
+
+You can register Flex Gateway for Kubernetes in one of the following ways:
+
+* <<register-with-username-password,Register with a username and password>>.
+* <<register-with-connected-app,Register with a connected app>>.
+* <<register-with-token,Register with a token>>.
+
+[[register-with-username-password]]
+==== Register with a Username and Password
+
+Before registering Flex Gateway with a username and password, you must collect the following information from your Anypoint Platform instance:
+
+* The *Organization ID* for the organization where you want to run Flex Gateway
++
+See link:https://docs.mulesoft.com/access-management/organization#find-your-organization-id[Find your Organization ID] for more information on how to find your Organization ID.
+* The *Environment ID* for the environment where you want to run Flex Gateway
++
+See xref:api-manager::latest-overview-concept#what-api-manager-looks-like[What API Manager Looks Like]
+for more information on how to find your Environment ID.
+* The *Username* and *Password* of a user with _Admin_ permissions for Runtime Manager
+
+===== Substitute Collected Information
+
+To register a Flex Gateway with Anypoint Platform, you must enter the registration command with information collected from your Anypoint Platform instance.
+
+// Register with a username and password in a Docker container
+include::partial$task-reg-run-flex-gateway.adoc[tags=user-replace-content;environment-replace-content;replace-content]
+
+===== Registration Command
+
+After replacing the sample content, register your Flex Gateway by executing the following command. Specify if you want to run in Connected Mode by setting `--connected=true`, or in Local Mode by setting `--connected=false`.
+
+include::partial$task-reg-run-flex-gateway.adoc[tags=reg-command-1;docker-reg-command;user-reg-command;environment-reg-command;connected-reg-command;reg-command-2]
+
+With registration complete, you can proceed to <<install,Run the Installation Commands>>
+
+[[register-with-connected-app]]
+==== Register with a Connected App
+
+Before registering Flex Gateway with a connected app, you must first configure the app:
+
+* link:https://docs.mulesoft.com/service-mesh/1.2/obtain-connected-apps-credentials[Configure a Connected App]
+** Include the following scopes:
+*** Add Gateways
+*** Read Gateways
+*** Manage Servers
+*** Read Servers
+*** View Organization
+** Save the *Id* and *Secret* of the Connected app you configure.
+
+You must then collect the following information from your Anypoint Platform instance:
+
+* The *Organization ID* for the organization where you want to run Flex Gateway
++
+See link:https://docs.mulesoft.com/access-management/organization#find-your-organization-id[Find your Organization ID] for more information on how to find your Organization ID.
+* The *Environment ID* for the environment where you want to run Flex Gateway
++
+See xref:api-manager::latest-overview-concept#what-api-manager-looks-like[What API Manager Looks Like]
+for more information on how to find your Environment ID.
+
+===== Substitute Collected Information
+
+To register a Flex Gateway with Anypoint Platform, you must enter the registration command with information collected from your Anypoint Platform instance.
+
+// Register with a connected app in a Docker container
+include::partial$task-reg-run-flex-gateway.adoc[tags=app-replace-content;environment-replace-content;replace-content]
+
+===== Registration Command
+
+After replacing the sample content, register your Flex Gateway by executing the following command. Specify if you want to run in Connected Mode by setting `--connected=true`, or in Local Mode by setting `--connected=false`.
+
+include::partial$task-reg-run-flex-gateway.adoc[tags=reg-command-1;docker-reg-command;app-reg-command;environment-reg-command;connected-reg-command;reg-command-2]
+
+With registration complete, you can proceed to <<install,Run the Installation Commands>>
+
+[[register-with-token]]
+==== Register with a Token
+
+Before registering Flex Gateway with a username and password, you must collect the following information from your Anypoint Platform instance:
+
+* The registration *token* for the environment in Anypoint Platform where you want to run Flex Gateway
++
+Navigate to Runtime Manager, select *Flex Gateway* in the left navigation, and click *Add Gateway* to generate set of instructions that includes a command block with the registration token.
+
+===== Substitute Collected Information
+
+To register a Flex Gateway with Anypoint Platform, you must enter the registration command with information collected from your Anypoint Platform instance.
+
+// Register with a token in a Docker container
+include::partial$task-reg-run-flex-gateway.adoc[tags=token-replace-content;replace-content]
+
+===== Registration Command
+
+After replacing the sample content, register your Flex Gateway by executing the following command. Specify if you want to run in Connected Mode by setting `--connected=true`, or in Local Mode by setting `--connected=false`.
+
+include::partial$task-reg-run-flex-gateway.adoc[tags=reg-command-1;docker-reg-command;token-reg-command;connected-reg-command;reg-command-2]
+
+With registration complete, you can proceed to <<install,Run the Installation Commands>>
+
+[[install]]
+=== Run the Installation Commands
+
+. Create the namespace in which Flex Gateway will be installed: 
++
+[source,kubernetes]
+----
+kubectl create namespace gateway
+----
+
+. You should see three new files where you executed the <<run-registration-command,registration command>>. They look similar to the following. Note your UUID, which is the filename minus the file type.
++
+`e1bd8346-51f2-4a4b-b421-7e0ed57e98d4.conf`
++
+`e1bd8346-51f2-4a4b-b421-7e0ed57e98d4.key`
++
+`e1bd8346-51f2-4a4b-b421-7e0ed57e98d4.pem`
++
+Create a Kubernetes secret from your files:
++
+[source,kubernetes]
+----
+kubectl -n gateway create secret generic <UUID-of-your-file> \
+--from-file=platform.conf=<UUID-of-your-file>.conf \
+--from-file=platform.key=<UUID-of-your-file>.key \
+--from-file=platform.pem=<UUID-of-your-file>.pem
+----
+
+. Add the Flex Gateway Helm repository:
++
+[source,kubernetes]
+----
+helm repo add flex-gateway https://flex-packages.stgx.anypoint.mulesoft.com/helm
+----
+
+. Update the Helm repository using the following command:
++
+[source,kubernetes]
+----
+helm repo up
+----
+
+. Using Ingress, install the *flex-gateway* Helm chart into the *gateway* namespace. Specify the UUID from the filenames created for creating the Kubernetes secret. 
++
+[source,kubernetes]
+----
+helm -n gateway upgrade -i --wait ingress flex-gateway/flex-gateway \
+--set registerSecretName=<UUID-of-your-file> \
+--devel
+----
++
+The command returns something similar to the following: 
++
+[source,text]
+----
+NAME: ingress
+LAST DEPLOYED: Tue Oct 19 13:08:07 2021
+NAMESPACE: gateway
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+----
+
+. Verify *apiinstances* was created during installation: 
++
+[source,text]
+----
+kubectl -n gateway get apiinstances
+---- 
++
+The command returns output similar to the following: 
++
+[source,text]
+----
+NAME            ADDRESS
+ingress-http    http://0.0.0.0:80
+ingress-https   http://0.0.0.0:443
+----
+
+[[helm-chart-options]]
+=== Helm Chart Configuration Options
+
+The following table describes the configurable options of the Flex Gateway Ingress Controller chart.
+
+[cols="a,a,a"]
+|===
+|Parameter |Default Value |Description
+
+|`image.pullPolicy`
+|ifNotPresent
+|The https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy[pull policy^] for the Ingress Controller image.
+
+Possible values: `ifNotPresent`, `Always`, `Never`
+
+|`image.pullSecretName`
+|""
+|The name of the secret that contains Docker registry credentials. The secret must exist in the same namespace as the helm release.
+
+|`replicaCount`
+|1
+|The number of Ingress Controller deployment replicas
+
+|`autoscaling.enabled`
+|false
+|Boolean indicating if the Horizontal Pod Autoscaler (HPA) is enabled
+
+|`autoscaling.minReplicas`
+|2
+|The minimum number of replicas that the scaler is allowed to create
+
+|`autoscaling.maxReplicas`
+|11
+|The maximum number of replicas that the scaler is allowed to create
+
+|`autoscaling.targetCPUUtilizationPercentage`
+|50
+|The average CPU usage percentage of all deployed pods
+
+|`autoscaling.targetMemoryUtilizationPercentage`
+|50
+|The average memory usage percentage of all deployed pods
+
+|`resources.limits.cpu`
+|500m
+|CPU resource limits in millicores
+
+|`resources.limits.memory`
+|256mi
+|Memory resource limits
+
+|`service.enabled`
+|true
+|Boolean indicating if a service to expose Ingress Controller pods is created
+
+|`service.type`
+|LoadBalancer
+|The https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types[type^] of Ingress Controller service to create.
+
+Possible values: `ClusterIP`, `NodePort`, `LoadBalancer`, `ExternalName`
+
+|`service.http.enabled`
+|true
+|Boolean indicating if the HTTP port should be enabled for the Ingress Controller service
+
+|`service.http.port`
+|80
+|The Ingress Controller service HTTP port
+
+|`service.https.enabled`
+|true
+|Boolean indicating if the HTTPS port should be enabled for the Ingress Controller service
+
+|`service.http.port`
+|443
+|The Ingress Controller service HTTPS port
+
+|`registerSecretName`
+|null
+|The name of the secret containing the registration files
+
+|===
+
+== See Also
+
+* xref:flex-gateway-getting-started.adoc[Get Started with Flex Gateway]
+* xref:flex-conn-reg-run.adoc[Register and Run in Connected Mode]
+* xref:flex-local-reg-run.adoc[Register and Run in Local Mode]

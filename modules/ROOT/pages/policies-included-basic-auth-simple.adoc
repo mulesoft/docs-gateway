@@ -1,0 +1,79 @@
+= Basic Authentication: Simple Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: basic authentication, api gateway, flex gateway, gateway, policy
+:page-aliases: api-manager::basic-authentication-simple-concept.adoc
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Basic Authentication: Simple
+>s|Summary      | Allows access based on the basic authorization mechanism, with a single user-password
+>s|Category | Security
+>s| First Mule version available | 4.0.0
+.1+>.^s| Returned Status Codes
+|400 - Unauthorized or invalid client application credentials in WSDL API using SOAP 1.2
+| | 401 - Unauthorized or invalid client application credentials in HTTP or RAML APIs
+| | 500 - Unauthorized or invalid client application credentials in WSDL API using SOAP 1.1
+|===
+
+== Summary
+
+The Basic Authentication: Simple policy protects an API by forcing applications to provide a username and password when making requests.
+
+The policy follows https://tools.ietf.org/html/rfc7617[basic HTTP authentication standards^].
+
+When an error is encountered, the policy returns an "WWW-Authenticate" HTTP header field.
+
+== Configuring Policy Parameters
+
+=== Local Mode
+
+In Local Mode, you apply the Basic Authentication: Simple policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
+
+----
+- policyRef:
+    name: http-basic-authentication-flex
+  config:
+    username: <string> // REQUIRED
+    password: <string> // REQUIRED
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `username` 
+| Required
+| N/A
+| A base-64 encoded string 
+
+| `password` 
+| Required
+| N/A
+| A base-64 encoded string
+
+|===
+
+==== Resource Configuration Example
+
+----
+- policyRef:
+    name: http-basic-authentication-flex
+  config:
+    username: chris
+    password: admin
+----
+
+=== Connected Mode 
+
+When you apply the Basic Authentication: Simple policy to an API, a request to that API must contain the following header:
+
+----
+Authorization: Basic <username:password>
+----
+
+The `username:password` value must be a base64-encoded string. For example on a Mac OS X or Linux system, the username and password requirement is implemented as:
+
+`echo -n '<Client Id>:<Client Secret>' | base64`
