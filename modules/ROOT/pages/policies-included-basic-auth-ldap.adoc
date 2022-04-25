@@ -16,50 +16,25 @@ endif::[]
 |401 - Unauthorized or invalid client application credentials
 |===
 
+== Summary
+
 The Lightweight Directory Access Protocol (LDAP) authentication policy specifies how to restrict access to an API using LDAP authentication mechanism. This policy is available only in Mule 4 or later. 
 
 When an error is encountered, the Basic Authentication - LDAP policy returns an "WWW-Authenticate" HTTP header field using the format:`WWW-Authenticate: Basic realm="mule-realm"`.
 
 LDAP is an inverted tree, and each leaf has a username-password pair and associated metadata. Each level is like a tree branch. For more information about LDAP, see https://en.wikipedia.org/wiki/Lightweight_Directory_Access_Protocol[About LDAP^].
 
-== How This Policy Works
-
-The Basic Authentication - LDAP policy intercepts the request to the protected resource and looks for the `Authorization` HTTP header. 
-
-The policy then extracts the username and password encoded in Base64 and then requests the configured LDAP instance to determine if the user credentials are correct in the provided LDAP context. 
-
-You can configure the Basic Authentication: LDAP policy to credentials using the following methods:
-
-* Search for the valid username and password pair in the level specified.
-* Search for the valid username and password pair in the level specified, including lower levels. This search option is comprehensive, however, can result in slow performance.
-
-=== Search Scope
-
-Your search scope options differ depending on your policy version. The search scope options are one level for LDAP 1.0.0 and two levels (subtree) for LDAP 1.1.0.
-
-You can choose between `one level` and `subtree` search scopes by using the `LDAP Search in subtree` option.
-
-The `LDAP search base` is the starting point for the search in the directory. 
-
-=== One-Level Search Scope
-
-With this option, the filter affects only the objects immediately subordinate to the `LDAP search base`, and not the `LDAP search base` itself. 
-
-In the following  example, the first level has four entries: two users and two groups. These are the only entries that are a part of any search:
-
-image::search-scope.png[]
-
-If you set the search filter to `(uid={0})`, only `Jane` and `Paul` are found. The group entries are not considered.
-
-==== Subtree Search Scope
-
-With this option, the Basic Authentication - LDAP policy examines the subtree below the `LDAP search base` and also includes the `LDAP search base` level. Notice that performance is affected by this behavior.
-
-In the previous example, the analyzed area covers the entire organization. The group and user entries are considered at any level of the organization:
-
-image::search-scope2.png[]
-
 == Configuring Policy Parameters
+
+=== Flex Gateway Local Mode
+
+The Basic Authentication: LDAP policy is not supported in Flex Gateway Local Mode.
+
+=== Flex Gateway Connected Mode
+
+The Basic Authentication: LDAP policy is not supported in Flex Gateway Connected Mode.
+
+=== Mule Gateway
 
 When you apply the Basic Authentication - LDAP policy to your API from the UI, you can configure the following parameters to connect to your LDAP or Active Directory:
 
@@ -139,6 +114,43 @@ You can configure OpenLDAP for your LDAP authentication by providing the followi
 |===
 
 The search filter string in the example is specific to OpenLDAP applications.
+
+== How This Policy Works
+
+The Basic Authentication - LDAP policy intercepts the request to the protected resource and looks for the `Authorization` HTTP header. 
+
+The policy then extracts the username and password encoded in Base64 and then requests the configured LDAP instance to determine if the user credentials are correct in the provided LDAP context. 
+
+You can configure the Basic Authentication: LDAP policy to credentials using the following methods:
+
+* Search for the valid username and password pair in the level specified.
+* Search for the valid username and password pair in the level specified, including lower levels. This search option is comprehensive, however, can result in slow performance.
+
+=== Search Scope
+
+Your search scope options differ depending on your policy version. The search scope options are one level for LDAP 1.0.0 and two levels (subtree) for LDAP 1.1.0.
+
+You can choose between `one level` and `subtree` search scopes by using the `LDAP Search in subtree` option.
+
+The `LDAP search base` is the starting point for the search in the directory. 
+
+=== One-Level Search Scope
+
+With this option, the filter affects only the objects immediately subordinate to the `LDAP search base`, and not the `LDAP search base` itself. 
+
+In the following  example, the first level has four entries: two users and two groups. These are the only entries that are a part of any search:
+
+image::search-scope.png[]
+
+If you set the search filter to `(uid={0})`, only `Jane` and `Paul` are found. The group entries are not considered.
+
+==== Subtree Search Scope
+
+With this option, the Basic Authentication - LDAP policy examines the subtree below the `LDAP search base` and also includes the `LDAP search base` level. Notice that performance is affected by this behavior.
+
+In the previous example, the analyzed area covers the entire organization. The group and user entries are considered at any level of the organization:
+
+image::search-scope2.png[]
 
 
 == Creating Requests for APIs with Basic Authentication Policies Applied
