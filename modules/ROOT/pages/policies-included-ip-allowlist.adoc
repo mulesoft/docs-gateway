@@ -12,6 +12,7 @@ endif::[]
 >s|Summary      | Allows a list or range of specified IP addresses to request access   
 >s|Category | Security
 >s|First Mule version available | v4.1.0
+>s|First Flex version available | v1.0.0
 .1+>.^s| Returned Status Codes
 | 403 - IP is rejected
 |===
@@ -20,7 +21,7 @@ endif::[]
 
 The IP Allowlist policy allows a list or a range of specified IP addresses access to a protected resource when a match is found between a source IP (specified when configuring the policy) and a list of individual IPs or range of IPs.
 
-Based on your business need, specify either a DataWeave 2.0 expression for Mule runtime engine 4 (Mule) or a MEL expression for Mule 3. These expressions define the source IP used by the policy to determine whether the IP belongs to the policy's restricted IP list.
+Based on your business need, specify either a DataWeave 2.0 expression for Mule 4 and Flex gateways or a MEL expression for Mule 3. These expressions define the source IP used by the policy to determine whether the IP belongs to the policy's restricted IP list.
 
 == Configuring Policy Parameters
 
@@ -49,7 +50,7 @@ In Local Mode, you apply the IP Allowlist policy to your API via declarative con
 | `ipExpression` 
 | Optional
 | `#[attributes.headers['x-forwarded-for']]`
-| The DataWeave 2.0 or MEL expression to be used for extracting the IP address from this API request
+| The DataWeave 2.0 expression to be used for extracting the IP address from this API request
 
 |===
 
@@ -104,11 +105,6 @@ For example, if you want to allowlist `192.168.2.3`(private IP) and the address 
 
 Typically, applications use the `X-Forwarded-For` header to identify the origin IP addresses of a request that was redirected to your endpoint.
 
-You can use a DataWeave 2.0 or MEL expression in the policy to instruct the service to look for the IP address in the `x-Forwarded-For` header. 
+You can use a DataWeave 2.0 or MEL (Mule 3 only) expression in the policy to instruct the service to look for the IP address in the `x-Forwarded-For` header.
 
-When you insert the IP address in the IP expression field of the policy parameters, Anypoint Platform is instructed to look for the starting IP address in the concatenated values of the `x-Forwarded-For` header of the request:
-
-[source,mel]
-----
-#[attributes.headers['x-forwarded-for']]
-----
+When you insert the IP address in the IP expression field of the policy parameters, Anypoint Platform is instructed to look for the starting IP address in the concatenated values of the `x-Forwarded-For` header of the request.
