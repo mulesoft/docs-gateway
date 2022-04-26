@@ -3,7 +3,8 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :page-aliases: api-manager::change-custom-policy-mule3.adoc, api-manager::policies-custom-landing-page.adoc, api-manager::policies-custom-overview.adoc
-Policies enforce regulations to help manage security, control traffic, and improve API adoption. For example, a policy can control authentication, access, and service level agreement (SLA). You can create custom policies based on your specific business requirements. Develop custom policies and apply them to APIs to extend existing functionality or define new ones.
+
+Policies enforce regulations to help manage security, control traffic, and improve API adoption. For example, a policy can control authentication, access, and service level agreements (SLAs). You can create custom policies based on your specific business requirements and apply them to APIs to extend existing functionality or define new ones.
 
 The workflow to create custom policies for Mule 4 and earlier in Anypoint API Manager has not changed. Continue to use the process of developing the policy, packaging the custom policy, uploading it to Exchange, and applying the policy to an API through Anypoint API Manager as described in the Anypoint API Manager documentation. 
 
@@ -11,10 +12,10 @@ The workflow for creating custom policies for Anypoint Flex Gateway is done in E
 
 The following steps are the high-level workflow for publishing custom policies for Anypoint Flex Gateway and Mule 4:
 
-. Create policy definition files
-. Publish policy definition asset to Exchange
-. Create implementation files
-. Add policy implementation to the published policy definition
+. Create policy definition files.
+. Publish policy definition asset to Exchange.
+. Create implementation files.
+. Add policy implementation to the published policy definition.
 
 == Before You Begin
 
@@ -24,9 +25,13 @@ Before you can publish a custom policy for Flex Gateway or Mule 4, ensure you ha
 [[create-policy-definition-files]]
 == Create Policy Definition Files
 
-Policy definition files must be created before you can upload the policy implementation. The required files are JSON and YAML. The JSON file specifies the interface for the policy using JSON schema language. The JSON file is used by API Manager to render the UI. The YAML file provides metadata regarding the policy for example, the policy category, interface scope, required characteristics, and RAML/OAS snippets.
+A JSON and a YAML policy definition file must be created before you can upload the policy implementation. The required files are JSON and YAML. 
 
-Copy the custom policy definition examples or create the files on you local system.
+The JSON file specifies the interface for the policy using JSON schema language. The JSON file is used by API Manager to render the UI. 
+
+The YAML file provides metadata regarding the policy for example, the policy category, interface scope, required characteristics, and RAML/OAS snippets.
+
+Copy the custom policy definition examples or create the files on your local system.
 
 === Create the JSON Schema File
 
@@ -36,7 +41,7 @@ The JSON file must include the following fields:
 
 * Top-level @context
 +
-References the vocabulary used for the extra type annotations. The aliases used for namespacing the vocabulary are a optional, but common names can be `security` or `config`.
+References the vocabulary used for the extra type annotations. The aliases used to namespace the vocabulary are a optional. Commonly-used names can be `security` or `config`.
 +
 Values for the security and config aliases are:
 
@@ -125,14 +130,14 @@ The file must have these fields configured:
 Header must be #%Policy Definition 0.1.
 * Name
 +
-User friendly name that is used for displaying the policy name in API Manager UI. Must be a string value.
+User-friendly name used for to display the policy name in API Manager UI. Must be a string value.
 * Description
 +
 Must be a string value.
 
 * Category
 +
-Category of which the policy belongs. Used to group and filter policies in API Manager UI, any string value is valid. For example, security, quality of service, compliance, troubleshooting, and transformation.
+Category to which the policy belongs. Used to group and filter policies in API Manager UI. Any string value is valid. For example, `security`, `quality of service`, `compliance`, `troubleshooting`, and `transformation`.
 
 The following code is an example of a basic authentication definition YAML file:
 ----
@@ -159,7 +164,7 @@ See xref:docs/mulesoft/exchange/to-create-an-asset#create-custom-policy-definiti
 The policy implementation files that are required to make the policy available in a runtime are a metadata file and a binary file. The metadata file describes what technology the binary file applies to and from which runtime version. The metadata file must be a YAML file. The binary file contains the policy logic and manages the runtime execution. The file can be a WebAssembly (WASM) for Anypoint Flex Gateway or a JAR file for Mule 4 runtime. 
 
 === Create Metadata YAML File
-The metadata YAML file provides details about the specific implementation of the policy definition. A single policy definition may several implementations, each an independent asset in Exchange or different versions of the same Exchange asset. 
+The metadata YAML file provides details about the specific implementation of the policy definition. A single policy definition can have several implementations. Each an independent asset in Exchange or different versions of the same Exchange asset. 
 
 The metada YAML file must include the following fields:
 
@@ -174,7 +179,7 @@ Either `mule4`` or `flexGateway`.
 Name of the implementation.
 * minRuntimeVersion
 +
-A semver version representing the first runtime version that the implementation binary is compatible with. For example, a mule binary might only be compatible from 4.3.0 onwards.
+A semantic version representing the first runtime version that the implementation binary is compatible with. For example, a mule binary might only be compatible from 4.3.0 onwards.
 
 The YAML file can also include `Release notes`.
 
