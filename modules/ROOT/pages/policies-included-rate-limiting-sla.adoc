@@ -12,11 +12,12 @@ endif::[]
 >s| Summary      | Monitors access to an API by defining the maximum number of requests processed within a timespan, based on SLAs
 >s| Category | Quality of Service
 >s| First Mule version available | v4.1.0
+>s| First Flex version available | v1.0.0
 .4+>.^s| Returned Status Codes
-|400 - Invalid client credentials provided or quota exceeded by WSDL APIs that use SOAP v1.2
+|400 - Invalid client credentials provided or quota exceeded by WSDL APIs that use SOAP v1.2 (Mule only)
 |401 - Request blocked due to invalid client credentials (client ID or client secret) provided
 |429 - Quota exceeded; requests blocked until the current window finishes
-|500 - Invalid client credentials provided or quota exceeded by WSDL APIs that use SOAP v1.1
+|500 - Invalid client credentials provided or quota exceeded by WSDL APIs that use SOAP v1.1 (Mule only)
 |===
 
 == Summary
@@ -40,66 +41,15 @@ For example, 5 replicas have been created in a single Flex Gateway registration.
 
 === Flex Gateway Local Mode
 
-In Local Mode, you apply the Rate-Limiting SLA policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
-
-----
-- policyRef:
-    name: rate-limiting-sla-based-flex
-  config:
-    clientIdExpression: <string> // OPTIONAL, default: "#[attributes.headers['client_id']]"
-    clientSecretExpression: <string> // OPTIONAL
-    exposeHeaders: <bool> // OPTIONAL, default: true
-----
-
-[%header%autowidth.spread,cols="a,a,a,a"]
-|===
-|Parameter | Required or Optional | Default Value | Description
-
-| `clientIdExpression` 
-| Optional
-| `#[attributes.headers['client_id']]`
-| A DataWeave expression that resolves the Client Application's ID for a Contract of the API. Only one rate-limiting algorithm is created per ID:
-`#[attributes.headers['client_id']]`
-This example looks for an HTTP header called `client_id`` and uses its value.
-
-| `clientSecretExpression` 
-| Optional
-| An empty value indicates that the API secret is not validated
-| A DataWeave expression that resolves the Client application's client secret for a contract of the API. Example:
-`#[attributes.headers['client_secret']]`
-
-| `exposeHeaders` 
-| Optional
-| `true`
-| The boolean option that defines whether to expose the  <<response-header,x-ratelimit headers>> as part of the response
-
-// | `clusterizable` 
-// | Optional
-// | `false`
-// | The boolean option that shares the quota defined for a group among all of the nodes of a Mule cluster
-
-// clusterizable: <bool> // OPTIONAL, default: false
-
-|===
-
-==== Resource Configuration Example
-
-The following defines a rate limit of three requests every six seconds:
-
-----
-- policyRef:
-    name: rate-limiting-sla-based-flex
-  config:
-
-----
+Rate-Limiting SLA policy is not supported in Local Mode.
 
 === Flex Gateway Connected Mode and Mule Gateway
 
-When you apply the policy to your API from the UI, a list of parameters are displayed based on whether your environment includes Mule or non-Mule applications.
+When you apply the policy to your API from the UI, a list of parameters are displayed based on whether your environment includes Mule, Flex or non-Mule applications.
 
-=== Configuring Policy Parameters for Mule Clusters
+=== Configuring Policy Parameters
 
-For Mule applications, the following parameters are displayed:
+The following parameters are displayed:
 
 [%header%autowidth.spread,cols="a,a,a"]
 |===
@@ -110,8 +60,8 @@ This example looks for an HTTP header called ‘client_id’ and uses its value.
 |Client Secret Expression | A DataWeave expression that resolves the Client application’s client secret for a contract of the API | 
 This is an optional value.
 Example: `#[attributes.headers['client_secret']]`
-|Clusterizable | The option that shares the quota defined for a group among all of the nodes of a Mule cluster| This feature requires the Mule runtime running as part of a Mule cluster. This option is not available for Flex Gateway.
-checked or unchecked
+|Clusterizable | The option that shares the quota defined for a group among all of the nodes of a Mule cluster. This feature is not available for Flex Gateway and requires the Mule runtime running as part of a Mule cluster.
+Checked or unchecked.
 | Expose Headers| Defines whether to expose the <<response-header,x-ratelimit headers,>> as part of the response | Checked or unchecked
 |===
 
@@ -170,7 +120,7 @@ An API might have several contracts, each with its own SLA. The Rate-Limiting SL
 [[examples]]
 == Examples
 
-Consider how the same contract of 3 requests every 10 seconds for client ID#1 works when the configuration is clusterized.
+Consider how the same contract of 3 requests every 10 seconds for client ID#1 works when the configuration is clusterized (Mule only).
 
 Consider an example of a window that is reset exactly at 12:00:00, is 10 seconds long, and operates in a 2-node Mule cluster. Both nodes start and end their windows at the same time, and the cluster allows 3 requests per window for client ID#1:
 
@@ -210,7 +160,7 @@ In a worst case scenario, the number of penalized requests with latency due to c
 
 Therefore, you must set up window sizes greater than one minute in Rate Limiting and Rate-Limiting SLA policy configurations only for a cluster scenario.
 
-=== Choosing Persistence for Your Rate-Limiting SLA Policy
+=== Choosing Persistence for Your Rate-Limiting SLA Policy (Mule only)
 
 You can configure your Rate-Limiting SLA policy to use windows that persist as long as days, months, and years. For example, suppose you want to allow your user to consume 1 million requests per year, but you cannot ensure that the node will be up the entire period or will need maintenance, which may result in restarting the Mule runtime engine.
 
