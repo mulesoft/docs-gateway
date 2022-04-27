@@ -47,7 +47,7 @@ Before getting started, ensure that you have installed the following:
 
 To install Flex Gateway as a Linux service:
 
-. Execute the command block below which does the following actions:  
+Execute the command block below which does the following actions:  
 * Retrieves the public package keys and adds the package repository
 * Updates the package list
 * Updates `apt-get`
@@ -56,9 +56,9 @@ To install Flex Gateway as a Linux service:
 +
 [source,ssh]
 ----
-curl -XGET https://flex-packages.stgx.anypoint.mulesoft.com/ubuntu/pubkey.gpg | sudo apt-key add -
+curl -XGET https://flex-packages.anypoint.mulesoft.com/ubuntu/pubkey.gpg | sudo apt-key add -
 
-echo "deb [arch=amd64] https://flex-packages.stgx.anypoint.mulesoft.com/ubuntu $(lsb_release -cs) main" \
+echo "deb [arch=amd64] https://flex-packages.anypoint.mulesoft.com/ubuntu $(lsb_release -cs) main" \
 | sudo tee /etc/apt/sources.list.d/mulesoft.list
 
 sudo apt update
@@ -74,8 +74,7 @@ To install Flex Gateway in a Docker container:
 +
 [source,ssh,subs=attributes+]
 ----
-curl -o flex-gateway-{gateway-ver-var}.tar \
-https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gateway-{gateway-ver-var}.tar
+docker pull mulesoft/flex-gateway
 ----
 
 . Move the container image into a directory of your choice.
@@ -104,18 +103,7 @@ mulesoft/flex-gateway        {gateway-ver-var}     1c1fbdbf819b   9 days ago    
 
 == Install as a Kubernetes Ingress Controller
 
-The process of installing Flex Gateway as a Kubernetes Ingress controller includes the following tasks:
-
-* <<prepare-your-environment,Prepare your environment>>
-* <<run-registration-command,Run the registration command>>
-* <<install,Run the installation commands>>
-
-These tasks apply to both connected and local modes.
-
-[[prepare-your-environment]]
-=== Prepare Your Environment
-
-Before preparing and installing, ensure that you have installed:
+Before installing, ensure that you have installed:
 
 * A tool to manage container images. The following example uses https://k3d.io/v5.0.0/#installation[k3d^].
 // * A tool to create Kubernetes clusters. The following examples use https://k3d.io/v5.0.0/#installation[k3d^].
@@ -124,12 +112,14 @@ Before preparing and installing, ensure that you have installed:
 +
 Refer to the <<helm-chart-options,Helm Chart Configuration Options>> for information about customizing the chart.
 
+To install Flex Gateway as a Kubernetes ingress controller:
+
+[]
 . Download the Flex Gateway container image: 
 +
 [source,ssh,subs=attributes+]
 ----
-curl -o flex-gateway-{gateway-ver-var}.tar \
-https://peregrine:48bcfd4617c9cce@d8wbbsqfcfi8u.cloudfront.net/docker/flex-gateway-{gateway-ver-var}.tar
+docker pull mulesoft/flex-gateway
 ----
 
 . Import the Flex Gateway container image: 
