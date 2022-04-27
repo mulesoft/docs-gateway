@@ -28,7 +28,7 @@ You can optionally include DataWeave expressions in the value of the header. For
 
 == Configuring Policy Parameters
 
-=== Local Mode for Flex
+=== Flex Gateway Local Mode
 
 In Local Mode, you apply the Header Removal policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
 
@@ -47,16 +47,20 @@ In Local Mode, you apply the Header Removal policy to your API via declarative c
 
 | `inboundHeaders` 
 | Optional
-| [ ]
+| Empty array
 | Map of header names or regular expressions to be removed at the beginning of the message processing, for example, `Cache-Control, Access-Control.*`
 
 | `outboundHeaders` 
 | Optional
-| [ ]
+| Empty array
 | Map of header names or regular expressions to be removed at the end of the message processing, for example, `Access-Control-Allow-Credentials` 
 
+[NOTE]
+====
+`inboundHeaders` and `outboundHeaders` can not both be empty.
+====
+
 |===
-*Both `inboundHeaders` and `outboundHeaders` may not be empty at the same time.
 
 ==== Resource Configuration Example
 
@@ -71,7 +75,7 @@ In Local Mode, you apply the Header Removal policy to your API via declarative c
         - "Access-Control-Allow-Credentials"
 ----
 
-=== Connected Mode
+=== Flex Gateway Connected Mode and Mule Gateway
 
 When you apply the Header Removal policy to your API from the UI, you can configure the following parameters:
 

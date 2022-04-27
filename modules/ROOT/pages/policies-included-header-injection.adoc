@@ -36,7 +36,7 @@ To overwrite an existing message header, remove the existing header before you a
 
 == Configuring Policy Parameters
 
-=== Local Mode for Flex
+=== Flex Gateway Local Mode
 
 In Local Mode, you apply the Header Injection policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
 
@@ -44,10 +44,10 @@ In Local Mode, you apply the Header Injection policy to your API via declarative
 - policyRef:
     name: header-injection-flex
   config:
-    inboundHeaders: // OPTIONAL, default: []
+    inboundHeaders: <array> // OPTIONAL, default: []
       - name: <string> // REQUIRED
         value: <string> // REQUIRED
-    outboundHeaders: // OPTIONAL, default: []
+    outboundHeaders: <array> // OPTIONAL, default: []
       - name: <string> // REQUIRED
         value: <string> // REQUIRED
 ----
@@ -59,7 +59,7 @@ In Local Mode, you apply the Header Injection policy to your API via declarative
 
 | `inboundHeaders` 
 | Optional
-| empty array
+| Empty array
 | Map of header names or regular expressions to be injected at the beginning of the message processing, for example, `host, content.*` 
 
 | `inboundHeaders.name` 
@@ -74,7 +74,7 @@ In Local Mode, you apply the Header Injection policy to your API via declarative
 
 | `outboundHeaders` 
 | Optional
-| empty array
+| Empty array
 | List of header names or regular expressions to be injected at the end of the message processing, for example, `content-type` 
 
 | `outboundHeaders.name` 
@@ -89,7 +89,10 @@ In Local Mode, you apply the Header Injection policy to your API via declarative
 
 |===
 
-*Both `inboundHeaders` and `outboundHeaders` may not be empty at the same time.
+[NOTE]
+====
+`inboundHeaders` and `outboundHeaders` can not both be empty.
+====
 
 ==== Resource Configuration Example
 
@@ -107,7 +110,7 @@ In the following example, all the headers matching the configured `#[attributes.
           value: "#[attributes.requestPath]"
 ----
 
-=== Connected Mode
+=== Flex Gateway Connected Mode and Mule Gateway
 
 When you apply the policy to your API from the UI, the following parameters are displayed:
 

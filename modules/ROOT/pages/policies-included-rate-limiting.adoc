@@ -12,10 +12,11 @@ endif::[]
 >s| Summary      | Monitors access to an API by defining the maximum number of requests processed within a period of time
 >s| Category | Quality of Service
 >s| First Mule version available | v4.1.0
+>s| First Flex version available | v1.0.0
 .4+>.^s| Returned Status Codes
-|400 - Quota exceeded by WSDL APIs that use SOAP v1.2. Requests are blocked until the current window completes its processing.
+|400 - Quota exceeded by WSDL APIs that use SOAP v1.2 (Mule only). Requests are blocked until the current window completes its processing.
 |429 - Quota exceeded, requests are blocked until the current window finishes
-|500 - Quota exceeded by WSDL APIs that use SOAP v1.1. Requests are blocked until the current window completes its processing.
+|500 - Quota exceeded by WSDL APIs that use SOAP v1.1 (Mule only). Requests are blocked until the current window completes its processing.
 |===
 
 == Summary
@@ -24,9 +25,16 @@ The Rate Limiting policy enables you to control the incoming traffic to an API b
 
 When you configure the Rate Limiting policy, you can specify any number of pairs of quota (number of requests) and time window (time period) values. 
 
+[NOTE]
+====
+A Rate Limiting policy applied to a Flex Gateway API is scoped to replicas, not the gateway. 
+
+For example, 5 replicas have been created in a single Flex Gateway registration. You configure the Rate Limiting policy for 10 requests per minute. Each replica will have a limit of 10 requests per minute.
+====
+
 == Configuring Policy Parameters
 
-=== Local Mode
+=== Flex Gateway Local Mode
 
 In Local Mode, you apply the Rate Limiting policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
 
@@ -37,9 +45,8 @@ In Local Mode, you apply the Rate Limiting policy to your API via declarative co
     rateLimits: <array> // REQUIRED
       - maximumRequests: <int> // REQUIRED
         timePeriodInMilliseconds: <int> // REQUIRED
-    keySelector: <string> // REQUIRED
+    keySelector: <string> // OPTIONAL
     exposeHeaders: <bool> // OPTIONAL, default: false
-    clusterizable: <bool> // OPTIONAL, default: true
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -62,25 +69,29 @@ In Local Mode, you apply the Rate Limiting policy to your API via declarative co
 | The amount of time (a number) for which the quota is to be applied
 
 | `keySelector` 
-| Required
+| Optional
 | N/A
-| DataWeave or regular expression selector key string  
+| DataWeave expression selector key string that creates a group with independent counters for each value resolved by the expression.
+
+For example, `#[attributes.queryParams['identifier']]` creates an independent counter group for requests containing an `identifier` query parameter.
 
 | `exposeHeaders`
 | Optional
 | `false`
 | The boolean option that defines whether to expose the  <<response-header,x-ratelimit headers>> as part of the response 
 
-| `clusterizable` 
-| Optional
-| `true`
-| The boolean option that shares the quota defined for a group among all of the nodes of a Mule cluster 
+// | `clusterizable` 
+// | Optional
+// | `true`
+// | The boolean option that shares the quota defined for a group among all of the nodes of a Mule cluster 
+//
+// clusterizable: <bool> // OPTIONAL, default: true
 
 |===
 
 ==== Resource Configuration Example
 
-The following defines a rate limit of three requests every six seconds:
+The following example defines a rate limit of three requests every six seconds:
 
 ----
 - policyRef:
@@ -95,9 +106,9 @@ The following defines a rate limit of three requests every six seconds:
 
 //#[attributes.queryParams['identifier']]
 
-The `#[attributes.method]` DataWeave expression creates one group for each available method in HTTP, for example, the policy rate-limits GET requests independently from POST requests.
+The `#[attributes.method]` DataWeave expression creates one group for each available method in HTTP, for example, the policy rate-limits GET requests independently of POST requests.
 
-=== Connected Mode
+=== Flex Gateway Connected Mode and Mule Gateway
 
 When you apply the Rate Limiting policy to your API from the UI, you can configure the following parameters:
 
@@ -105,10 +116,10 @@ When you apply the Rate Limiting policy to your API from the UI, you can configu
 |===
 |Parameter | Description | Example
 |Identifier | The selector key using a DataWeave or regular String | `#[attributes.method]` creates one group for each available method in HTTP, for example, the policy rate-limits GET requests independently from POST requests.
-|# of Reqs | The quota available per window | A positive number
+|Number of Reqs | The quota available per window | A positive number
 |Time Period | The amount of time for which the quota is to be applied | A positive number
 |Time Unit | The time in milliseconds, seconds, minutes, or hours | Minutes
-|Clusterizable | The option that shares the quota defined for a group among all of the nodes of a Mule cluster | checked or unchecked
+|Clusterizable | The option that shares the quota defined for a group among all of the nodes of a Mule cluster. This option is not available for Flex Gateway. | checked or unchecked
 | Expose Headers| The option that defines whether to expose the  <<response-header,x-ratelimit headers>> as part of the response | checked or unchecked
 |===
 
@@ -196,7 +207,7 @@ For example, suppose the DataWeave expression uses the IP address as the identif
 
 At an average of 250 bytes per algorithm, this amounts to approximately 1 terabyte in rate-limit algorithms. Therefore, use a DataWeave expression that resolves to a finite number of identifier to keep the resulting set as small as possible. 
 
-=== Configuring the Policy for Clusters
+=== Configuring the Policy for Clusters (Mule only)
 
 Consider the same configuration example of 3 requests and a window that starts exactly at 12:00:00, is reset every 10 seconds, and has a 2-node Mule cluster. Both nodes start and end their windows at the same time, and the cluster allows 3 requests per window in total:
 
@@ -242,7 +253,7 @@ Configure your environment to use processing windows longer than one minute, to 
 This configuration recommendation applies to both Rate Limiting and Rate Limiting-SLA policies in a cluster scenario.
 
 
-=== Choosing Persistence for Your Rate Limiting Policy
+=== Choosing Persistence for Your Rate Limiting Policy (Mule only)
 
 You can configure your Rate Limiting policy to use windows that persist as long as days, months, and years. For example, suppose you want to allow your user to consume 1 million requests per year, but you cannot ensure that the node will be up the entire period or will need maintenance, which may result in restarting the Mule runtime engine. 
 

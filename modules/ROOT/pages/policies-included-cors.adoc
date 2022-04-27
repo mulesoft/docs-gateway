@@ -22,7 +22,7 @@ CORS is a mechanism by which a web application can access resources that are def
 
 == Configuring Policy Parameters
 
-=== Local Mode for Flex
+=== Flex Gateway Local Mode
 
 In Local Mode, you apply the CORS policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
 
@@ -36,8 +36,8 @@ In Local Mode, you apply the CORS policy to your API via declarative configurati
         allowedMethods:
           methodName: 
           - isAllowed: 
-        headers:
-        exposedHeaders:
+        headers: <array> // OPTIONAL, default: []
+        exposedHeaders: <array> // OPTIONAL, default: []
     publicResource: <bool> // OPTIONAL, default: true
     supportCredentials: <bool> // OPTIONAL, default: false
 ----
@@ -48,43 +48,43 @@ In Local Mode, you apply the CORS policy to your API via declarative configurati
 
 | `originGroups` 
 | Optional
-| Empty Array
+| Empty array
 | List containing groups of origins
 
 | `originGroups.origins` 
 | Optional
-| Empty Array
-| List of origins to be included in group. An origin is e.g. http://www.the-origin-of-time.com
+| Empty array
+| List of origins to be included in the group. For example, http://www.the-origin-of-time.com
 
 | `originGroups.origins.accessControlMaxAge` 
 | Optional
 | 30
-|  Gives the value in seconds for how long (in seconds) the response to the preflight request can be cached without sending another preflight request
+| Duration in seconds that a preflight response can be cached without sending another preflight request
 
 | `originGroups.origins.allowedMethods` 
 | Optional
 | CONNECT, DELETE, GET, OPTIONS, PATCH, POST, PUT, TRACE
-| Http methods to allow
+| Allowed HTTP methods
 
 | `originGroups.origins.allowedMethods.methodName` 
 | Required
-| 
-| Name of the method
+| N/A
+| Method name
 
 | `originGroups.origins.allowedMethods.methodName.isAllowed` 
 | Required
-| 
-| true if allowed, false if not
+| N/A
+| A boolean indicating if a method is allowed
 
 | `originGroups.origins.headers` 
 | Optional
-| Empty Array
-|  Is used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
+| Empty array
+| HTTP headers used for preflight requests
 
 | `originGroups.origins.exposedHeaders` 
 | Optional
-| Empty Array
-| header adds the specified headers to the allowlist that JavaScript in browsers is allowed to access.
+| Empty array
+| Headers that browser JavaScript is allowed to access
 
 | `publicResource` 
 | Optional
@@ -134,7 +134,7 @@ In Local Mode, you apply the CORS policy to your API via declarative configurati
             - x-forwarded-for
 ----
 
-=== Connected Mode
+=== Flex Gateway Connected Mode and Mule Gateway
 
 When you apply the policy to your API from the UI, the following parameters are displayed:
 
@@ -207,13 +207,13 @@ Origin is a header that specifies the request that initiated the fetch. The orig
 * Host name: `www.example.com`
 * Port number: `8080`
 
-For requests between any two <<origins,origin>> to be approved, the origins must be equal. Origins are considered equal only if all these three parameters match. For more information, see https://tools.ietf.org/html/rfc6454[RFC 6454 - The Web Origin Concept^].
-
+For requests between any two <<origins,origin>> to be approved, the origins must be equal. Origins are considered equal only if all these three parameters match. For more information, see https://tools.ietf.org/html/rfc6454[RFC 6454 - The Web Origin Concept^]. 
+ 
 === HTTP Cookies
 
 Websites use HTTP cookies to retain stateful information. Most commonly, web servers use authentication cookies to know whether a user is logged in, and to know which account users are logged in to. For more information, see https://www.ietf.org/rfc/rfc6265.txt[RFC 6265^].
 
-SOP (same-origin policy) deters malicious attackers from exploiting cookies when one web page invokes another. For example, you might log in to your bank's web page using a cookie that an attacker might be able to obtain and exploit to query the bank’s API on your behalf.
+SOP (same-origin policy) deters malicious attackers from exploiting cookies when one web page invokes another. For example, you might log in to your bank's web page using a cookie that an attacker might be able to obtain and exploit to query the bank’s API on your behalf. 
 
 [[origin]]
 With the SOP, scripts can access data from a target web page only if it has the same origin as the caller web page. For more information about origins, see https://en.wikipedia.org/wiki/Same-origin_policy[Wikipedia^].
@@ -230,14 +230,14 @@ For example, if your bank implements the CORS server-side protocol on its login 
 
 == How CORS Works
 
-When your web pages request data, the browser detects whether the request is from within same origin and determines whether to apply the CORS algorithm. If you query data from a web page that is not in your origin, then the CORS policy is applied.
+When your web pages request data, the browser detects whether the request is from within same origin and determines whether to apply the CORS algorithm. If you query data from a web page that is not in your origin, then the CORS policy is applied. 
 
 The CORS algorithm works on the web server and on the client-side for the web page that requested the information. The client-side algorithm in the CORS policy is implemented by:
 
 * Determining whether the request is complex (and potentially dangerous) and sending a preliminary _preflight_ request to verify whether the server accepts the origin.
 * Executing the actual request and validating that the server responds correctly and accepts the origin.
 
-A _preflight_ is a preliminary request (using OPTIONS as the HTTP method) from the web browser to the backend server to test the identity (origin and a few other headers) of the web page that is trying to perform the request.
+A _preflight_ is a preliminary request (using OPTIONS as the HTTP method) from the web browser to the backend server to test the identity (origin and a few other headers) of the web page that is trying to perform the request. 
 
 If the backend does not accept the origin, the backend server responds to the request without a specific header (Access-Control-Allow-Origin). The client then understands that the page’s origin is not allowed in that server and does not execute the actual request.
 
@@ -247,10 +247,10 @@ image::cors-policy-xhr-diagram.png[]
 
 As illustrated in the diagram, the request is validated based on the communication between the browser and the server:
 
-* If the request is considered to be complex (see the previous client-side diagram for XHR), then a preflight request is executed.
+* If the request is considered to be complex (see the previous client-side diagram for XHR), then a preflight request is executed. 
 +
 If the server does not return the proper CORS response headers for the preflight, the client library (XHR in the previous example) is not allowed to perform the actual request.
-* If the preflight response is correct and complete, then the client library executes the actual request, which includes certain CORS headers.
+* If the preflight response is correct and complete, then the client library executes the actual request, which includes certain CORS headers. 
 +
 The client library then validates the CORS headers of the response. If some of the required headers are missing, then again the client library is obliged to block the response from reaching the client, which is usually a web page.
 
@@ -270,10 +270,10 @@ This header is sent in the preflight request.
 This header is sent in the preflight request. For the GET or HEAD methods, the standard defines a specific list of headers that are considered simple enough to not require a preflight. For custom headers, a preflight is executed for GET and HEAD requests (see the previous XHR example to validate the path in which the client does not have to perform a preflight).
 
 === CORS Response Headers
-
+	
 The headers included in a response depend on whether the request is a preflight or an actual request:
 
-* `Access-Control-Allow-Origin`: Obligatory in every response.
+* `Access-Control-Allow-Origin`: Obligatory in every response. 
 +
 If this header is not present in the response, the browser or client library blocks the response from reaching the web page. The wildcard “*” can be used to represent any origin.
 * `Access-Control-Allow-Methods`: Allowed methods that can be executed.
@@ -281,19 +281,19 @@ If this header is not present in the response, the browser or client library blo
 This header is returned in the OPTIONS request (preflight). The server might respond with a list of allowed methods, delegating the validation task to the client.
 
 * `Access-Control-Allow-Headers`: Allowed headers in the actual request.
-+
++ 
 This header works in a manner similar to how Access-Control-Allow-Methods works .
 * `Access-Control-Allow-Credentials`: Notifies the client whether the actual request can be made with a cookie.
 +
 The `Access-Control-Allow-Credentials` returns a Boolean value.
-* `Access-Control-Expose-Headers`: Provides the browser or client library with a list of headers that can be accessed by the web page that executed the request.
+* `Access-Control-Expose-Headers`: Provides the browser or client library with a list of headers that can be accessed by the web page that executed the request.   
 +
 The HTTP library performing the CORS request exposes only the headers to the web page, providing further privacy and security.
-* `Access-Control-Max-Age`: Specifies the duration (in seconds) in which the browser can avoid performing a second preflight on a request.
+* `Access-Control-Max-Age`: Specifies the duration (in seconds) in which the browser can avoid performing a second preflight on a request. 
 
 === Public Resources and Groups
 
-If you need to bypass the browser SOP, Mulesoft provides you an option to configure a public resource that enables the API gateway policy to mirror the preflight data in the response. This ensures that the actual request is correctly updated with all the CORS headers so that the browser accepts the response.
+If you need to bypass the browser SOP, Mulesoft provides you an option to configure a public resource that enables the API gateway policy to mirror the preflight data in the response. This ensures that the actual request is correctly updated with all the CORS headers so that the browser accepts the response. 
 
 If the public resource option is not secure enough for your environment, define multiple groups for the different origins that query your API. Each group applies to a list of origins and can specify different methods, headers, preflight caching time, and expose headers.
 
@@ -303,7 +303,7 @@ The CORS policy is always applied first by the API gateway, before any other pol
 
 === Configuration Wildcards
 
-Wildcards (`*`) are accepted in the Origins and Headers sections of a group configuration. Use wildcards when you need a public resource, but must restrict the accepted HTTP methods.
+Wildcards (`*`) are accepted in the Origins and Headers sections of a group configuration. Use wildcards when you need a public resource, but must restrict the accepted HTTP methods. 
 
 If you have configured multiple groups and one of the groups uses a wildcard origin, the non-wildcard settings override the wildcard configurations.
 

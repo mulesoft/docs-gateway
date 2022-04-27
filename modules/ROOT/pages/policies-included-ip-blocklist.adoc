@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 :keywords: ip, blocklist, validation, api gateway, flex gateway, gateway, policy
-:page-aliases: api-manager::ip-blocklist.adoc
+:page-aliases: api-manager::ip-blocklist.adoc, api-manager::ip-blacklist.adoc
 
 [width="100%", cols="5,15"]
 |===
@@ -12,6 +12,7 @@ endif::[]
 >s|Summary      | Blocks a single IP address or a range of IP addresses from accessing an API endpoint
 >s|Category | Security
 >s|First Mule version available | v4.1.0
+>s|First Flex version available | v1.0.0
 .1+>.^s| Returned Status Codes
 | 403 - IP is rejected
 |===
@@ -22,11 +23,11 @@ The IP Blocklist policy controls access to a configured API endpoint from either
 
 The IP Blocklist policy restricts access to a protected resource when a match is found between a source IP (specified when configuring the policy) and either a list of individual IPs or a range of IPs.
 
-Based on your business need, you can specify a DataWeave 2.0 expression for Mule runtime engine 4 (Mule) or MEL expression for Mule 3. You specify the expression to define the source IP to be used when the policy tries to determine whether the IP belongs to the restricted IP list defined in the policy.
+Based on your business need, you can specify a DataWeave 2.0 expression for Mule 4 and Flex gateways or MEL expression for Mule 3. You specify the expression to define the source IP to be used when the policy tries to determine whether the IP belongs to the restricted IP list defined in the policy.
 
 == Configuring Policy Parameters
 
-=== Local Mode
+=== Flex Gateway Local Mode
 
 In Local Mode, you apply the IP Blocklist policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
 
@@ -51,7 +52,7 @@ In Local Mode, you apply the IP Blocklist policy to your API via declarative con
 | `ipExpression` 
 | Optional
 | `#[attributes.headers['x-forwarded-for']]`
-| The DataWeave 2.0 or MEL expression to be used for extracting the IP address from this API request
+| The DataWeave 2.0 expression to be used for extracting the IP address from this API request
 
 |===
 
@@ -68,7 +69,7 @@ In Local Mode, you apply the IP Blocklist policy to your API via declarative con
       - "192.160"
 ----
 
-=== Connected Mode
+=== Flex Gateway Connected Mode and Mule Gateway
 
 When you apply the IP Blocklist policy to your API from the UI, configure the following parameters:
 
@@ -105,13 +106,6 @@ For example, if you want to blocklist `192.168.2.3` and the address of a client 
 
 Typically, applications use the `X-Forwarded-For` header to identify the origin IP addresses of a request that was redirected to your endpoint.
 
-You can use a DataWeave 2.0 or MEL expression to instruct the service to look for the IP address in the 'x-Forwarded-For' header:
+You can use a DataWeave 2.0 or MEL (Mule 3 only) expression in the policy to instruct the service to look for the IP address in the `x-Forwarded-For` header.
 
-[source,mel]
-----
-#[attributes.headers['x-forwarded-for']]
-----
-
-When you insert the IP address in the IP expression field of the policy parameters, Anypoint Platform is instructed to look at the first IP address that ranks in the concatenated values of the `x-Forwarded-For` header of the request:
-
-image::ip-filter-ip-expression.png[ip+blocklist+ip_expression]
+When you insert the IP address in the IP expression field of the policy parameters, Anypoint Platform is instructed to look for the starting IP address in the concatenated values of the `x-Forwarded-For` header of the request.
