@@ -11,7 +11,7 @@ endif::[]
 >s| Policy name | Message Logging
 >s|Summary      | Logs custom messages using information from incoming requests, responses from the backend, or information from other policies applied to the same API endpoint
 >s|Category | Troubleshooting
->s|First Mule version available | v3.8.0
+>s|First Flex version available | v1.0.0
 .1+>.^s| Returned Status Codes
 | No return codes exist for this policy
 |===
@@ -20,7 +20,7 @@ endif::[]
 
 The Message Logging policy logs custom messages using information from incoming requests, responses from the backend, or information from other policies applied to the same API endpoint. 
 
-This policy works with both Apache log4j and Apache log4j2.
+For Mule Gateway this policy works with both Apache log4j and Apache log4j2.
 
 == Prerequisites
 
@@ -232,7 +232,7 @@ To customize the log messages based on the event and the action performed, Les V
 `#['User ' ++ authentication.clientId ++ ' performed action ' ++ attributes.method ++ ' on ' ++ attributes.requestPath ++ ' with Payload: ' ++ payload]`
 
 
-==== Example of Message Logging Policy Configured in XML
+==== Example of Message Logging Policy Configured in XML for Mule 4
 
 The following flow shows an example logging policy:
 
@@ -277,24 +277,26 @@ Logging a policy consists of the following sequence:
 
 . A request is sent to the API.
 . The message is logged if the following conditions are true:
-** The level and category of the log defined in the policy are included in the logger defined in the log4j2.xml configuration file.
+** The level and category of the log defined in the policy are included in the logger defined in the configuration file.
 ** Either the conditional field of the policy was not set, or was set and the condition was met.
 . The API response is returned. Message Logging Policy does not interfere with the execution of any policy nor its flow.
 . The message appears in the application log.
 
 == About the Logging Format
 
-A message log uses the following format: 
+A message log uses the following format:
 
+* Flex:
+`<date> [flex-gateway-envoy][<level>] wasm log [accessLog] main: <category>: <message>`
+
+* Mule:
 `<date> <thread name> <level> <category>: <message>`
 
 `date` is the message logging date and timestamp.
 
 `thread name` is the name of the event thread in which the message appears.
 
-`level` is the logging level or type of the message, such as INFO, WARN, ERROR, and DEBUG (log4j level).
-
-For more information, see https://www.tutorialspoint.com/log4j/log4j_logging_levels.htm[log4j Logging Levels^].
+`level` is the logging level or type of the message, such as INFO, WARN, ERROR, and DEBUG.
 
 `category` typically indicates the package and class where the logging occurred. The default value is `org.mule.runtime.logging.policy-<policy id>`.
 

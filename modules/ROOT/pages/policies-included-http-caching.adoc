@@ -12,6 +12,7 @@ endif::[]
 >s|Summary      | Caches HTTP responses from an API implementation
 >s|Category | Quality of Service
 >s|First Mule version available | v4.1.0
+>s| First Flex version available | v1.0.0
 .1+>.^s| Returned Status Codes
 | No return codes exist for this policy
 |===
@@ -112,11 +113,11 @@ Default value: `10000`
 | Entry Time To Live | Specifies the amount of time (in seconds) after which a single entry expires from the cache.
 Default value: `600`
 | Yes
-| Distributed | Configures the cache to be distributed among different nodes in a cluster.
+| Distributed (Mule only) | Configures the cache to be distributed among different nodes in a cluster.
 If you are using CloudHub, ensure that you enable Object Store v2 when deploying an application.
 Default value: `false`
 | Yes
-| Persistent Cache | Configures the cache to persist between different restarts of the Mule instance.
+| Persistent Cache (Mule only) | Configures the cache to persist between different restarts of the Mule instance.
 If you are using CloudHub, ensure that you enable Object Store v2 when deploying an application.
 Default value: `false`
 | Yes
@@ -172,7 +173,7 @@ image:http-policy-cache-hit.png[]
 [[stored_entry]]
 === Stored Entries
 
-_Stored entries_ are the cached HTTP responses. The cache can store any Java serializable or input streams of up to 1 MB. If that value is surpassed, then the reading stops and the value is not stored in such a case.
+_Stored entries_ are the cached HTTP responses. The cache can store any serializable data or input streams of up to 1 MB. If that value is surpassed, then the reading stops and the value is not stored in such a case.
 
 [[key]]
 === HTTP Caching Key
@@ -185,11 +186,11 @@ The cache can hold a specified number of entries at any given time. You can conf
 
 Another condition that can trigger the expiration of an entry is when the cache reaches the maximum number of items that it can store. When this scenario occurs, the entry is removed by using the FIFO (First-In First-Out) criteria. This means that the earliest entry to reach the cache is removed, even though it hasn't reached the TTL value yet.
 
-=== Distributed Cache
+=== Distributed Cache (Mule only)
 
 Each entry in the cache can be shared between different nodes in a cluster or between several workers in Runtime Manager using the `Distributed` option (see table). If this option is not enabled, then each node is assigned its own cache memory.
 
-=== Persistent Cache
+=== Persistent Cache (Mule only)
 
 A persistent cache enables the stored entries in the cache to persist if the Mule runtime engine (Mule) is restarted.
 
@@ -290,7 +291,7 @@ No, but you can apply a policy before this one and transform the response to som
 
 This is the same as configuring the response to be stored in the cache when there is a no-store directive in the Cache-Control header.
 
-In this situation, the response isn’t stored. You must configure both the Cache-Control header and the cache to be able to store and search for the response in the cache.
+In this situation, the response isn't stored. You must configure both the Cache-Control header and the cache to be able to store and search for the response in the cache.
 
 
 *How does running the HTTP Caching policy in CloudHub differ compared with running it in Mule runtime engine?*
