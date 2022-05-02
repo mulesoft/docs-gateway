@@ -1,0 +1,218 @@
+= Troubleshooting with the Admin API
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Anypoint Flex Gateway includes two administration interfaces: 
+
+* https://www.envoyproxy.io/docs/envoy/latest/operations/admin[Envoy Admin API^]
+* Flex Gateway Admin API
+
+The Flex Gateway Admin API enables you to query for information related to a gateway's API instances, services, and configurations. The API includes three commands:
+
+* `apiInstance`
+* `services`
+* `config_dump` 
+
+As an example, the following inline configuration snippet defines a single API instance named `jsonplaceholder-api` in the default namespace (it remains `default` because namespace is not explicitly defined.) Additionally, the snippet defines one included policy: `http-basic-authentication-flex`.
+
+== Configuration Example
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: jsonplaceholder-api
+spec:
+  address: http://0.0.0.0:8080
+  services:
+    jsonplaceholder:
+      address: https://jsonplaceholder.typicode.com:443/
+      routes:
+        - rules:
+            - path: /api(/users/.*)
+            - path: /api(/comments/.*)
+  policies:
+    - policyRef:
+        name: http-basic-authentication-flex
+      config:
+        username: chris
+        password: admin
+----
+
+== API Instances
+
+To see a JSON representation of your API instance, execute the `apiInstances` command, specifying the default namespace. 
+
+[NOTE]
+====
+When running in a Docker container, expose port 9999 when running the container, then execute this command in the container itself.
+====
+
+----
+curl localhost:9999/status/gateway/namespaces/default/apiInstances
+----
+
+The API returns the following: 
+
+----
+[
+   {
+      "address":"http://0.0.0.0:8080",
+      "kind":"ApiInstance",
+      "name":"jsonplaceholder-api",
+      "namespace":"default",
+      "policies":[
+         {
+            "config":{
+               "password":"admin",
+               "username":"chris"
+            },
+            "extension":{
+               "kind":"Extension",
+               "name":"http-basic-authentication-flex",
+               "namespace":"default"
+            },
+            "kind":"Policy",
+            "name":"jsonplaceholder-api-http-basic-authentication-flex-1",
+            "namespace":"default"
+         },
+         {
+            "config":{
+               "destinationRef":{
+                  "kind":"Service",
+                  "name":"jsonplaceholder-api-jsonplaceholder",
+                  "namespace":"default"
+               }
+            }
+            "extension":{
+               "kind":"Extension",
+               "name":"route",
+               "namespace":"default"
+            },
+            "kind":"Policy",
+            "name":"jsonplaceholder-api-jsonplaceholder-route-1",
+            "namespace":"default",
+            "order":50,
+            "rules":[
+               {
+                  "path":"/api(/users/.*)"
+               },
+               {
+                  "path":"/api(/comments/.*)"
+               }
+            ]
+         },
+         {
+            "extension":{
+               "kind":"Extension",
+               "name":"envoy.filters.http.router",
+               "namespace":"default"
+            },
+            "kind":"Policy",
+            "name":"envoy.filters.http.router",
+            "namespace":"default",
+            "order":2147483647
+         }
+      ]
+   }
+]
+----
+
+== Services
+
+To see a JSON representation of defined services, execute the `services` command, specifying the default namespace. 
+
+[NOTE]
+====
+When running in a Docker container, expose port 9999 when running the container, then execute this command in the container itself.
+====
+
+----
+curl localhost:9999/status/gateway/namespaces/default/services
+----
+
+The API returns the following: 
+
+----
+[
+   {
+      "address":"https://jsonplaceholder.typicode.com:443/",
+      "kind":"Service",
+      "name":"jsonplaceholder-api-jsonplaceholder",
+      "namespace":"default"
+   }
+]
+----
+
+== Config Dump
+
+To see a JSON representation of the complete configuration definition, execute the `config_dump` command. 
+
+[NOTE]
+====
+When running in a Docker container, expose port 9999 when running the container, then execute this command in the container itself.
+====
+
+----
+curl localhost:15000/config_dump
+----
+
+The API returns the following:
+
+----
+"static_route_configs": [
+    {
+     "route_config": {
+      "@type": "type.googleapis.com/envoy.config.route.v3.RouteConfiguration",
+      "name": "jsonplaceholder-api.default.svc",
+      "virtual_hosts": [
+       {
+        "name": "jsonplaceholder-api.default.svc",
+        "domains": [
+         "*"
+        ],
+        "routes": [
+         {
+          "match": {
+           "safe_regex": {
+            "google_re2": {},
+            "regex": "/api(/users/.*)"
+           }
+          },
+          "route": {
+           "cluster": "jsonplaceholder-api-jsonplaceholder.default.svc",
+           "auto_host_rewrite": true,
+           "regex_rewrite": {
+            "pattern": {
+             "google_re2": {},
+             "regex": "/api(/users/.*)"
+            },
+            "substitution": "\\1"
+           }
+          }
+         }
+         {
+          "match": {
+           "safe_regex": {
+            "google_re2": {},
+            "regex": "/api(/comments/.*)"
+           }
+          },
+          "route": {
+           "cluster": "jsonplaceholder-api-jsonplaceholder.default.svc",
+           "auto_host_rewrite": true,
+           "regex_rewrite": {
+            "pattern": {
+             "google_re2": {},
+             "regex": "/api(/comments/.*)"
+            },
+            "substitution": "\\1"
+           }
+          }
+         }
+        ]
+       }
+      ]
+----
