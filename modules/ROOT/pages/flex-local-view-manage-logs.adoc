@@ -13,7 +13,7 @@ The following examples describe how to configure Flex Gateway for use with the F
 To enable access logging, you must: 
 
 . Configure the File or HTTP output.
-. Apply the `access-log` policy via policy binding. See <<access-logs,Access Logs>>.
+. Apply the Message Logging policy via policy binding. See <<access-logs,Access Logs>>.
 ====
 
 == File Configuration Example
@@ -82,7 +82,7 @@ spec:
 
 After specifying access log output (as described in the previous configuration examples), you must enable access logs via policy binding. 
 
-For inline configurations, enable access logs by adding `access-log` to the `spec.policies` section of `ApiInstance`. The following is an inline configuration example:
+For inline configurations, enable access logs by adding `message-logging-flex` to the `spec.policies` section of `ApiInstance`. The following is an inline configuration example:
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -99,10 +99,22 @@ spec:
             - path: /api(/users/.*)
   policies:
     - policyRef:
-        name: access-log
+        name: message-logging-flex
+      config:
+        loggingConfiguration:
+          - itemName: "Access Log Request"
+            itemData:
+              message: "#[attributes.version ++ ' ' ++ attributes.method ++ ' ' ++ attributes.requestUri]"
+              level: "INFO"
+              firstSection: true
+          - itemName: "Access Log Response"
+            itemData:
+              message: "#[attributes.statusCode ++ ' ' ++ (attributes.headers['content-length'] default '')]"
+              level: "INFO"
+              secondSection: true
 ----
 
-For resource-based configurations, enable access logs by adding `access-log` to the `spec.policyRef` section of `PolicyBinding`. The following is a resource-based configuration example: 
+For resource-based configurations, enable access logs by adding `message-logging-flex` to the `spec.policyRef` section of `PolicyBinding`. The following is a resource-based configuration example:
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -111,9 +123,23 @@ metadata:
   name: ingress-http-access-logs
 spec:
   targetRef:
+    kind: ApiInstance
     name: ingress-http
   policyRef:
-    name: access-log
+    kind: Extension
+    name: message-logging-flex
+  config:
+    loggingConfiguration:
+      - itemName: "Access Log Request"
+        itemData:
+          message: "#[attributes.version ++ ' ' ++ attributes.method ++ ' ' ++ attributes.requestUri]"
+          level: "INFO"
+          firstSection: true
+      - itemName: "Access Log Response"
+        itemData:
+          message: "#[attributes.statusCode ++ ' ' ++ (attributes.headers['content-length'] default '')]"
+          level: "INFO"
+          secondSection: true
 ----
 
 
