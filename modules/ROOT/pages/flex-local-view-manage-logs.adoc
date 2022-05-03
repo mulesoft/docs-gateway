@@ -20,24 +20,23 @@ To enable access logging, you must:
 
 Configure Flex Gateway to send formatted runtime and access logs to a file called `log.txt` (Fluentbit https://docs.fluentbit.io/manual/v/1.7/pipeline/outputs/file[File^] output), located within `/var/log` directory. As an example, the following definition specifies a `spec.logging.outputs.type` value of `file`:
 
-NOTE: For Docker, in `spec.logging.output.parameters.path`, replace `/var/log` with the absolute path to the mounted configuration directory.
+NOTE: For Docker, in `spec.logging.output.parameters.file`, replace `/var/log` with the absolute path to the mounted configuration directory.
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Configuration
 metadata:
-  name: metrics-config
+  name: logging-config
 spec:
   logging:
     outputs:
     - name: default
       type: file
       parameters:
-        path: /var/log  # Docker: replace this value with the absolute path to the mounted configuration directory
-        file: log.txt
+        file: /var/log/log.txt # Docker: replace `/var/log` with the absolute path to the mounted configuration directory
         format: template
         template: |
-          [{runtime}][{loglevel}][{kind}] {message}
+          [{logger}][{level}][{kind}] {message}
     runtimeLogs:
       logLevel: info
       outputs:
@@ -55,7 +54,7 @@ In addition to configuring logging for Fluentbit File output, you can also confi
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Configuration
 metadata:
-  name: metrics-config
+  name: logging-config
 spec:
   logging:
     outputs:
@@ -63,7 +62,7 @@ spec:
       type: http
       parameters:
         host: collectors.au.sumologic.com
-        port: 443
+        port: "443"
         URI: /receiver/v1/http/[PrivateKey]
         format: json_lines
         json_date_key: timestamp
