@@ -1,0 +1,147 @@
+= Implement a Flex Gateway Custom Policy in Rust
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+
+== Summary
+
+You can implement custom policies via WebAssembly (WASM) extensions that run on Envoy as custom filters. These filters (policies) are implemented using the https://github.com/proxy-wasm/proxy-wasm-rust-sdk[WebAssembly for Proxies (Rust SDK)^]. The following examples assume knowledge about Rust and related tools.
+
+== Lifecycle Events
+
+Custom policies are based on https://github.com/proxy-wasm/spec[proxy-wasm ABI^], an event-driven, Envoy-agnostic, low-level interface for L4/L7 proxies. This interface specifies how a WASM extension and its host interact, and it includes listenable lifecycle events - HTTP request lifecycle events and also WASM filter lifecycle events.
+
+The SDK exposes a method to retrieve information related to each lifecycle event. For example, data retrieved from the `on_http_request_headers` event can be used to perform related custom policy logic, which can then inform the runtime if the request should be processed.
+
+=== HTTP Request Lifecycle Events
+* `on_http_request_headers`
++
+Triggered when the complete set of HTTP request headers is received.
+
+* `on_http_request_body`
++
+Triggered when the first bytes of the HTTP request body are received.
+
+* `on_http_response_headers`
++
+Triggered when the complete set of HTTP response headers is received.
+
+* `on_http_response_body`
++
+Triggered when the first bytes of the HTTP response body are received.
+
+=== Filter Lifecycle Events
+
+* `on_configure`
++
+Triggered when the WASM filter starts with an available configuration.
++
+Flex Gateway serializes policy configuration into JSON, which is used to configure the Envoy WASM filter. You can deserialize and parse this JSON into data that will be used by your custom policy.
+
+=== Example Lifecycle Events Implementation
+
+The following Envoy filter template demonstrates how to implement lifecycle events: 
+
+----
+use proxy_wasm::traits::*;
+use proxy_wasm::types::*;
+
+proxy_wasm::main! {{
+    proxy_wasm::set_log_level(LogLevel::Trace);
+    proxy_wasm::set_root_context(|_| -> Box<dyn RootContext> {
+        Box::new(HttpConfigHeaderRoot {
+            header_content: String::new(),
+        })
+    });
+}}
+
+struct HttpConfigHeader {
+    header_content: String,
+}
+
+impl Context for HttpConfigHeader {}
+
+impl HttpContext for HttpConfigHeader {
+    fn on_http_request_headers(&mut self, _num_headers: usize, _end_of_stream: bool) -> Action {
+        Action::Continue
+    }
+
+    fn on_http_request_body(&mut self, _body_size: usize, _end_of_stream: bool) -> Action {
+        Action::Continue
+    }
+
+    fn on_http_response_headers(&mut self, _num_headers: usize, _end_of_stream: bool) -> Action {
+        Action::Continue
+    }
+
+    fn on_http_response_body(&mut self, _body_size: usize, _end_of_stream: bool) -> Action {
+        Action::Continue
+    }
+}
+
+struct HttpConfigHeaderRoot {
+    header_content: String,
+}
+
+impl Context for HttpConfigHeaderRoot {}
+
+impl RootContext for HttpConfigHeaderRoot {
+    fn on_configure(&mut self, _: usize) -> bool {
+        if let Some(config_bytes) = self.get_plugin_configuration() {
+            self.header_content = String::from_utf8(config_bytes).unwrap()
+        }
+        true
+    }
+
+    fn create_http_context(&self, _: u32) -> Option<Box<dyn HttpContext>> {
+        Some(Box::new(HttpConfigHeader {
+            header_content: self.header_content.clone(),
+        }))
+    }
+
+    fn get_type(&self) -> Option<ContextType> {
+        Some(ContextType::HttpContext)
+    }
+}
+----
+
+== Custom Authentication Header Policy Example
+
+The following tutorial describes how to create an example policy implementation for a xref:policies-custom-flex-getting-started#create-policy-definition-files[Policy Definition] that has already been published in Exchange.
+The example policy blocks requests whose `x-custom-auth` header does not match a user-configured value.
+
+. Create the policy definition JSON file.
++
+Example policy implementations require a policy definition JSON file. Flex Gateway passes policy configuration as a JSON with that policy definition structure to the Envoy WASM Filter.
++
+The example authentication header policy has only one parameter: the value that needs to be passed in the header. Therefore the policy definition JSON file should match the following:
++
+----
+ {
+  "title": "Custom Auth Header",
+  "type": "object",
+  "description": "Enforces HTTP authentication matching x-custom-auth value to what is configured in the policy.",
+  "properties": {
+    "secret-value": {
+      "title": "Custom Auth Header Password",
+      "type": "string",
+      "@context": {
+        "@characteristics": [
+          "security:sensitive"
+        ]
+      }
+    }
+  },
+  "required": [
+    "secret-value"
+  ],
+  "unevaluatedProperties": false,
+  "@context": {
+    "@vocab": "anypoint://vocabulary/policy.yaml#",
+    "security": "anypoint://vocabulary/policy.yaml#"
+  },
+  "$id": "custom-auth-header-simple",
+  "$schema": "https://json-schema.org/draft/2019-09/schema"
+}
+----
+
