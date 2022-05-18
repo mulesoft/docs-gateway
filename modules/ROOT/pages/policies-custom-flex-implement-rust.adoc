@@ -145,3 +145,196 @@ The example authentication header policy has only one parameter: the value that 
 }
 ----
 
+. Set up the project.
+
+.. Create the Rust project via the following command:
++
+----
+cargo new flex_custom_policy_example --lib
+----
++ 
+This creates a `flex_custom_policy_example` directory.
+
+.. Copy the following into `Cargo.toml`, located in the `flex_custom_policy_example` directory:
++
+----
+[package]
+name = "flex_custom_policy_example"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib"]
+name="flex_custom_policy_example"
+path="src/lib.rs"
+
+[dependencies]
+proxy-wasm = { git = "https://github.com/proxy-wasm/proxy-wasm-rust-sdk.git", tag = "v0.2.0" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+----
+
+. Develop the custom policy
+
+.. Add the following policy bootstrapping code to a new Rust source file:
++
+----
+use proxy_wasm::traits::*;
+use proxy_wasm::types::*;
+use serde::Deserialize;
+
+proxy_wasm::main! {{
+    proxy_wasm::set_log_level(LogLevel::Trace);
+    proxy_wasm::set_root_context(|_| -> Box<dyn RootContext> {
+        Box::new(CustomAuthRootContext {
+            config: CustomAuthConfig::default(),
+        })
+    });
+}}
+----
++
+The code is required to deploy your WASM Filter to Envoy. Its `main` block sets the root context, which is an Envoy entity used to generate the child context for each incoming HTTP request.
+
+.. Add the following root context implementation code:
++
+----
+struct CustomAuthRootContext {
+    config: CustomAuthConfig,
+}
+
+impl Context for CustomAuthRootContext {}
+
+impl RootContext for CustomAuthRootContext {
+
+    fn create_http_context(&self, _: u32) -> Option<Box<dyn HttpContext>> {
+        Some(Box::new(CustomAuthHttpContext {
+            config: self.config.clone(),
+        }))
+    }
+
+    fn get_type(&self) -> Option<ContextType> {
+        Some(ContextType::HttpContext)
+    }
+}
+----
++
+Each Envoy filter is required to provide a root context implementation. The `RootContext` trait contains useful methods that can be implemented. In this example, HTTP filters implement `create_http_context` and `get_type` so that Envoy can generate the child contexts.
+
+.. Add the policy configuration code.
++
+Flex Gateway configures your policy with JSON defined in the policy definition. Add the following `Struct` to enable parsing this JSON:
++
+----
+#[derive(Default, Clone, Deserialize)]
+struct CustomAuthConfig {
+
+    #[serde(alias = "secret-value")]
+    secret_value: String,
+}
+----
++
+The JSON that needs to be parsed is single-field, called `secret-value`.
++
+Next, implement the `on_configure` method of the `RootContext` trait to deserialize the configuration. Add the following code:
++
+----
+impl RootContext for HttpConfigHeaderRoot {
+
+    fn on_configure(&mut self, _: usize) -> bool {
+        if let Some(config_bytes) = self.get_plugin_configuration() {
+            self.config = serde_json::from_slice(config_bytes.as_slice()).unwrap();
+        }
+
+        true
+    }
+
+    fn create_http_context(&self, _: u32) -> Option<Box<dyn HttpContext>> {
+        Some(Box::new(HttpConfigHeader {
+            config: self.config.clone(),
+        }))
+    }
+
+    fn get_type(&self) -> Option<ContextType> {
+        Some(ContextType::HttpContext)
+    }
+}
+----
+
+.. Add the HTTP context code.
++
+Because this example custom policy is HTTP-based, an HTTP context must be implemented using the `HttpContext` trait. Add the following HTTP context code:
++
+----
+struct CustomAuthHttpContext {
+    pub config: CustomAuthConfig,
+}
+
+impl Context for CustomAuthHttpContext {}
+
+impl HttpContext for CustomAuthHttpContext {}
+----
++
+Each incoming request creates a new `CustomAuthHttpContext`. This `CustomAuthHttpContext` lives as long as the HTTP request lives. Therefore it is possible to store request-related state data (but not inter-request state.) 
+
+.. Add the core policy functionality logic.
++
+You can now implement core functionality. The `proxy-wasm` ABI retrieves the header value of the incoming request, then compares the value against `secret-value`.
++
+Add the following core functionality logic:
++
+----
+impl HttpContext for CustomAuthHttpContext {
+    fn on_http_request_headers(&mut self, _num_headers: usize, _end_of_stream: bool) -> Action {
+
+        if let Some(value) = self.get_http_request_header("x-custom-auth") {
+            if self.config.secret_value == value {
+                return Action::Continue;
+            }
+        }
+
+        self.send_http_response(401, Vec::new(), None);
+
+        Action::Pause
+    }
+}
+----
++
+If `secret-value` matches the header, the implementation returns an `Action::Continue`. Otherwise, it returns `Action::Pause` and the filter itself emits a response to the calling client using `send_http_response`.
+
+.. Compile the policy.
++
+To compile, Rust requires that you add `wasm32` as a target. Execute the following command:
++
+----
+rustup target add wasm32-unknown-unknown
+----
++
+Compile your custom policy by executing the following command:
++
+----
+cargo build --target wasm32-unknown-unknown --release
+----
++
+Compilation outputs a binary `.wasm` file into the `./target/wasm32-unknown-unknown/release` directory. 
++
+The size of the binary file can be large, even with few dependencies. It is therefore recommended to optimize file size using `wasm-gc`, a CLI that removes unneeded exports, imports, and functions. The optimized binary can be up to 90% lighter. 
++
+Install `wasm-gc` via the following command:
++
+----
+cargo install wasm-gc
+----
++
+Then execute `wasm-gc` against your binary:
++
+----
+wasm-gc target/wasm32-unknown-unknown/release/flex_custom_policy_example.wasm -o target/flex_custom_policy_example-final.wasm
+----
++
+The optimized binary can now be found in `./target` directory. Push this binary to Exchange when publishing the new policy implementation.
++
+For more information on pushing custom policies to Exchange, refer to xref:policies-custom-flex-getting-started.adoc[Publish a Flex Gateway or Mule 4 Custom Policy].
+
+
