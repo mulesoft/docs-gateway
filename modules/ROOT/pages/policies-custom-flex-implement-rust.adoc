@@ -1,34 +1,35 @@
-= Implement a Flex Gateway Custom Policy in Rust
+= Implementing a Flex Gateway Custom Policy in Rust
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 
 == Summary
 
-You can implement custom policies via WebAssembly (WASM) extensions that run on Envoy as custom filters. These filters (policies) are implemented using the https://github.com/proxy-wasm/proxy-wasm-rust-sdk[WebAssembly for Proxies (Rust SDK)^]. The following examples assume knowledge about Rust and related tools.
+You can implement custom policies via WebAssembly (WASM) extensions that run on Envoy as custom filters. You implement these policies using the https://github.com/proxy-wasm/proxy-wasm-rust-sdk[WebAssembly for Proxies (Rust SDK)^]. The following examples assume knowledge about Rust and related tools.
 
 == Lifecycle Events
 
-Custom policies are based on https://github.com/proxy-wasm/spec[proxy-wasm ABI^], an event-driven, Envoy-agnostic, low-level interface for L4/L7 proxies. This interface specifies how a WASM extension and its host interact, and it includes listenable lifecycle events - HTTP request lifecycle events and also WASM filter lifecycle events.
+Custom policies are based on https://github.com/proxy-wasm/spec[proxy-wasm ABI^], an event-driven, Envoy-agnostic, low-level interface for L4/L7 proxies. This interface specifies how a WASM extension and its host interact, and it includes listenable lifecycle events: HTTP request lifecycle events and also WASM filter lifecycle events.
 
 The SDK exposes a method to retrieve information related to each lifecycle event. For example, data retrieved from the `on_http_request_headers` event can be used to perform related custom policy logic, which can then inform the runtime if the request should be processed.
 
 === HTTP Request Lifecycle Events
+
 * `on_http_request_headers`
 +
-Triggered when the complete set of HTTP request headers is received.
+Triggered when the endpoint receives the complete set of HTTP request headers.
 
 * `on_http_request_body`
 +
-Triggered when the first bytes of the HTTP request body are received.
+Triggered when the endpoint receives the first bytes of the HTTP request.
 
 * `on_http_response_headers`
 +
-Triggered when the complete set of HTTP response headers is received.
+Triggered when the endpoint receives the complete set of HTTP response headers.
 
 * `on_http_response_body`
 +
-Triggered when the first bytes of the HTTP response body are received.
+Triggered when the endpoint receives the first bytes of the HTTP response body.
 
 === Filter Lifecycle Events
 
@@ -112,9 +113,9 @@ The example policy blocks requests whose `x-custom-auth` header does not match a
 
 . Create the policy definition JSON file.
 +
-Example policy implementations require a policy definition JSON file. Flex Gateway passes policy configuration as a JSON with that policy definition structure to the Envoy WASM Filter.
+Example policy implementations require a policy definition JSON file. Flex Gateway passes policy configuration as JSON with that policy definition structure to the Envoy WASM filter.
 +
-The example authentication header policy has only one parameter: the value that needs to be passed in the header. Therefore the policy definition JSON file should match the following:
+The example authentication header policy has only one parameter: the value that needs to be passed in the header. The policy definition JSON file should match the following:
 +
 ----
  {
@@ -195,7 +196,7 @@ proxy_wasm::main! {{
 }}
 ----
 +
-The code is required to deploy your WASM Filter to Envoy. Its `main` block sets the root context, which is an Envoy entity used to generate the child context for each incoming HTTP request.
+The code is required to deploy your WASM filter to Envoy. The `main` block sets the root context, which is an Envoy entity used to generate the child context for each incoming HTTP request.
 
 .. Add the following root context implementation code:
 +
@@ -220,7 +221,7 @@ impl RootContext for CustomAuthRootContext {
 }
 ----
 +
-Each Envoy filter is required to provide a root context implementation. The `RootContext` trait contains useful methods that can be implemented. In this example, HTTP filters implement `create_http_context` and `get_type` so that Envoy can generate the child contexts.
+Each Envoy filter is required to provide a root context implementation. The `RootContext` trait contains useful methods you can implement. In this example, HTTP filters implement `create_http_context` and `get_type` so that Envoy can generate the child contexts.
 
 .. Add the policy configuration code.
 +
@@ -235,7 +236,7 @@ struct CustomAuthConfig {
 }
 ----
 +
-The JSON that needs to be parsed is single-field, called `secret-value`.
+The JSON that needs to be parsed contains a single field called `secret-value`.
 +
 Next, implement the `on_configure` method of the `RootContext` trait to deserialize the configuration. Add the following code:
 +
@@ -264,7 +265,7 @@ impl RootContext for HttpConfigHeaderRoot {
 
 .. Add the HTTP context code.
 +
-Because this example custom policy is HTTP-based, an HTTP context must be implemented using the `HttpContext` trait. Add the following HTTP context code:
+Because this example custom policy is HTTP-based, you must implement an HTTP context using the `HttpContext` trait. Add the following HTTP context code:
 +
 ----
 struct CustomAuthHttpContext {
@@ -276,11 +277,11 @@ impl Context for CustomAuthHttpContext {}
 impl HttpContext for CustomAuthHttpContext {}
 ----
 +
-Each incoming request creates a new `CustomAuthHttpContext`. This `CustomAuthHttpContext` lives as long as the HTTP request lives. Therefore it is possible to store request-related state data (but not inter-request state.) 
+Each incoming request creates a new `CustomAuthHttpContext`, and this `CustomAuthHttpContext` lives as long as the HTTP request lives. This enables you to store request-related state data (but not inter-request state data.) 
 
 .. Add the core policy functionality logic.
 +
-You can now implement core functionality. The `proxy-wasm` ABI retrieves the header value of the incoming request, then compares the value against `secret-value`.
+You can now implement core functionality. The `proxy-wasm` ABI retrieves the header value of the incoming request and then compares the value against `secret-value`.
 +
 Add the following core functionality logic:
 +
@@ -301,7 +302,7 @@ impl HttpContext for CustomAuthHttpContext {
 }
 ----
 +
-If `secret-value` matches the header, the implementation returns an `Action::Continue`. Otherwise, it returns `Action::Pause` and the filter itself emits a response to the calling client using `send_http_response`.
+If `secret-value` matches the header, the implementation returns an `Action::Continue`. Otherwise, it returns `Action::Pause`, and the filter itself emits a response to the calling client using `send_http_response`.
 
 .. Compile the policy.
 +
@@ -319,7 +320,7 @@ cargo build --target wasm32-unknown-unknown --release
 +
 Compilation outputs a binary `.wasm` file into the `./target/wasm32-unknown-unknown/release` directory. 
 +
-The size of the binary file can be large, even with few dependencies. It is therefore recommended to optimize file size using `wasm-gc`, a CLI that removes unneeded exports, imports, and functions. The optimized binary can be up to 90% lighter. 
+The size of the binary file can be large, even with few dependencies. Optimize file size using `wasm-gc`, a CLI that removes unneeded exports, imports, and functions. The optimized binary can be up to 90% lighter. 
 +
 Install `wasm-gc` via the following command:
 +
