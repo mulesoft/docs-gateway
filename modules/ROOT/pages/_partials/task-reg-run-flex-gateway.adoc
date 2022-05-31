@@ -177,7 +177,7 @@ or name, of the `.conf` file for later use. For example, `/Users/jane/flex-gatew
 Determine the path for these files, then save the path and the UUID, or name, of the files. For example, `/Users/jane/flex-gateway/6eb79785-c2f0-4e06-b574-8a030a321d74`. 
 
 Then update the permissions of the files: 
-[source]
+[source,ssh]
 ----
 chmod 644 <path-and-uuid-of-registration-files>.*
 ----
@@ -240,7 +240,7 @@ Before executing the start command, you must create a  configuration directory a
 
 First create the configuration directory using the following command: 
 
-[source]
+[source,ssh]
 ----
 sudo mkdir /etc/systemd/system/flex-gateway-agent.service.d/
 ----
@@ -249,7 +249,7 @@ Afterwards, create a configuration file within that directory and name it `env.c
 
 Finally, edit the file with vim using the following command: 
 
-[source]
+[source,ssh]
 ----
 sudo vi env.conf
 ----
@@ -261,7 +261,7 @@ sudo vi env.conf
 
 Add the content below to the `env.conf` file, after replacing the following sample content with your own: 
 
-*  `<path-and-uuid-of-conf-file>.conf` = the path and UUID of the `.conf` file that was created when you registered the gateway
+* `<path-and-uuid-of-conf-file>.conf` = the path and UUID of the `.conf` file that was created when you registered the gateway
 * `<name-for-flex-replica>` = a name for your Flex Replica
 
 [source,subs=attributes+]
@@ -280,14 +280,14 @@ After you have added the content to the `env.conf` file, save the file with ESC 
 
 Reload the `env.conf` configuration with the following command:
 
-[source]
+[source,ssh]
 ----
 sudo systemctl daemon-reload
 ----
 
 Start Flex Gateway with the following command: 
 
-[source]
+[source,ssh]
 ----
 sudo systemctl start flex-gateway
 ----
@@ -301,7 +301,7 @@ systemctl list-units flex-gateway*
 
 You should see a list of services. Flex Gateway is successfully running if each service has a status of `active`.
 
-[source,ssh]
+[source,text]
 ----
   UNIT                              LOAD   ACTIVE SUB     DESCRIPTION
   flex-gateway-fluent-reloader.path loaded active waiting flex-gateway-fluent-reloader.path

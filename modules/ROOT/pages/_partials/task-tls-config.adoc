@@ -1,0 +1,196 @@
+//tag::intro[]
+Using HTTPS protects the communication between the client and Flex Gateway with encryption. If you want to use HTTPS as your Schema
+when creating an API Instance using Flex Gateway as your runtime, you must manually configure the TLS context
+in a YAML configuration file. Your YAML configuration file can be formatted to apply TLS to a specific API Instance
+only, or to all API Instances for your organization.
+
+Configuring TLS is the same process for both Local and Connected Mode.
+
+You can configure TLS context for a Flex Gateway running in a Docker container, as a Linux Service,
+or as a Kubernetes Ingress Controller.
+//end::intro[]
+//tag::icon-table[]
+
+[cols="1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="flex-{page-mode}-tls-config.adoc#configure-tls-context-for-flex-gateway-as-a-linux-service"]
+|image:install-docker-logo.png[25%,25%,xref="flex-{page-mode}-tls-config.adoc#configure-tls-context-for-flex-gateway-in-a-docker-container"]
+|image:install-kubernetes-logo.png[20%,20%,xref="flex-{page-mode}-tls-config.adoc#configure-tls-context-for-flex-gateway-as-a-kubernetes-ingress-controller"]
+
+|xref:flex-{page-mode}-tls-config.adoc#configure-tls-context-for-flex-gateway-as-a-linux-service[Configure TLS Context for Flex Gateway as a Linux Service]
+|xref:flex-{page-mode}-tls-config.adoc#configure-tls-context-for-flex-gateway-in-a-docker-container[Configure TLS Context for Flex Gateway in a Docker Container]
+|xref:flex-{page-mode}-tls-config.adoc#configure-tls-context-for-flex-gateway-as-a-kubernetes-ingress-controller[Configure TLS Context for Flex Gateway as a Kubernetes Ingress Controller]
+|===
+
+//end::icon-table[]
+//tag::byb[]
+
+== Before You Begin
+
+Before configuring the TLS context for a Flex Gateway, you must complete the following tasks:
+
+* xref:flex-install.adoc[Install a Flex Gateway]
+* xref:flex-conn-reg-run.adoc[Register and Run Flex Gateway]
+
+//end::byb[]
+//tag::linux[]
+
+== Configure TLS Context for Flex Gateway as a Linux Service
+
+. Stop your Flex Gateway and any replicas, Ctrl+C on a Mac.
+. Create a folder in the `/etc/mulesoft/flex-gateway/conf.d` directory and name it "custom":
++
+[source,ssh]
+----
+sudo mkdir /etc/mulesoft/flex-gateway/conf.d/custom
+----
+
+. Create a YAML configuration file in the custom folder:
++
+[source,ssh]
+----
+sudo touch /etc/mulesoft/flex-gateway/conf.d/custom/tls-config.yaml
+----
+
+. Update the file with your TLS configuration context. For example:
++
+[source,ssh]
+----
+sudo vi /etc/mulesoft/flex-gateway/conf.d/custom/tls-config.yaml
+----
++
+//end::linux[]
+//tag::docker[]
+
+== Configure TLS Context for Flex Gateway in a Docker Container
+
+. Stop your Flex Gateway and any replicas, Ctrl+C on a Mac.
+. Create a folder in the directory with your Flex Gateway configuration files and name it "app".
+. Restart your Flex Gateway with an additional volume for the new "app" directory:
++
+[source,ssh]
+----
+docker run --rm \
+-v $(pwd)/:/etc/flex-gateway/rtm \
+-v $(pwd)/app/:/etc/mulesoft/flex-gateway/conf.d/custom \
+-p 8081:8081 \
+-e FLEX_RTM_ARM_AGENT_CONFIG=/etc/flex-gateway/rtm/<UUID-of-conf-file>.conf \
+-e FLEX_NAME=<name-for-flex-gateway-instance> \
+mulesoft/flex-gateway
+----
+
+. Create and save a YAML configuration file in your "app" folder with the following TLS policy configuration:
++
+//end::docker[]
+//tag::k8s[]
+
+== Configure TLS Context for Flex Gateway as a Kubernetes Ingress Controller
+
+To configure the TLS context for Flex Gateway:
+
+. Stop your Flex Gateway and any replicas.
+. Create a new resource with the a YAML configuration file with the following TLS policy configuration:
++
+
+//end::k8s[]
+//tag::sample-config-all-intro[]
+Sample configuration for adding TLS context for all API Instances for your Organization:
+//end::sample-config-all-intro[]
+//tag::sample-config-all[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: ingress-http-tls
+spec:
+  targetRef:
+    kind: Selector 
+    selector:
+      kind: ApiInstance
+  policyRef:
+    name: tls
+  config:
+    certificate:
+      key: |
+        # -----BEGIN PRIVATE KEY-----
+        # insert certificate key
+        # -----END PRIVATE KEY-----
+      crt: |
+        # -----BEGIN CERTIFICATE-----
+        # insert certificate
+        # -----END CERTIFICATE-----
+    alpn:
+      - http/1.1
+      - h2
+    minversion: "1.1"
+    maxversion: "1.3"
+    ciphers:
+      - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+      - TLS_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+      - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+      - TLS_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_RSA_WITH_AES_128_CBC_SHA
+      - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+      - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+      - TLS_RSA_WITH_AES_256_GCM_SHA384
+      - TLS_RSA_WITH_AES_256_CBC_SHA
+----
+//end::sample-config-all[]
+//tag::sample-config-instance-intro[]
+Sample configuration for adding TLS context for a specific API Instance:
+//end::sample-config-instance-intro[]
+//tag::sample-config-instance[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: ingress-http-tls
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: ingress-http
+  policyRef:
+    name: tls
+  config:
+    certificate:
+      key: |
+        # -----BEGIN PRIVATE KEY-----
+        # insert certificate key
+        # -----END PRIVATE KEY-----
+      crt: |
+        # -----BEGIN CERTIFICATE-----
+        # insert certificate
+        # -----END CERTIFICATE-----
+    alpn:
+      - http/1.1
+      - h2
+    minversion: "1.1"
+    maxversion: "1.3"
+    ciphers:
+      - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+      - TLS_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+      - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+      - TLS_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_RSA_WITH_AES_128_CBC_SHA
+      - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+      - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+      - TLS_RSA_WITH_AES_256_GCM_SHA384
+      - TLS_RSA_WITH_AES_256_CBC_SHA
+----
+//end::sample-config-instance[]
+
+//tag::config-ref[]
+See xref:gateway::policies-included-tls.adoc[Transport Layer Security Policy] for more information about configuration options.
+//end::config-ref[]
