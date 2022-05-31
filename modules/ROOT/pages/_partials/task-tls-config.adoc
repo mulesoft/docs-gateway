@@ -1,14 +1,15 @@
 //tag::intro[]
-Using HTTPS protects the communication between the client and Flex Gateway with encryption. If you want to use HTTPS as your Schema
+Using HTTPS protects the communication between the client and Flex Gateway with encryption. If you want to use HTTPS as your schema
 when creating an API Instance using Flex Gateway as your runtime, you must manually configure the TLS context
 in a YAML configuration file. Your YAML configuration file can be formatted to apply TLS to a specific API Instance
 only, or to all API Instances for your organization.
-
+//end::intro[]
+//tag::intro2[]
 Configuring TLS is the same process for both Local and Connected Mode.
 
 You can configure TLS context for a Flex Gateway running in a Docker container, as a Linux Service,
 or as a Kubernetes Ingress Controller.
-//end::intro[]
+//end::intro2[]
 //tag::icon-table[]
 
 [cols="1a,1a,1a"]
@@ -52,7 +53,7 @@ sudo mkdir /etc/mulesoft/flex-gateway/conf.d/custom
 sudo touch /etc/mulesoft/flex-gateway/conf.d/custom/tls-config.yaml
 ----
 
-. Update the file with your TLS configuration context. For example:
+. Update the file with your TLS context details. For example:
 +
 [source,ssh]
 ----
@@ -79,7 +80,7 @@ docker run --rm \
 mulesoft/flex-gateway
 ----
 
-. Create and save a YAML configuration file in your "app" folder with the following TLS policy configuration:
+. Create and save a YAML configuration file in your "app" folder with your TLS context details.
 +
 //end::docker[]
 //tag::k8s[]
@@ -89,7 +90,7 @@ mulesoft/flex-gateway
 To configure the TLS context for Flex Gateway:
 
 . Stop your Flex Gateway and any replicas.
-. Create a new resource with the a YAML configuration file with the following TLS policy configuration:
+. Create a new resource with the a YAML configuration file with your TLS context details.
 +
 
 //end::k8s[]
@@ -192,5 +193,5 @@ spec:
 //end::sample-config-instance[]
 
 //tag::config-ref[]
-See xref:gateway::policies-included-tls.adoc[Transport Layer Security Policy] for more information about configuration options.
+See xref:gateway::policies-included-tls.adoc[Transport Layer Security Policy] for more information about TLS context configuration options.
 //end::config-ref[]
