@@ -12,6 +12,7 @@ endif::[]
 >s|Summary      | Logs custom messages using information from incoming requests, responses from the backend, or information from other policies applied to the same API endpoint
 >s|Category | Troubleshooting
 >s|First Flex version available | v1.0.0
+>s|First Mule version available | v3.8.0
 .1+>.^s| Returned Status Codes
 | No return codes exist for this policy
 |===
@@ -77,10 +78,10 @@ In Local Mode, you apply the Message Logging policy to your API via declarative 
 | Default category
 | Log message prefix that indicates the package and class where the log is executed
 
-| `loggingConfiguration.itemData.category`
-| Optional
-| Default category
-| Log message prefix that indicates the package and class where the log is executed
+| `loggingConfiguration.itemData.level`
+| Required
+| N/A
+| Defines the level of message to log: INFO, WARN, ERROR, or DEBUG
 
 |===
 
@@ -287,7 +288,13 @@ Logging a policy consists of the following sequence:
 A message log uses the following format:
 
 * Flex:
-`<date> [flex-gateway-envoy][<level>] wasm log [accessLog] main: <category>: <message>`
+`<date> [flex-gateway-envoy][<level>] wasm log <policy-name>.default.<api-name>.default.svc main: [req: <request uuid>] [accessLog] <message>`
+
+`policy-name`: displays the name of the policy binding:
+
+`api-name`: displays the name of the api instance:
+
+`request uuid`: displays a unique identifier for the request that triggered the message:
 
 * Mule:
 `<date> <thread name> <level> <category>: <message>`
@@ -300,9 +307,12 @@ A message log uses the following format:
 
 `category` typically indicates the package and class where the logging occurred. The default value is `org.mule.runtime.logging.policy-<policy id>`.
 
+
 `message`: displays the message to be logged, for example, `the payload`:
 
 `2018-01-25 18:57:29,907 [WrapperListener_start_runner] INFO org.mule: the payload`
+
+`2022-05-04T14:50:43.035570800Z [flex-gateway-envoy][debug] wasm log ingress-http-auth.default.ingress-http.default.svc main: [req: 61c7fdcb-8d22-4cb1-852b-0d5073f23950] [accessLog] the payload`
 
 == Logging States During Events
 
