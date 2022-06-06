@@ -13,31 +13,30 @@ The following examples describe how to configure Flex Gateway for use with the F
 To enable access logging, you must: 
 
 . Configure the File or HTTP output.
-. Apply the `access-log` policy via policy binding. See <<access-logs,Access Logs>>.
+. Apply the Message Logging policy via policy binding. See <<access-logs,Access Logs>>.
 ====
 
 == File Configuration Example
 
 Configure Flex Gateway to send formatted runtime and access logs to a file called `log.txt` (Fluentbit https://docs.fluentbit.io/manual/v/1.7/pipeline/outputs/file[File^] output), located within `/var/log` directory. As an example, the following definition specifies a `spec.logging.outputs.type` value of `file`:
 
-NOTE: For Docker, in `spec.logging.output.parameters.path`, replace `/var/log` with the absolute path to the mounted configuration directory.
+NOTE: For Docker, in `spec.logging.output.parameters.file`, replace `/var/log` with the absolute path to the mounted configuration directory.
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Configuration
 metadata:
-  name: metrics-config
+  name: logging-config
 spec:
   logging:
     outputs:
     - name: default
       type: file
       parameters:
-        path: /var/log  # Docker: replace this value with the absolute path to the mounted configuration directory
-        file: log.txt
+        file: /var/log/log.txt # Docker: replace `/var/log` with the absolute path to the mounted configuration directory
         format: template
         template: |
-          [{runtime}][{loglevel}][{kind}] {message}
+          [{logger}][{level}][{kind}] {message}
     runtimeLogs:
       logLevel: info
       outputs:
@@ -55,7 +54,7 @@ In addition to configuring logging for Fluentbit File output, you can also confi
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Configuration
 metadata:
-  name: metrics-config
+  name: logging-config
 spec:
   logging:
     outputs:
@@ -63,7 +62,7 @@ spec:
       type: http
       parameters:
         host: collectors.au.sumologic.com
-        port: 443
+        port: "443"
         URI: /receiver/v1/http/[PrivateKey]
         format: json_lines
         json_date_key: timestamp
@@ -82,7 +81,7 @@ spec:
 
 After specifying access log output (as described in the previous configuration examples), you must enable access logs via policy binding. 
 
-For inline configurations, enable access logs by adding `access-log` to the `spec.policies` section of `ApiInstance`. The following is an inline configuration example:
+For inline configurations, enable access logs by adding `message-logging-flex` to the `spec.policies` section of `ApiInstance`. The following is an inline configuration example:
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -99,10 +98,22 @@ spec:
             - path: /api(/users/.*)
   policies:
     - policyRef:
-        name: access-log
+        name: message-logging-flex
+      config:
+        loggingConfiguration:
+          - itemName: "Access Log Request"
+            itemData:
+              message: "#[attributes.version ++ ' ' ++ attributes.method ++ ' ' ++ attributes.requestUri]"
+              level: "INFO"
+              firstSection: true
+          - itemName: "Access Log Response"
+            itemData:
+              message: "#[attributes.statusCode ++ ' ' ++ (attributes.headers['content-length'] default '')]"
+              level: "INFO"
+              secondSection: true
 ----
 
-For resource-based configurations, enable access logs by adding `access-log` to the `spec.policyRef` section of `PolicyBinding`. The following is a resource-based configuration example: 
+For resource-based configurations, enable access logs by adding `message-logging-flex` to the `spec.policyRef` section of `PolicyBinding`. The following is a resource-based configuration example:
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -111,9 +122,23 @@ metadata:
   name: ingress-http-access-logs
 spec:
   targetRef:
+    kind: ApiInstance
     name: ingress-http
   policyRef:
-    name: access-log
+    kind: Extension
+    name: message-logging-flex
+  config:
+    loggingConfiguration:
+      - itemName: "Access Log Request"
+        itemData:
+          message: "#[attributes.version ++ ' ' ++ attributes.method ++ ' ' ++ attributes.requestUri]"
+          level: "INFO"
+          firstSection: true
+      - itemName: "Access Log Response"
+        itemData:
+          message: "#[attributes.statusCode ++ ' ' ++ (attributes.headers['content-length'] default '')]"
+          level: "INFO"
+          secondSection: true
 ----
 
 

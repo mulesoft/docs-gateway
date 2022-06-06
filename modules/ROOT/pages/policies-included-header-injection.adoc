@@ -12,6 +12,7 @@ endif::[]
 >s|Summary      | Adds headers to a request or a response
 >s|Category | Transformation
 >s|First Mule version available | v4.1.0
+>s| First Flex version available | v1.0.0
 .3+>.^s| Returned Status Codes |
 
 | 500 - The configuration includes an expression that was not evaluated.  
@@ -23,7 +24,7 @@ The Header Injection policy adds HTTP headers to the request or response of a me
 
 image::header-inject-remove-diagram.png[]
 
-You can optionally include DataWeave expressions in the value of the header. For example, all headers matching the following configured expression are injected to the message:
+You can optionally include DataWeave expressions in the value or name of the header. For example, all headers matching the following configured expression are injected to the message:
 
 `“#[attributes.requestPath]”`
 
@@ -31,7 +32,9 @@ If the injected header already exists in the message attributes, the policy crea
 
 [NOTE]
 ====
-To overwrite an existing message header, remove the existing header before you add your header. See the Header Removal policy.
+Only certain headers are restricted to support multiple values, and they will be overwritten using configured values. These headers are: `access-control-allow-origin`, `content-type`, `content-length`, `transfer-encoding`.
+
+To overwrite any other existing message header, remove it before adding your header. See the xref:policies-included-header-removal.adoc[Header Removal] policy.
 ====
 
 == Configuring Policy Parameters
@@ -60,32 +63,32 @@ In Local Mode, you apply the Header Injection policy to your API via declarative
 | `inboundHeaders` 
 | Optional
 | Empty array
-| Map of header names or regular expressions to be injected at the beginning of the message processing, for example, `host, content.*` 
+| List of headers to be injected at the beginning of the message processing.
 
 | `inboundHeaders.name` 
 | Required
 | N/A
-| A string 
+| A string or DataWeave expression for header name
 
 | `inboundHeaders.value` 
 | Required
 | N/A
-| A string 
+| A string or DataWeave expression for header value
 
 | `outboundHeaders` 
 | Optional
 | Empty array
-| List of header names or regular expressions to be injected at the end of the message processing, for example, `content-type` 
+| List of header to be injected at the end of the message processing.
 
 | `outboundHeaders.name` 
 | Required
 | N/A
-| A string 
+| A string or DataWeave expression for header name
 
 | `outboundHeaders.value` 
 | Required
 | N/A
-| A string 
+| A string or DataWeave expression for header value
 
 |===
 
@@ -103,10 +106,10 @@ In the following example, all the headers matching the configured `#[attributes.
     name: header-injection-flex
     config:
       inboundHeaders:
-        - name: "new inbound header"
+        - name: "new-inbound-header"
           value: "#[attributes.requestPath]"
       outboundHeaders:
-        - name: "new outbound header"
+        - name: "new-outbound-header"
           value: "#[attributes.requestPath]"
 ----
 
@@ -117,22 +120,16 @@ When you apply the policy to your API from the UI, the following parameters are 
 [%header%autowidth.spread,cols="a,a"]
 |===
 | *Parameter* | *Description* 
-|Inbound Header Map  | List of header names or regular expressions (comma-separated) to be injected at the beginning of the message processing, for example, `host, content.*`
-|Outbound Header Map | List of header names or regular expressions (comma-separated) to be injected at the end of the message processing, for example, `content-type`
+|Inbound Header Map  | List of headers to be injected at the beginning of the message processing.
+|Inbound Header Key  | String or Dataweave expression to be used as header name at the beginning of the message.
+|Inbound Header Value  | String or Dataweave expression to be used as header value at the beginning of the message.
+|Outbound Header Map | List of headers to be injected at the end of the message processing.
+|Outbound Header Key | String or Dataweave expression to be used as header name at the end of the message processing.
+|Outbound Header Value | String or Dataweave expression to be used as header value at the end of the message processing.
 |Method & Resource conditions |The option to add configurations to only a select few or all methods and resources of the API
 |===
 
 [NOTE]
 ====
-Comma-separated values are not considered multiple values by the Mule HTTP Connector.
+Header keys should be compliance with https://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html#sec2.2[HTTP 1.1^] standard.
 ====
-
-
-
-
-
-
-
-
-
-
