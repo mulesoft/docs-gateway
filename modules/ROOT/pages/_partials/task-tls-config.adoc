@@ -1,15 +1,18 @@
-//tag::intro[]
+//tag::intro1[]
 Using HTTPS protects the communication between the client and Flex Gateway with encryption. If you want to use HTTPS as your schema
-when creating an API Instance using Flex Gateway as your runtime, you must manually configure the TLS context
-in a YAML configuration file. Your YAML configuration file can be formatted to apply TLS to a specific API Instance
-only, or to all API Instances for your organization.
-//end::intro[]
+when creating an API Instance using Flex Gateway as your runtime, you must configure the TLS context
+in a YAML configuration file. 
+//end::intro1[]
 //tag::intro2[]
+Your YAML configuration file can be formatted to apply TLS to a specific API Instance
+only, or to all API Instances running on your Flex Gateway instance.
+//end::intro2[]
+//tag::intro3[]
 Configuring TLS is the same process for both Local and Connected Mode.
 
 You can configure TLS context for a Flex Gateway running in a Docker container, as a Linux Service,
 or as a Kubernetes Ingress Controller.
-//end::intro2[]
+//end::intro3[]
 //tag::icon-table[]
 
 [cols="1a,1a,1a"]
@@ -38,7 +41,6 @@ Before configuring the TLS context for a Flex Gateway, you must complete the fol
 
 == Configure TLS Context for Flex Gateway as a Linux Service
 
-. Stop your Flex Gateway and any replicas, Ctrl+C on a Mac.
 . Create a folder in the `/etc/mulesoft/flex-gateway/conf.d` directory and name it "custom":
 +
 [source,ssh]
@@ -65,6 +67,9 @@ sudo vi /etc/mulesoft/flex-gateway/conf.d/custom/tls-config.yaml
 
 == Configure TLS Context for Flex Gateway in a Docker Container
 
+NOTE: If you have already added an additional volume for a folder with your
+Flex Gateway configuration files, you can skip to the last step.
+
 . Stop your Flex Gateway and any replicas, Ctrl+C on a Mac.
 . Create a folder in the directory with your Flex Gateway configuration files and name it "app".
 . Restart your Flex Gateway with an additional volume for the new "app" directory:
@@ -87,15 +92,12 @@ mulesoft/flex-gateway
 
 == Configure TLS Context for Flex Gateway as a Kubernetes Ingress Controller
 
-To configure the TLS context for Flex Gateway:
-
-. Stop your Flex Gateway and any replicas.
-. Create a new resource with the a YAML configuration file with your TLS context details.
-+
+To configure the TLS context for Flex Gateway, create a new resource with the
+a YAML configuration file with your TLS context details.
 
 //end::k8s[]
 //tag::sample-config-all-intro[]
-Sample configuration for adding TLS context for all API Instances for your Organization:
+Sample configuration for adding TLS context for all API Instances running on this Flex Gateway:
 //end::sample-config-all-intro[]
 //tag::sample-config-all[]
 [source,yaml]
@@ -156,7 +158,7 @@ metadata:
 spec:
   targetRef:
     kind: ApiInstance
-    name: ingress-http
+    name: ingress-https
   policyRef:
     name: tls
   config:
