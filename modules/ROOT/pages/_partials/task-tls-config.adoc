@@ -63,7 +63,7 @@ sudo vi /etc/mulesoft/flex-gateway/conf.d/custom/tls-config.yaml
 ----
 +
 //end::linux[]
-//tag::docker[]
+//tag::docker-intro[]
 
 == Configure TLS Context for Flex Gateway in a Docker Container
 
@@ -73,21 +73,12 @@ Flex Gateway configuration files, you can skip to the last step.
 . Stop your Flex Gateway and any replicas, Ctrl+C on a Mac.
 . Create a folder in the directory with your Flex Gateway configuration files and name it "app".
 . Restart your Flex Gateway with an additional volume for the new "app" directory:
-+
-[source,ssh]
-----
-docker run --rm \
--v $(pwd)/:/etc/flex-gateway/rtm \
--v $(pwd)/app/:/etc/mulesoft/flex-gateway/conf.d/custom \
--p 8081:8081 \
--e FLEX_RTM_ARM_AGENT_CONFIG=/etc/flex-gateway/rtm/<UUID-of-conf-file>.conf \
--e FLEX_NAME=<name-for-flex-gateway-instance> \
-mulesoft/flex-gateway
-----
+//end::docker-intro[]
 
+//tag::docker-config-file-step[]
 . Create and save a YAML configuration file in your "app" folder with your TLS context details.
 +
-//end::docker[]
+//end::docker-config-file-step[]
 //tag::k8s[]
 
 == Configure TLS Context for Flex Gateway as a Kubernetes Ingress Controller
