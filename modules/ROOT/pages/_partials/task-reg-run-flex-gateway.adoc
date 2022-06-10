@@ -316,6 +316,15 @@ You should see a list of services. Flex Gateway is successfully running if each 
 
 === Install Helm Chart into the Namespace
 
+Before installing, ensure that you have:
+
+* https://kubernetes.io/docs/tasks/tools/#kubectl[kubectl^], a tool used to interact with Kubernetes clusters.
+* https://helm.sh/docs/intro/install/[Helm^], a tool used to install Flex Gateway, monitoring tools, and applications. A minimum Helm version of 3.0.0 is required. 
++
+Refer to the <<helm-chart-options,Helm Chart Configuration Options>> for information about customizing the chart.
+
+Install the chart:
+
 . Create the namespace in which Flex Gateway will be installed: 
 +
 [source,kubernetes]
@@ -394,6 +403,7 @@ it will appear in the Runtime Manager UI even if it is no longer running.
 //end::gateway-connected[]
 //tag::helm-chart-options[]
 
+[[helm-chart-options]]
 === Helm Chart Configuration Options
 
 The following table describes the configurable options of the Flex Gateway Ingress Controller Helm chart.
@@ -441,7 +451,7 @@ Possible values: `ifNotPresent`, `Always`, `Never`
 |CPU resource limits in millicores
 
 |`resources.limits.memory`
-|256mi
+|256Mi
 |Memory resource limits
 
 |`service.enabled`
@@ -466,7 +476,7 @@ Possible values: `ClusterIP`, `NodePort`, `LoadBalancer`, `ExternalName`
 |true
 |Boolean indicating if the HTTPS port should be enabled for the Ingress Controller service
 
-|`service.http.port`
+|`service.https.port`
 |443
 |The Ingress Controller service HTTPS port
 
