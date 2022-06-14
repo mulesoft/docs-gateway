@@ -68,18 +68,29 @@ Flex Gateway requires the following minimum hardware configuration:
 == Ports, IPs, and Hostnames Allow list Requirements
 
 For Flex Gateway to communicate with MuleSoft-managed online Anypoint Platform APIs and services, you must add the following hostnames and ports of external resources to the allowlist:
-
+ 
 [%header%autowidth.spread]
 |===
 |Plane |Host |Port| Mode| Description| Protocol
 |*US*|*anypoint.mulesoft.com* | 443| Both| Required to connect with the control plane, push internal metrics, and download custom policy binaries| HTTPS
-|*US*|*us-east-1.prod.msap.io* | 443| Both| Required to send analytics data to the control plane| mTLS
+|*US*|*arm-mcm2-service.kprod.msap.io* | 443| Both| Required to communicate with the Transport Layer| mTLS
+|*US*|*logging.ingestion.us-east-1.prod.cloudhub.io* | 443| Both| Required to send analytics data to the control plane| HTTPS
+|*US*|*metering.ingestion.us-east-1.prod.cloudhub.io* | 443| Both| Required to send analytics data to the control plane| HTTPS
+|*US*|*monitoring.ingestion.us-east-1.prod.cloudhub.io* | 443| Both| Required to send analytics data to the control plane| HTTPS
 |*US*|*exchange-files.anypoint.mulesoft.com* | 443| Connected| Required to download policies| HTTPS
 |*US*|*exchange2-asset-manager-kprod.s3.amazonaws.com* | 443| Connected| Required to download policies| HTTPS
-|*US*|*arm-mcm2-service.kprod.msap.io* | 443| Connected| Required to communicate with the Transport Layer| mTLS
+|*US*|*configuration-resolver.prod.cloudhub.io* | 443| Connected| Required to download policies| HTTPS
 |*EU*|*eu1.anypoint.mulesoft.com* | 443| Both| Required to connect with the control plane, push internal metrics, and download custom policy binaries| HTTPS
-|*EU*|*eu-central-1.prod-eu.msap.io* | 443| Both| Required to send analytics data to the control plane| HTTPS
-|*EU*|*exchange-files.eu1.anypoint.mulesoft.com* | 443| Connected| Required to download policies| HTTPS
 |*EU*|*arm-mcm2-service.kprod-eu.msap.io* | 443| Both| Required to communicate with the Transport Layer| mTLS
+|*EU*|*logging.ingestion.eu-central-1.prod-eu.msap.io* | 443| Both| Required to send analytics data to the control plane| HTTPS
+|*EU*|*metering.ingestion.eu-central-1.prod-eu.msap.io* | 443| Both| Required to send analytics data to the control plane| HTTPS
+|*EU*|*monitoring.ingestion.eu-central-1.prod-eu.msap.io* | 443| Both| Required to send analytics data to the control plane| HTTPS
+|*EU*|*configuration-resolver.prod-eu.msap.io* | 443| Connected| Required to download policies| HTTPS
+|*EU*|*exchange-files.eu1.anypoint.mulesoft.com* | 443| Connected| Required to download policies| HTTPS
+|*EU*|*exchange2-asset-manager-kprod-eu.s3.eu-central-1.amazonaws.com* | 443| Connected| Required to download policies| HTTPS
 |===
- 
+
+[NOTE]
+====
+Ports 4000, 9999, 15000, and 15100 are reserved for internal processes, and should not be used in `ApiInstance` definitions.
+====
