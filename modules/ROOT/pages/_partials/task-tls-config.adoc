@@ -1,17 +1,17 @@
 //tag::intro1[]
-Using HTTPS protects the communication between the client and Flex Gateway with encryption. If you want to use HTTPS as your schema
+Using HTTPS protects the communication between the client and Flex Gateway with encryption. To use HTTPS as your schema
 when creating an API Instance using Flex Gateway as your runtime, you must configure the TLS context
 in a YAML configuration file. 
 //end::intro1[]
 //tag::intro2[]
-Your YAML configuration file can be formatted to apply TLS to a specific API Instance
-only, or to all API Instances running on your Flex Gateway instance.
+You can format the YAML file to configure TLS either for a specific API Instance
+or or for all API Instances running on your Flex Gateway.
 //end::intro2[]
 //tag::intro3[]
 Configuring TLS is the same process for both Local and Connected Mode.
 
-You can configure TLS context for a Flex Gateway running in a Docker container, as a Linux Service,
-or as a Kubernetes Ingress Controller.
+You can configure the TLS context for a Flex Gateway running in a Docker container, as a Linux Service,
+or as a Kubernetes Ingress controller.
 //end::intro3[]
 //tag::icon-table[]
 
@@ -33,7 +33,7 @@ or as a Kubernetes Ingress Controller.
 
 Before configuring the TLS context for a Flex Gateway, you must complete the following tasks:
 
-* xref:flex-install.adoc[Install a Flex Gateway]
+* xref:flex-install.adoc[Install Flex Gateway]
 * xref:flex-conn-reg-run.adoc[Register and Run Flex Gateway]
 
 //end::byb[]
@@ -41,14 +41,14 @@ Before configuring the TLS context for a Flex Gateway, you must complete the fol
 
 == Configure TLS Context for Flex Gateway as a Linux Service
 
-. Create a folder in the `/etc/mulesoft/flex-gateway/conf.d` directory and name it "custom":
+. Create a folder in the `/etc/mulesoft/flex-gateway/conf.d` directory and name it `custom`:
 +
 [source,ssh]
 ----
 sudo mkdir /etc/mulesoft/flex-gateway/conf.d/custom
 ----
 
-. Create a YAML configuration file in the custom folder:
+. Create a YAML configuration file in the `custom` folder:
 +
 [source,ssh]
 ----
@@ -68,22 +68,22 @@ sudo vi /etc/mulesoft/flex-gateway/conf.d/custom/tls-config.yaml
 == Configure TLS Context for Flex Gateway in a Docker Container
 
 NOTE: If you have already added an additional volume for a folder with your
-Flex Gateway configuration files, you can skip to the last step.
+Flex Gateway configuration files, go to the last step.
 
-. Stop your Flex Gateway and any replicas, Ctrl+C on a Mac.
-. Create a folder in the directory with your Flex Gateway configuration files and name it "app".
-. Restart your Flex Gateway with an additional volume for the new "app" directory:
+. Stop your Flex Gateway and any replicas, using Ctrl+C.
+. Create a folder in the directory with your Flex Gateway configuration files and name it `app`.
+. Restart your Flex Gateway with an additional volume for the new `app` directory:
 //end::docker-intro[]
 
 //tag::docker-config-file-step[]
-. Create and save a YAML configuration file in your "app" folder with your TLS context details.
+. Create and save a YAML configuration file in your `app` folder with your TLS context details.
 +
 //end::docker-config-file-step[]
 //tag::k8s[]
 
 == Configure TLS Context for Flex Gateway as a Kubernetes Ingress Controller
 
-To configure the TLS context for Flex Gateway, create a new resource with the
+To configure the TLS context for Flex Gateway, create a new resource using
 a YAML configuration file with your TLS context details.
 
 //end::k8s[]
