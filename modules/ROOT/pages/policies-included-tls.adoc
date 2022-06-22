@@ -10,21 +10,24 @@ endif::[]
 >s| Policy Name | Transport Layer Security (TLS)
 >s|Summary      | Enables HTTPS
 >s|Category | Security
->s| First Mule version available |
-.4+>.^s| Returned Status Codes |
+>s| First Mule version available | TLS cannot be applied as a policy in Mule.
+>s| First Flex version available | v1.0.0
+.4+>.^s| Returned Status Codes | No return codes exist for this policy.
 [%autowidth.spread,cols="a,a"]
 | 
 |===
 
 == Summary
 
-In order to use HTTPS, the Transport Layer Security policy must be bound to your API instance.
+HTTPS uses encryption to protect the communication between the client and Flex Gateway. To use HTTPS as your schema, bind the Transport Layer Security policy to your API instance. 
 
 == Configuring Policy Parameters
 
-=== Flex Gateway Local Mode
+=== Flex Gateway
 
-In Local Mode, you apply the TLS policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
+To use HTTPS as your schema
+when creating an API Instance using Flex Gateway as your runtime, you must manually configure the TLS context
+in a YAML configuration file. Refer to the following policy definition and table of parameters:
 
 ----
 - policyRef:
@@ -46,84 +49,52 @@ In Local Mode, you apply the TLS policy to your API via declarative configuratio
 | `certificate` 
 | Required
 | N/A
-| 
+| A TLS certificate key pair
 
 | `certificate.key` 
 | Required
 | N/A
-| 
+| The private key part of the certificate
 
 | `certificate.crt` 
 | Required
 | N/A
-| 
+| The public key part of the certificate
 
 | `alpn` 
 | Optional
 | 
-|
+|A prioritized list of supported application level protocols; for example, h2, http/1.1, and so forth.
 
 | `minversion` 
 | Optional
 | 
-|
+|The minimum TLS version allowed
 
 | `maxversion` 
 | Optional
 | 
-|
+|The maximum TLS version allowed
 
 | `ciphers` 
 | Optional
 | 
-|
+|A list of supported TLS ciphers (IANA format)
 
 |===
 
 ==== Resource Configuration Example
 
-----
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: PolicyBinding
-metadata:
-  name: ingress-http-tls
-spec:
-  targetRef:
-    kind: ApiInstance 
-    name: ingress-http
-  policyRef:
-    name: tls
-  config:
-    certificate:
-      key: |
-        -----BEGIN PRIVATE KEY-----
-        -----END PRIVATE KEY-----
-
-      crt: |
-        -----BEGIN CERTIFICATE-----
-        -----END CERTIFICATE-----
-
-    alpn:
-      - http/1.1
-      - h2
-    minversion: "1.1"
-    maxversion: "1.3"
-    ciphers:
-      - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
-      - TLS_CHACHA20_POLY1305_SHA256
-      - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-      - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
-      - TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
-      - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
-      - TLS_RSA_WITH_AES_128_GCM_SHA256
-      - TLS_RSA_WITH_AES_128_CBC_SHA
-      - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
-      - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-      - TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
-      - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
-      - TLS_RSA_WITH_AES_256_GCM_SHA384
-      - TLS_RSA_WITH_AES_256_CBC_SHA
-----
+// intro 
+include::gateway::partial$task-tls-config.adoc[tags=intro2]
+// sample config applied to all apis on gateway intro
+include::gateway::partial$task-tls-config.adoc[tags=sample-config-all-intro]
+//sample config applied to all apis on gateway
+include::gateway::partial$task-tls-config.adoc[tags=sample-config-all]
+//sample config applied a specific api intro
+include::gateway::partial$task-tls-config.adoc[tags=sample-config-instance-intro]
+//sample config applied to a specific api
+include::gateway::partial$task-tls-config.adoc[tags=sample-config-instance]
 
 After adding your private key and certificate information, verify that the policy was correctly applied. The following `curl` command tests an HTTPS endpoint with an example certificate that matches the certificate specified in the policy binding configuration resource.
 
