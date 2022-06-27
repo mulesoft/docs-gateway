@@ -50,3 +50,35 @@ docker rm <container id>
 ----
 docker rmi mulesoft/flex-gateway
 ----
+
+== Uninstall as a Kubernetes Ingress Controller
+
+To uninstall Flex Gateway as a Kubernetes Controller:
+
+. Uninstall the Helm release. The following example removes a release called “my-release”:
+
+[source,ssh]
+----
+$ helm delete my-release
+----
+
+NOTE: Update `my-release` to the release you have running. To see a list of all releases, use the command `helm list -A`.
+
+. Delete the release namespace if one was specified:
+
+[source,ssh]
+----
+$ kubectl delete namespace gateway
+----
+
+. Delete the custom resource definitions:
+
+[source,ssh]
+----
+$ kubectl delete crds \
+     apiinstances.gateway.mulesoft.com \
+     configurations.gateway.mulesoft.com \
+     extensions.gateway.mulesoft.com \
+     policybindings.gateway.mulesoft.com \
+     services.gateway.mulesoft.com 
+----
