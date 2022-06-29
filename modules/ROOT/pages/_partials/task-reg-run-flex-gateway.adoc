@@ -30,7 +30,7 @@ See xref:access-management::organization.adoc#find-your-organization-id[Find you
 
 ** The *Environment ID* for the environment where you want to run Flex Gateway
 +
-See xref:api-manager::latest-overview-concept#what-api-manager-looks-like[What API Manager Looks Like]
+See xref:api-manager::latest-overview-concept.adoc#what-api-manager-looks-like[What API Manager Looks Like]
 for more information on how to find your Environment ID.
 
 // end::environment-prerequisites[]
@@ -109,6 +109,12 @@ Before executing the registration command, replace the following sample informat
 // tag::replace-content[]
 
 * `--organization` = your Organization ID in Anypoint Platform
+
+* `--split` (optional) = the flag that determines whether registration information should split into multiple files. The default value is `false`.
++
+If `split` is set to `true`, registration information is split into two files: `registration.yaml` and `certificate.yaml`. If `false`, all registration information is contained in one file: `registration.yaml`.
+* `--output-directory` (optional) = the directory in which registration information is output
+
 * `my-gateway` = the name you want to assign to this Flex Gateway instance or replica
 
 // end::replace-content[]
@@ -148,8 +154,16 @@ flexctl register \
 # tag::connected-reg-command[]
 --connected=true \
 # end::connected-reg-command[]
-# tag::reg-command-2[]
+# tag::organization-reg-command[]
 --organization=<your-org-id> \
+# end::organization-reg-command[]
+# tag::output-reg-command-linux[]
+--output-directory=/usr/local/share/mulesoft/flex-gateway/conf.d \
+# end::output-reg-command-linux[]
+# tag::output-reg-command-docker[]
+--output-directory=/registration \
+# end::output-reg-command-docker[]
+# tag::reg-command-2[]
 my-gateway
 ----
 
@@ -159,27 +173,15 @@ to your command.
 // end::reg-command-2[]
 // tag::after-reg[]
 
-Where you executed the command, you should see three new files similar to the following: 
-
-* `6eb79785-c2f0-4e06-b574-8a030a321d74.conf`
-* `6eb79785-c2f0-4e06-b574-8a030a321d74.key`
-* `6eb79785-c2f0-4e06-b574-8a030a321d74.pem`
-
-IMPORTANT: These generated files are credentials for you to connect your Flex Gateway. If you lose them you
-can no longer connect your Flex Gateway.
-
 // end::after-reg[]
 //tag::after-reg-2[]
-Determine the path where these files live by using the command, `pwd`, then save the path and the UUID,
-or name, of the `.conf` file for later use. For example, `/Users/jane/flex-gateway/6eb79785-c2f0-4e06-b574-8a030a321d74.conf`.
+
 //end::after-reg-2[]
 //tag::linux-after-reg[]
-Determine the path for these files, then save the path and the UUID, or name, of the files. For example, `/Users/jane/flex-gateway/6eb79785-c2f0-4e06-b574-8a030a321d74`. 
-
-Then update the permissions of the files: 
+Change the ownership of the registration file(s):
 [source,ssh]
 ----
-chmod 644 <path-and-uuid-of-registration-files>.*
+sudo chown flex:flex /usr/local/share/mulesoft/flex-gateway/conf.d/registration.yaml
 ----
 //end::linux-after-reg[]
 //tag::k8s-after-reg[]
