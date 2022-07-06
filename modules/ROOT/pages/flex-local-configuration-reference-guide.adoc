@@ -339,7 +339,7 @@ spec:
 
 == Configuration
 
-Define a desired gateway state by creating a `Configuration` entity. `Configuration` entities specify several runtime configuration aspects for Flex Gateway itself, such as logging. The definition includes the following: 
+Define a desired gateway state by creating a `Configuration` entity. `Configuration` entities specify several runtime configuration aspects for Flex Gateway itself, such as logging and shared storage. The definition includes the following: 
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -349,6 +349,7 @@ metadata:
   namespace: <namespace name>      
 spec: 
   logging: # logging configuration
+  sharedStorage: # shared storage configuration
 ----
 
 [cols="2,1,1,3"]
@@ -368,7 +369,7 @@ spec:
 |`spec`
 |Required
 |N/A
-|The configuration object that defines gateway characteristics. Objects include: `logging`, `tls`.
+|The configuration object that defines gateway characteristics. Objects include: `logging`, `sharedStorage`, `tls`.
 
 |===
 
@@ -451,6 +452,84 @@ spec:
     accessLogs:
       outputs:
       - log-to-file
+----
+
+=== Shared Storage
+
+The `sharedStorage` object configures the gateway for shared storage. Production workflows should use https://redis.io/[Redis^], though defining it is optional. If Redis is not defined, shared storage services at port 4000 are still available but will use an in-memory implementation. 
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+ name: shared-storage-redis
+spec:
+ sharedStorage:
+   redis:
+     address: <redis instance host:port>
+     username: <redis user username>
+     password: <redis user password>
+     db: <redis database name>
+----
+
+[cols="2,1,1,3"]
+|===
+|Parameter |Required or Optional |Default Value |Description
+
+|`sharedStorage.redis.address`
+|Required
+|N/A
+|The redis instance address in `host:port` format.
+
+|`sharedStorage.redis.username`
+|Optional
+|Empty
+|The redis user name.
+
+|`sharedStorage.redis.password`
+|Optional
+|Empty
+|The redis user password.
+
+|`sharedStorage.redis.db`
+|Optional 
+|0
+|The redis database number to use.
+
+|===
+
+==== Redis Shared Storage Example
+
+The Redis storage service is an implementation of a REST API object store that functions as a bridge between the object store interface and a Redis backend.
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+ name: shared-storage-redis
+spec:
+ sharedStorage:
+   redis:
+     address: redis.e-commerce.svc:6379
+     username: ecomm-user
+     password: ecomm-pwd-123
+     DB: 7
+----
+
+==== Local Shared Storage Example
+
+The local storage service is an implementation of a REST API object store that saves data in memory. All data is lost when Flex Gateway is stopped or restarted.
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+ name: rtm-config
+ namespace: sales
+spec:
+ sharedStorage:
+   local:
+     enabled: true
 ----
 
 [[examples]]
