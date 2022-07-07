@@ -135,7 +135,7 @@ docker run --entrypoint flexctl -w /registration -v $(pwd):/registration mulesof
 register \
 # end::docker-reg-command[]
 # tag::linux-reg-command[]
-flexctl register \
+sudo flexctl register \
 # end::linux-reg-command[]
 # tag::user-reg-command[]
 --username=<your-username> \
@@ -178,14 +178,10 @@ to your command.
 
 //end::after-reg-2[]
 //tag::linux-after-reg[]
-Change the ownership of the registration file(s):
-[source,ssh]
-----
-sudo chown flex:flex /usr/local/share/mulesoft/flex-gateway/conf.d/registration.yaml
-----
+
 //end::linux-after-reg[]
 //tag::k8s-after-reg[]
-You will need the UUIDs, or the filenames without the file type, of these files to create your Kubernetes secret later.
+
 //end::k8s-after-reg[]
 // tag::connected-after-reg[]
 
@@ -205,7 +201,6 @@ Additionally, update the FLEX_NAME to the name you want to assign to your Flex R
 docker run --rm \
 -v <absolute-path-to-directory-with-conf-file>/:/etc/flex-gateway/rtm \
 -p 8080:8080 \
--e FLEX_RTM_ARM_AGENT_CONFIG=/etc/flex-gateway/rtm/<UUID-of-your-file>.conf \
 -e FLEX_NAME=<name-for-flex-replica> \
 mulesoft/flex-gateway
 ----
@@ -225,7 +220,6 @@ docker run --rm \
 -v <absolute-path-to-directory-with-conf-file>/:/etc/flex-gateway/rtm \
 -v <absolute-path-to-directory-with-gateway-configuration-files>/:/usr/local/share/mulesoft/flex-gateway/conf.d \
 -p 8080:8080 \
--e FLEX_RTM_ARM_AGENT_CONFIG=/etc/flex-gateway/rtm/<UUID-of-your-file>.conf \
 -e FLEX_NAME=<name-for-flex-replica> \
 mulesoft/flex-gateway
 ----
@@ -240,56 +234,13 @@ The Docker logs should include this line:
 // end::start-command-local-valid[]
 // tag::create-config-folder-file[]
 
-=== Create Configuration Folder and File
-
-Before executing the start command, you must create a  configuration directory and file and edit the contents of that file.
-
-First create the configuration directory using the following command: 
-
-[source,ssh]
-----
-sudo mkdir /etc/systemd/system/flex-gateway-agent.service.d/
-----
-
-Afterwards, create a configuration file within that directory and name it `env.conf`.
-
-Finally, edit the file with vim using the following command: 
-
-[source,ssh]
-----
-sudo vi env.conf
-----
-
 // end::create-config-folder-file[]
 // tag::config-content[]
 
-=== Add Configuration Content
-
-Add the content below to the `env.conf` file, after replacing the following sample content with your own: 
-
-* `<path-and-uuid-of-conf-file>.conf` = the path and UUID of the `.conf` file that was created when you registered the gateway
-* `<name-for-flex-replica>` = a name for your Flex Replica
-
-[source,subs=attributes+]
-----
-[Service]
-
-Environment=FLEX_RTM_ARM_AGENT_CONFIG=<path-and-uuid-of-conf-file>.conf
-Environment=FLEX_NAME=<name-for-flex-replica>
-----
-
-After you have added the content to the `env.conf` file, save the file with ESC + `:wq`.
 // end::config-content[]
 // tag::linux-start-commands[]
 
 === Start Commands
-
-Reload the `env.conf` configuration with the following command:
-
-[source,ssh]
-----
-sudo systemctl daemon-reload
-----
 
 Start Flex Gateway with the following command: 
 
@@ -329,25 +280,6 @@ Before installing, ensure that you have:
 +
 Refer to the <<helm-chart-options,Helm Chart Configuration Options>> for information about customizing the chart.
 
-Install the chart:
-
-. Create the namespace in which Flex Gateway will be installed: 
-+
-[source,kubernetes]
-----
-kubectl create namespace gateway
-----
-
-. Create a Kubernetes secret using the UUIDs from the files generated during registration:
-+
-[source,kubernetes]
-----
-kubectl -n gateway create secret generic <UUID-of-your-file> \
---from-file=platform.conf=<UUID-of-your-file>.conf \
---from-file=platform.key=<UUID-of-your-file>.key \
---from-file=platform.pem=<UUID-of-your-file>.pem
-----
-
 . Add the Flex Gateway Helm repository:
 +
 [source,kubernetes]
@@ -362,12 +294,12 @@ helm repo add flex-gateway https://flex-packages.anypoint.mulesoft.com/helm
 helm repo up
 ----
 
-. Using Ingress, install the *flex-gateway* Helm chart into the *gateway* namespace. Specify the UUID from the filenames created for creating the Kubernetes secret. 
+. Using Ingress, install the *flex-gateway* Helm chart into the *gateway* namespace.
 +
 [source,kubernetes]
 ----
 helm -n gateway upgrade -i --wait ingress flex-gateway/flex-gateway \
---set registerSecretName=<UUID-of-your-file>
+--set-file registerContent=registration.yaml
 ----
 +
 The command returns something similar to the following: 
@@ -402,7 +334,7 @@ ingress-https   http://0.0.0.0:443
 //tag::gateway-connected[]
 Now if you check in Runtime Manager after clicking *Flex Gateway* in the left navigation, your gateway's status is connected. You may need to refresh the page.
 
-Currently, you cannot unregister or delete Flex Replicas from the Runtime Manager UI. If a Flex Replica
+If a Flex Replica
 in Connected Mode is stopped it will be removed from the UI in Runtime Manager after 30 days. Otherwise,
 it will appear in the Runtime Manager UI even if it is no longer running.
 
