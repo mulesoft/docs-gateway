@@ -43,9 +43,8 @@ an id of 1 in the header.
 . If you want to affix a prefix to your logs, enter a *Category*.
 . Enter the severity level.
 +
-You can only enter one level, but you can add an additional configuration
-to include a different severity level. See <<severity-levels, Message Logging Severity Levels>>
-for a description of each severity level.
+You can only enter one level. See <<severity-levels, Message Logging Severity Levels>>
+for a description of each severity level and the hierarchy for the levels.
 
 . If you want messages for after the API is called, select the *After Calling API* checkbox.
 . If you want to add additional configurations, click *+ Add*.
@@ -58,7 +57,12 @@ You can use the search field to search for specific logs based on the time and l
 [[severity-levels]]
 == Message Logging Severity Levels
 
-Message Logging severity levels include the following:
+When you configure a Message Logging policy for your API instance you can assign a severity level. 
+
+=== Severity Levels Description
+
+Each severity level will include a specific set of information in the log report. The following table
+describes the type of information that will be included in the logs for each severity level.
 
 [%header,cols='1a,5a'] 
 |===
@@ -79,4 +83,55 @@ Message Logging severity levels include the following:
 
 |TRACE
 |Information broadly interesting to developers who do not have a specialized interest in the specific subsystem. Might include minor (recoverable) failures and issues indicating potential performance problems.
+|===
+
+=== Severity Levels Hierarchy
+
+Only the severity level you select and the subsequent levels on the hierarchy will be included in the log reports.
+For example, if you select INFO, the WARN and ERROR severity levels will be included in the log reports.
+However, if you select ERROR, only the error messages will be included. The following table describes the hierarchy of the different severity levels.
+
+[%header,cols='1h,1a,1a,1a,1a,1a',frame=all] 
+|===
+|
+|ERROR
+|WARN
+|INFO
+|DEBUG
+|TRACE
+
+|ERROR
+|&#10004;
+|
+|
+|
+|
+
+|WARN
+|&#10004;
+|&#10004;
+|
+|
+|
+
+|INFO
+|&#10004;
+|&#10004;
+|&#10004;
+|
+|
+
+|DEBUG
+|&#10004;
+|&#10004;
+|&#10004;
+|&#10004;
+|
+
+|TRACE
+|&#10004;
+|&#10004;
+|&#10004;
+|&#10004;
+|&#10004;
 |===
