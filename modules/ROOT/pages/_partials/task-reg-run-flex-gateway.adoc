@@ -135,7 +135,7 @@ docker run --entrypoint flexctl -w /registration -v $(pwd):/registration mulesof
 register \
 # end::docker-reg-command[]
 # tag::linux-reg-command[]
-sudo flexctl register \
+flexctl register \
 # end::linux-reg-command[]
 # tag::user-reg-command[]
 --username=<your-username> \
@@ -167,12 +167,20 @@ sudo flexctl register \
 my-gateway
 ----
 
+NOTE: If you are specifying an output directory you will need to run the registration command as `sudo`.
+
 NOTE: If you are in Europe you will need to add the `--anypoint-url=https://eu1.anypoint.mulesoft.com` flag
 to your command.
 
 // end::reg-command-2[]
 // tag::after-reg[]
+In the output directory, you should see the following new registration file(s):
 
+* `registration.yaml`
+* `certificate.yaml` (generated only if the `split` registration parameter is set to `true`, otherwise certificate information will be contained in `registration.yaml`)
+
+IMPORTANT: These generated files are credentials for you to connect your Flex Gateway. If you lose them you
+can no longer connect your Flex Gateway.
 // end::after-reg[]
 //tag::after-reg-2[]
 
@@ -192,21 +200,21 @@ The gateway's status is disconnected for now. You need to start the gateway to c
 
 === Start Command
 
-Before executing the start command below, update the FLEX_NAME to the name you want to assign to your Flex Replica.
+Start Flex Gateway with the following command:
 
 [source,ssh,subs=attributes+]
 ----
 docker run --rm \
 -p 8080:8080 \
--e FLEX_NAME=<name-for-flex-replica> \
 mulesoft/flex-gateway
 ----
+NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
 // end::start-command[]
 // tag::start-command-local-intro[]
 
 === Start Command
 
-Before executing the start command below, update the absolute path to the directory where your Flex Gateway configuration files will reside. Additionally, update the FLEX_NAME with the name you want to assign to your Flex Replica.
+Before executing the start command below, update the absolute path to the directory where your Flex Gateway configuration files will reside.
 
 //end::start-command-local-intro[]
 //tag::start-command-local[]
@@ -216,9 +224,10 @@ Before executing the start command below, update the absolute path to the direct
 docker run --rm \
 -v <absolute-path-to-directory-with-gateway-configuration-files>/:/usr/local/share/mulesoft/flex-gateway/conf.d \
 -p 8080:8080 \
--e FLEX_NAME=<name-for-flex-replica> \
 mulesoft/flex-gateway
 ----
+NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
+
 //end::start-command-local[]
 //tag::start-command-local-valid[]
 The Docker logs should include this line:
@@ -328,6 +337,7 @@ ingress-https   http://0.0.0.0:443
 
 //end::k8s-install-helm-chart[]
 //tag::gateway-connected[]
+
 Now if you check in Runtime Manager after clicking *Flex Gateway* in the left navigation, your gateway's status is connected. You may need to refresh the page.
 
 If a Flex Replica
