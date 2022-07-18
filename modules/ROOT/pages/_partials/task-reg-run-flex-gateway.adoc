@@ -78,7 +78,7 @@ to generate set of instructions that includes a command block with the registrat
 To register a Flex Gateway with Anypoint Platform you must enter the registration command and then the start command. Each command includes information specific to your Anypoint Platform instance and *must be updated before* executing. See <<Before You Begin>> for more information on how to find the information you will need.
 //end::reg-command-intro[]
 // tag::k8s-reg-command-intro[]
-To register a Flex Gateway with Anypoint Platform as a Kubernetes ingress controller you must enter the registration command and then install the flex-gateway Helm chart into the gateway namespace. Each command includes information specific to your Anypoint Platform instance and *must be updated before* executing. See <<Before You Begin>> for more information on how to find the information you will need.
+To register a Flex Gateway with Anypoint Platform as a Kubernetes ingress controller, you must enter the registration command and then install the flex-gateway Helm chart. Each command includes information specific to your Anypoint Platform instance and *must be updated before* executing. See <<Before You Begin>> for more information on how to find the information you will need.
 // end::k8s-reg-command-intro[] 
 //tag::sub-coll-info[]
 
@@ -115,7 +115,7 @@ Before executing the registration command, replace the following sample informat
 If `split` is set to `true`, registration information is split into two files: `registration.yaml` and `certificate.yaml`. If `false`, all registration information is contained in one file: `registration.yaml`.
 * `--output-directory` (optional) = the directory in which registration information is output
 
-* `my-gateway` = the name you want to assign to this Flex Gateway instance or replica
+* `my-gateway` = the name you want to assign the gateway cluster
 
 // end::replace-content[]
 // tag::reg-command-heading[]
@@ -131,7 +131,8 @@ After replacing the sample content, register your Flex Gateway by executing the 
 ----
 # end::reg-command-1[]
 # tag::docker-reg-command[]
-docker run --entrypoint flexctl -w /registration -v $(pwd):/registration mulesoft/flex-gateway \
+docker run --entrypoint flexctl -w /registration \
+-v "$(pwd)":/registration mulesoft/flex-gateway \
 register \
 # end::docker-reg-command[]
 # tag::linux-reg-command[]
@@ -200,12 +201,13 @@ The gateway's status is disconnected for now. You need to start the gateway to c
 
 === Start Command
 
-Start Flex Gateway with the following command:
+Before executing the start command below, update the absolute path to the directory where your Flex Gateway registration files reside.
 
 [source,ssh,subs=attributes+]
 ----
 docker run --rm \
 -p 8080:8080 \
+-v <absolute-path-to-directory-with-gateway-registration-files>/:/usr/local/share/mulesoft/flex-gateway/conf.d \
 mulesoft/flex-gateway
 ----
 NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
@@ -214,7 +216,7 @@ NOTE: Specify an optional name you want to assign to your Flex Replica by includ
 
 === Start Command
 
-Before executing the start command below, update the absolute path to the directory where your Flex Gateway configuration files will reside.
+Before executing the start command below, update the absolute path to the directory where your Flex Gateway configuration files will reside. Additionally, update the absolute path to the directory where your Flex Gateway registration files reside.
 
 //end::start-command-local-intro[]
 //tag::start-command-local[]
@@ -223,6 +225,7 @@ Before executing the start command below, update the absolute path to the direct
 ----
 docker run --rm \
 -v <absolute-path-to-directory-with-gateway-configuration-files>/:/usr/local/share/mulesoft/flex-gateway/conf.d \
+-v <absolute-path-to-directory-with-gateway-registration-files>/:/usr/local/share/mulesoft/flex-gateway/conf.d \
 -p 8080:8080 \
 mulesoft/flex-gateway
 ----
@@ -303,7 +306,7 @@ helm repo up
 +
 [source,kubernetes]
 ----
-helm -n gateway upgrade -i --wait ingress flex-gateway/flex-gateway \
+helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway \
 --set-file registration.content=registration.yaml
 ----
 +
@@ -317,22 +320,6 @@ NAMESPACE: gateway
 STATUS: deployed
 REVISION: 1
 TEST SUITE: None
-----
-
-. Verify *apiinstances* was created during installation: 
-+
-[source,text]
-----
-kubectl -n gateway get apiinstances
----- 
-+
-The command returns output similar to the following: 
-+
-[source,text]
-----
-NAME            ADDRESS
-ingress-http    http://0.0.0.0:80
-ingress-https   http://0.0.0.0:443
 ----
 
 //end::k8s-install-helm-chart[]
@@ -390,6 +377,18 @@ Possible values: `ifNotPresent`, `Always`, `Never`
 |null
 |The average memory usage percentage of all deployed pods
 
+|`registerSecretName`
+|null
+|Deprecated - see `registration.secretName`
+
+|`registration.content`
+|null
+|If this field is provided, installation creates a Kubernetes secret resource that contains the contents of the registration files.
+
+|`registration.secretName`
+|null
+|If this field is provided, registration requires that a Kubernetes secret with the given name exists. The secret must contain the content of the registration files.
+
 |`resources.limits.cpu`
 |500m
 |CPU resource limits in millicores
@@ -423,10 +422,6 @@ Possible values: `ClusterIP`, `NodePort`, `LoadBalancer`, `ExternalName`
 |`service.https.port`
 |443
 |The Ingress Controller service HTTPS port
-
-|`registerSecretName`
-|null
-|The name of the secret containing the registration files
 
 |===
 //end::helm-chart-options[]
