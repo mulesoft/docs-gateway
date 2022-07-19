@@ -39,6 +39,8 @@ In Local Mode, you apply the HTTP Caching policy to your API via declarative con
     invalidationHeader: <string> // OPTIONAL, default: ""
     requestExpression: <string> // OPTIONAL, default: "#[attributes.method == 'GET' or attributes.method == 'HEAD']"
     responseExpression: <string> // OPTIONAL, default: "#[[200, 203, 204, 206, 300, 301, 404, 405, 410, 414, 501] contains attributes.statusCode]"
+    distributed: <bool> // OPTIONAL, default: false
+    persistCache: <bool> // OPTIONAL, default: false
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -81,6 +83,16 @@ In Local Mode, you apply the HTTP Caching policy to your API via declarative con
 | `#[[200, 203, 204, 206, 300, 301, 404, 405, 410, 414, 501] contains attributes.statusCode]`
 | The DataWeave expression that is used to decide which responses are to be cached (caches the response only if the condition is true)
 
+| `distributed`
+| Optional
+| false
+| Configures the cache to be distributed among different nodes in a cluster
+
+| `persistCache`
+| Optional
+| false
+| Configures the cache to persist between different restarts of the replica
+
 |===
 
 ==== Resource Configuration Example
@@ -95,6 +107,48 @@ In Local Mode, you apply the HTTP Caching policy to your API via declarative con
     useHttpCacheHeaders: false
     requestExpression: "#[attributes.method == 'GET' or attributes.method == 'HEAD']"
     responseExpression: "#[[200, 203, 204, 206, 300, 301, 404, 405, 410, 414, 501] contains attributes.statusCode]"
+----
+
+==== Distributed Caching Resource Configuration Example
+
+Distributed Caching relies on Shared Storage available in the Gateway. More details can be found in xref:gateway::flex-conn-shared-storage-config.adoc[this section].
+
+----
+
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: shared-storage-redis
+spec:
+  sharedStorage:
+    redis:
+      address: redis:6379
+      user: user
+      password: pass 
+      DB: 1
+
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: ingress-http-caching
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: ingress-http
+  policyRef:
+    kind: Extension
+    name: http-caching-flex
+  config:
+    httpCachingKey: "#[attributes.method ++ attributes.requestPath]"
+    useHttpCacheHeaders: true
+    maxCacheEntries: 100
+    ttl: 600
+    distributed: true
+    persistCache: true
+    invalidationHeader: AGW-CACHE-CONTROL
+
 ----
 
 === Flex Gateway Connected Mode and Mule Gateway
@@ -113,11 +167,11 @@ Default value: `10000`
 | Entry Time To Live | Specifies the amount of time (in seconds) after which a single entry expires from the cache.
 Default value: `600`
 | Yes
-| Distributed (Mule only) | Configures the cache to be distributed among different nodes in a cluster.
+| Distributed | Configures the cache to be distributed among different nodes in a cluster.
 If you are using CloudHub, ensure that you enable Object Store v2 when deploying an application.
 Default value: `false`
 | Yes
-| Persistent Cache (Mule only) | Configures the cache to persist between different restarts of the Mule instance.
+| Persistent Cache | Configures the cache to persist between different restarts of the Mule/Flex instance.
 If you are using CloudHub, ensure that you enable Object Store v2 when deploying an application.
 Default value: `false`
 | Yes
@@ -186,15 +240,15 @@ The cache can hold a specified number of entries at any given time. You can conf
 
 Another condition that can trigger the expiration of an entry is when the cache reaches the maximum number of items that it can store. When this scenario occurs, the entry is removed by using the FIFO (First-In First-Out) criteria. This means that the earliest entry to reach the cache is removed, even though it hasn't reached the TTL value yet.
 
-=== Distributed Cache (Mule only)
+=== Distributed Cache
 
 Each entry in the cache can be shared between different nodes in a cluster or between several workers in Runtime Manager using the `Distributed` option (see table). If this option is not enabled, then each node is assigned its own cache memory.
 
-=== Persistent Cache (Mule only)
+=== Persistent Cache
 
-A persistent cache enables the stored entries in the cache to persist if the Mule runtime engine (Mule) is restarted.
+A persistent cache enables the stored entries in the cache to persist if the Mule runtime engine (Mule) or Flex replica is restarted.
 
-When you upgrade a version of the Mule instance that has the HTTP Caching policy configured to use the persistent store, the policy tries to maintain the entries stored by the previous Mule version. However in a worst-case scenario, the entries in the cache are invalidated and the cache is re-populated when new requests arrive. This manipulation of the entries in the cache occurs automatically and is invisible to the user.
+When you upgrade a version of the instance that has the HTTP Caching policy configured to use the persistent store, the policy tries to maintain the entries stored by the previous version. However in a worst-case scenario, the entries in the cache are invalidated and the cache is re-populated when new requests arrive. This manipulation of the entries in the cache occurs automatically and is invisible to the user.
 
 == HTTP Caching Directives
 
