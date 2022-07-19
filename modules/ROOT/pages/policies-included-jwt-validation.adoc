@@ -48,7 +48,7 @@ In Local Mode, you apply the JWT Validation policy to your API via declarative c
 | `signingMethod`
 | Optional
 | `rsa`
-| String containing the key signing method. Supported values: `rsa`, `hmac`, `none`
+| String containing the key signing method. Supported values: `rsa`, `hmac`, `es`, `none`
 
 | `signingKeyLength`
 | Optional
@@ -174,12 +174,12 @@ This expression searches the JWT in the header named `jwt`.
 
 | JWT Signing Method
 | Specify the signing method expected in the incoming JWT. The policy rejects the token if the JWT has a different signing method.
-| RSA, HMAC, None
+| RSA, HMAC, ES, None
 
 | JWT Signing Key Length
 | Specify the length of the key (in the case of the HMAC algorithm) or the algorithm (in the case of RSA) used for the signing method. +
 Ignore this field if you selected *none* as JWT Signing Method.
-| 256, 384, 512
+| 256, 384, 512. For ES method, Flex Gateway only supports 256 key length.
 
 | JWT Key Origin
 | Specifies where to obtain the key for the Signature validation. +
@@ -276,7 +276,7 @@ The policy validates the signature of the JWT based on the values specified in t
 The algorithms that support signature verification are:
 
 * *Symmetric algorithms* - HMAC using SHA-256, SHA-384, and SHA-512.
-* *Asymmetric algorithms* - RSA using SHA-256, SHA-384, and SHA-512.
+* *Asymmetric algorithms* - ES and RSA using SHA-256, SHA-384, and SHA-512.
 * *None* - No signature validation.
 
 For more information about the algorithms in a JWS structure, refer to the  https://tools.ietf.org/html/rfc7518#section-3.1[JWA RFC standard^].
