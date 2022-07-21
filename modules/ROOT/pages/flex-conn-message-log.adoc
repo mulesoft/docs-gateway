@@ -30,12 +30,12 @@ Before configuring the TLS context for a Flex Gateway, complete the following ta
 . Click *Next*.
 . Click *+ Add*.
 . Enter a *Configuration Name*, for example, Info messages before calling API.
-. Enter a Mule expression that selects what information you want to see.
+. Enter a Dataweave expression that selects what information you want to see.
 +
 For example, `#[attributes.header['id']]` extracts the ids from the headers of
 the messages. See xref:dataweave::dataweave-variables-context.adoc[Predefined Variables]
 in the Dataweave documentation for more information.
-. If you want to filter log messages, enter a Mule expression.
+. If you want to filter log messages, enter a Dataweave expression.
 +
 For example, `#[attributes.headers['id']==1]` displays log messages that have
 an id of 1 in the header.
@@ -52,7 +52,7 @@ for a description of each severity level and the hierarchy for the levels.
 +
 Afterward, you should see a *Message Log* option for the API instance.
 +
-Use the search field to search for specific logs based on the time and log severity (INFO, ERROR, WARN, DEBUG, TRACE). You can download these logs for further analysis.
+Use the search field to search for specific logs based on the time and log severity (INFO, ERROR, WARN, DEBUG). You can download these logs for further analysis.
 
 [[severity-levels]]
 == Message Logging Severity Levels
@@ -81,8 +81,6 @@ describes the type of information that will be included in the logs for each sev
 |DEBUG
 |Tracing information used by application developers.
 
-|TRACE
-|Information for developers who do not have a specialized interest in the specific subsystem. Might include minor (recoverable) failures and issues indicating potential performance problems.
 |===
 
 === Severity Levels Hierarchy
@@ -91,18 +89,16 @@ Log reports include only the severity level you select and the subsequent levels
 For example, if you select INFO, the log reports include the WARN and ERROR severity levels.
 However, if you select ERROR, the log reports include only error messages. The following table describes the hierarchy of the different severity levels:
 
-[%header,cols='1h,1a,1a,1a,1a,1a',frame=all] 
+[%header,cols='1h,1a,1a,1a,1a',frame=all]
 |===
 |
 |ERROR
 |WARN
 |INFO
 |DEBUG
-|TRACE
 
 |ERROR
 |&#10004;
-|
 |
 |
 |
@@ -112,24 +108,14 @@ However, if you select ERROR, the log reports include only error messages. The f
 |&#10004;
 |
 |
-|
 
 |INFO
 |&#10004;
 |&#10004;
 |&#10004;
 |
-|
 
 |DEBUG
-|&#10004;
-|&#10004;
-|&#10004;
-|&#10004;
-|
-
-|TRACE
-|&#10004;
 |&#10004;
 |&#10004;
 |&#10004;
