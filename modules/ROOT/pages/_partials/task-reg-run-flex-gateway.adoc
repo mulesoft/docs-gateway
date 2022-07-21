@@ -131,7 +131,7 @@ After replacing the sample content, register your Flex Gateway by executing the 
 ----
 # end::reg-command-1[]
 # tag::docker-reg-command[]
-docker run --entrypoint flexctl -w /registration \
+docker run --entrypoint flexctl \
 -v "$(pwd)":/registration mulesoft/flex-gateway \
 register \
 # end::docker-reg-command[]
@@ -216,7 +216,7 @@ NOTE: Specify an optional name you want to assign to your Flex Replica by includ
 
 === Start Command
 
-Before executing the start command below, update the absolute path to the directory where your Flex Gateway configuration files will reside. Additionally, update the absolute path to the directory where your Flex Gateway registration files reside.
+Before executing the start command below, update the absolute path to the directory where your Flex Gateway configuration and registration files reside.
 
 //end::start-command-local-intro[]
 //tag::start-command-local[]
@@ -224,8 +224,7 @@ Before executing the start command below, update the absolute path to the direct
 [source,ssh,subs=attributes+]
 ----
 docker run --rm \
--v <absolute-path-to-directory-with-gateway-configuration-files>/:/usr/local/share/mulesoft/flex-gateway/conf.d \
--v <absolute-path-to-directory-with-gateway-registration-files>/:/usr/local/share/mulesoft/flex-gateway/conf.d \
+-v <absolute-path-to-directory-with-gateway-files>/:/usr/local/share/mulesoft/flex-gateway/conf.d \
 -p 8080:8080 \
 mulesoft/flex-gateway
 ----
