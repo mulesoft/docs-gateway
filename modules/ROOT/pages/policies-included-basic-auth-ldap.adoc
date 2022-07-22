@@ -18,7 +18,7 @@ endif::[]
 
 == Summary
 
-The Lightweight Directory Access Protocol (LDAP) authentication policy specifies how to restrict access to an API using LDAP authentication mechanism. This policy is available only in Mule 4 or later. 
+The Lightweight Directory Access Protocol (LDAP) authentication policy specifies how to restrict access to an API using LDAP authentication mechanism. This policy is available in Flex and Mule 4 or later. 
 
 When an error is encountered, the Basic Authentication - LDAP policy returns an "WWW-Authenticate" HTTP header field using the format:`WWW-Authenticate: Basic realm="mule-realm"`.
 
@@ -28,13 +28,71 @@ LDAP is an inverted tree, and each leaf has a username-password pair and associa
 
 === Flex Gateway Local Mode
 
-The Basic Authentication: LDAP policy is not supported in Flex Gateway Local Mode.
+In Local Mode, you apply the LDAP policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
 
-=== Flex Gateway Connected Mode
+----
+- policyRef:
+    name: ldap-authentication-flex
+  config:
+    ldapServerURL: <string> // OPTIONAL, default: "ldap://127.0.0.1:389"
+    ldapServerUserDn: <string> // REQUIRED
+    ldapServerUserPassword: <string> // REQUIRED
+    ldapSearchBase: <string> // REQUIRED
+    ldapSearchFilter: <string> // OPTIONAL, default: "(uid={0})"
+    ldapSearchInSubtree: <bool> // OPTIONAL, default: false
+----
 
-The Basic Authentication: LDAP policy is not supported in Flex Gateway Connected Mode.
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
 
-=== Mule Gateway
+|Parameter | Required or Optional | Default Value | Description
+
+| `ldapServerURL` 
+| Optional
+| `ldap://127.0.0.1:389`
+| Address and port of the location to the LDAP server
+
+| `ldapServerUserDn`
+| Required
+|
+| The name of the user or user group with access to traverse and list users of LDAP
+
+| `ldapServerUserPassword`
+| Required
+|
+| The password for the user or usergroup
+
+| `ldapSearchBase`
+| Required
+|
+| The place where the LDAP search begins
+
+| `ldapSearchFilter`
+| Required
+|
+| The criteria for the filter for the Active Directory or the OpenLDAP model
+
+| `ldapSearchInSubtree`
+| Optional
+| `false`
+| Whether to examine the subtree below the base DN and include the base DN level. Performance will be affected by this. Otherwise, the one-level scope will be used, examining only the level immediately below the base DN
+|===
+
+==== Resource Configuration Example
+
+----
+- policyRef:
+    name: ldap-authentication-flex
+  config:
+    dapServerURL: "ldap://localhost:369"
+    ldapServerUserDn: "cn=admin,dc=example,dc=org"
+    ldapServerUserPassword: "admin"
+    ldapSearchBase: "dc=example,dc=org"
+    ldapSearchFilter: "(uid={0})"
+    ldapSearchInSubtree: true
+----
+
+=== Flex Gateway Connected Mode and Mule Gateway
 
 When you apply the Basic Authentication - LDAP policy to your API from the UI, you can configure the following parameters to connect to your LDAP or Active Directory:
 
