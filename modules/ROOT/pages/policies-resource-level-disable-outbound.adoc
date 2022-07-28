@@ -3,7 +3,6 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :keywords: policy, outbound-policies, resource-level
-:page-aliases: api-manager::disable-outbound-policies.adoc
 
 In Mule 4, you can apply policies to both outgoing and incoming HTTP requests.
 
@@ -30,7 +29,7 @@ The following example illustrates a Mule application flow implementing an API:
 
 Every time the Mule application is invoked, two HTTP requests to external services are executed.
 
-In this next example, a Mule policy is applied to the previous example by adding a header to the HTTP request: 
+In this next example, a Mule policy is applied to the previous example by adding a header to the HTTP request:
 
 [Source,xml,linenums]
 ----
@@ -45,7 +44,7 @@ In this next example, a Mule policy is applied to the previous example by adding
 
 Every time the Mule application is invoked, the Mule policy is executed twice: once when invoking `service-1` and again when invoking `service-2`. Each HTTP request includes an additional header called `new-header`, which is added by the policy.
 
-Now imagine a scenario in which `service-1` needs the additional header for authentication, but `service-2` rejects incoming requests that have unexpected headers. 
+Now imagine a scenario in which `service-1` needs the additional header for authentication, but `service-2` rejects incoming requests that have unexpected headers.
 
 In Mule 4.3.0, you can meet these requirements by specifying the annotation `api-gateway:disablePolicies="true"` in any of the Mule application's HTTP requesters, resulting in the Mule policy engine not executing policies for that annotated requester.
 
@@ -74,5 +73,3 @@ If a Mule application with the annotation is deployed to a Mule version prior to
 == See Also
 
 * xref:api-manager::policies-mule4.adoc[Policies for Mule 4]
-
-
