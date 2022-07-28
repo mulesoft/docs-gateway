@@ -4,7 +4,26 @@
 
 == Before You Begin
 
-Before registering Flex Gateway, you must complete the following tasks:
+=== Migrate Registration from a Previous Version of Flex Gateway
+
+Before you begin, ensure that you have xref:flex-install.adoc[installed the latest version of Flex Gateway].
+
+If you have already registered a previous version of Flex Gateway, you do not need to re-register. You can migrate your registration files by executing the following command:
+
+[source,ssh,subs=attributes+]
+----
+flexctl migrate <uuid-of-previous-registration-file>.conf
+----
+
+The new registration file is created in the directory in which you executed the command.
+
+NOTE: Append the `--split=true` flag if you want to output two registration files: `registration.yaml` and `certificate.yaml`. Otherwise, by default all registration information is output to `registration.yaml`.
+
+IMPORTANT: The generated registration files are credentials for you to connect your Flex Gateway. If you lose them, you can no longer connect your Flex Gateway.
+
+=== Register a New Flex Gateway
+
+If you have never registered a previous version of Flex Gateway, you must complete the following tasks:
 // end::prerequisites-heading[]
 // tag::app-prerequisites[] 
 
@@ -30,7 +49,7 @@ See xref:access-management::organization.adoc#find-your-organization-id[Find you
 
 ** The *Environment ID* for the environment where you want to run Flex Gateway
 +
-See xref:api-manager::latest-overview-concept#what-api-manager-looks-like[What API Manager Looks Like]
+See xref:api-manager::latest-overview-concept.adoc#what-api-manager-looks-like[What API Manager Looks Like]
 for more information on how to find your Environment ID.
 
 // end::environment-prerequisites[]
@@ -75,10 +94,14 @@ to generate set of instructions that includes a command block with the registrat
 == Register and Run with a Token as a Kubernetes Ingress Controller
 // end::token-k8s-heading[]
 // tag::reg-command-intro[]
-To register a Flex Gateway with Anypoint Platform you must enter the registration command and then the start command. Each command includes information specific to your Anypoint Platform instance and *must be updated before* executing. See <<Before You Begin>> for more information on how to find the information you will need.
+You do not need to enter the registration command if you have already registered a previous version of Flex Gateway with Anypoint Platform. See <<Before You Begin>> for information on migrating registration. Once migration is complete, skip the following registration steps and enter the start command.
+
+To register a new Flex Gateway with Anypoint Platform, you must enter the registration command and then the start command. Each command includes information specific to your Anypoint Platform instance and *must be updated before* executing. See <<Before You Begin>> for more information on how to find the information you will need.
 //end::reg-command-intro[]
 // tag::k8s-reg-command-intro[]
-To register a Flex Gateway with Anypoint Platform as a Kubernetes ingress controller you must enter the registration command and then install the flex-gateway Helm chart into the gateway namespace. Each command includes information specific to your Anypoint Platform instance and *must be updated before* executing. See <<Before You Begin>> for more information on how to find the information you will need.
+You do not need to enter the registration command if you have already registered a previous version of Flex Gateway with Anypoint Platform. See <<Before You Begin>> for information on migrating registration. Once migration is complete, skip the following registration steps and <<Install Helm Chart into the Namespace>>.
+
+To register a new Flex Gateway with Anypoint Platform as a Kubernetes ingress controller, you must enter the registration command and then install the flex-gateway Helm chart. Each command includes information specific to your Anypoint Platform instance and *must be updated before* executing. See <<Before You Begin>> for more information on how to find the information you will need.
 // end::k8s-reg-command-intro[] 
 //tag::sub-coll-info[]
 
@@ -109,7 +132,13 @@ Before executing the registration command, replace the following sample informat
 // tag::replace-content[]
 
 * `--organization` = your Organization ID in Anypoint Platform
-* `my-gateway` = the name you want to assign to this Flex Gateway instance or replica
+
+* `--split` (optional) = the flag that determines whether registration information should split into multiple files. The default value is `false`.
++
+If `split` is set to `true`, registration information is split into two files: `registration.yaml` and `certificate.yaml`. If `false`, all registration information is contained in one file: `registration.yaml`.
+* `--output-directory` (optional) = the directory in which registration information is output
+
+* `my-gateway` = the name you want to assign the gateway cluster
 
 // end::replace-content[]
 // tag::reg-command-heading[]
@@ -125,7 +154,8 @@ After replacing the sample content, register your Flex Gateway by executing the 
 ----
 # end::reg-command-1[]
 # tag::docker-reg-command[]
-docker run --entrypoint flexctl -w /registration -v $(pwd):/registration mulesoft/flex-gateway \
+docker run --entrypoint flexctl \
+-v "$(pwd)":/registration mulesoft/flex-gateway \
 register \
 # end::docker-reg-command[]
 # tag::linux-reg-command[]
@@ -148,42 +178,42 @@ flexctl register \
 # tag::connected-reg-command[]
 --connected=true \
 # end::connected-reg-command[]
-# tag::reg-command-2[]
+# tag::organization-reg-command[]
 --organization=<your-org-id> \
+# end::organization-reg-command[]
+# tag::output-reg-command-linux[]
+--output-directory=/usr/local/share/mulesoft/flex-gateway/conf.d \
+# end::output-reg-command-linux[]
+# tag::output-reg-command-docker[]
+--output-directory=/registration \
+# end::output-reg-command-docker[]
+# tag::reg-command-2[]
 my-gateway
 ----
+
+NOTE: Use `sudo` if you encounter file permission issues when running this command.
 
 NOTE: If you are in Europe you will need to add the `--anypoint-url=https://eu1.anypoint.mulesoft.com` flag
 to your command.
 
 // end::reg-command-2[]
 // tag::after-reg[]
+In the output directory, you should see the following new registration file(s):
 
-Where you executed the command, you should see three new files similar to the following: 
-
-* `6eb79785-c2f0-4e06-b574-8a030a321d74.conf`
-* `6eb79785-c2f0-4e06-b574-8a030a321d74.key`
-* `6eb79785-c2f0-4e06-b574-8a030a321d74.pem`
+* `registration.yaml`
+* `certificate.yaml` (generated only if the `split` registration parameter is set to `true`, otherwise certificate information will be contained in `registration.yaml`)
 
 IMPORTANT: These generated files are credentials for you to connect your Flex Gateway. If you lose them you
 can no longer connect your Flex Gateway.
-
 // end::after-reg[]
 //tag::after-reg-2[]
-Determine the path where these files live by using the command, `pwd`, then save the path and the UUID,
-or name, of the `.conf` file for later use. For example, `/Users/jane/flex-gateway/6eb79785-c2f0-4e06-b574-8a030a321d74.conf`.
+
 //end::after-reg-2[]
 //tag::linux-after-reg[]
-Determine the path for these files, then save the path and the UUID, or name, of the files. For example, `/Users/jane/flex-gateway/6eb79785-c2f0-4e06-b574-8a030a321d74`. 
 
-Then update the permissions of the files: 
-[source,ssh]
-----
-chmod 644 <path-and-uuid-of-registration-files>.*
-----
 //end::linux-after-reg[]
 //tag::k8s-after-reg[]
-You will need the UUIDs, or the filenames without the file type, of these files to create your Kubernetes secret later.
+
 //end::k8s-after-reg[]
 // tag::connected-after-reg[]
 
@@ -194,25 +224,22 @@ The gateway's status is disconnected for now. You need to start the gateway to c
 
 === Start Command
 
-Before executing the start command below, update the placeholder text with the
-absolute path to the directory with the `.conf` file, and the UUID of the `.conf` file.
-Additionally, update the FLEX_NAME to the name you want to assign to your Flex Replica.
+Before executing the start command below, update the absolute path to the directory where your Flex Gateway registration files reside.
 
 [source,ssh,subs=attributes+]
 ----
 docker run --rm \
--v <absolute-path-to-directory-with-conf-file>/:/etc/flex-gateway/rtm \
 -p 8080:8080 \
--e FLEX_RTM_ARM_AGENT_CONFIG=/etc/flex-gateway/rtm/<UUID-of-your-file>.conf \
--e FLEX_NAME=<name-for-flex-replica> \
+-v <absolute-path-to-directory-with-gateway-registration-files>/:/usr/local/share/mulesoft/flex-gateway/conf.d \
 mulesoft/flex-gateway
 ----
+NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
 // end::start-command[]
 // tag::start-command-local-intro[]
 
 === Start Command
 
-Before executing the start command below, update the placeholder text with the absolute path to the directory with the `.conf` file, and the UUID of the `.conf` file. Additionally, update the absolute path to the directory where your Flex Gateway configuration files will reside and the FLEX_NAME with the name you want to assign to your Flex Replica. 
+Before executing the start command below, update the absolute path to the directory where your Flex Gateway configuration and registration files reside.
 
 //end::start-command-local-intro[]
 //tag::start-command-local[]
@@ -220,13 +247,12 @@ Before executing the start command below, update the placeholder text with the a
 [source,ssh,subs=attributes+]
 ----
 docker run --rm \
--v <absolute-path-to-directory-with-conf-file>/:/etc/flex-gateway/rtm \
--v <absolute-path-to-directory-with-gateway-configuration-files>/:/usr/local/share/mulesoft/flex-gateway/conf.d \
+-v <absolute-path-to-directory-with-gateway-files>/:/usr/local/share/mulesoft/flex-gateway/conf.d \
 -p 8080:8080 \
--e FLEX_RTM_ARM_AGENT_CONFIG=/etc/flex-gateway/rtm/<UUID-of-your-file>.conf \
--e FLEX_NAME=<name-for-flex-replica> \
 mulesoft/flex-gateway
 ----
+NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
+
 //end::start-command-local[]
 //tag::start-command-local-valid[]
 The Docker logs should include this line:
@@ -238,56 +264,13 @@ The Docker logs should include this line:
 // end::start-command-local-valid[]
 // tag::create-config-folder-file[]
 
-=== Create Configuration Folder and File
-
-Before executing the start command, you must create a  configuration directory and file and edit the contents of that file.
-
-First create the configuration directory using the following command: 
-
-[source,ssh]
-----
-sudo mkdir /etc/systemd/system/flex-gateway-agent.service.d/
-----
-
-Afterwards, create a configuration file within that directory and name it `env.conf`.
-
-Finally, edit the file with vim using the following command: 
-
-[source,ssh]
-----
-sudo vi env.conf
-----
-
 // end::create-config-folder-file[]
 // tag::config-content[]
 
-=== Add Configuration Content
-
-Add the content below to the `env.conf` file, after replacing the following sample content with your own: 
-
-* `<path-and-uuid-of-conf-file>.conf` = the path and UUID of the `.conf` file that was created when you registered the gateway
-* `<name-for-flex-replica>` = a name for your Flex Replica
-
-[source,subs=attributes+]
-----
-[Service]
-
-Environment=FLEX_RTM_ARM_AGENT_CONFIG=<path-and-uuid-of-conf-file>.conf
-Environment=FLEX_NAME=<name-for-flex-replica>
-----
-
-After you have added the content to the `env.conf` file, save the file with ESC + `:wq`.
 // end::config-content[]
 // tag::linux-start-commands[]
 
 === Start Commands
-
-Reload the `env.conf` configuration with the following command:
-
-[source,ssh]
-----
-sudo systemctl daemon-reload
-----
 
 Start Flex Gateway with the following command: 
 
@@ -322,29 +305,9 @@ You should see a list of services. Flex Gateway is successfully running if each 
 
 Before installing, ensure that you have:
 
-* https://kubernetes.io/docs/tasks/tools/#kubectl[kubectl^], a tool used to interact with Kubernetes clusters.
 * https://helm.sh/docs/intro/install/[Helm^], a tool used to install Flex Gateway, monitoring tools, and applications. A minimum Helm version of 3.0.0 is required. 
 +
 Refer to the <<helm-chart-options,Helm Chart Configuration Options>> for information about customizing the chart.
-
-Install the chart:
-
-. Create the namespace in which Flex Gateway will be installed: 
-+
-[source,kubernetes]
-----
-kubectl create namespace gateway
-----
-
-. Create a Kubernetes secret using the UUIDs from the files generated during registration:
-+
-[source,kubernetes]
-----
-kubectl -n gateway create secret generic <UUID-of-your-file> \
---from-file=platform.conf=<UUID-of-your-file>.conf \
---from-file=platform.key=<UUID-of-your-file>.key \
---from-file=platform.pem=<UUID-of-your-file>.pem
-----
 
 . Add the Flex Gateway Helm repository:
 +
@@ -360,12 +323,12 @@ helm repo add flex-gateway https://flex-packages.anypoint.mulesoft.com/helm
 helm repo up
 ----
 
-. Using Ingress, install the *flex-gateway* Helm chart into the *gateway* namespace. Specify the UUID from the filenames created for creating the Kubernetes secret. 
+. Using Ingress, install the *flex-gateway* Helm chart into the *gateway* namespace.
 +
 [source,kubernetes]
 ----
-helm -n gateway upgrade -i --wait ingress flex-gateway/flex-gateway \
---set registerSecretName=<UUID-of-your-file>
+helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway \
+--set-file registration.content=registration.yaml
 ----
 +
 The command returns something similar to the following: 
@@ -380,27 +343,12 @@ REVISION: 1
 TEST SUITE: None
 ----
 
-. Verify *apiinstances* was created during installation: 
-+
-[source,text]
-----
-kubectl -n gateway get apiinstances
----- 
-+
-The command returns output similar to the following: 
-+
-[source,text]
-----
-NAME            ADDRESS
-ingress-http    http://0.0.0.0:80
-ingress-https   http://0.0.0.0:443
-----
-
 //end::k8s-install-helm-chart[]
 //tag::gateway-connected[]
+
 Now if you check in Runtime Manager after clicking *Flex Gateway* in the left navigation, your gateway's status is connected. You may need to refresh the page.
 
-Currently, you cannot unregister or delete Flex Replicas from the Runtime Manager UI. If a Flex Replica
+If a Flex Replica
 in Connected Mode is stopped it will be removed from the UI in Runtime Manager after 30 days. Otherwise,
 it will appear in the Runtime Manager UI even if it is no longer running.
 
@@ -450,6 +398,18 @@ Possible values: `ifNotPresent`, `Always`, `Never`
 |null
 |The average memory usage percentage of all deployed pods
 
+|`registerSecretName`
+|null
+|Deprecated - see `registration.secretName`
+
+|`registration.content`
+|null
+|If this field is provided, installation creates a Kubernetes secret resource that contains the contents of the registration files.
+
+|`registration.secretName`
+|null
+|If this field is provided, registration requires that a Kubernetes secret with the given name exists. The secret must contain the content of the registration files.
+
 |`resources.limits.cpu`
 |500m
 |CPU resource limits in millicores
@@ -483,10 +443,6 @@ Possible values: `ClusterIP`, `NodePort`, `LoadBalancer`, `ExternalName`
 |`service.https.port`
 |443
 |The Ingress Controller service HTTPS port
-
-|`registerSecretName`
-|null
-|The name of the secret containing the registration files
 
 |===
 //end::helm-chart-options[]
