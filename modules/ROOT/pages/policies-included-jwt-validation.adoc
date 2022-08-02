@@ -174,10 +174,11 @@ This expression searches the JWT in the header named `jwt`.
 
 | JWT Signing Method
 | Specify the signing method expected in the incoming JWT. The policy rejects the token if the JWT has a different signing method.
-| RSA, HMAC, None
+| RSA, ES*, HMAC, None. +
+*ES is only supported in Mule Gateway.
 
 | JWT Signing Key Length
-| Specify the length of the key (in the case of the HMAC algorithm) or the algorithm (in the case of RSA) used for the signing method. +
+| Specify the length of the key (in the case of the HMAC algorithm) or the algorithm (in the case of RSA or ES) used for the signing method. +
 Ignore this field if you selected *none* as JWT Signing Method.
 | 256, 384, 512
 
@@ -191,7 +192,7 @@ Ignore this field if you selected *none* as JWT Signing Method.
 | This field appears if you selected *Text* as JWT Key Origin. +
 Use this field to  provide the key used to check the signature of the token. +
 Ignore this field if you selected *none* as JWT Signing Method.
-| A 32, 48 or 64 characters long shared secret in case HMAC was the selected JWT Signing Method or the PEM Public Key without the header nor the footer in case of selecting RSA.
+| A 32, 48 or 64 characters long shared secret in case HMAC was the selected JWT Signing Method or the PEM Public Key without the header nor the footer in case of selecting RSA or ES.
 
 | JWKS URL
 | This field appears if you selected the *JWKS* method as JWT Key Origin. +
@@ -276,7 +277,7 @@ The policy validates the signature of the JWT based on the values specified in t
 The algorithms that support signature verification are:
 
 * *Symmetric algorithms* - HMAC using SHA-256, SHA-384, and SHA-512.
-* *Asymmetric algorithms* - RSA using SHA-256, SHA-384, and SHA-512.
+* *Asymmetric algorithms* - ES and RSA using SHA-256, SHA-384, and SHA-512. *ES is only supported in Mule Gateway.
 * *None* - No signature validation.
 
 For more information about the algorithms in a JWS structure, refer to the  https://tools.ietf.org/html/rfc7518#section-3.1[JWA RFC standard^].
