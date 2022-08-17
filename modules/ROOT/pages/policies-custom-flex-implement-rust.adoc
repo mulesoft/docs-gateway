@@ -242,7 +242,11 @@ struct CustomAuthConfig {
 +
 Flex Gateway configures your policy with JSON defined in the policy definition. The JSON that needs to be parsed contains a single field called `secret-value`.
 +
-. Implement the `on_configure` method of the `RootContext` trait to deserialize the configuration:
+. Deserialize the configuration:
++
+After creating the basic structure to contain the policy configuration, it is required to implement the `on_configure` method belonging to the `RootContext` trait in order to deserialize it.
+
+Within the implementation of `RootContext` for `CustomAuthRootContext`, add the `on_configure` method, like the following snippet.
 +
 ----
 impl RootContext for CustomAuthRootContext {
@@ -255,15 +259,9 @@ impl RootContext for CustomAuthRootContext {
         true
     }
 
-    fn create_http_context(&self, _: u32) -> Option<Box<dyn HttpContext>> {
-        Some(Box::new(HttpConfigHeader {
-            config: self.config.clone(),
-        }))
-    }
 
-    fn get_type(&self) -> Option<ContextType> {
-        Some(ContextType::HttpContext)
-    }
+    // Other implemented methods
+    // ...
 }
 ----
 
