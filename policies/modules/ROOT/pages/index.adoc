@@ -1,33 +1,53 @@
-= Gateway
+= Gateway Policies
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
+:imagesdir: ../assets/images
 
-Anypoint Platform offers three different runtimes for managing your APIs in API Manager. 
+Policies enable you to enforce regulations to help manage security, control traffic, and improve adaptability of your APIs. For example, a policy can control authentication, access, allotted consumption, and service level access (SLA).
 
-== Flex Gateway
+You can implement these regulations with no modification to the code implementation.
 
-Anypoint Flex Gateway is an ultrafast API gateway designed to manage and secure APIs running anywhere.
-Built to seamlessly integrate with DevOps and CI/CD workflows, Anypoint Flex Gateway delivers the
-performance required for the most demanding applications while providing enterprise security and manageability across any environment.
+== Policies Included in Flex Gateway and Mule Gateway
 
-== Mule Gateway
+* xref:policies::policies-included-directory.adoc[Included Policies Directory]
 
-Mule Runtime includes an embedded API Gateway. Using this gateway, any user can, for example, apply a basic authentication policy on top of a Mule application, enrich an incoming/outgoing message, or add any other complex capability to an API without having to write any code.
+== Applying Policies in Flex Gateway Local Mode
 
-Overall, API Gateway allows you to add a dedicated orchestration layer on top of your backend APIs and services to help you separate orchestration from implementation concerns. You can leverage the governance capabilities of API Manager to apply, among other capabilities, throttling, security, caching, and logging to your APIs.
+* xref:gateway::flex-local-secure-api-with-basic-auth-policy.adoc[Secure an API with Basic Authentication and Rate Limiting]
+* xref:gateway::flex-local-secure-api-with-auto-policy.adoc[Secure an API with an Automated Resource-Level Policy]
 
-If you want to apply policies and generate analytics info, you must use either:
+== Applying Policies in Flex Gateway Connected Mode and in Mule Gateway
 
-* An API defined in a Mule application.
-* A Mule application that proxies your existing backend implementation. 
+* xref:policies::policies-included-apply.adoc[Apply an Included Policy]
 
-== Anypoint Service Mesh
+== See Also
 
-Anypoint Service Mesh enables you to extend your microservices network by including your non-MuleSoft applications into the Anypoint Platform sphere. You can then manage and secure your application network, including your non-Mule applications, seamlessly from a single pane.
+* xref:policies::policies-policy-categories.adoc[Policy Categories]
+* xref:policies::policies-compare-versions.adoc[Comparison of Mule 3 and Mule 4 Policies]
+* xref:policies::policies-flex-dataweave-support.adoc[DataWeave Support in Flex Gateway Policies]
+* xref:policies::policies-automated-overview.adoc[Automated Policies]
+* xref:policies::policies-resource-level-overview.adoc[Resource-Level Policies]
+* xref:policies::policies-custom-overview.adoc[Custom Policies]
 
-Your non-MuleSoft microservices might be written using different languages and platforms, or might be deployed in different environments. To alleviate issues arising from differences in these microservices, Anypoint Service Mesh ensures the following application management advantages:
 
-* Provides resilient service-to-service communication using zero-trust policies to handle traffic control, fault tolerance and load balancing
-* Extends MuleSoft API Management capabilities to any non-Mule service, with policies, security and analytics all applied directly from Anypoint Platform
-* Amplifies reuse of services with discovery of non-Mule services within Exchange, available for use in future projects
+
+// You can apply policies to any HTTP-based APIs, such as:
+
+// An APIkit project
+
+// For example, deploy the APIkit project to Anypoint Platform using API Autodiscovery, and then apply a policy.
+
+// An API running on CloudHub
+
+// Design an API on Anypoint Platform, configure a proxy for Cloudhub, and apply a policy.
+
+// An API running on Anypoint Runtime Fabric
+
+// Design an API on Anypoint Platform, configure a proxy for Runtime Fabric, and apply a policy.
+
+// An API deployed to a private or cloud-based Mule runtime engine (Mule) 3.8.x or later
+
+// You can apply a policy to any API implemented in Anypoint Platform, as long as the API is exposed through an HTTP listener. You can also apply a policy to APIs not implemented in Anypoint Platform by deploying a proxy application to control how and when a received request is forwarded to its implementation endpoint. Anypoint API Manager supports RAML, HTTP, or SOAP-based proxies.
+
+// When applying a policy with SLA, you can set an API alert to notify you when an API request violates that policy. By default, a policy applies to the entire API, filtering traffic requests to every resource and method. You can configure this to provide resource-level granularity if needed.
