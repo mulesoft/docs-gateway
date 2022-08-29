@@ -57,13 +57,6 @@ http://www.mulesoft.org/schema/mule/http-policy-transform http://www.mulesoft.or
 
 === Add Headers Operations
 
-This operations depends on its correlation with the Mule message:
-
-* Correlated--Adds headers in requests and responses of the HTTP Listener and Requester.
-* Not correlated--Creates a new request and response with the specified headers.
-
-The operation and Mule message are not correlated if the specified outputType is `response`, but the Mule Message contains the HTTP Request. When the operation executes, it overwrites the entire value, creating a new response with the specified headers.  If the Mule Message contains a HTTP response, it just adds the headers to the request.
-
 ==== Add Request Headers
 
 This operation is used to inject headers in the request. To use this operation, you must initiate a call from:
@@ -81,7 +74,7 @@ A DataWeave expression that resolves to the Map of the headers to be added to pr
 +
 [source,xml,linenums]
 ----
-<http-transform:add-request-headers outputType="response">
+<http-transform:add-request-headers>
 <http-transform:headers>#[
 {
   'FirstHeader': 'FirstHeaderValue',
