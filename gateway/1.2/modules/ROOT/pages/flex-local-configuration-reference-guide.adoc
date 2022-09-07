@@ -124,10 +124,11 @@ spec:
 
 |===
 
-=== API Instance Example
+=== API Instance Examples
 
-The following resource specifies an `ApiInstance` with metadata that describes the instance identifier. The `metadata.name` value is used as the target reference for other resources, such as policy bindings. The `spec.services.routes.config.destinationPath` value prepends `/v1/apps` to the specified paths under `rules`, acting in a similar manner as a base path. 
+The following resource specifies an `ApiInstance` with metadata that describes the instance identifier. The `metadata.name` value is used as the target reference for other resources, such as policy bindings. The `spec.services.routes.config.destinationPath` value prepends `/v1/apps` to the specified paths under `rules`, acting in a similar manner as a base path.
 
+[source]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: ApiInstance
@@ -145,6 +146,39 @@ spec:
           config:
             destinationPath: /v1/apps
 
+----
+
+==== Port Sharing
+
+The following resource demonstrates API port sharing, with two distinct services listening on port 8080. The `spec.services.address` value specifies the service address and port that should be shared. Additionally, the first example service `spec.services.routes.config.destinationPath` value prepends `/api` to the specified paths under `rules`, acting in a similar manner as a base path.
+
+[source]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: animal-facts-api
+spec:
+  address: http://0.0.0.0:8080
+  services:
+    dogs:
+      address: https://dog-api.kinduff.com:443/
+      routes:
+        - rules:
+            - path: /api/dogs(/.*)
+          config:
+            destinationPath: /api
+    cats:
+      address: https://cat-fact.herokuapp.com:443/
+      routes:
+        - rules:
+            - path: /api/cats(/.*)
+----
+
+The services both listen on port 8080:
+----
+http://localhost:8080/api/dogs/facts
+http://localhost:8080/api/cats/facts
 ----
 
 [[policy-binding]]
@@ -248,8 +282,9 @@ Each entry's key is the expected header name and the value is a regular expressi
 
 === Policy Binding Examples 
 
-The following resource binds a `route` policy to the API instance, routing traffic specified by the `rules` to the proxy address specified in the `Service` configuration snippet: 
+The following resource binds a `route` policy to the API instance, routing traffic specified by the `rules` to the proxy address specified in the `Service` configuration snippet:
 
+[source]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: PolicyBinding
@@ -272,6 +307,7 @@ spec:
 
 The following resource binds a `http-basic-authentication-flex` policy to the API instance -  requiring requests to include the basic credentials defined in `config.username` and `config.password`:
 
+[source]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: PolicyBinding
@@ -325,8 +361,9 @@ spec:
 
 === Service Example
 
-The following resource defines a `Service` with metadata that describes the service identifier. The `metadata.namespace` value matches the namespace specified in the `ApiInstance` configuration. The `spec.address` is the address of the API implementation: 
+The following resource defines a `Service` with metadata that describes the service identifier. The `metadata.namespace` value matches the namespace specified in the `ApiInstance` configuration. The `spec.address` is the address of the API implementation:
 
+[source]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Service
@@ -429,6 +466,7 @@ spec:
 
 ==== Logging Example
 
+[source]
 ----
 apiVersion: config.mulesoft.com/v1alpha1
 kind: Configuration
@@ -502,6 +540,7 @@ spec:
 
 The Redis storage service is an implementation of a REST API object store that functions as a bridge between the object store interface and a Redis backend.
 
+[source]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Configuration
@@ -520,6 +559,7 @@ spec:
 
 The local storage service is an implementation of a REST API object store that saves data in memory. All data is lost when Flex Gateway is stopped or restarted.
 
+[source]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Configuration
