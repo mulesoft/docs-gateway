@@ -128,7 +128,6 @@ spec:
 
 The following resource specifies an `ApiInstance` with metadata that describes the instance identifier. The `metadata.name` value is used as the target reference for other resources, such as policy bindings. The `spec.services.routes.config.destinationPath` value prepends `/v1/apps` to the specified paths under `rules`, acting in a similar manner as a base path.
 
-[source]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: ApiInstance
@@ -137,8 +136,8 @@ metadata:
 spec:
   address: http://0.0.0.0:8080
   services:
-    jsonplaceholder:
-      address: https://jsonplaceholder.typicode.com:443/
+    json:
+      address: https://<upstream address>:443/
       routes:
         - rules:
             - path: /api(/users/.*)
@@ -150,35 +149,35 @@ spec:
 
 ==== Port Sharing
 
-The following resource demonstrates API port sharing, with two distinct services listening on port 8080. The `spec.services.address` value specifies the service address and port that should be shared. Additionally, the first example service `spec.services.routes.config.destinationPath` value prepends `/api` to the specified paths under `rules`, acting in a similar manner as a base path.
+The following `ApiInstance` resources demonstrate API port sharing, with two distinct services listening on port 8080.
 
-[source]
 ----
+---
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: ApiInstance
 metadata:
-  name: animal-facts-api
+  name: httpbin-example
 spec:
-  address: http://0.0.0.0:8080
+  address: http://0.0.0.0:8080/api/httpbin/
   services:
-    dogs:
-      address: https://dog-api.kinduff.com:443/
-      routes:
-        - rules:
-            - path: /api/dogs(/.*)
-          config:
-            destinationPath: /api
-    cats:
-      address: https://cat-fact.herokuapp.com:443/
-      routes:
-        - rules:
-            - path: /api/cats(/.*)
+    upstream:
+      address: https://<upstream address>:443
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: json-example
+spec:
+  address: http://0.0.0.0:8080/api/json/
+  services:
+    upstream:
+      address: https://<upstream address>:443
 ----
 
-The services both listen on port 8080:
+Both services listen on port 8080, for example:
 ----
-http://localhost:8080/api/dogs/facts
-http://localhost:8080/api/cats/facts
+curl http://localhost:8080/api/httpbin/get -v
+curl http://localhost:8080/api/json/users/1 -v
 ----
 
 [[policy-binding]]
@@ -284,7 +283,6 @@ Each entry's key is the expected header name and the value is a regular expressi
 
 The following resource binds a `route` policy to the API instance, routing traffic specified by the `rules` to the proxy address specified in the `Service` configuration snippet:
 
-[source]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: PolicyBinding
@@ -299,15 +297,14 @@ spec:
     namespace: default
   config:
     destinationRef:
-      name: jsonplaceholder
+      name: json
       namespace: e-commerce
   rules:
-  - path: /api/jsonplaceholder(/.*)
+  - path: /api/json(/.*)
 ----
 
 The following resource binds a `http-basic-authentication-flex` policy to the API instance -  requiring requests to include the basic credentials defined in `config.username` and `config.password`:
 
-[source]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: PolicyBinding
@@ -363,15 +360,14 @@ spec:
 
 The following resource defines a `Service` with metadata that describes the service identifier. The `metadata.namespace` value matches the namespace specified in the `ApiInstance` configuration. The `spec.address` is the address of the API implementation:
 
-[source]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Service
 metadata:
-  name: jsonplaceholder
+  name: json-example
   namespace: e-commerce
 spec:
-  address: https://jsonplaceholder.typicode.com:443/
+  address: https://<upstream address>:443/
 ----
 
 == Configuration
@@ -466,7 +462,6 @@ spec:
 
 ==== Logging Example
 
-[source]
 ----
 apiVersion: config.mulesoft.com/v1alpha1
 kind: Configuration
@@ -540,7 +535,6 @@ spec:
 
 The Redis storage service is an implementation of a REST API object store that functions as a bridge between the object store interface and a Redis backend.
 
-[source]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Configuration
@@ -559,7 +553,6 @@ spec:
 
 The local storage service is an implementation of a REST API object store that saves data in memory. All data is lost when Flex Gateway is stopped or restarted.
 
-[source]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Configuration
@@ -581,11 +574,11 @@ spec:
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: ApiInstance
 metadata:
-  name: jsonplaceholder-api
+  name: api-example
 spec:
   address: http://0.0.0.0:8080
   services:
-    jsonplaceholder:
+    api-example:
       address: https://<your url>:443/
       routes:
         - rules:
@@ -615,7 +608,7 @@ spec:
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Service
 metadata:
-  name: jsonplaceholder
+  name: json
 spec:
   address: https://<your url>:443/
 ---
@@ -630,7 +623,7 @@ spec:
     name: route
   config:
     destinationRef:
-      name: jsonplaceholder
+      name: json
   rules:
   - path: /api(/users/.*)
   - path: /api(/comments/.*)
