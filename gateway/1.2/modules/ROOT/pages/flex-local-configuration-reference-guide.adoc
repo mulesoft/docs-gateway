@@ -149,7 +149,7 @@ spec:
 
 ==== Port Sharing
 
-The following `ApiInstance` resources demonstrate API port sharing, with two distinct Api Instances listening on port 8080.
+The following `ApiInstance` resources demonstrate API port sharing, with two distinct API instances listening on port 8080.
 
 ----
 ---
@@ -179,6 +179,20 @@ Both services listen on port 8080, for example:
 curl http://localhost:8080/api/httpbin/get -v
 curl http://localhost:8080/api/json/users/1 -v
 ----
+
+[NOTE]
+====
+The base path of APIs sharing a port must not clash. For example, the following path combination is not allowed:
+----
+http://0.0.0.0:8080/cats
+http://0.0.0.0:8080/cats/dogs
+----
+====
+
+[NOTE]
+====
+TLS applies to the port. Therefore, the same TLS policy applies to all API instances sharing the port.
+====
 
 [[policy-binding]]
 == Policy Binding 
