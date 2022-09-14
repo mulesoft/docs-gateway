@@ -124,9 +124,9 @@ spec:
 
 |===
 
-=== API Instance Example
+=== API Instance Examples
 
-The following resource specifies an `ApiInstance` with metadata that describes the instance identifier. The `metadata.name` value is used as the target reference for other resources, such as policy bindings. The `spec.services.routes.config.destinationPath` value prepends `/v1/apps` to the specified paths under `rules`, acting in a similar manner as a base path. 
+The following resource specifies an `ApiInstance` with metadata that describes the instance identifier. The `metadata.name` value is used as the target reference for other resources, such as policy bindings. The `spec.services.routes.config.destinationPath` value prepends `/v1/apps` to the specified paths under `rules`, acting in a similar manner as a base path.
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -136,8 +136,8 @@ metadata:
 spec:
   address: http://0.0.0.0:8080
   services:
-    jsonplaceholder:
-      address: https://jsonplaceholder.typicode.com:443/
+    json:
+      address: https://<upstream address>:443/
       routes:
         - rules:
             - path: /api(/users/.*)
@@ -146,6 +146,53 @@ spec:
             destinationPath: /v1/apps
 
 ----
+
+==== Port Sharing
+
+The following `ApiInstance` resources demonstrate API port sharing, with two distinct API instances listening on port 8080.
+
+----
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: httpbin-example
+spec:
+  address: http://0.0.0.0:8080/api/httpbin/
+  services:
+    upstream:
+      address: https://<upstream address>:443
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: json-example
+spec:
+  address: http://0.0.0.0:8080/api/json/
+  services:
+    upstream:
+      address: https://<upstream address>:443
+----
+
+Both services listen on port 8080, for example:
+----
+curl http://localhost:8080/api/httpbin/get -v
+curl http://localhost:8080/api/json/users/1 -v
+----
+
+[NOTE]
+====
+The base path of APIs sharing a port must not clash. For example, the following path combination is not allowed:
+----
+http://0.0.0.0:8080/cats
+http://0.0.0.0:8080/cats/dogs
+----
+====
+
+[NOTE]
+====
+TLS applies to the port. Therefore, the same TLS policy applies to all API instances sharing the port.
+====
 
 [[policy-binding]]
 == Policy Binding 
@@ -248,7 +295,7 @@ Each entry's key is the expected header name and the value is a regular expressi
 
 === Policy Binding Examples 
 
-The following resource binds a `route` policy to the API instance, routing traffic specified by the `rules` to the proxy address specified in the `Service` configuration snippet: 
+The following resource binds a `route` policy to the API instance, routing traffic specified by the `rules` to the proxy address specified in the `Service` configuration snippet:
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -264,10 +311,10 @@ spec:
     namespace: default
   config:
     destinationRef:
-      name: jsonplaceholder
+      name: json
       namespace: e-commerce
   rules:
-  - path: /api/jsonplaceholder(/.*)
+  - path: /api/json(/.*)
 ----
 
 The following resource binds a `http-basic-authentication-flex` policy to the API instance -  requiring requests to include the basic credentials defined in `config.username` and `config.password`:
@@ -325,16 +372,16 @@ spec:
 
 === Service Example
 
-The following resource defines a `Service` with metadata that describes the service identifier. The `metadata.namespace` value matches the namespace specified in the `ApiInstance` configuration. The `spec.address` is the address of the API implementation: 
+The following resource defines a `Service` with metadata that describes the service identifier. The `metadata.namespace` value matches the namespace specified in the `ApiInstance` configuration. The `spec.address` is the address of the API implementation:
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Service
 metadata:
-  name: jsonplaceholder
+  name: json-example
   namespace: e-commerce
 spec:
-  address: https://jsonplaceholder.typicode.com:443/
+  address: https://<upstream address>:443/
 ----
 
 == Configuration
@@ -541,11 +588,11 @@ spec:
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: ApiInstance
 metadata:
-  name: jsonplaceholder-api
+  name: api-example
 spec:
   address: http://0.0.0.0:8080
   services:
-    jsonplaceholder:
+    api-example:
       address: https://<your url>:443/
       routes:
         - rules:
@@ -575,7 +622,7 @@ spec:
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Service
 metadata:
-  name: jsonplaceholder
+  name: json
 spec:
   address: https://<your url>:443/
 ---
@@ -590,7 +637,7 @@ spec:
     name: route
   config:
     destinationRef:
-      name: jsonplaceholder
+      name: json
   rules:
   - path: /api(/users/.*)
   - path: /api(/comments/.*)
