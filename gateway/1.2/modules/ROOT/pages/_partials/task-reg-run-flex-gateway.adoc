@@ -358,91 +358,18 @@ it will appear in the Runtime Manager UI even if it is no longer running.
 [[helm-chart-options]]
 === Helm Chart Configuration Options
 
-The following table describes the configurable options of the Flex Gateway Ingress Controller Helm chart.
+The following command describes the configurable options of the Flex Gateway Ingress Controller Helm chart:
 
-[cols="a,a,a"]
-|===
-|Parameter |Default Value |Description
+[source,kubernetes]
+----
+helm show values flex-gateway/flex-gateway
+----
 
-|`image.pullPolicy`
-|ifNotPresent
-|The https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy[pull policy^] for the Ingress Controller image.
+To view the Helm chart `README`, execute the following:
 
-Possible values: `ifNotPresent`, `Always`, `Never`
+[source,kubernetes]
+----
+helm show readme flex-gateway/flex-gateway
+----
 
-|`image.pullSecretName`
-|""
-|The name of the secret that contains Docker registry credentials. The secret must exist in the same namespace as the helm release.
-
-|`replicaCount`
-|1
-|The number of Ingress Controller deployment replicas
-
-|`autoscaling.enabled`
-|false
-|Boolean indicating if the Horizontal Pod Autoscaler (HPA) is enabled
-
-|`autoscaling.minReplicas`
-|2
-|The minimum number of replicas that the scaler is allowed to create
-
-|`autoscaling.maxReplicas`
-|11
-|The maximum number of replicas that the scaler is allowed to create
-
-|`autoscaling.targetCPUUtilizationPercentage`
-|50
-|The average CPU usage percentage of all deployed pods
-
-|`autoscaling.targetMemoryUtilizationPercentage`
-|null
-|The average memory usage percentage of all deployed pods
-
-|`registerSecretName`
-|null
-|Deprecated - see `registration.secretName`
-
-|`registration.content`
-|null
-|If this field is provided, installation creates a Kubernetes secret resource that contains the contents of the registration files.
-
-|`registration.secretName`
-|null
-|If this field is provided, registration requires that a Kubernetes secret with the given name exists. The secret must contain the content of the registration files.
-
-|`resources.limits.cpu`
-|500m
-|CPU resource limits in millicores
-
-|`resources.limits.memory`
-|256Mi
-|Memory resource limits
-
-|`service.enabled`
-|true
-|Boolean indicating if a service to expose Ingress Controller pods is created
-
-|`service.type`
-|LoadBalancer
-|The https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types[type^] of Ingress Controller service to create.
-
-Possible values: `ClusterIP`, `NodePort`, `LoadBalancer`, `ExternalName`
-
-|`service.http.enabled`
-|true
-|Boolean indicating if the HTTP port should be enabled for the Ingress Controller service
-
-|`service.http.port`
-|80
-|The Ingress Controller service HTTP port
-
-|`service.https.enabled`
-|true
-|Boolean indicating if the HTTPS port should be enabled for the Ingress Controller service
-
-|`service.https.port`
-|443
-|The Ingress Controller service HTTPS port
-
-|===
 //end::helm-chart-options[]
