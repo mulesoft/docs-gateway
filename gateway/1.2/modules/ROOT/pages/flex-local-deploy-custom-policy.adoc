@@ -7,6 +7,7 @@ endif::[]
 You can implement custom policies via WebAssembly (WASM) extensions that run on Envoy as custom filters. The following steps demonstrate deploying and applying a custom filter (policy) to an API running in Local Mode:
 
 . Create a configuration YAML file.
+. Save the file in the Flex Gateway configuration directory.
 . Create the extension definition.
 . Encode the custom policy WASM implementation using `base64`.
 . Link the extension definition to the custom policy WASM binary implementation.
@@ -23,7 +24,11 @@ Before getting started, ensure that you have:
 
 == Deploy a Custom Policy
 
-. Create a configuration file called `custom-policy-example.yaml`. Save the file in the Flex Gateway configuration directory.
+. Create a configuration file called `custom-policy-example.yaml`.
+
+. Save the file in the Flex Gateway configuration directory. For example:
++
+* `/etc/mulesoft/flex-gateway/conf.d/policies`
 
 . Create the extension definition.
 +
@@ -69,7 +74,7 @@ The command sends the encoded data to a file called `policy`. In the next step, 
 ====
 If you compiled the policy using a target of `wasm32-unknown-unknown`, locate the binary in `./target/wasm32-unknown-unknown/release`.
 
-If you compiled the policy using a target of `wasm32-wasi`, locate the binary in `./target/wasm32-was/release`.
+If you compiled the policy using a target of `wasm32-wasi`, locate the binary in `./target/wasm32-wasi/release`.
 ====
 
 . Link the extension definition to the custom policy WASM binary implementation.
@@ -100,7 +105,7 @@ spec:
 +
 * The `spec.extends` value specifies the resource definition to inherit from. For example, `custom-local-example-definition` is the resource previously defined.
 +
-* Substitute the `//<WASM_BINARY_IN_BASE64>` value of `spec.properties.implementation.default` with the `base64` encoded WASM binary data, generated previously.
+* Substitute the `<WASM_BINARY_IN_BASE64>` value of `spec.properties.implementation.default` with the `base64` encoded WASM binary data, generated previously.
 +
 [NOTE]
 ====
