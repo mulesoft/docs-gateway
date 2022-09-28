@@ -12,7 +12,7 @@ endif::[]
 >s| Summary      | Monitors access to an API by defining the maximum number of requests processed within a period of time
 >s| Category | Quality of Service
 >s| First Mule version available | v4.1.0
->s| First Flex version available | v1.0.0
+>s| First Flex version available | v1.2.0
 .4+>.^s| Returned Status Codes
 |400 - Quota exceeded by WSDL APIs that use SOAP v1.2 (Mule only). Requests are blocked until the current window completes its processing.
 |429 - Quota exceeded, requests are blocked until the current window finishes
@@ -45,6 +45,7 @@ In Local Mode, you apply the Rate Limiting policy to your API via declarative co
         timePeriodInMilliseconds: <int> // REQUIRED
     keySelector: <string> // OPTIONAL
     exposeHeaders: <bool> // OPTIONAL, default: false
+    clusterizable: <bool> // OPTIONAL, default: true
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -78,12 +79,10 @@ For example, `#[attributes.queryParams['identifier']]` creates an independent co
 | `false`
 | The boolean option that defines whether to expose the  <<response-header,x-ratelimit headers>> as part of the response 
 
-// | `clusterizable` 
-// | Optional
-// | `true`
-// | The boolean option that shares the quota defined for a group among all of the nodes of a Mule cluster 
-//
-// clusterizable: <bool> // OPTIONAL, default: true
+| `clusterizable`
+| Optional
+| `true`
+| Distributed: When using interconnected runtimes with this flag enabled, quota will be shared among all nodes
 
 |===
 
@@ -100,11 +99,43 @@ The following example defines a rate limit of three requests every six seconds:
         timePeriodInMilliseconds: 6000
     keySelector: "#[attributes.method]"
     exposeHeaders: true
+    clusterizable: false
 ----
 
 //#[attributes.queryParams['identifier']]
 
 The `#[attributes.method]` DataWeave expression creates one group for each available method in HTTP, for example, the policy rate-limits GET requests independently of POST requests.
+
+==== Distributed Rate Limit Resource Configuration Example
+
+Distributed Rate Limit requires Shared Storage to be enabled. For more information about Shared Storage, refer to xref:gateway::flex-conn-shared-storage-config.adoc[Configuring Shared Storage for Flex Gateway in Connected Mode].
+
+----
+
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: shared-storage-redis
+spec:
+  sharedStorage:
+    redis:
+      address: redis:6379
+      user: user
+      password: pass
+      DB: 1
+
+---
+- policyRef:
+    name: rate-limiting-flex
+  config:
+    rateLimits:
+      - maximumRequests: 3
+        timePeriodInMilliseconds: 6000
+    keySelector: "#[attributes.method]"
+    exposeHeaders: true
+    clusterizable: true
+----
 
 === Flex Gateway Connected Mode and Mule Gateway
 
@@ -117,7 +148,7 @@ When you apply the Rate Limiting policy to your API from the UI, you can configu
 |Number of Reqs | The quota available per window | A positive number
 |Time Period | The amount of time for which the quota is to be applied | A positive number
 |Time Unit | The time in milliseconds, seconds, minutes, or hours | Minutes
-|Clusterizable | The option that shares the quota defined for a group among all of the nodes of a Mule cluster. This option is not available for Flex Gateway. | checked or unchecked
+|Distributed | When using interconnected runtimes with this flag enabled, quota will be shared among all nodes. | checked or unchecked
 | Expose Headers| The option that defines whether to expose the  <<response-header,x-ratelimit headers>> as part of the response | checked or unchecked
 |===
 
