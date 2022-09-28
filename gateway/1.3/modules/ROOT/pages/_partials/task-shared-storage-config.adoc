@@ -1,0 +1,108 @@
+//tag::intro1[]
+Anypoint Flex Gateway enables you to configure shared storage for distributed caching and rate limiting policies.
+
+Production workflows should use https://redis.io/[Redis^], though defining it is optional. If Redis is not defined, shared storage services at port 4000 are still available but will use an in-memory implementation.
+
+//end::intro1[]
+//tag::intro2[]
+You configure shared storage via a custom YAML file.
+
+The following steps demonstrate Redis-based storage support for Flex Gateway running in a Docker container, as a Linux Service,
+or as a Kubernetes Ingress controller.
+//end::intro2[]
+//tag::icon-table[]
+
+[cols="1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="flex-{page-mode}-shared-storage-config.adoc#configure-shared-storage-for-flex-gateway-as-a-linux-service"]
+|image:install-docker-logo.png[25%,25%,xref="flex-{page-mode}-shared-storage-config.adoc#configure-shared-storage-for-flex-gateway-in-a-docker-container"]
+|image:install-kubernetes-logo.png[20%,20%,xref="flex-{page-mode}-shared-storage-config.adoc#configure-shared-storage-for-flex-gateway-as-a-kubernetes-ingress-controller"]
+
+|xref:flex-{page-mode}-shared-storage-config.adoc#configure-shared-storage-for-flex-gateway-as-a-linux-service[Configure Shared Storage for Flex Gateway as a Linux Service]
+|xref:flex-{page-mode}-shared-storage-config.adoc#configure-shared-storage-for-flex-gateway-in-a-docker-container[Configure Shared Storage for Flex Gateway in a Docker Container]
+|xref:flex-{page-mode}-shared-storage-config.adoc#configure-shared-storage-for-flex-gateway-as-a-kubernetes-ingress-controller[Configure Shared Storage for Flex Gateway as a Kubernetes Ingress Controller]
+|===
+
+//end::icon-table[]
+//tag::byb[]
+
+== Before You Begin
+
+Before configuring shared storage for Flex Gateway, complete the following tasks:
+
+* xref:flex-install.adoc[Install Flex Gateway]
+* xref:flex-conn-reg-run.adoc[Register and Run Flex Gateway]
+
+//end::byb[]
+//tag::linux[]
+
+== Configure Shared Storage for Flex Gateway as a Linux Service
+
+. Create a folder in the `/etc/mulesoft/flex-gateway/conf.d` directory and name it `custom`:
++
+[source,ssh]
+----
+sudo mkdir /etc/mulesoft/flex-gateway/conf.d/custom
+----
+
+. Create a YAML configuration file in the `custom` folder:
++
+[source,ssh]
+----
+sudo touch /etc/mulesoft/flex-gateway/conf.d/custom/shared-storage-config.yaml
+----
+
+. Update the file with your Redis storage configuration details. For example:
++
+[source,ssh]
+----
+sudo vi /etc/mulesoft/flex-gateway/conf.d/custom/shared-storage-config.yaml
+----
++
+//end::linux[]
+//tag::docker-intro[]
+
+== Configure Shared Storage for Flex Gateway in a Docker Container
+
+NOTE: If you have already added a volume for a folder with your
+Flex Gateway configuration files, go to the last step.
+
+. Stop your Flex Gateway and any replicas, using Ctrl+C.
+. Create a folder in the directory with your Flex Gateway configuration files and name it `app`.
+. Restart your Flex Gateway with an additional volume for the new `app` directory:
+//end::docker-intro[]
+
+//tag::docker-config-file-step[]
+. Create and save a YAML configuration file in your `app` folder with your shared storage details.
++
+//end::docker-config-file-step[]
+//tag::k8s[]
+
+== Configure Shared Storage for Flex Gateway as a Kubernetes Ingress Controller
+
+To configure shared storage for Flex Gateway, create a new resource using
+a YAML configuration file with your storage details.
+
+//end::k8s[]
+//tag::sample-config-all-intro[]
+Sample configuration for adding Redis-based shared storage:
+//end::sample-config-all-intro[]
+//tag::sample-config-all[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+ name: shared-storage-redis
+spec:
+ sharedStorage:
+   redis:
+     address: redis.e-commerce.svc:6379
+     username: ecomm-user
+     password: ecomm-pwd-123
+     DB: 7
+----
+//end::sample-config-all[]
+//tag::config-ref[]
+See xref:policies::policies-included-tls.adoc[Transport Layer Security Policy] for more information about TLS context configuration options.
+//end::config-ref[]
