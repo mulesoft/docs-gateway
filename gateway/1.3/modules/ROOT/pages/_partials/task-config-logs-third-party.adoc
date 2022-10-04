@@ -39,25 +39,18 @@ Additionally, ensure that you have:
 [[linux-service]]
 == Configure Log Output for Flex Gateway as a Linux Service
 
-. Create a folder in the `/etc/mulesoft/flex-gateway/conf.d` directory and name it `custom`:
+. Create a YAML configuration file in the Flex Gateway configuration directory:
 +
 [source,ssh]
 ----
-sudo mkdir /etc/mulesoft/flex-gateway/conf.d/custom
-----
-
-. Create a YAML configuration file in the `custom` folder:
-+
-[source,ssh]
-----
-sudo touch /etc/mulesoft/flex-gateway/conf.d/custom/logs-splunk-config.yaml
+sudo touch /etc/mulesoft/flex-gateway/conf.d/logs-splunk-config.yaml
 ----
 
 . Update the file with your Splunk configuration details. For example:
 +
 [source,ssh]
 ----
-sudo vi /etc/mulesoft/flex-gateway/conf.d/custom/logs-splunk-config.yaml
+sudo vi /etc/mulesoft/flex-gateway/conf.d/logs-splunk-config.yaml
 ----
 +
 //end::linux[]
@@ -98,7 +91,7 @@ The following `Configuration` resource defines Splunk output:
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Configuration
 metadata:
-  name: metrics-config
+  name: splunk-config
 spec:
   logging:
     outputs:
