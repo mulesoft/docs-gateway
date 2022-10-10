@@ -8,6 +8,9 @@ You can format the YAML file to configure TLS either for a specific API Instance
 or or for all API Instances running on your Flex Gateway.
 //end::intro2[]
 //tag::intro3[]
+
+Flex Gateway supports regular TLS and inbound mutual authentication TLS (mTLS).
+
 Configuring TLS is the same process for both Local and Connected Mode.
 
 You can configure the TLS context for a Flex Gateway running in a Docker container, as a Linux Service,
@@ -33,33 +36,26 @@ or as a Kubernetes Ingress controller.
 
 Before configuring the TLS context for a Flex Gateway, you must complete the following tasks:
 
-* xref:gateway::flex-install.adoc[Install Flex Gateway]
-* xref:gateway::flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
+* xref:flex-install.adoc[Install Flex Gateway]
+* xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
 
 //end::byb[]
 //tag::linux[]
 
 == Configure TLS Context for Flex Gateway as a Linux Service
 
-. Create a folder in the `/etc/mulesoft/flex-gateway/conf.d` directory and name it `custom`:
+. Create a YAML configuration file in the Flex Gateway configuration directory:
 +
 [source,ssh]
 ----
-sudo mkdir /etc/mulesoft/flex-gateway/conf.d/custom
+sudo touch /usr/local/share/mulesoft/flex-gateway/conf.d/tls-config.yaml
 ----
 
-. Create a YAML configuration file in the `custom` folder:
+. Update the file with your TLS context configuration details. For example:
 +
 [source,ssh]
 ----
-sudo touch /etc/mulesoft/flex-gateway/conf.d/custom/tls-config.yaml
-----
-
-. Update the file with your TLS context details. For example:
-+
-[source,ssh]
-----
-sudo vi /etc/mulesoft/flex-gateway/conf.d/custom/tls-config.yaml
+sudo vi /usr/local/share/mulesoft/flex-gateway/conf.d/tls-config.yaml
 ----
 +
 //end::linux[]
@@ -67,7 +63,7 @@ sudo vi /etc/mulesoft/flex-gateway/conf.d/custom/tls-config.yaml
 
 == Configure TLS Context for Flex Gateway in a Docker Container
 
-NOTE: If you have already added an additional volume for a folder with your
+NOTE: If you have already added volume for a folder with your
 Flex Gateway configuration files, go to the last step.
 
 . Stop your Flex Gateway and any replicas, using Ctrl+C.
@@ -79,14 +75,14 @@ Flex Gateway configuration files, go to the last step.
 . Create and save a YAML configuration file in your `app` folder with your TLS context details.
 +
 //end::docker-config-file-step[]
-//tag::k8s[]
+//tag::k8s-intro[]
 
 == Configure TLS Context for Flex Gateway as a Kubernetes Ingress Controller
 
 To configure the TLS context for Flex Gateway, create a new resource using
 a YAML configuration file with your TLS context details.
 
-//end::k8s[]
+//end::k8s-intro[]
 //tag::sample-config-all-intro[]
 Sample configuration for adding TLS context for all API Instances running on this Flex Gateway:
 //end::sample-config-all-intro[]
@@ -184,6 +180,85 @@ spec:
       - TLS_RSA_WITH_AES_256_CBC_SHA
 ----
 //end::sample-config-instance[]
+//tag::sample-config-mtls-intro[]
+Sample configuration for adding an inbound mTLS context for a specific API Instance:
+//end::sample-config-mtls-intro[]
+//tag::sample-config-mtls[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: mtls
+spec:
+  targetRef:
+    name: ingress-https
+  policyRef:
+    name: tls
+  config:
+    requireClientCertificate: true
+    trustedCA: |
+      # -----BEGIN CERTIFICATE-----
+      # insert certificate
+      # -----END CERTIFICATE-----
+    certificate:
+      key: |
+        # -----BEGIN RSA PRIVATE KEY-----
+        # insert private key
+        # -----END RSA PRIVATE KEY-----
+      crt: |
+        # -----BEGIN CERTIFICATE-----
+        # insert certificate
+        # -----END CERTIFICATE-----
+----
+//end::sample-config-mtls[]
+
+//tag::verify-config[]
+. Verify that the policy was correctly applied.
++
+The following example `curl` command tests an HTTPS endpoint with a certificate that matches the certificate specified in the policy binding configuration resource.
++
+[source,ssh]
+----
+curl https://<SERVER_DOMAIN>:<SERVER_PORT>/get --cacert <SERVER_CERT_FILE> -v
+----
++
+The command should return information on the TLS handshake, as well as an HTTP status of `200` for the endpoint:
++
+----
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+* TLSv1.2 (IN), TLS handshake, Certificate (11):
+* TLSv1.2 (IN), TLS handshake, Server key exchange (12):
+* TLSv1.2 (IN), TLS handshake, Server finished (14):
+* TLSv1.2 (OUT), TLS handshake, Client key exchange (16):
+* TLSv1.2 (OUT), TLS change cipher, Client hello (1):
+* TLSv1.2 (OUT), TLS handshake, Finished (20):
+* SSL connection using TLSv1.2 / ECDHE-RSA-CHACHA20-POLY1305
+* ALPN, server did not agree to a protocol
+...
+> HTTP/1.1 200 OK
+----
++
+For inbound mTLS, the following example `curl` command requests an API proxy whose basepath is `/`.
++
+[source,ssh]
+----
+curl https://<SERVER_DOMAIN>:<SERVER_PORT>/get \
+--cert <CLIENTAPP_CERT_FILE> \
+--key <CLIENTAPP_KEY_FILE> \
+--cacert <SERVER_CERT_FILE> \
+--resolve <SERVER_DOMAIN>:<SERVER_PORT>:127.0.0.1 -v
+----
++
+[NOTE]
+====
+The configuration `key` and `crt` values must be correctly indented, otherwise `curl` returns the following error when attempting to test the endpoint:
+----
+curl: (35) error:1408F10B:SSL routines:ssl3_get_record:wrong version number
+----
+====
+//end::verify-config[]
 
 //tag::config-ref[]
 See xref:policies::policies-included-tls.adoc[Transport Layer Security Policy] for more information about TLS context configuration options.
