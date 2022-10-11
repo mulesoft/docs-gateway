@@ -1,0 +1,118 @@
+= OAuth 2.0 Token Introspection Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:keywords: oauth, token, validation, introspection, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | OAuth 2.0 Token Introspection Policy
+>s|Summary      | Allows access only to authorized client applications
+>s|Category | Security
+>s| First Mule version available | OAuth 2.0 token introspection cannot be applied as a policy in Mule.
+>s| First Flex version available | v1.3.0
+.4+>.^s| Returned Status Codes
+|400 - Invalid token
+|401 - Unauthorized access or error when connecting to the authorization server
+|403 - Forbidden, invalid client application credentials
+|500 - Bad response from authorization server, or WSDL SOAP fault error
+|===
+
+== Summary
+
+The OAuth 2.0 Token Introspection policy enables you to configure OAuth 2.0 using any third-party Identify Provider (IdP), such as Okta, AWS, Azure or Google Cloud Platform. The policy allows for tokens based on the OAuth 2.0 Authorization Framework to be authorized without having to register an external IdP server in the Anypoint Platform.
+
+The policy validates the token sent by the client to the protected API, and allows access to the backend server only if the introspection endpoint authorizes the token.
+
+== Configuring Policy Parameters
+
+=== Flex Gateway
+
+To apply OAuth 2.0 token introspection when using Flex Gateway as your runtime, you must manually configure the policy in a YAML configuration file. Refer to the following policy definition and table of parameters:
+
+//introspection_url: Option<String>
+//authorization_value: Option<String>
+//validated_token_ttl: Option<i64>
+//authentication_timeout: Option<u64>
+//skip_client_id_validation: Option<bool>
+//consumer_by: Option<String>
+//expose_headers: Option<String>
+//scopes: Option<String>
+//scope_validation_criteria: Option<String>
+//max_cache_entries: Option<u64>
+
+----
+- policyRef:
+    name: ???
+  config:
+    introspection_url: <string> // REQUIRED
+    authorization_value: <string> // REQUIRED
+    validated_token_ttl: <integer> // OPTIONAL
+    authentication_timeout: <integer> // OPTIONAL
+    skip_client_id_validation: <boolean> // OPTIONAL (?)
+    consumer_by: <string> // REQUIRED
+    expose_headers: <string> // ???
+    scopes: <string> // ???
+    scope_validation_criteria: <string> // ???
+    max_cache_entries: <integer> // ???
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `introspection_url`
+| Required
+|
+| The third-party token introspection URL
+
+| `authorization_value`
+| Required
+|
+| The method to request authorization from the authentication service. Specify either a Basic Auth string with `client_id` and `client_secret`, or a Bearer Token.
+
+| `validated_token_ttl`
+| Optional
+|
+| The caching limit for the validated token
+
+| `authentication_timeout`
+| Optional
+|
+| The timeout when sending data to the authentication service
+
+| `skip_client_id_validation`
+| Optional (?)
+|
+| Enables/disables client ID enforcement support
+
+| `consumer_by`
+| Required
+|
+| Associate an identity provider's `username` or `client_id` response with a registered platform's `client_id`
+
+| `expose_headers`
+|
+|
+|
+
+| `scopes`
+|
+|
+|
+
+| `scope_validation_criteria`
+|
+|
+|
+
+| `max_cache_entries`
+|
+|
+|
+
+|===
+
+==== Resource Configuration Examples
+
+== See Also
