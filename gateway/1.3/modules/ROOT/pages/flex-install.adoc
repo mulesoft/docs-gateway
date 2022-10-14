@@ -111,13 +111,6 @@ include::partial$reference-install-next-steps.adoc[]
 [[install-amazon-linux]]
 === Amazon Linux
 
-==== Before You Begin
-
-Before getting started, ensure that you have installed the following:
-
-* link:https://gnupg.org/[gnupg2^]
-* link:https://man7.org/linux/man-pages/man1/systemctl.1.html[systemctl^]
-
 ==== Run Installation Commands
 
 To install Flex Gateway as an Amazon Linux service execute the command block which does the following actions:
@@ -128,22 +121,23 @@ To install Flex Gateway as an Amazon Linux service execute the command block whi
 
 [source,ssh]
 ----
-sudo rpm --import https://flex-packages.devx.anypoint.mulesoft.com/amazonlinux/pubkey.gpg
-sudo yum-config-manager --add-repo https://flex-packages.devx.anypoint.mulesoft.com/amazonlinux/2
-sudo yum install flex-gateway
+sudo tee /etc/yum.repos.d/flex-gateway.repo <<\EOF
+[flex-gateway]
+name = Anypoint Flex Gateway
+baseurl = https://flex-packages.anypoint.mulesoft.com/amazonlinux/$releasever
+gpgcheck=1
+gpgkey=https://flex-packages.anypoint.mulesoft.com/amazonlinux/pubkey.gpg
+repo_gpgcheck=1
+enabled=1
+EOF
+
+sudo yum install -y flex-gateway
 ----
 
 include::partial$reference-install-next-steps.adoc[]
 
 [[install-rhel]]
 === Red Hat Enterprise Linux
-
-==== Before You Begin
-
-Before getting started, ensure that you have installed the following:
-
-* link:https://gnupg.org/[gnupg2^]
-* link:https://man7.org/linux/man-pages/man1/systemctl.1.html[systemctl^]
 
 ==== Run Installation Commands
 
@@ -155,9 +149,17 @@ To install Flex Gateway as a Red Hat Enterprise Linux service execute the comman
 
 [source,ssh]
 ----
-sudo rpm --import https://flex-packages.devx.anypoint.mulesoft.com/rhel/pubkey.gpg
-sudo yum-config-manager --add-repo https://flex-packages.devx.anypoint.mulesoft.com/rhel/9
-sudo yum install flex-gateway
+sudo tee /etc/yum.repos.d/flex-gateway.repo <<\EOF
+[flex-gateway]
+name = Anypoint Flex Gateway
+baseurl = https://flex-packages.anypoint.mulesoft.com/rhel/$releasever
+gpgcheck=1
+gpgkey=https://flex-packages.anypoint.mulesoft.com/rhel/pubkey.gpg
+repo_gpgcheck=1
+enabled=1
+EOF
+
+sudo yum install -y flex-gateway
 ----
 
 include::partial$reference-install-next-steps.adoc[]
@@ -166,11 +168,6 @@ include::partial$reference-install-next-steps.adoc[]
 === CentOS
 
 ==== Before You Begin
-
-Before getting started, ensure that you have installed the following:
-
-* link:https://gnupg.org/[gnupg2^]
-* link:https://man7.org/linux/man-pages/man1/systemctl.1.html[systemctl^]
 
 ==== Run Installation Commands
 
@@ -182,9 +179,17 @@ To install Flex Gateway as an CentOS service execute the command block which doe
 
 [source,ssh]
 ----
-sudo rpm --import https://flex-packages.devx.anypoint.mulesoft.com/centos/pubkey.gpg
-sudo yum-config-manager --add-repo https://flex-packages.devx.anypoint.mulesoft.com/centos/8
-sudo yum install flex-gateway
+sudo tee /etc/yum.repos.d/flex-gateway.repo <<\EOF
+[flex-gateway]
+name = Anypoint Flex Gateway
+baseurl = https://flex-packages.anypoint.mulesoft.com/centos/$releasever
+gpgcheck=1
+gpgkey=https://flex-packages.anypoint.mulesoft.com/centos/pubkey.gpg
+repo_gpgcheck=1
+enabled=1
+EOF
+
+sudo yum install -y flex-gateway
 ----
 
 include::partial$reference-install-next-steps.adoc[]
@@ -235,6 +240,7 @@ include::partial$reference-install-next-steps.adoc[]
 
 [source,ssh,subs=attributes+]
 ----
+docker pull mulesoft/flex-gateway:{gateway-ver-var}
 ----
 
 include::partial$reference-install-next-steps.adoc[]
@@ -242,5 +248,6 @@ include::partial$reference-install-next-steps.adoc[]
 == See Also
 
 * xref:flex-gateway-getting-started.adoc[]
+* xref:flex-review-prerequisites.adoc[]
 * xref:flex-conn-reg-run.adoc[]
 * xref:flex-local-reg-run.adoc[]
