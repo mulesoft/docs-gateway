@@ -30,31 +30,20 @@ The policy validates the token sent by the client to the protected API, and allo
 
 To apply OAuth 2.0 token introspection when using Flex Gateway as your runtime, you must manually configure the policy in a YAML configuration file. Refer to the following policy definition and table of parameters:
 
-//introspection_url: Option<String>
-//authorization_value: Option<String>
-//validated_token_ttl: Option<i64>
-//authentication_timeout: Option<u64>
-//skip_client_id_validation: Option<bool>
-//consumer_by: Option<String>
-//expose_headers: Option<String>
-//scopes: Option<String>
-//scope_validation_criteria: Option<String>
-//max_cache_entries: Option<u64>
-
 ----
 - policyRef:
-    name: ???
+    name: oauth2-token-introspection-flex
   config:
     introspection_url: <string> // REQUIRED
     authorization_value: <string> // REQUIRED
-    validated_token_ttl: <integer> // OPTIONAL
-    authentication_timeout: <integer> // OPTIONAL
-    skip_client_id_validation: <boolean> // OPTIONAL (?)
+    validated_token_ttl: <number> // OPTIONAL
+    authentication_timeout: <number> // OPTIONAL
+    skip_client_id_validation: <boolean> // REQUIRED
     consumer_by: <string> // REQUIRED
-    expose_headers: <string> // ???
-    scopes: <string> // ???
-    scope_validation_criteria: <string> // ???
-    max_cache_entries: <integer> // ???
+    expose_headers: <boolean> // OPTIONAL
+    scopes: <string> // OPTIONAL
+    scope_validation_criteria: <string> // OPTIONAL
+    max_cache_entries: <number> // OPTIONAL
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -73,46 +62,65 @@ To apply OAuth 2.0 token introspection when using Flex Gateway as your runtime, 
 
 | `validated_token_ttl`
 | Optional
-|
+| 600
 | The caching limit for the validated token
 
 | `authentication_timeout`
 | Optional
-|
+| 10000
 | The timeout when sending data to the authentication service
 
 | `skip_client_id_validation`
-| Optional (?)
-|
+| Required
+| false
 | Enables/disables client ID enforcement support
 
 | `consumer_by`
 | Required
 |
-| Associate an identity provider's `username` or `client_id` response with a registered platform's `client_id`
+| Associate an identity provider's `username` or `client_id` response with a registered platform's `client_id`. Required if `skip_client_id_validation`is `true`.
 
 | `expose_headers`
-|
-|
+| Optional
+| false
 |
 
 | `scopes`
-|
-|
-|
+| Optional
+| ""
+| A space-delimited list
 
 | `scope_validation_criteria`
-|
-|
-|
+| Optional
+| "AND"
+| The criteria to apply to the `scopes` values. Valid parameter values are "AND" or "OR".
 
 | `max_cache_entries`
-|
-|
+| Optional
+| 1000
 |
 
 |===
 
-==== Resource Configuration Examples
+==== Resource Configuration Example
+
+[source,yaml]
+----
+- policyRef:
+    name: oauth2-token-introspection-flex
+  config:
+    introspection_url: https://my-introspection.com/introspect
+    authorization_value: Basic am9obkBleGFtcGxlLmNvbTphYmMxMjM=
+    validated_token_ttl: 600
+    authentication_timeout: 10000
+    skip_client_id_validation: false
+    consumer_by: "client_id"
+    expose_headers: true
+    scopes: "profile email shopping"
+    scope_validation_criteria: "AND"
+    max_cache_entries: 1000
+----
 
 == See Also
+
+* xref:policies-included-oauth-access-token-enforcement.adoc[]
