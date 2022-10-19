@@ -1,0 +1,126 @@
+= OAuth 2.0 Token Introspection Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:keywords: oauth, token, validation, introspection, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | OAuth 2.0 Token Introspection Policy
+>s|Summary      | Allows access only to authorized client applications
+>s|Category | Security
+>s| First Mule version available | OAuth 2.0 token introspection cannot be applied as a policy in Mule.
+>s| First Flex version available | v1.3.0
+.4+>.^s| Returned Status Codes
+|400 - Invalid token
+|401 - Unauthorized access or error when connecting to the authorization server
+|403 - Forbidden, invalid client application credentials
+|500 - Bad response from authorization server, or WSDL SOAP fault error
+|===
+
+== Summary
+
+The OAuth 2.0 Token Introspection policy enables you to configure OAuth 2.0 using any third-party Identify Provider (IdP), such as Okta, AWS, Azure or Google Cloud Platform. The policy allows for tokens based on the OAuth 2.0 Authorization Framework to be authorized without having to register an external IdP server in the Anypoint Platform.
+
+The policy validates the token sent by the client to the protected API, and allows access to the backend server only if the introspection endpoint authorizes the token.
+
+== Configuring Policy Parameters
+
+=== Flex Gateway
+
+To apply OAuth 2.0 token introspection when using Flex Gateway as your runtime, you must manually configure the policy in a YAML configuration file. Refer to the following policy definition and table of parameters:
+
+----
+- policyRef:
+    name: oauth2-token-introspection-flex
+  config:
+    introspection_url: <string> // REQUIRED
+    authorization_value: <string> // REQUIRED
+    validated_token_ttl: <number> // OPTIONAL
+    authentication_timeout: <number> // OPTIONAL
+    skip_client_id_validation: <boolean> // REQUIRED
+    consumer_by: <string> // REQUIRED
+    expose_headers: <boolean> // OPTIONAL
+    scopes: <string> // OPTIONAL
+    scope_validation_criteria: <string> // OPTIONAL
+    max_cache_entries: <number> // OPTIONAL
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `introspection_url`
+| Required
+|
+| The third-party token introspection URL
+
+| `authorization_value`
+| Required
+|
+| The method to request authorization from the authentication service. Specify either a Basic Auth string with `client_id` and `client_secret`, or a Bearer Token.
+
+| `validated_token_ttl`
+| Optional
+| 600
+| The caching limit for the validated token
+
+| `authentication_timeout`
+| Optional
+| 10000
+| The timeout when sending data to the authentication service
+
+| `skip_client_id_validation`
+| Required
+| false
+| Enables/disables client ID enforcement support
+
+| `consumer_by`
+| Required
+|
+| Associate an identity provider's `username` or `client_id` response with a registered platform's `client_id`. Required if `skip_client_id_validation`is `true`.
+
+| `expose_headers`
+| Optional
+| false
+|
+
+| `scopes`
+| Optional
+| ""
+| A space-delimited list
+
+| `scope_validation_criteria`
+| Optional
+| "AND"
+| The criteria to apply to the `scopes` values. Valid parameter values are "AND" or "OR".
+
+| `max_cache_entries`
+| Optional
+| 1000
+|
+
+|===
+
+==== Resource Configuration Example
+
+[source,yaml]
+----
+- policyRef:
+    name: oauth2-token-introspection-flex
+  config:
+    introspection_url: https://my-introspection.com/introspect
+    authorization_value: Basic am9obkBleGFtcGxlLmNvbTphYmMxMjM=
+    validated_token_ttl: 600
+    authentication_timeout: 10000
+    skip_client_id_validation: false
+    consumer_by: "client_id"
+    expose_headers: true
+    scopes: "profile email shopping"
+    scope_validation_criteria: "AND"
+    max_cache_entries: 1000
+----
+
+== See Also
+
+* xref:policies-included-oauth-access-token-enforcement.adoc[]
