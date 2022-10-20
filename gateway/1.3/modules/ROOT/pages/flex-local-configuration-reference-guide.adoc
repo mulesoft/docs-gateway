@@ -211,6 +211,7 @@ spec:
     name: <policy name>     
     namespace: <optional policy namespace>
   config: # optional policy configuration
+  order: # optional policy read order
   rules: # optional policy rules
   - path: <path regular expression> 
     methods: <methods regular expression>
@@ -257,6 +258,11 @@ spec:
 |Optional
 |Empty
 |The policy configuration. The content of this field depends on the specified policy. See the list of available policies.
+
+|`spec.order`
+|Optional
+|50
+|The policy read order in the overall policy execution chain.
 
 |`spec.rules`
 |Optional
@@ -317,7 +323,7 @@ spec:
   - path: /api/json(/.*)
 ----
 
-The following resource binds a `http-basic-authentication-flex` policy to the API instance -  requiring requests to include the basic credentials defined in `config.username` and `config.password`:
+The following resource binds a `http-basic-authentication-flex` policy to the API instance -  requiring requests to include the basic credentials defined in `config.username` and `config.password`. The policy is given a read order value of `2`.
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -335,6 +341,7 @@ spec:
  config:
    username: chris
    password: admin
+ order: 2
 ----
 
 == Service
