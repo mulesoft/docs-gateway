@@ -65,7 +65,7 @@ spec:
 |Required
 |N/A
 |The proxy address URL, including protocol, host, port and optional path. If the base path is specified, it must be absent in any `rules.path` attribute. Supported format:
-`protocol://host:port/path`, where `path` is optional.
+`protocol://host:port/path`, where `path` is optional, and `protocol` is either `http` or `https`.
 
 |`spec.services`
 |Optional
@@ -75,7 +75,7 @@ spec:
 |`spec.services[name].address`
 |Required
 |N/A
-|The service address (and port). Supported format: `protocol://host:port`
+|The service address (and port). Supported format: `protocol://host:port`, where `protocol` is either `http` or `https`.
 
 |`spec.services[name].routes`
 |Optional
@@ -366,7 +366,7 @@ spec:
 |`spec.address`
 |Required
 |N/A
-|The service address URL, including protocol, host and port. Supported format: `protocol://host:port`
+|The service address URL, including protocol, host and port. Supported format: `protocol://host:port`, where `protocol` is either `http` or `https`.
 
 |===
 
@@ -503,7 +503,7 @@ spec:
 
 === Shared Storage
 
-The `sharedStorage` object configures the gateway for shared storage. Production workflows should use https://redis.io/[Redis^], though defining it is optional. If Redis is not defined, shared storage services at port 4000 are still available but will use an in-memory implementation. 
+The `sharedStorage` object configures the gateway for shared storage. Production workflows should use https://redis.io/[Redis^] (minimum version 4.0.0), though defining it is optional. If Redis is not defined, shared storage services at port 4000 are still available but will use an in-memory implementation.
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
