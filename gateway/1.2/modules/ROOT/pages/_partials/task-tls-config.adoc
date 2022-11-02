@@ -33,8 +33,8 @@ or as a Kubernetes Ingress controller.
 
 Before configuring the TLS context for a Flex Gateway, you must complete the following tasks:
 
-* xref:gateway::flex-install.adoc[Install Flex Gateway]
-* xref:gateway::flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
+* xref:flex-install.adoc[Install Flex Gateway]
+* xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
 
 //end::byb[]
 //tag::linux[]
@@ -184,6 +184,42 @@ spec:
       - TLS_RSA_WITH_AES_256_CBC_SHA
 ----
 //end::sample-config-instance[]
+
+//tag::verify-config[]
+. Verify that the policy was correctly applied.
++
+The following example `curl` command tests an HTTPS endpoint with a certificate that matches the certificate specified in the policy binding configuration resource.
++
+[source,ssh]
+----
+curl https://<SERVER_DOMAIN>:<SERVER_PORT>/get --cacert <SERVER_CERT_FILE> -v
+----
++
+The command should return information on the TLS handshake, as well as an HTTP status of `200` for the endpoint:
++
+----
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+* TLSv1.2 (IN), TLS handshake, Certificate (11):
+* TLSv1.2 (IN), TLS handshake, Server key exchange (12):
+* TLSv1.2 (IN), TLS handshake, Server finished (14):
+* TLSv1.2 (OUT), TLS handshake, Client key exchange (16):
+* TLSv1.2 (OUT), TLS change cipher, Client hello (1):
+* TLSv1.2 (OUT), TLS handshake, Finished (20):
+* SSL connection using TLSv1.2 / ECDHE-RSA-CHACHA20-POLY1305
+* ALPN, server did not agree to a protocol
+...
+> HTTP/1.1 200 OK
+----
++
+[NOTE]
+====
+The configuration `key` and `crt` values must be correctly indented, otherwise `curl` returns the following error when attempting to test the endpoint:
+----
+curl: (35) error:1408F10B:SSL routines:ssl3_get_record:wrong version number
+----
+====
+//end::verify-config[]
 
 //tag::config-ref[]
 See xref:policies::policies-included-tls.adoc[Transport Layer Security Policy] for more information about TLS context configuration options.
