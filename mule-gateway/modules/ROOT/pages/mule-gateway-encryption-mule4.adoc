@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :page-aliases: api-manager::api-gateway-encryption-mule4.adoc
 
-API gateway startup encryption enables you to encrypt sensitive information stored by Mule runtime engine (Mule), such as policies, contracts, and the credentials required to configure the connection between your Mule application and Anypoint Platform.
+Mule Gateway startup encryption enables you to encrypt sensitive information stored by Mule runtime engine (Mule), such as policies, contracts, and the credentials required to configure the connection between your Mule application and Anypoint Platform.
 
 This feature is supported in Mule 4.2.0 and later. If a <<policies-that-support-encryption,policy that supports encryption>>, such as Basic Authentication 1.2.0, is applied to an API that is running in Mule versions earlier than 4.2.0, the policy configuration is not encrypted.
 
@@ -17,7 +17,7 @@ To learn how to configure encryption through the agent, see xref:runtime-manager
 
 
 You can manually encrypt your properties even though you are using an agent. The most common way is using the xref:mule-runtime::secure-configuration-properties.adoc#secure-properties-tool[secure properties tools]. +
-When you use encrypted properties, the API gateway assumes that you are using the AES algorithm in CBC Mode.
+When you use encrypted properties, Mule Gateway assumes that you are using the AES algorithm in CBC Mode.
 
 
 === Example
@@ -89,7 +89,7 @@ The Mule runtime engine uses the encryption key passed in the `anypoint.platform
 
 You can encrypt your Anypoint Platform credentials (client ID, client secret, and your proxy password) and add those encrypted values, along with your encryption key to the `wrapper.conf` file of your Mule environment.
 
-When the API gateway capability starts, it checks for an encryption key. The client ID and client secret values are then obtained from its `wrapper.conf` file. If any of the values in that file are enclosed within encryption indicators (`![` and `]`), Mule uses the encryption key that it loaded earlier to decrypt the values and use its original content.
+When Mule Gateway capability starts, it checks for an encryption key. The client ID and client secret values are then obtained from its `wrapper.conf` file. If any of the values in that file are enclosed within encryption indicators (`![` and `]`), Mule uses the encryption key that it loaded earlier to decrypt the values and use its original content.
 
 == Debugging Startup Encryption
 
@@ -279,7 +279,7 @@ See xref:api-manager::offline-policy-task.adoc[Applying an Offline Policy] for m
 
 == Contracts Encryption
 
-If your API gateway is configured with encryption, then contracts associated with the contract enforcement policies will also be encrypted.
+If your Mule Gateway is configured with encryption, then contracts associated with the contract enforcement policies will also be encrypted.
 
 == Scope and Considerations
 

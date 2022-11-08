@@ -114,10 +114,10 @@ Alternatively, you can set the order of execution of policies in the <before></b
 
 The following versions support a `requiresContracts` property in the policy tag of the configuration XML:
 
-* The API Gateway Runtime 2.2.0 or later
+* The Mule Gateway Runtime 2.2.0 or later
 * Mule Runtime 3.8 or later
 
-In earlier versions, you do not need this property because API Gateway Runtime caches client credentials by default.
+In earlier versions, you do not need this property because Mule Gateway Runtime caches client credentials by default.
 
 *Important*: Enabling the `requiresContracts` property is vital for client validation. In the event Anypoint Platform goes down, a policy can continue to validate clients. Validation checks occur in-memory, which is naturally more performant than checks that involve an HTTP request over a network.
 
@@ -136,7 +136,7 @@ In a custom policy that validates client IDs, include `requiresContracts` and se
 ...
 ----
 
-API client identity and authentication credentials are downloaded to API Gateway Runtime or Mule Runtime and stored. Validation occurs within the Runtime, eliminating the need for an outbound HTTP Request to do the validation.
+API client identity and authentication credentials are downloaded to Mule Gateway Runtime or Mule Runtime and stored. Validation occurs within the Runtime, eliminating the need for an outbound HTTP Request to do the validation.
 
 Downloading and retrieving client information takes place in the background and occurs every 15 seconds by default. You can configure the polling frequency using the `anypoint.platform.poll_clients_freq` property. Configure this property on the CloubHub properties tab or the `wrapper.conf` file in your `<MULE_HOME>/conf` folder.
 
