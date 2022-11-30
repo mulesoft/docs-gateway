@@ -24,12 +24,6 @@ IMPORTANT: Upgrading Flex Gateway requires downtime.
 Flex Gateway is distributed as a standard package. Use the following steps to either configure Flex Gateway to a specific version
 or to upgrade the latest version. 
 
-To list the aviable versions on Flex Gateway:
-[source,ssh]
-----
-apt list -a flex-gateway
-----
-
 To upgrade Flex Gateway as a Linux Service:
 
 . Update the list of available packages:
@@ -40,17 +34,25 @@ sudo apt update
 ----
 
 . Update Flex Gateway:
+* To the latest version:
++
+[source,ssh]
+----
+sudo apt --only-upgrade -y install flex-gateway
+----
+
 * To a specific version:
 +
 [source,ssh]
 ----
 sudo apt --only-upgrade -y install flex-gateway=<version>
 ----
-* To the latest version:
+
+* To a downgrade version:
 +
 [source,ssh]
 ----
-sudo apt --only-upgrade -y install flex-gateway
+sudo apt --only-upgrade -y --allow-downgrades install flex-gateway=<version>
 ----
 
 . Restart the services:
@@ -60,6 +62,11 @@ sudo apt --only-upgrade -y install flex-gateway
 sudo systemctl restart flex-gateway
 ----
 
+To list the aviable versions on Flex Gateway:
+[source,ssh]
+----
+apt list -a flex-gateway
+----
 
 == Upgrade in a Docker Container
 
