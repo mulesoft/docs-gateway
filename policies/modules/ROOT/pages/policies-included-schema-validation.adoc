@@ -26,6 +26,17 @@ You configure the policy to perform one of the following actions:
 * Block the request then log and return the error.
 * Allow the request then log the error.
 
+You validate content against:
+
+* The presence of all required properties.
+* The presence or absence of additional properties.
+* The types of all properties.
++
+For example, if a schema specifies a property as an integer, the request must include an integer and not another type, such as a string.
+* The format of the properties.
++
+For example, if the `pattern` keyword is specified, the policy validates the property is a regular expression.
+
 == Configuring Policy Parameters
 
 === Flex Gateway Local Mode
@@ -34,7 +45,7 @@ In Local Mode, you apply the Schema Validation (OAS3) policy to your API via dec
 
 ----
 - policyRef:
-    name:
+    name: spec-validation-flex
   config:
 ----
 
