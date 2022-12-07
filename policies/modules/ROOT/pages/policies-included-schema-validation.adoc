@@ -47,6 +47,11 @@ In Local Mode, you apply the Schema Validation (OAS3) policy to your API via dec
 - policyRef:
     name: spec-validation-flex
   config:
+    source: <string> // OPTIONAL
+    schema: <string> // OPTIONAL
+    apiBasePath: <string> // OPTIONAL
+    blockOperation: <boolean> // REQUIRED
+    strictValidation: <boolean> // OPTIONAL
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -54,9 +59,29 @@ In Local Mode, you apply the Schema Validation (OAS3) policy to your API via dec
 
 |Parameter | Required or Optional | Default Value | Description
 
+| `source`
+| Optional
+| `context`
+| Supported options: `context`,`inline`,`url`
+
+| `schema`
+| Optional
+| `""`
 |
+
+| `apiBasePath`
+| Optional
+| `"/"`
 |
+
+| `blockOperation`
+| Required
+| `false`
 |
+
+| `strictValidation`
+| Optional
+| `false`
 |
 
 |===
@@ -65,8 +90,13 @@ In Local Mode, you apply the Schema Validation (OAS3) policy to your API via dec
 
 ----
 - policyRef:
-    name:
+    name: spec-validation-flex
   config:
+    source: "inline"
+    schema:
+    apiBasePath:
+    blockOperation: true
+    strictValidation: false
 ----
 
 === Flex Gateway Connected Mode
