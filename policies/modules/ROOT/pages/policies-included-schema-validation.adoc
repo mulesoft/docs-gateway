@@ -19,14 +19,16 @@ endif::[]
 
 Applications processing REST API requests are susceptible to attacks such as header injection and payload injection. Additional vulnerabilities can lead to the access of sensitive information. The Schema Validation (OAS3) policy protects against such attacks and vulnerabilities by validating traffic against a supplied OpenAPI Specification 3.0 (OAS3) schema.
 
-The policy validates request headers, queries, or path parameters.
+Flex Gateway supports schemas defined in JSON or YAML, contained in a file or in an external URI. Additionally, when applying the policy in Flex Gateway Connected Mode, the platform automatically transforms RAML into OAS3.
+
+The Schema Validation (OAS3) policy validates request headers, queries, or path parameters.
 
 You configure the policy to perform one of the following actions:
 
 * Block the request then log and return the error.
 * Allow the request then log the error.
 
-You validate content against:
+You can validate content against:
 
 * The presence of all required properties.
 * The presence or absence of additional properties.
@@ -88,6 +90,7 @@ In Local Mode, you apply the Schema Validation (OAS3) policy to your API via dec
 
 ==== Resource Configuration Example
 
+[source,yaml]
 ----
 - policyRef:
     name: spec-validation-flex
