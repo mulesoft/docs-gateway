@@ -1,4 +1,4 @@
-= Health Check
+= Health Check Policy
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -22,9 +22,11 @@ The Health Check policy enables you to check connection attempts to a specific e
 
 The Health Check policy monitors your API by making a GET requests to the API. The first request is made immediately after applying the Health Check policy and then continually at the specified minute intervals.
 
- When you configure Health Check, specify a status code of the GET request that indicates a healthy connection. For example, when the American Flights API is active, the status code should return 200, indicating the API can receive connections. When you configure Health Check with these parameters, you receive an email when the status code is not 200. You can use any 1xx, 2xx, 3xx, 4xx, or 5xx response codes for your health checks. If you expect successful connections to your endpoints, 2xx status codes are ideal connection results.
+ When you configure Health Check, specify a response code for the GET request that indicates a healthy connection. For example, the status code of an active API should return 200, indicating the API can receive connections. The platform sends an email alert when the status code is not 200. 
+ 
+ You can use any 1xx, 2xx, 3xx, 4xx, or 5xx response codes. However, if you expect successful connections to your endpoints, 2xx status codes are ideal connection results.
 
-You are required to create an alert for the health check policy. After applying the the Health Check policy, you are navigated to the Create Alert page. For information on how to configure your alert, see xref:api-manager::osv2-faq#add-api-alert-task.adoc[Add API Alerts].
+You are required to create an alert for the health check policy. Applying the the Health Check policy navigates you to the Create Alert page, where you must create an alert. For information on how to configure your alert, see xref:api-manager::osv2-faq#add-api-alert-task.adoc[Add API Alerts].
 
 == Configuring Policy Parameters
 
@@ -44,5 +46,3 @@ When you apply the policy to your API from the UI, a list of parameters is displ
 |Response code  | The expected status code of the GET request
 |Schedule | The interval in minutes between health checks
 |===
-
-== How This Policy Works
