@@ -50,10 +50,11 @@ In Local Mode, you apply the Schema Validation (OAS3) policy to your API via dec
     name: spec-validation-flex
   config:
     source: <string> // OPTIONAL
-    schema: <string> // OPTIONAL
+    spec: <string> // OPTIONAL
     apiBasePath: <string> // OPTIONAL
     blockOperation: <boolean> // REQUIRED
-    strictValidation: <boolean> // OPTIONAL
+    strictParamsValidation: <boolean> // OPTIONAL
+    strictHeadersValidation: <boolean> // OPTIONAL
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -64,27 +65,32 @@ In Local Mode, you apply the Schema Validation (OAS3) policy to your API via dec
 | `source`
 | Optional
 | `context`
-| Supported options: `context`,`inline`,`url`
+| Determines if the schema is specified in this YAML resource, or if it's specified in the API Context from Exchange (Connected Mode only). Supported values: `inline` or `context`. You must specify `inline` when configuring the policy in Local Mode.
 
-| `schema`
+| `spec`
 | Optional
 | `""`
-|
+| The actual inline OAS3 specification. You must provide this when configuring the policy in Local Mode.
 
 | `apiBasePath`
 | Optional
 | `"/"`
-|
+| The base path of the API. You must provide this value when configuring the policy in Local Mode.
 
 | `blockOperation`
 | Required
-| `false`
-|
+| `true`
+| If `true`, the policy blocks an invalid spec validation. If `false`, the policy only logs an error.
 
-| `strictValidation`
+| `strictParamsValidation`
 | Optional
 | `false`
-|
+| Determines whether to validate query parameters not defined in specification.
+
+| `strictHeadersValidation`
+| Optional
+| `false`
+| Determines whether to validate header parameters not defined in specification.
 
 |===
 
@@ -96,10 +102,15 @@ In Local Mode, you apply the Schema Validation (OAS3) policy to your API via dec
     name: spec-validation-flex
   config:
     source: "inline"
-    schema:
-    apiBasePath:
+    apiBasePath: "/"
     blockOperation: true
-    strictValidation: false
+    strictParamsValidation: false
+    strictHeadersValidation: false
+    spec: |
+      {
+        "openapi": "3.0.2",
+        ...
+      }
 ----
 
 === Flex Gateway Connected Mode
