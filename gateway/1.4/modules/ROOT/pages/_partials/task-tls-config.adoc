@@ -99,7 +99,7 @@ spec:
     selector:
       kind: ApiInstance
   policyRef:
-    name: tls
+    name: tls-inbound
   config:
     certificate:
       key: |
@@ -147,7 +147,7 @@ spec:
     kind: ApiInstance
     name: ingress-https
   policyRef:
-    name: tls
+    name: tls-inbound
   config:
     certificate:
       key: |
@@ -194,7 +194,7 @@ spec:
   targetRef:
     name: ingress-https
   policyRef:
-    name: tls
+    name: tls-inbound
   config:
     requireClientCertificate: true
     trustedCA: |
@@ -212,6 +212,48 @@ spec:
         # -----END CERTIFICATE-----
 ----
 //end::sample-config-mtls[]
+
+//tag::sample-config-mtls-outbound-intro[]
+Sample configuration for adding outbound mTLS context:
+//end::sample-config-mtls-outbound-intro[]
+//tag::sample-config-mtls-outbound[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: mtls-outbound
+spec:
+  targetRef:
+    Kind: Service
+    name: ingress-test-outbound-upstream
+  policyRef:
+    name: tls-outbound
+  config:
+    skipValidation: false
+    certificate:
+      key: |
+        # -----BEGIN PRIVATE KEY-----
+        # insert certificate key
+        # -----END PRIVATE KEY-----
+      crt: |
+        # -----BEGIN CERTIFICATE-----
+        # insert certificate
+        # -----END CERTIFICATE-----
+    alpn:
+      - http/1.1
+      - h2
+    minversion: "1.1"
+    maxversion: "1.3"
+    ciphers:
+      - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+----
+//end::sample-config-mtls-outbound[]
 
 //tag::verify-config[]
 . Verify that the policy was correctly applied.
@@ -261,5 +303,5 @@ curl: (35) error:1408F10B:SSL routines:ssl3_get_record:wrong version number
 //end::verify-config[]
 
 //tag::config-ref[]
-See xref:policies::policies-included-tls.adoc[Transport Layer Security Policy] for more information about TLS context configuration options.
+See xref:policies::policies-included-tls.adoc[Transport Layer Security Policy - Inbound] for more information about TLS context configuration options.
 //end::config-ref[]
