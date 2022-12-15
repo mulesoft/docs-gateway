@@ -5,6 +5,27 @@ endif::[]
 :imagesdir: ../assets/images
 :page-mode: conn
 
+Using HTTPS protects the communication between the client and Flex Gateway with encryption. To use HTTPS as your schema
+when creating an API Instance using Flex Gateway Connected Mode, you must xref:anypoint-security::secret-group-add-tls-context-flex.adoc[add a TLS context for Flex Gateway in secrets manager]. 
+
+Flex Gateway supports inbound and outbound TLS and mutual authentication TLS (mTLS).
+
+TLS context configuration for a Flex Gateway Connected Mode is the same whether it is running in a Docker container, as a Linux Service,
+or as a Kubernetes Ingress controller.
+
+Before configuring the TLS context for a Flex Gateway Connected Mode, you must complete the following tasks:
+* xref:flex-install.adoc[Install Flex Gateway]
+* xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
+* xref:anypoint-security::asm-secret-group-creation-task.adoc[Create a Secret Group]
+* xref:anypoint-security::secret-group-add-tls-context-flex.adoc[Add a TLS Context to Flex Gateway Connected Mode]
+
+== Add TLS Context to an API
+
+To add TLS Context to an API Instance in Flex Gateway Connected mode:
+
+. Either create a new API Instance using Flex Gateway as the runtime or edit the endpoint of an existing Flex Gate API Instance:
+* To the create a new API using Flex Gateway as the runtime, complete xref:docs-api-manager::create-instance-task.adoc[Adding an API Instance] task up to the endpoint configuration page. 
+* To edit an the existing existing endpoint of an API Instance, click *Runtime & Endpoint Configuration* in the *Settings* page of your API Instace. 
 
 // intro and graphics for each option - linux, docker, k8s
 include::partial$task-tls-config.adoc[tags=intro1;intro2;intro3;icon-table;byb;linux;sample-config-all-intro]
