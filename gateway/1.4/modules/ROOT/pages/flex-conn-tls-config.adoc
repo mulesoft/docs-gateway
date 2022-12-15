@@ -8,12 +8,12 @@ endif::[]
 Using HTTPS protects the communication between the client and Flex Gateway with encryption. To use HTTPS as your schema
 when creating an API Instance using Flex Gateway Connected Mode, you must xref:anypoint-security::secret-group-add-tls-context-flex.adoc[add a TLS context for Flex Gateway in secrets manager]. 
 
-Flex Gateway supports inbound and outbound TLS and mutual authentication TLS (mTLS).
+Flex Gateway supports inbound and outbound TLS and mutual authentication TLS (mTLS) for the outbound connection.
 
-TLS context configuration for a Flex Gateway Connected Mode is the same whether it is running in a Docker container, as a Linux Service,
-or as a Kubernetes Ingress controller.
+TLS context configuration for a Flex Gateway Connected Mode is the same whether it is running in a Docker container, as a Linux Service, or as a Kubernetes Ingress controller.
 
 Before configuring the TLS context for a Flex Gateway Connected Mode, you must complete the following tasks:
+
 * xref:flex-install.adoc[Install Flex Gateway]
 * xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
 * xref:anypoint-security::asm-secret-group-creation-task.adoc[Create a Secret Group]
@@ -23,9 +23,36 @@ Before configuring the TLS context for a Flex Gateway Connected Mode, you must c
 
 To add TLS Context to an API Instance in Flex Gateway Connected mode:
 
-. Either create a new API Instance using Flex Gateway as the runtime or edit the endpoint of an existing Flex Gate API Instance:
-* To the create a new API using Flex Gateway as the runtime, complete xref:docs-api-manager::create-instance-task.adoc[Adding an API Instance] task up to the endpoint configuration page. 
-* To edit an the existing existing endpoint of an API Instance, click *Runtime & Endpoint Configuration* in the *Settings* page of your API Instace. 
+. Go to *Anypoint Platform > API Manager*.
+
+. Create a new API Instance deployed with Flex Gateway or edit the endpoint of an existing Flex Gateway API Instance:
+
+* To the create a new API using Flex Gateway as the runtime, complete the xref:docs-api-manager::create-instance-task.adoc[Adding an API Instance] task up to the endpoint configuration page.
+
+* To edit an the existing existing endpoint of an API Instance, in *API Administration* click the name of the API you want to add TLS context to, then *Runtime & Endpoint Configuration*. 
+
+. Configure the end point up to *Scheme*. For more information on configuration, see xref:api-manager::configure-api-task.adoc#configure-an-api-instance-on-flex-gateway-options[Configure an API Instance on Flex Gateway Options].
+
+. Select *HTTPS*.
+
+. Specify the *Port*.
+
+. Add TLS context for inbound traffic, outbound traffic, or both:
+
++
+To add TLS context for either traffic direction:
++
+
+.. Click *Add TLS Context*.
+
+.. Select a *Secret Group*.
+
+.. Select a *TLS Context*.
+
+.. Click *Ok*.
+
+. Click *Next* or *Save & Apply*.
+
 
 // intro and graphics for each option - linux, docker, k8s
 include::partial$task-tls-config.adoc[tags=intro1;intro2;intro3;icon-table;byb;linux;sample-config-all-intro]
