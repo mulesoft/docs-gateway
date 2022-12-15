@@ -20,9 +20,9 @@ endif::[]
 
 The Health Check policy enables you to check connection attempts to a specific endpoint and sends you an email alert if the connection status changes.
 
-The Health Check policy monitors your API by making GET requests to the API. The first request is made immediately after applying the Health Check policy and then continually at the specified minute intervals.
+The Health Check policy monitors your API by making GET requests to the specified API base path. The first request is made immediately after applying the Health Check policy and then continually at the specified minute intervals. You may specify any GET method.
 
- When you configure Health Check, specify a response code for the GET request that indicates a healthy connection. For example, the status code of an active API should return 200, indicating the API can receive connections. The platform sends an email alert when the status code is not 200. 
+ When you configure Health Check, specify a response code for the GET request that indicates a healthy connection. For example, the status code of an active API should return 200, indicating the API can receive connections. The platform sends an email alert when the status code is not 200. Health Check only validates the response code, so what is returned to the endpoint is unimportant.
  
  You can use any 1xx, 2xx, 3xx, 4xx, or 5xx response codes. However, if you expect successful connections to your endpoints, 2xx response codes are ideal.
 
@@ -42,7 +42,7 @@ When you apply the policy to your API from the UI, a list of parameters is displ
 |===
 | *Parameter* | *Description* 
 |Upstream URL  | The full URL of the API upstream you are monitoring
-|Base path  | The HTTP path of the GET method that is requested during health checks
-|Response code  | The expected status code of the GET request
+|Base path  | The HTTP path of the GET method that is requested during health checks 
+|Response code  | The expected status code of the GET request specified in the base path
 |Schedule | The interval in minutes between health checks
 |===
