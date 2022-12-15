@@ -4,14 +4,11 @@ when creating an API Instance using Flex Gateway as your runtime, you must confi
 in a YAML configuration file. 
 //end::intro1[]
 //tag::intro2[]
-You can format the YAML file to configure TLS either for a specific API Instance
-or or for all API Instances running on your Flex Gateway.
+You can configure TLS either for a specific API Instance or for all API Instances running on your Flex Gateway.
 //end::intro2[]
 //tag::intro3[]
 
-Flex Gateway supports regular TLS and inbound mutual authentication TLS (mTLS).
-
-Configuring TLS is the same process for both Local and Connected Mode.
+Flex Gateway supports regular TLS, inbound mutual authentication TLS (mTLS), and outbound mTLS.
 
 You can configure the TLS context for a Flex Gateway running in a Docker container, as a Linux Service,
 or as a Kubernetes Ingress controller.
@@ -84,7 +81,7 @@ a YAML configuration file with your TLS context details.
 
 //end::k8s-intro[]
 //tag::sample-config-all-intro[]
-Sample configuration for adding TLS context for all API Instances running on this Flex Gateway:
+*Sample configuration for adding TLS context for all API Instances running on this Flex Gateway:*
 //end::sample-config-all-intro[]
 //tag::sample-config-all[]
 [source,yaml]
@@ -133,7 +130,7 @@ spec:
 ----
 //end::sample-config-all[]
 //tag::sample-config-instance-intro[]
-Sample configuration for adding TLS context for a specific API Instance:
+*Sample configuration for adding TLS context for a specific API Instance:*
 //end::sample-config-instance-intro[]
 //tag::sample-config-instance[]
 [source,yaml]
@@ -181,7 +178,7 @@ spec:
 ----
 //end::sample-config-instance[]
 //tag::sample-config-mtls-intro[]
-Sample configuration for adding an inbound mTLS context for a specific API Instance:
+*Sample configuration for adding an inbound mTLS context for a specific API Instance:*
 //end::sample-config-mtls-intro[]
 //tag::sample-config-mtls[]
 [source,yaml]
@@ -214,7 +211,7 @@ spec:
 //end::sample-config-mtls[]
 
 //tag::sample-config-mtls-outbound-intro[]
-Sample configuration for adding outbound mTLS context:
+*Sample configuration for adding outbound mTLS context:*
 //end::sample-config-mtls-outbound-intro[]
 //tag::sample-config-mtls-outbound[]
 [source,yaml]
@@ -303,5 +300,15 @@ curl: (35) error:1408F10B:SSL routines:ssl3_get_record:wrong version number
 //end::verify-config[]
 
 //tag::config-ref[]
-See xref:policies::policies-included-tls.adoc[Transport Layer Security Policy - Inbound] for more information about TLS context configuration options.
+See xref:policies::policies-included-tls.adoc[] for more information about inbound TLS context configuration options. See xref:policies::policies-included-tls-outbound.adoc[] for more information about outbound TLS context configuration options.
+
+[NOTE]
+====
+Flex Gateway supports multiple TLS certificates on a single gateway, but the certificates need to be applied on unique ports.
+====
+
+[NOTE]
+====
+Policy ordering cannot be applied to the Transport Layer Security policies.
+====
 //end::config-ref[]
