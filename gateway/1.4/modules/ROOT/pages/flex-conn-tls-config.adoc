@@ -5,19 +5,22 @@ endif::[]
 :imagesdir: ../assets/images
 :page-mode: conn
 
-Using HTTPS protects the communication between the client and Flex Gateway with encryption. To use HTTPS as your schema
-when creating an API Instance using Flex Gateway Connected Mode, you must xref:anypoint-security::secret-group-add-tls-context-flex.adoc[add a TLS context for Flex Gateway in secrets manager]. 
+Using HTTPS protects the communication between the client and Flex Gateway with encryption.
 
-Flex Gateway supports inbound and outbound TLS and mutual authentication TLS (mTLS) for the outbound connection.
-
-TLS context configuration for a Flex Gateway Connected Mode is the same whether it is running in a Docker container, as a Linux Service, or as a Kubernetes Ingress controller.
-
+== Before You Begin
 Before configuring the TLS context for a Flex Gateway Connected Mode, you must complete the following tasks:
 
 * xref:flex-install.adoc[Install Flex Gateway]
 * xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
 * xref:anypoint-security::asm-secret-group-creation-task.adoc[Create a Secret Group]
-* xref:anypoint-security::secret-group-add-tls-context-flex.adoc[Add a TLS Context to Flex Gateway Connected Mode]
+
+
+
+
+== Add a TLS Context to Flex Gateway
+// Add TLS Context in Secrets Manager
+include::partial$docs-anypoint-security/task-flex-add-tls-context.adoc[tags=intro1;intro2;intro3;addContext]
+// configure TLS context for Flex Gateway Connected Mode
 
 == Add TLS Context to an API
 
@@ -55,61 +58,7 @@ To add TLS context for either traffic direction:
 
 == Port Sharing
 
-// intro and graphics for each option - linux, docker, k8s
-include::partial$task-tls-config.adoc[tags=intro1;intro2;intro3;icon-table;byb;linux;sample-config-all-intro]
-// configure TLS context for Flex Gateway as a Linux Service
-+
-include::partial$task-tls-config.adoc[tags=sample-config-all]
-+
-include::partial$task-tls-config.adoc[tags=sample-config-instance-intro]
-+
-include::partial$task-tls-config.adoc[tags=sample-config-instance]
-+
-include::partial$task-tls-config.adoc[tags=sample-config-mtls-intro]
-+
-include::partial$task-tls-config.adoc[tags=sample-config-mtls]
-+
-include::partial$task-tls-config.adoc[tags=verify-config]
-+
-include::partial$task-tls-config.adoc[tags=config-ref]
 
-// configure TLS context for Flex Gateway in a Docker container
-include::partial$task-tls-config.adoc[tags=docker-intro]
-+
-include::partial$task-reg-run-flex-gateway.adoc[tags=start-command-local]
-+
-include::partial$task-tls-config.adoc[tags=sample-config-all-intro]
-+
-include::partial$task-tls-config.adoc[tags=sample-config-all]
-+
-include::partial$task-tls-config.adoc[tags=sample-config-instance-intro]
-+
-include::partial$task-tls-config.adoc[tags=sample-config-instance]
-+
-include::partial$task-tls-config.adoc[tags=sample-config-mtls-intro]
-+
-include::partial$task-tls-config.adoc[tags=sample-config-mtls]
-+
-include::partial$task-tls-config.adoc[tags=verify-config]
-+
-include::partial$task-tls-config.adoc[tags=config-ref]
-
-//configure TLS context for Flex Gateway as an K8s Ingress Controller
-include::partial$task-tls-config.adoc[tags=k8s-intro]
-
-include::partial$task-tls-config.adoc[tags=sample-config-all-intro]
-
-include::partial$task-tls-config.adoc[tags=sample-config-all]
-
-include::partial$task-tls-config.adoc[tags=sample-config-instance-intro]
-
-include::partial$task-tls-config.adoc[tags=sample-config-instance]
-
-include::partial$task-tls-config.adoc[tags=sample-config-mtls-intro]
-
-include::partial$task-tls-config.adoc[tags=sample-config-mtls]
-
-include::partial$task-tls-config.adoc[tags=config-ref]
 
 == See Also
 
