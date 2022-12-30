@@ -56,11 +56,13 @@ To apply TLS context to an API Instance in Flex Gateway Connected mode:
 
 
 == TLS Context Port Sharing
-Applying a TLS context to a port applies the TLS context to all API Instances that share that port.
+Though the port must have an API Instance to have a TLS context applied, it is easiest to think of TLS context as being applied to a port rather than an API Instance. 
 
-If you apply a TLS context to an API Instance that shares a port with another instance, a warning with a list of the API Instances that share the port is provided. You can choose to override the TLS context of the API Instances that share port. Overriding the TLS context of the API Instances that share the port applies the TLS context to the instances.
+Applying a TLS context to an API Instance that shares its port with other instances applies the TLS context to all instances sharing the port.
 
-Editing the port of an API Instance that has a TLS context applied does not remove the TLS context from the other API Instances that share that port.
+In API Manager, if you apply or edit the TLS context of an API Instance sharing a port, a warning with a list of the instances sharing the port is provided. You can then choose to override the TLS context of the API Instances that share the port. Overriding the TLS context of the API Instances that share the port applies the TLS context to the instances and then redeploys the instances.
+
+If you edit the port of an API Instance that previously shared a port with other instances, the TLS context of the instances that remain on the previous port is not affected. The same TLS context is applied to the instances on both ports.
 
 == See Also
 
