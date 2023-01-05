@@ -10,7 +10,7 @@ include::anypoint-security::partial$task-flex-add-tls-context.adoc[tags=intro1;i
 
 
 == Before You Begin
-Before configuring the TLS context for a Flex Gateway Connected Mode, you must complete the following tasks:
+Before configuring the TLS context for a Flex Gateway Connected Mode, complete the following tasks:
 
 * xref:flex-install.adoc[Install Flex Gateway]
 * xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
@@ -26,7 +26,7 @@ include::anypoint-security::partial$task-flex-add-tls-context.adoc[tags=addConte
 == Apply a TLS Context to an API
 include::anypoint-security::partial$task-flex-add-tls-context.adoc[tags=intro3]
 
-To apply TLS context to an API Instance in Flex Gateway Connected mode:
+To apply a TLS context to an API Instance in Flex Gateway Connected mode:
 
 . Go to *Anypoint Platform > API Manager*.
 
@@ -34,15 +34,19 @@ To apply TLS context to an API Instance in Flex Gateway Connected mode:
 
 * To the create a new API using Flex Gateway as the runtime, complete the xref:api-manager::create-instance-task.adoc[Adding an API Instance] task up to the endpoint configuration page.
 
-* To edit an the existing existing endpoint of an API Instance, in *API Administration* click the name of the API you want to add TLS context to, then click *Runtime & Endpoint Configuration*. 
+* To edit an existing API Instance's endpoint, in *API Administration* click the name of the API you want to add TLS context to, then click *Runtime & Endpoint Configuration*. 
 
-. Configure the end point up to *Scheme* or begin editing the existing API Instance. For more information on configuration, see xref:api-manager::configure-api-task.adoc#configure-an-api-instance-on-flex-gateway-options[Configure an API Instance on Flex Gateway Options].
+. Configure the end point up to *Scheme* or begin editing the existing API Instance. 
++
+For more information on configuration, see xref:api-manager::configure-api-task.adoc#configure-an-api-instance-on-flex-gateway-options[Configure an API Instance on Flex Gateway Options].
 
 . Select *HTTPS*.
 
 . Specify the *Port*.
 
-. Add TLS context for inbound traffic, outbound traffic, or both. If adding outbound TLS context, first click *Advanced options*, then to add TLS context for either traffic direction:
+. Add TLS context for inbound traffic, outbound traffic, or both. 
++
+To add TLS context for either direction:
 
 .. Click *Add TLS Context*.
 
@@ -51,19 +55,21 @@ To apply TLS context to an API Instance in Flex Gateway Connected mode:
 .. Select a *TLS Context*.
 
 .. Click *Ok*.
++
+If adding outbound TLS context, first click *Advanced options*.
 
 . Click *Save & Apply*.
-
 
 == TLS Context Port Sharing
 Though a port must have an API Instance to have a TLS context applied, it is easiest to think of TLS context as being applied to the port rather than the API Instance. 
 
 Applying a TLS context to an API Instance that shares its port with other instances applies the TLS context to all instances sharing the port.
 
-In API Manager, if you apply or edit the TLS context of an API Instance sharing a port, a warning with a list of the instances sharing the port is provided. You can then choose to override the TLS context of the listed API Instances. Overriding the TLS context of the API Instances that share the port applies the TLS context to the instances and then redeploys the instances.
+When you apply or edit the TLS context of an API Instance sharing a port, API Manager shows a warning with a list of the instances sharing the port. You can then choose to override the TLS context of the listed API Instances. Overriding the TLS context of the API Instances that share the port applies the TLS context to the instances and then redeploys the instances.
 
-If you edit the port of an API Instance that previously shared a port with other instances, the TLS context of the instances that remain on the previous port is not affected. The same TLS context is applied to the instances on both ports.
+Overriding the TLS context of deployed API Instances redeploys the instances. Redeploying causes a brief period of downtime in the API Instances.
 
+If you edit the port of an API Instance that previously shared a port and TLS context with other instances, the TLS context remains applied to the instances on the previous port.
 //Ciphers
 include::anypoint-security::partial$flex-tls-cipher.adoc[tags=connectedSelect;cipherSupport;ciphers]
 
