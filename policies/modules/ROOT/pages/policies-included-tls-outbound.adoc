@@ -1,0 +1,109 @@
+= Transport Layer Security Policy - Outbound
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: tls, mtls, transport layer security, outbound tls, api gateway, flex gateway, gateway, policy
+
+[%autowidth.spread,cols="a,a"]
+|===
+>s| Policy Name | Transport Layer Security (TLS) - Outbound
+>s|Summary      | Enables two-way authentication between the API proxy and an upstream service
+>s|Category | Security
+>s| First Mule version available | TLS cannot be applied as a policy in Mule.
+>s| First Flex version available | v1.4.0
+.4+>.^s| Returned Status Codes | No return codes exist for this policy.
+[%autowidth.spread,cols="a,a"]
+|
+|===
+
+== Summary
+
+You can configure an outbound mTLS context to enable authentication between an API proxy and an upstream service, by binding the Transport Layer Security policy to your API instance.
+
+== Configuring Policy Parameters
+
+To enable outbound mTLS when creating an API Instance using Flex Gateway as your runtime, you must manually configure the TLS context
+in a YAML configuration file. Refer to the following policy definition and table of parameters:
+
+----
+- policyRef:
+    name: tls-outbound
+  config:
+    skipValidation: <boolean> // REQUIRED
+    certificate: // REQUIRED
+        key: <string> // REQUIRED
+        crt: <string> // REQUIRED
+    alpn: <array> // OPTIONAL
+    minversion: <string> // OPTIONAL
+    maxversion: <string> // OPTIONAL
+    ciphers: <array> // OPTIONAL
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `skipValidation`
+| Required
+| false
+|
+
+| `certificate`
+| Required
+| N/A
+| A TLS certificate key pair
+
+| `certificate.key`
+| Required
+| N/A
+| The private key part of the certificate
+
+| `certificate.crt`
+| Required
+| N/A
+| The public key part of the certificate
+
+| `alpn`
+| Optional
+|
+|A prioritized list of supported application level protocols; for example, h2, http/1.1, and so forth.
+
+| `minversion`
+| Optional
+|
+|The minimum TLS version allowed
+
+| `maxversion`
+| Optional
+|
+|The maximum TLS version allowed
+
+| `ciphers`
+| Optional
+|
+|A list of supported TLS ciphers (IANA format)
+
+|===
+
+=== Resource Configuration Examples
+
+// sample config applied to all apis on gateway intro
+include::gateway::partial$task-tls-config.adoc[tags=sample-config-mtls-outbound-intro]
+//sample config applied to all apis on gateway
+include::gateway::partial$task-tls-config.adoc[tags=sample-config-mtls-outbound]
+
+[NOTE]
+====
+Flex Gateway supports multiple TLS certificates on a single gateway, but the certificates need to be applied on unique ports.
+====
+
+[NOTE]
+====
+Policy ordering cannot be applied to the Transport Layer Security policy.
+====
+
+== See Also
+* xref:gateway::flex-conn-tls-config.adoc[]
+* xref:gateway::flex-local-tls-config.adoc[]
+* xref:policies-included-tls.adoc[]

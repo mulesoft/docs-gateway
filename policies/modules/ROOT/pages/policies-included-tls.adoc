@@ -1,14 +1,14 @@
-= Transport Layer Security Policy
+= Transport Layer Security Policy - Inbound
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
-:keywords: tls, mtls, transport layer security, api gateway, flex gateway, gateway, policy
+:keywords: tls, mtls, transport layer security, inbound tls, api gateway, flex gateway, gateway, policy
 
 [%autowidth.spread,cols="a,a"]
 |===
->s| Policy Name | Transport Layer Security (TLS)
->s|Summary      | Enables HTTPS
+>s| Policy Name | Transport Layer Security (TLS) - Inbound
+>s|Summary      | Enables authentication between a client and the API proxy
 >s|Category | Security
 >s| First Mule version available | TLS cannot be applied as a policy in Mule.
 >s| First Flex version available | v1.0.0 (inbound mTLS: v1.3.0)
@@ -22,8 +22,6 @@ endif::[]
 HTTPS uses encryption to protect the communication between the client and Flex Gateway. To use HTTPS as your schema, bind the Transport Layer Security policy to your API instance.
 
 == Configuring Policy Parameters
-
-=== Flex Gateway
 
 To use HTTPS as your schema
 when creating an API Instance using Flex Gateway as your runtime, you must manually configure the TLS context
@@ -95,18 +93,27 @@ in a YAML configuration file. Refer to the following policy definition and table
 
 |===
 
-==== Resource Configuration Examples
+=== Resource Configuration Examples
 
 // intro 
 include::gateway::partial$task-tls-config.adoc[tags=intro2]
+
+==== Apply TLS Configuration to All API Instances
+
 // sample config applied to all apis on gateway intro
 include::gateway::partial$task-tls-config.adoc[tags=sample-config-all-intro]
 //sample config applied to all apis on gateway
 include::gateway::partial$task-tls-config.adoc[tags=sample-config-all]
+
+==== Apply TLS Configuration to a Specific API Instance
+
 //sample config applied a specific api intro
 include::gateway::partial$task-tls-config.adoc[tags=sample-config-instance-intro]
 //sample config applied to a specific api
 include::gateway::partial$task-tls-config.adoc[tags=sample-config-instance]
+
+==== Apply mTLS Inbound Configuration to a Specific API Instance
+
 //sample mtls config applied a specific api intro
 include::gateway::partial$task-tls-config.adoc[tags=sample-config-mtls-intro]
 //sample mtls config applied to a specific api
@@ -125,3 +132,4 @@ Policy ordering cannot be applied to the Transport Layer Security policy.
 == See Also
 * xref:gateway::flex-conn-tls-config.adoc[]
 * xref:gateway::flex-local-tls-config.adoc[]
+* xref:policies-included-tls-outbound.adoc[]
