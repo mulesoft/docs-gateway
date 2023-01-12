@@ -12,7 +12,7 @@ endif::[]
 >s|Category| Security
 >s|First Mule version available | Schema Validation (OAS3) cannot be applied as a policy in Mule.
 >s|First Flex version available | v1.4.0
->s|Returned Status Codes|
+>s|Returned Status Codes| 400 - The request properties are not valid.
 |===
 
 == Summary
@@ -25,8 +25,9 @@ The Schema Validation (OAS3) policy validates request headers, queries, or path 
 
 You configure the policy to perform one of the following actions:
 
-* Block the request then log and return the error.
-* Allow the request then log the error.
+* Block the request, then return the 400 error status code.
+* Allow the request, log the error, and then return the status code of the request.
+
 
 You can validate content against:
 
@@ -113,7 +114,7 @@ When you apply the Schema Validation (OAS3) policy to your API from the UI, the 
 [width="100%", cols="2,6,1,1"]
 |===
 s|Field s|Description s|Default s|Required
-| Block request | Select to block an incoming request that does not conform to the API specification. Not selecting only logs the the request. | No | No|
+| Block request | Select to block an incoming request that does not conform to the API specification. Not selecting only logs the the request. Choosing to block invalid requests returns a 400 status when the request is invalid. | Block enabled | No|
 | Strict query parameters validation | Restricts API calls from Query Parameters not defined in the API Specification | No | No
 | Advanced options | | | |
 | Policy version | Version of the applied policy | Latest | Yes
