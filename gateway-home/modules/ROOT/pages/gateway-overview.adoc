@@ -4,45 +4,175 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-An API gateway allows you to add a dedicated orchestration layer on top of your backend APIs and services
-to help you separate orchestration from implementation concerns. You can then leverage the governance capabilities
-of API Manager to apply, among other capabilities, throttling, security, caching, and logging to your APIs.
+An API gateway is an intermediary between a client application and a set of microservices or backend APIs. Responsibilities include request routing, rate limiting, caching, authentication, authorization, security, monitoring, and logging.
 
-Anypoint Platform offers three different runtime options for managing and securing your APIs.
+The gateway allows you to add a dedicated orchestration layer on top of your backend APIs and services to help you separate orchestration from implementation concerns.
+
+Features of the API gateway include:
+
+* Request routing. A gateway routes requests to the appropriate microservice based on the request path or other conditions.
+* Rate limiting. A gateway can limit the rate of incoming requests to prevent overloading the microservices.
+* Authentication and Authorization. A gateway can authenticate and authorize incoming requests, ensuring that only authorized clients access the microservices.
+* Caching. A gateway can cache responses from microservices or backend APIs to improve performance.
+* Analytics. A gateway can collect analytics on requests and responses, which helps with monitoring and troubleshooting.
 
 == Anypoint Flex Gateway
 
-Anypoint Flex Gateway is an ultrafast API gateway designed to manage and secure APIs running anywhere.
-Built to seamlessly integrate with DevOps and CI/CD workflows, Anypoint Flex Gateway delivers the
-performance required for the most demanding applications and microservices while providing enterprise
-security and manageability across any environment.
+Anypoint Flex Gateway is an ultrafast API gateway designed to manage and secure APIs running anywhere. Built to seamlessly integrate with DevOps and CI/CD workflows, Flex Gateway delivers the performance required for the most demanding applications and microservices while providing enterprise security and manageability across any environment.
 
-For more information, see xref:gateway::flex-gateway-getting-started.adoc[Getting Started with Flex Gateway].
+// Diagram: Add graphic from here , modified for docs. Put the Consumer apps box at the bottom to the left, showing it as coming from the internet/other clouds. Show external storage REDIS connected to the Flex gateway as well. Show that the Flex gateway runtime can also be called a replica and can be installed as a cluster.
 
-== Anypoint Mule Gateway
+=== Architecture
 
-Mule Runtime includes an embedded Mule Gateway. Using this gateway, any user can, for example, apply a basic authentication policy on top of a Mule application, enrich an incoming/outgoing message, or add any other complex capability to an API without having to write any code.
+Flex Gateway contains two components that work in tandem.
 
-Overall, Mule Gateway allows you to add a dedicated orchestration layer on top of your backend APIs and services to help you separate orchestration from implementation concerns. You can leverage the governance capabilities of API Manager to apply, among other capabilities, throttling, security, caching, and logging to your APIs.
+. Control plane
++
+The control plane is a MuleSoft-hosted platform that enables you to:
 
-If you want to apply policies and generate analytics info, you must use either:
+* Build APIs.
+* Add policies.
+* Monitor APIs in Anypoint API Manager.
+* Register and configure in Anypoint Runtime manager.
+* Deploy APIs into the runtime.
 
-* An API defined in a Mule application.
-* A Mule application that proxies your existing backend implementation.
+. Runtime
++
+The runtime is a customer-hosted entity installed in any cloud data center or, for testing purposes, on your local laptop. The runtime receives commands from the control plane and routes and protects the backend APIs. Built with security in mind, communications between the runtime and the control plane are secured through mTLS or HTTPs.
++
+FluentBit implementation enables log output to aggregators such as New Relic, Sumologic, Splunk, among others.
++
+A runtime unit is called a `replica`. While a single runtime can support multiple backend APIs for high availability, MuleSoft recommends installing Flex Gateway as a cluster - a Kubernetes Ingress controller with multiple replicas running in parallel. Doing so increases gateway performance and robustness, and is recommended for high-performance applications that need to scale.
++
+An optional external REDIS storage can be configured for features such as distributed rate limiting and distributed caching. Gateway replicas use the REDIS storage as a scratchpad to coordinate rate-limiting across multiple replicas, so customer SLAs are adhered to.
 
-For more information, see xref:mule-gateway::mule-gateway-capabilities-mule4.adoc[Mule Gateway Capabilities].
+//[NOTE]
+//====
+//You can choose to deploy the runtime without a control plane. However, for business purposes, the runtime will transmit telemetry.
+//====
 
-== Anypoint Service Mesh
+=== Connected Mode and Local Mode
 
-Anypoint Service Mesh enables you to extend your microservices network by including your non-MuleSoft applications into the Anypoint Platform sphere. You can then manage and secure your application network, including your non-Mule applications, seamlessly from a single pane.
+Flex Gateway can be deployed in two ways: Connected Mode or Local Mode.
 
-Your non-MuleSoft microservices might be written using different languages and platforms, or might be deployed in different environments. To alleviate issues arising from differences in these microservices, Anypoint Service Mesh ensures the following application management advantages:
+==== Connected Mode
+In Connected Mode, the gateway is fully connected to the UI control plane. This allows for centralized management, observability, and security. Anypoint API Manager enables API lifecycle management. Anypoint Runtime Manager enables gateway configuration.
 
-* Provides resilient service-to-service communication using zero-trust policies to handle traffic control, fault tolerance and load balancing
-* Extends MuleSoft API Management capabilities to any non-Mule service, with policies, security and analytics all applied directly from Anypoint Platform
-* Amplifies reuse of services with discovery of non-Mule services within Exchange, available for use in future projects
+Choose Connected Mode for a UI-based experience to deploy policies, and for managing and monitoring the gateway.
 
-For more information, see xref:service-mesh::getting-started-service-mesh.adoc[Get Started with Service Mesh].
+==== Local Mode
+
+You can also configure and manage Flex Gateway mostly disconnected from the control plane. Choose Local Mode for this experience.
+
+[NOTE]
+====
+Flex Gateway deployed in Local Mode only connects to the control plane for registration and logging usage metrics.
+====
+
+In Local Mode, you manage all configuration and policy applications with locally stored declarative configuration files.
+
+Building CI/CD pipelines for application deployments uses Local Mode extensively.
+
+==== Summary of Differences
+
+The following table summarizes the differences between Connected Mode and Local Mode.
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| | Connected Mode | Local Mode
+
+| *Use Case*
+| Choose Connected Mode for centralized management, observability, and security. Flex Gateway in Connected mode connects to the control plane.
+| Choose Local Mode to mostly disconnect from the control plane. Manage Flex Gateway in Local Mode with locally stored declarative configuration files.
+
+| *Policy Application*
+| Use API Manager to apply policies in Connected Mode.
+| Apply policies in Local Mode via local declarative configuration files.
+
+| *Air-Gapped?*
+| No. Flex Gateway is connected to the control plane.
+| No. Flex Gateway is managed locally but connected to the control plane for registration and usage metrics.
+
+| *Licensing*
+| // Number of API requests, number APIs under management by API manager
+| // Number of API requests
+
+|===
+
+=== Installation Options
+
+You can install Flex Gateway in a variety of ways:
+
+* A standalone single runtime or replica on various Linux environments including Ubuntu, Debian, Amazon Linux, RHEL, and CentOS.
+
+* A standalone in a Docker container.
+
+* An Ingress controller in Kubernetes, for highly-available, high-performance use cases.
+
+* A sidecar to a backend application in a Docker container, thereby protecting a single backend application.
+
+In general, if the use case involves protecting a few APIs and the number of transactions are low, with a minimal impetus on high-availability or robustness, choose to install as a standalone gateway. Otherwise, choose to install as an Ingress controller in Kubernetes.
+
+== Anypoint Flex Gateway
+
+
+
+//For more information, see xref:gateway::flex-gateway-getting-started.adoc[Getting Started with Flex Gateway].
+
+
+
+
+
+
+
+
+
+
+
+
+
+//An API gateway allows you to add a dedicated orchestration layer on top of your backend APIs and services
+//to help you separate orchestration from implementation concerns. You can then leverage the governance capabilities
+//of API Manager to apply, among other capabilities, throttling, security, caching, and logging to your APIs.
+//
+//Anypoint Platform offers three different runtime options for managing and securing your APIs.
+//
+//== Anypoint Flex Gateway
+//
+//Anypoint Flex Gateway is an ultrafast API gateway designed to manage and secure APIs running anywhere.
+//Built to seamlessly integrate with DevOps and CI/CD workflows, Anypoint Flex Gateway delivers the
+//performance required for the most demanding applications and microservices while providing enterprise
+//security and manageability across any environment.
+//
+//For more information, see xref:gateway::flex-gateway-getting-started.adoc[Getting Started with Flex Gateway].
+//
+//== Anypoint Mule Gateway
+//
+//Mule Runtime includes an embedded Mule Gateway. Using this gateway, any user can, for example, apply a basic authentication policy on top of a Mule application, enrich an incoming/outgoing message, or add any other complex capability to an API without having to write any code.
+//
+//Overall, Mule Gateway allows you to add a dedicated orchestration layer on top of your backend APIs and services to help you separate orchestration from implementation concerns. You can leverage the governance capabilities of API Manager to apply, among other capabilities, throttling, security, caching, and logging to your APIs.
+//
+//If you want to apply policies and generate analytics info, you must use either:
+//
+//* An API defined in a Mule application.
+//* A Mule application that proxies your existing backend implementation.
+//
+//For more information, see xref:mule-gateway::mule-gateway-capabilities-mule4.adoc[Mule Gateway Capabilities].
+//
+//== Anypoint Service Mesh
+//
+//Anypoint Service Mesh enables you to extend your microservices network by including your non-MuleSoft applications into the Anypoint Platform sphere. You can then manage and secure your application network, including your non-Mule applications, seamlessly from a single pane.
+//
+//Your non-MuleSoft microservices might be written using different languages and platforms, or might be deployed in different environments. To alleviate issues arising from differences in these microservices, Anypoint Service Mesh ensures the following application management advantages:
+//
+//* Provides resilient service-to-service communication using zero-trust policies to handle traffic control, fault tolerance and load balancing
+//* Extends MuleSoft API Management capabilities to any non-Mule service, with policies, security and analytics all applied directly from Anypoint Platform
+//* Amplifies reuse of services with discovery of non-Mule services within Exchange, available for use in future projects
+//
+//For more information, see xref:service-mesh::getting-started-service-mesh.adoc[Get Started with Service Mesh].
+
+
+
 
 // Anypoint Flex Gateway is an ultrafast API gateway designed to manage and secure APIs running anywhere. Built to seamlessly integrate with DevOps and CI/CD workflows, the Anypoint Flex Gateway delivers the performance required for the most demanding applications while providing enterprise security and manageability across any environment.
 
