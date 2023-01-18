@@ -28,17 +28,17 @@ API Manager:
 *** Manage Policies
 *** View Policies
 *** Deploy API Proxies
+
 + General:
-
-
 *** View Organizations
+
 +
 Runtime Manager:
 *** Read Servers
 *** Manage Servers
+
 +
 exchange:
-
 *** Exchange Viewer
 
 ** Save the *Id* and *Secret* of the Connected app you configure.
@@ -49,7 +49,26 @@ exchange:
 +
 See xref:access-management::organization.adoc#find-your-organization-id[Find your Organization ID] for more information on how to find your Organization ID.
 
+== Obtain an Authorization token from Access Management
+
+To make calls using the API Manager API, you must obtain an authorization token before making calls. To obtain an authorization token make the following API request to the Anypoint Platform:
+
+[source,ssh]
+----
+curl --location --request POST 'https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+ "grant_type": "client_credentials",
+ "client_id": "<connected-app-client-id>",
+ "client_secret": "<connected-app-client-secret>"
+}'
+----
+
+
 == Create an API Instance
+
+
+
 
 == Deploy an API Instance
 
