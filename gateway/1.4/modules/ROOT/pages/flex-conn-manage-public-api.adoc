@@ -5,7 +5,7 @@ endif::[]
 :imagesdir: ../assets/images
 :page-mode: conn
 
-You can manage Flex Gateway in connected mode using the API Manager API instead of the API Manager user interface.
+You can manage Flex Gateway in connected mode using the https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API] in the https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/[Anypoint Platform Developer Portal] instead of the using Anypoint Platform API Manager user interface. This allows you to automate deployment through the command line.
 
 Using the API Manager API, you can:
 
@@ -30,15 +30,17 @@ API Manager:
 *** Deploy API Proxies
 
 + General:
-*** View Organizations
 
+*** View Organizations
 +
 Runtime Manager:
+
 *** Read Servers
 *** Manage Servers
 
 +
 exchange:
+
 *** Exchange Viewer
 
 ** Save the *Id* and *Secret* of the Connected app you configure.
@@ -48,11 +50,19 @@ exchange:
 ** The *Organization ID* for the organization where you want to run Flex Gateway
 +
 See xref:access-management::organization.adoc#find-your-organization-id[Find your Organization ID] for more information on how to find your Organization ID.
+* <<obtain-an-authorization-token-from-access-management, Obtain an Authorization token from Access Management>>
 
 == Obtain an Authorization token from Access Management
 
-To make calls using the API Manager API, you must obtain an authorization token before making calls. To obtain an authorization token make the following API request to the Anypoint Platform:
+To make calls using the API Manager API, you must obtain an authorization token before making calls. To obtain an authorization token:
 
+. Collect the following information:
+
+* `<connected-app-client-id>` = the *Id* of your connected app
+* `<connected-app-client-secret>` = the *Secret* of your connected app
+
+. After replacing the sample content, execute the following request to obtain your Authorization Token:
++
 [source,ssh]
 ----
 curl --location --request POST 'https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token' \
@@ -64,98 +74,92 @@ curl --location --request POST 'https://anypoint.mulesoft.com/accounts/api/v2/oa
 }'
 ----
 
+. Save the returned authorization token. 
 
 == Create an API Instance
 
+To create an API Instance using the API Manager API:
 
+. Collect the following information:
+* `<your-org-id>` = the *Organization ID* for the organization where you want to run Flex Gateway
+* `<your-env-id>` = the *Environment ID* for the organization where you want to run Flex Gateway
+* `<authorization-token>` = your authorization token collected in the <<obtain-an-authorization-token-from-access-management, Obtain an Authorization token from Access Management>> step
 
+* `<asset-id-from-exchange>` = the asset ID, obtained from exchange, of the API you want to create
+* `<asset-version>` = the version of the asset you want to create
+* `<upstream-uri>` = the URI upstream of your API
+* `<your-proxy-uri>` = the proxy URI for you API Instance, for example, 'http://0.0.0.0:8081/'
+
+. After replacing the sample content, make a POST request to Anypoint Platform:
++
+[source,ssh,subs=attributes+]
+----
+curl --location --request POST https://anypoint.mulesoft.com/apimanager/api/v1/organizations/<your-org-id>/environments/<your-env-id>/apis \
+--header 'Authorization: bearer <authorization-token>' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+ "spec": {
+   "groupId": "<your-org-id>",
+   "assetId": "<asset-id-from-exchange>",
+   "version": "<asset-version>"
+ },
+ "endpoint": {
+   "deploymentType": "HY",
+   "uri": "<upstream-uri>",
+   "proxyUri": "<your-proxy-uri>",
+   "isCloudHub": null
+ },
+ "technology": "flexGateway",
+}'
+----
+
+. Save the Instance ID, `"id"`, from the response to deploy, apply a policy to, or delete the instance.
 
 == Deploy an API Instance
+To deploy an API Instance using the API Manager API:
+
+. Collect the following information:
+* `<your-org-id>` = the *Organization ID* for the organization where you want to run Flex Gateway
+* `<your-env-id>` = the *Environment ID* for the organization where you want to run Flex Gateway
+* `<instance-id>` = the Instance ID, `"id"`, from <<create-an-api-instance, Create an API Instance>>
+* `<authorization-token>` = your authorization token collected in the <<obtain-an-authorization-token-from-access-management, Obtain an Authorization token from Access Management>> step
+* `<gateway-version>` = the version of Flex Gateway you are using, for example `1.4.0`
+* `<target-id-from-runtime-manager>` = the target ID collected from runtime manager
+
+. After replacing the sample content, make a POST request to Anypoint Platform:
++
+[source,ssh,subs=attributes+]
+----
+curl --location --request POST 'https://anypoint.mulesoft.com/proxies/xapi/v1/organizations/<your-org-id>/environments/<your-env-id>/apis/<instance-id>/deployments' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: bearer <authorization-token>' \
+--data-raw '{
+ "type": "HY",
+ "gatewayVersion": "<gateway-version>",
+ "targetId": "<target-id-from-runtime-manager>", 
+ "environmentId": "<your-env-id>"
+}'
+----
 
 == Apply a Policy
 
 == Delete an API Instance
- 
+To delete an API Instance using the API Manager API:
 
+. Collect the following information:
+* `<your-org-id>` = the *Organization ID* for the organization where you want to run Flex Gateway
+* `<your-env-id>` = the *Environment ID* for the organization where you want to run Flex Gateway
+* `<instance-id>` = the Instance ID, `"id"`, from <<create-an-api-instance, Create an API Instance>>
+* `<authorization-token>` = your authorization token collected in the 
 
-
-
-
-// Add TLS Context intro
-include::anypoint-security::partial$task-flex-add-tls-context.adoc[tags=intro1;intro2]
-
-include::partial$task-tls-config.adoc[tags=intro3]
-
-== Before You Begin
-Before configuring the TLS context for a Flex Gateway Connected Mode, complete the following tasks:
-
-* xref:flex-install.adoc[Install Flex Gateway]
-* xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
-* xref:anypoint-security::asm-secret-group-creation-task.adoc[Create a Secret Group]
-* xref:anypoint-security::asm-secret-group-creation-task.adoc#adding-a-keystore[Add a PEM Type Keystore]
-
-
-== Add a TLS Context for Flex Gateway
-// Add TLS Context in Secrets Manager
-include::anypoint-security::partial$task-flex-add-tls-context.adoc[tags=addContext]
-// configure TLS context for Flex Gateway Connected Mode
-
-//redeploy
-
-include::anypoint-security::partial$task-flex-add-tls-context.adoc[tags=redeploy]
-//Redeploy
-
-== Apply a TLS Context to an API
-include::anypoint-security::partial$task-flex-add-tls-context.adoc[tags=intro3]
-
-To apply a TLS context to an API Instance in Flex Gateway Connected mode:
-
-. Go to *Anypoint Platform > API Manager*.
-
-. Create a new API Instance deployed with Flex Gateway or edit the endpoint of an existing Flex Gateway API Instance:
-
-* To the create a new API using Flex Gateway as the runtime, complete the xref:api-manager::create-instance-task.adoc[Adding an API Instance] task up to the endpoint configuration page.
-
-* To edit an existing API Instance's endpoint, in *API Administration* click the name of the API you want to add TLS context to, then click *Runtime & Endpoint Configuration*. 
-
-. Configure the end point up to *Scheme* or begin editing the existing API Instance. 
+. After replacing the sample content, make a DELETE request to Anypoint Platform:
 +
-For more information on configuration, see xref:api-manager::configure-api-task.adoc#configure-an-api-instance-on-flex-gateway-options[Configure an API Instance on Flex Gateway Options].
-
-. Select *HTTPS*.
-
-. Specify the *Port*.
-
-. Add TLS context for inbound traffic, outbound traffic, or both. 
-+
-To add TLS context for either direction:
-
-.. Click *Add TLS Context*.
-
-.. Select a *Secret Group*.
-
-.. Select a *TLS Context*.
-
-.. Click *Ok*.
-
-+
-If adding outbound TLS context, first click *Advanced options*.
-
-. Click *Save & Apply*.
-
-== TLS Context Port Sharing
-Though a port must have an API Instance to have a TLS context applied, it is easiest to think of TLS context as being applied to the port rather than the API Instance. 
-
-Applying a TLS context to an API Instance that shares its port with other instances applies the TLS context to all instances sharing the port.
-
-When you apply or edit the TLS context of an API Instance sharing a port, API Manager shows a warning with a list of the instances sharing the port. You can then choose to override the TLS context of the listed API Instances. Overriding the TLS context of the API Instances that share the port applies the TLS context to the instances and then redeploys the instances.
-
-Overriding the TLS context of deployed API Instances redeploys the instances. Redeploying causes a brief period of downtime in the API Instances.
-
-If you edit the port of an API Instance that previously shared a port and TLS context with other instances, the TLS context remains applied to the instances on the previous port.
-
-//Ciphers
-include::anypoint-security::partial$flex-tls-cipher.adoc[tags=connectedSelect;cipherSupport;ciphers]
+[source,ssh,subs=attributes+]
+----
+curl --location --request DELETE 'https://anypoint.mulesoft.com/proxies/xapi/v1/organizations/<your-org-id>/environments/<your-env-id>/apis/<instance-id>' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: bearer <authorization-token>' \
+----
 
 //Ciphers
 == See Also
