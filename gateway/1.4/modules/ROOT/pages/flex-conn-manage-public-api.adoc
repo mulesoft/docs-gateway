@@ -57,7 +57,9 @@ See xref:access-management::organization.adoc#find-your-organization-id[Find you
 +
 See xref:api-manager::latest-overview-concept.adoc#what-api-manager-looks-like[What API Manager Looks Like]
 for more information on how to find your Environment ID.
-
+** The Runtime *Target ID* for the Flex Gateway you want to deploy the API to
++
+To find the *Target ID*, go to *Anypoint Platform > Runtime Manager > Flex Gateway*.
 
 * <<obtain-an-authorization-token-from-access-management, Obtain an Authorization token from Access Management>> as the first step in using the API Manager API.
 
@@ -93,7 +95,7 @@ To create an API Instance using the API Manager API:
 . Collect the following information:
 * `<your-org-id>` = the *Organization ID* for the organization where you want to run Flex Gateway
 * `<your-env-id>` = the *Environment ID* for the organization where you want to run Flex Gateway
-* `<authorization-token>` = your authorization token collected in the <<obtain-an-authorization-token-from-access-management, Obtain an Authorization token from Access Management>> step
+* `<authorization-token>` = the authorization token collected in the <<obtain-an-authorization-token-from-access-management, Obtain an Authorization token from Access Management>> step
 * API GAV:
 ** `<asset-group-id>` = the Group ID, obtained from exchange
 ** `<asset-id-from-exchange>` = the Asset ID, obtained from exchange, of the API you want to create
@@ -133,7 +135,7 @@ To deploy an API Instance using the API Manager API:
 * `<your-org-id>` = the *Organization ID* for the organization where you want to run Flex Gateway
 * `<your-env-id>` = the *Environment ID* for the organization where you want to run Flex Gateway
 * `<instance-id>` = the Instance ID, `"id"`, from <<create-an-api-instance, Create an API Instance>>
-* `<authorization-token>` = your authorization token collected in the <<obtain-an-authorization-token-from-access-management, Obtain an Authorization token from Access Management>> step
+* `<authorization-token>` = the authorization token collected in the <<obtain-an-authorization-token-from-access-management, Obtain an Authorization token from Access Management>> step
 * `<gateway-version>` = the version of Flex Gateway you are using, for example `1.4.0`
 * `<target-id-from-runtime-manager>` = the target ID collected from runtime manager
 
@@ -165,7 +167,9 @@ To apply a policy to an API Instance using the API Manager API:
 ** `<policy-asset-id>` = the Policy Asset ID from Exchange, for example `http-basic-authentication`
 ** `<policy-asset-version>` = the Policy Asset Version from Exchange, for example `1.3.1`
 
-* `"configurationDate"` =
+* `"configurationData"` =
++ The configuration data fields are dependent on the policy. The `"username"` and `"password"` are only an example. To find the configuration data for your policy, see xref:policies-included-directory.adoc[Included Policies Directory].
+
 . After replacing the sample content, make a POST request to Anypoint Platform:
 +
 [source,ssh,subs=attributes+]
@@ -193,7 +197,7 @@ To delete an API Instance using the API Manager API:
 * `<your-org-id>` = the *Organization ID* for the organization where you want to run Flex Gateway
 * `<your-env-id>` = the *Environment ID* for the organization where you want to run Flex Gateway
 * `<instance-id>` = the Instance ID, `"id"`, from <<create-an-api-instance, Create an API Instance>>
-* `<authorization-token>` = your authorization token collected in the <<obtain-an-authorization-token-from-access-management, Obtain an Authorization token from Access Management>> step
+* `<authorization-token>` = the authorization token collected in the <<obtain-an-authorization-token-from-access-management, Obtain an Authorization token from Access Management>> step
 
 . After replacing the sample content, make a DELETE request to Anypoint Platform:
 +
