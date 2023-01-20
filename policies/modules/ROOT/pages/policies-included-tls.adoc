@@ -19,13 +19,17 @@ endif::[]
 
 == Summary
 
-HTTPS uses encryption to protect the communication between the client and Flex Gateway. To use HTTPS as your schema, bind the Transport Layer Security policy to your API instance.
+HTTPS uses encryption to protect the communication between the client and Flex Gateway. To use HTTPS as your schema, bind the Transport Layer Security policy to your API instance. Flex Gateway supports both TLS and mutual authentication TLS (mTLS).
 
 == Configuring Policy Parameters
 
 To use HTTPS as your schema
 when creating an API Instance using Flex Gateway as your runtime, you must manually configure the TLS context
-in a YAML configuration file. Refer to the following policy definition and table of parameters:
+in a YAML configuration file. 
+
+When configuring the `ciphers` parameter, see <<local-cipher, TLS Cipher Support on Flex Gateway>> for the supported ciphers.
+
+Refer to the following policy definition and table of parameters:
 
 ----
 - policyRef:
@@ -118,6 +122,8 @@ include::gateway::partial$task-tls-config.adoc[tags=sample-config-instance]
 include::gateway::partial$task-tls-config.adoc[tags=sample-config-mtls-intro]
 //sample mtls config applied to a specific api
 include::gateway::partial$task-tls-config.adoc[tags=sample-config-mtls]
+
+include::anypoint-security::partial$flex-tls-cipher.adoc[tags=cipherSupportLocal;ciphers]
 
 [NOTE]
 ====
