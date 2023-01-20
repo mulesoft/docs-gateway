@@ -5,7 +5,7 @@ endif::[]
 :imagesdir: ../assets/images
 :page-mode: conn
 
-Using a Jenkins pipeline, you can automate the work flow for a Connected Mode Flex Gateway. With a Jenkins pipeline, you can register and run a Flex Gateway and utilize features of the https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API] such as creating and deploying API instances.
+Using a Jenkins pipeline, you can automate the work flow for Flex Gateway in Connected Mode. With a Jenkins pipeline, you can register and run a Flex Gateway and utilize features of the https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API] such as creating and deploying API instances.
 
 Automating your Flex Gateway in Connected Mode work flow shares many similarities with the xref:flex-conn-manage-public-api.adoc[Manage Flex Gateway Using the API Manager API] tutorial. Using this Jenkins pipeline tutorial, you can automate the calls made to the API Manager API. To add additional features from the  https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API], use the <<create-an-api-instance, Create an API Instance>> and <<apply-an-api-policy, Apply an API Policy>> pipeline stages as examples.
 
@@ -60,9 +60,6 @@ See xref:access-management::organization.adoc#find-your-organization-id[Find you
 +
 See xref:api-manager::latest-overview-concept.adoc#what-api-manager-looks-like[What API Manager Looks Like]
 for more information on how to find your Environment ID.
-** The Runtime *Target ID* for the Flex Gateway you want to deploy the API to
-+
-To find the *Target ID*, go to *Anypoint Platform > Runtime Manager > Flex Gateway*.
 
 
 == Define Useful Functions
@@ -85,7 +82,7 @@ def parseJsonFile(file) {
 
 == Define Useful Parameters
 
-As the commands in the Jenkins pipeline reuses some parameters, it is helpful to define them at the beginning of your work flow.
+Since the commands in the Jenkins pipeline reuses some parameters, it is helpful to define them at the beginning of your work flow.
 
 Using the included parameter definitions as a template, you can also define any parameters you may need for additional APIs or policies.
 
@@ -316,6 +313,8 @@ stage("Apply policy") {
    }
 }
 ----
+
+NOTE: You can only apply Connected Mode policies.
 
 == Deploying an API Instance
 After you create an API Instance, you can deploy the instace.
