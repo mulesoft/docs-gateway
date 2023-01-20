@@ -4,27 +4,120 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Flex Gateway is a performant API gateway that can secure both Mule and non-Mule APIs.
-It is easily integrated into CI/CD workflows while offering enterprise security and manageability.
-It can be run on a public cloud or on-prem.
+The following guide describes how to install, register, and run Anypoint Flex Gateway in Connected Mode - all using Docker. Additionally, the guide describes deploying a simple API Instance with a basic authentication policy.
 
-You can run Flex Gateway in two different modes: 
+== Before You Begin
 
-* **Connected Mode:** Run Flex Gateway in Connected Mode if you want it fully connected to the Anypoint
-control plane for **centralized management, observability, and security**.
-* **Local Mode:** Run Flex Gateway in Local Mode if you want to run it mostly disconnected
-from the Anypoint control plane, and manage it with locally stored declarative configuration files.
+Before getting started, ensure that Docker is installed.
 
-Get started with Flex Gateway by performing the following tasks: 
+//Before getting started, ensure that:
+//
+//* Docker is installed.
+//* Required Flex Gateway ports are available and permissions are assigned. For more information see xref:flex-review-prerequisites.adoc[].
 
-. **xref:flex-review-prerequisites.adoc[Review Prerequisites]:** Before setting up Flex Gateway, you will need to ensure certain ports are available and permissions are assigned.
-. **xref:flex-install.adoc[Install Flex Gateway]:** You can install Flex Gateway as a Linux
-service, in a Docker container, or as a Kubernetes Ingress controller.
-. **Register and Run Flex Gateway:** Once you have installed your Flex Gateway, you will need to register it
-so that you can start using it to manage API instances. 
-* xref:flex-conn-reg-run.adoc[Register and Run in Connected Mode]
-* xref:flex-local-reg-run.adoc[Register and Run in Local Mode]
-. **xref:flex-gateway-replicas.adoc[Manage Flex Replicas]**: By default Flex Gateway runs a single replica, but for production you will need more than one Flex Replica. Your replica should run in the same mode you registered your Flex Gateway.
-. **Manage an API with Flex Gateway:** Use your Flex Gateway to manage API instances and apply xref:policies::policies-included-overview.adoc[included], xref:policies::policies-automated-overview.adoc[automated], and xref:policies::policies-custom-overview.adoc[custom] policies.
-* xref:flex-conn-manage.adoc[Manage an API in Connected Mode]
-* xref:flex-local-manage.adoc[Manage an API in Local Mode]
+== Install Flex Gateway
+
+To install the Flex Gateway image, run the following command in a terminal:
+
+[source,ssh]
+----
+docker pull mulesoft/flex-gateway:latest
+----
+
+The command installs the latest Flex Gateway Docker image.
+
+== Register Flex Gateway
+
+. Log in to Anypoint Platform with your registered account.
+. Select *Runtime Manager*.
+. Click on the *Flex Gateways* tab in the side navigation panel.
+. Click *Add Gateway*.
+. Select *Docker* and copy the code block in the *Register your gateway* section. The code block will contain your unique organization ID and token.
++
+The following *Add a Flex Gateway* screenshot highlights the code block that should be copied.
++
+image::gateway-quickstart-add-gateway.png["Screenshot of 'Add a Flex Gateway'",width=85%]
+. Run the copied code block in a terminal, making sure to replace `<gateway-name>` with `flex-quickstart-guide`.
+. Select *Flex Gateways* in the side navigation panel.
++
+Your registered Flex Gateway now appears in the list of gateways.
+
+== Run Flex Gateway
+
+To run Flex Gateway, execute the following command in a terminal:
+
+[source,ssh]
+----
+docker run --rm \
+  -v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
+  -p 8081:8081 \
+  -p 8082:8082 \
+  mulesoft/flex-gateway
+----
+
+Your Flex Gateway is now running.
+
+== Deploy an API Instance
+
+. Select *API Manager* from the Anypoint Platform menu.
+. Click *Add API*, followed by *Add New API*.
+. Select *Flex Gateway* as your runtime.
+. Select the gateway that you registered.
+. Click *Create New API*.
+. Specify an API name and select *HTTP API* as the asset type.
+. Click *Next*.
+. For *Implementation URI*, enter the following:
++
+[source]
+----
+https://jsonplaceholder.typicode.com/
+----
+. For *Port*, enter `8082`.
+. Click *Next*.
+. Click *Save & Deploy*.
++
+Inside the gateway instance Docker container, all HTTP requests made to `localhost` on port `8082` will now be proxied to the `jsonplaceholder` service.
+. To test the API Instance, run the following command in a terminal:
++
+[source,ssh]
+----
+curl -s -o /dev/null -w "%{http_code}" --request GET 'http://localhost:8082/'
+----
++
+The command executes a `GET` request to the API Instance, and subsequently prints the resulting status code, which should be `200`.
+
+== Apply a Policy
+
+. While still in *API Manager*, select *API Administration* in the side navigation panel.
+. Select the highlighted name of the API Instance created in the previous section.
+. Select *Policies* in the side navigation panel.
+. Click *Add Policy*.
+. Select the *Basic Authentication - Simple* policy.
+. Click *Next*.
+. For *User Name*, enter `user`.
+. For *User Password*, enter `password`.
+. Click *Apply*.
+. To test the API Instance _without_ authentication, run the previous `curl` command in a terminal:
++
+[source,ssh]
+----
+curl -s -o /dev/null -w "%{http_code}" --request GET 'http://localhost:8082/'
+----
++
+The command prints a resulting `401 (Unauthorized)` status code, because the request does not include the Authentication context.
+. To test the API Instance _with_ authentication, run the following command in a terminal:
++
+[source,ssh]
+----
+curl -s -o /dev/null -w "%{http_code}" --request GET 'http://localhost:8082/' -u user:password
+----
++
+The command prints the resulting status code, which should be `200`.
+
+== Next Steps
+
+* xref:flex-install.adoc[]. You can install Flex Gateway as a Linux service, in a Docker container, or as a Kubernetes Ingress controller.
+* xref:flex-conn-reg-run.adoc[]
+* xref:flex-local-reg-run.adoc[]
+* xref:flex-conn-manage.adoc[]
+* xref:flex-local-manage.adoc[]
