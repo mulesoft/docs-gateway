@@ -1,4 +1,4 @@
-= Anypoint Flex Gateway Overview
+= Flex Gateway Overview
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -12,6 +12,8 @@ Flex Gateway contains two components that work in tandem:
 
 * The control plane
 * The runtime
+
+The following graphic diagrams the relationship between components:
 
 image::gateway-concepts-control-plane-diagram.png["Flex Gateway Concepts diagram,"width=100%]
 
@@ -31,10 +33,8 @@ The runtime is a customer-hosted entity installed in any cloud data center or, f
 
 FluentBit implementation enables log output to aggregators such as New Relic, Sumo Logic, Splunk, among others.
 
-=== Replicas
+== Replicas
 A runtime unit is called a `replica`. While a single runtime can support multiple backend APIs for high availability, MuleSoft recommends installing Flex Gateway as a cluster - a Kubernetes Ingress controller with multiple replicas running in parallel. Doing so increases gateway performance and robustness, and is recommended for high-performance applications that need to scale.
-
-=== REDIS Storage
 
 An optional external REDIS storage can be configured for features such as distributed rate limiting and distributed caching. Gateway replicas use the REDIS storage as a scratchpad to coordinate rate-limiting across multiple replicas, so customer SLAs are adhered to.
 
@@ -61,7 +61,7 @@ Flex Gateway deployed in Local Mode only connects to the control plane for regis
 
 In Local Mode, you manage all configuration and policy applications with locally stored declarative configuration files.
 
-Building CI/CD pipelines for application deployments uses Local Mode extensively.
+Use Local Mode to build CI/CD pipelines for application deployments.
 
 === Summary of Differences
 
@@ -159,5 +159,5 @@ MuleSoft recommends you choose Flex Gateway for high-availability and high-perfo
 
 == Next Steps
 
-* xref:gateway::flex-gateway-getting-started.adoc[Getting Started with Flex Gateway]
+* xref:gateway::flex-gateway-getting-started.adoc[]
 
