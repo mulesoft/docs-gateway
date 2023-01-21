@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Anypoint Flex Gateway is an ultrafast lightweight API gateway designed to manage and secure APIs running anywhere. Built to seamlessly integrate with DevOps and CI/CD workflows, Flex Gateway delivers the performance required for the most demanding applications and microservices while providing enterprise security and manageability across any environment.
+Anypoint Flex Gateway is an Envoy-based ultrafast lightweight API gateway designed to manage and secure APIs running anywhere. Built to seamlessly integrate with DevOps and CI/CD workflows, Flex Gateway delivers the performance required for the most demanding applications and microservices while providing enterprise security and manageability across any environment.
 
 == Flex Gateway Architecture
 
@@ -21,10 +21,11 @@ image::gateway-concepts-control-plane-diagram.png["Flex Gateway Concepts diagram
 
 The control plane is a MuleSoft-hosted platform that enables you to:
 
+* Centralize management and observability.
 * Build APIs.
 * Add policies.
 * Monitor APIs in Anypoint API Manager.
-* Register and configure in Anypoint Runtime manager.
+* Register and configure in Anypoint Runtime Manager.
 * Deploy APIs into the runtime.
 
 === Runtime
@@ -73,7 +74,7 @@ The following table summarizes the differences between Connected Mode and Local 
 
 | *Use Case*
 | Choose Connected Mode for centralized management, observability, and security. Flex Gateway in Connected mode connects to the control plane.
-| Choose Local Mode to mostly disconnect from the control plane. Manage Flex Gateway in Local Mode with locally stored declarative configuration files.
+| Choose Local Mode to operate independently of the control plane in a mostly disconnected manner. Manage Flex Gateway in Local Mode with locally stored declarative configuration files.
 
 | *Policy Application*
 | Use API Manager to apply policies in Connected Mode.
@@ -93,9 +94,9 @@ You can install Flex Gateway in a variety of ways:
 
 * A standalone in a Docker container.
 
-* An Ingress controller in Kubernetes, for highly-available, high-performance use cases.
-
 * A sidecar to a backend application in a Docker container, thereby protecting a single backend application.
+
+* An Ingress controller in Kubernetes, for highly-available, high-performance use cases.
 
 In general, if the use case involves protecting a few APIs and the number of transactions are low, with a minimal impetus on high-availability or robustness, choose to install as a standalone gateway. Otherwise, choose to install as an Ingress controller in Kubernetes.
 
