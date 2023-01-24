@@ -5,7 +5,7 @@ endif::[]
 :imagesdir: ../assets/images
 :page-mode: conn
 
-Using a Jenkins pipeline, you can automate the work flow for Flex Gateway in Connected Mode. With a Jenkins pipeline, you can register and run a Flex Gateway and utilize features of the https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API] such as creating and deploying API instances.
+Using a Jenkins pipeline, you can automate the workflow for Flex Gateway in Connected Mode. With a Jenkins pipeline, you can register and run a Flex Gateway and utilize features of the https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API] such as creating and deploying API instances.
 
 Automating your Flex Gateway in Connected Mode work flow shares many similarities with the xref:flex-conn-manage-public-api.adoc[Manage Flex Gateway Using the API Manager API] tutorial. Using this Jenkins pipeline tutorial, you can automate the calls made to the API Manager API. To add additional features from the  https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API], use the <<create-an-api-instance, Create an API Instance>> and <<apply-an-api-policy, Apply an API Policy>> pipeline stages as examples.
 
@@ -131,7 +131,7 @@ stage('Check parameters') {
        }
 ----
 +
-This stage validates if all parameters are present. 
+This stage validates if all parameters are present. If this stage fails, specify the missing parameters, then rerun the pipeline.
 
 == Register and Run
 
@@ -179,14 +179,75 @@ stage('Run flex gateway') {
 * For Kubernetes Ingress Controller Flex Gateways:
 [source,ssh]
 ----
+stage('Register flex gateway') {
+    steps {
+        script {
+            sh """
+                docker run --entrypoint flexctl \
+                    -v "\$(pwd)":/registration -u 0 mulesoft/flex-gateway:${params.FLEX_VERSION} \
+                    register \
+                    --client-id=${params.CONNECTED_APP_CLIENT_ID} \
+                    --client-secret=${params.CONNECTED_APP_CLIENT_SECRET} \
+                    --environment=${params.ENV_ID} \
+                    --connected=true \
+                    --organization=${params.ORG_ID} \
+                    --output-directory=/registration \
+                    ${params.GATEWAY_NAME}
+                """
+                if (!fileExists('registration.yaml')) {
+                    error("Registration failed")
+                }
+        }
+    }
+}
 
-----
+stage('Run flex gateway') {
+    steps {
+        script {
+            sh """
+                docker run -d \
+                -v "\$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
+                -p 8082:8082 \
+                mulesoft/flex-gateway:${params.FLEX_VERSION} > containerId
+            """
+        }
+    }
+}
 
-* For Flex Gateways installed in Docker Containers:
+* For Flex Gateways installed as a Linux Service:
 [source,ssh]
 ----
+stage('Register flex gateway') {
+    steps {
+        script {
+            sh """
+                flexctl register \
+                    --client-id=${params.CONNECTED_APP_CLIENT_ID} \
+                    --client-secret=${params.CONNECTED_APP_CLIENT_SECRET} \
+                    --environment=${params.ENV_ID} \
+                    --organization=${params.ORG_ID} \
+                    -output-directory=/usr/local/share/mulesoft/flex-gateway/conf.d \
+                    ${params.GATEWAY_NAME}
+                """
+                if (!fileExists('registration.yaml')) {
+                    error("Registration failed")
+                }
+        }
+    }
+}
 
+stage('Run flex gateway') {
+    steps {
+        script {
+            sh """
+                sudo systemctl start flex-gateway
+            """
+        }
+    }
+}
 ----
+
+For more information about registering a Flex Gateway with a connected app, see xref:flex-conn-reg-run-app.adoc[Registering and Running in Connected Mode with a Connected App].
 
 == Obtain an Authorization Token from Access Management
 After registering and running your Flex Gateway, you must obtain a valid authorization token from Access Management in order to authenticate subsequent requests.
