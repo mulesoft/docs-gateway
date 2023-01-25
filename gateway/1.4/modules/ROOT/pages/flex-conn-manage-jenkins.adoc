@@ -9,39 +9,46 @@ Using a Jenkins pipeline, you can automate the workflow for Flex Gateway in Conn
 
 Automating your Flex Gateway in Connected Mode work flow shares many similarities with the xref:flex-conn-manage-public-api.adoc[Manage Flex Gateway Using the API Manager API] tutorial. Using this Jenkins pipeline tutorial, you can automate the calls made to the API Manager API. To add additional features from the  https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API], use the <<create-an-api-instance, Create an API Instance>> and <<apply-an-api-policy, Apply an API Policy>> pipeline stages as examples.
 
-This tutorial has different steps with different code blocks. As you work through the steps, add the code blocks to the same Jenkins configuration file.
+This tutorial has different steps with different code blocks. As you work through the steps, add the code blocks to the same Jenkins configuration file. Before you can create and deploy an API Instance to your Flex Gateway, you must complete the following steps:
 
-After you implement these pipeline stages, you can customize your pipeline by making different API Manager API requests.
+* <<define-useful-functions, Define Useful Functions>>
+* <<define-useful-parameters, Define Useful Parameters>>
+* <<register-and-run, Register and Run>>
+* <<obtain-an-authorization-token-from-access-management, Obtain an Authorization Token from Access Management>>
+
+After you implement these pipeline stages, you can customize your pipeline by making API Manager API requests.
 
 == Before You Begin
 Before you can deploy a Jenkins pipeline, complete the following tasks:
+
+* xref:flex-install.adoc[Install Flex Gateway].
 
 * xref:service-mesh::obtain-connected-apps-credentials.adoc[Configure a Connected App]:
 
 ** Use the *App acts on its behalf (client credentials)* type and include the following scopes:
 
 *** API Manager: *Manage APIs Configuration*, *Manage Policies*, *View Policies*, and *Deploy API Proxies*
-*** Runtime Manager: *Read Servers*, *Manage Servers*
+*** Runtime Manager: *Read Servers*
 *** Exchange: *Exchange Viewer*
-*** General: *View Organization*
++ 
+You do not have to xref:flex-conn-reg-run-app.adoc[Register and Run Flex Gateway with a Connected App] to use the API Manager API, but you can use the same Connected App if you include the proper scopes.
 
 ** Save the *Id* and *Secret* of the Connected app you configure.
 
 
-* Collect the Group ID and Asset ID, and Asset Version (GAV) of the Exchange asset you want to create or apply.
+* Collect the Group ID, Asset ID, and Asset Version (GAV) of the Exchange asset you want to create or apply.
 +
 To collect you GAV from Exchange:
 +
 . Go to Exchange.
 . Find the asset to add or apply.
-. Collect the Group ID and Asset ID from the URL.
+. Collect the GAV from the URL.
 +
-For example, the GAV collected from the Basic Authentication Policy Exchange URL, `https://anypoint.mulesoft.com/exchange/68ef9520-24e9-4cf2-b2f5-620025690913/http-basic-authentication/minor/1.3/`, is:
+For example, the GAV collected from the API Manager API Exchange URL, `https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/minor/1.0/pages/home/`, is:
 +
-*** Group ID: `68ef9520-24e9-4cf2-b2f5-620025690913`
-*** Asset ID: `http-basic-authentication`
-*** Asset Version: `1.3.0` (You can find this version clicking on `View Versions`)
-
+*** Group ID: `f1e97bc6-315a-4490-82a7-23abe036327`
+*** Asset ID: `api-manager-api`
+*** Asset Version: `1.0`
 
 * Collect the following information from your Anypoint Platform instance:
 
@@ -57,7 +64,7 @@ for more information on how to find your Environment ID.
 
 == Define Useful Functions
 
-To begin, define these useful functions in your Jenkinsfile:
+To begin, define these useful functions in your Jenkins pipeline:
 
 [source,ssh]
 ----
@@ -65,7 +72,7 @@ def parseYamlFile(String file) {
    object = readYaml file: file
    return object
 }
-
+ 
 def parseJsonFile(file) {
    object = readJSON file: file
    return object
@@ -75,35 +82,53 @@ def parseJsonFile(file) {
 
 == Define Useful Parameters
 
-Given that there are some input values needed for running the pipeline, here we define the necessary parameters
+Since the commands in the Jenkins pipeline reuses some parameters, it is helpful to define them at the beginning of your work flow.
+
+Using the included parameter definitions as a template, you can also define any parameters you may need for additional APIs or policies.
+
+To define the parameters:
+
+. Collect the following information:
+* `<your-org-id>` = the *Organization ID* for the organization where you want to run Flex Gateway
+* `<your-env-id>` = the *Environment ID* for the organization where you want to run Flex Gateway
+* `<gateway-version>` = the version of Flex Gateway you are using, for example `1.4.0`
+* `<connected-app-client-id>` = the *Id* of your connected app
+* `<connected-app-client-secret>` = the *Secret* of your connected app
+* API GAV:
+** `<asset-group-id>` = the Group ID, obtained from exchange
+** `<asset-id-from-exchange>` = the Asset ID, obtained from exchange, of the API you want to create
+** `<asset-version>` = the Asset Version, obtained from exchange, of the API  you want to create
+* `<gateway-name>` = the name of your Flex Gateway
+
+. After replacing the sample content, add the parameter definitions to you Jenkins file:
++
 [source,ssh]
 ----
 parameters {
-   string(name: 'ENV_ID', defaultValue: '', description: 'Your environment id')
-   string(name: 'ORG_ID', defaultValue: '', description: 'Your organization id')
-   string(name: 'FLEX_VERSION', defaultValue: '', description: 'Flex version to run')
-   string(name: 'CONNECTED_APP_CLIENT_ID', defaultValue: '', description: 'Your connected app client id')
-   string(name: 'CONNECTED_APP_CLIENT_SECRET', defaultValue: '', description: 'Your connected app client secret')
-   string(name: 'EXCHANGE_GROUP_ID', defaultValue: '', description: 'The group id of the http api exchange asset')
-   string(name: 'EXCHANGE_ASSET_ID', defaultValue: '', description: 'The id of the http api exchange asset')
-   string(name: 'EXCHANGE_ASSET_VERSION', defaultValue: '', description: 'The version of the http api exchange asset')
-   string(name: 'GATEWAY_NAME', defaultValue: '', description: 'Unique gateway name')
-}
+       string(name: 'ENV_ID', defaultValue: '<your-env-id>', description: 'Your environment id')
+       string(name: 'ORG_ID', defaultValue: '<your-org-id>', description: 'Your organization id')
+       string(name: 'FLEX_VERSION', defaultValue: '<gateway-version>', description: 'Flex version to run')
+       string(name: 'CONNECTED_APP_CLIENT_ID', defaultValue: '<connected-app-client-id>', description: 'Your connected app client id')
+       string(name: 'CONNECTED_APP_CLIENT_SECRET', defaultValue: '<connected-app-client-secret', description: 'Your connected app client secret')
+       string(name: 'EXCHANGE_ASSET_ID', defaultValue: '<asset-id-from-exchange>', description: 'The id of the http api exchange asset')
+       string(name: 'EXCHANGE_ASSET_VERSION', defaultValue: '<asset-version>', description: 'The version of the http api exchange asset')
+       string(name: 'GATEWAY_NAME', defaultValue: '<gateway-name>', description: 'Unique gateway name')
+   }
 ----
-== Check parameters
-Add the `Check parameters` stage to your Jenkins pipeline:
 
+. Add the `Check parameters` stage to your Jenkins pipeline:
++
 [source,ssh]
 ----
 stage('Check parameters') {
-   steps {
-       script {
-           if (!params.ENV_ID || !params.ORG_ID || !params.FLEX_VERSION || !params.CONNECTED_APP_CLIENT_ID || !params.CONNECTED_APP_CLIENT_SECRET || !params.EXCHANGE_GROUP_ID || !params.EXCHANGE_ASSET_ID || !params.EXCHANGE_ASSET_VERSION || !params.GATEWAY_NAME)  {
-               error("Not all parameters where specified")
+           steps {
+               script {
+                   if (!params.ENV_ID || !params.ORG_ID || !params.FLEX_VERSION || !params.CONNECTED_APP_CLIENT_ID || !params.CONNECTED_APP_CLIENT_SECRET || !params.EXCHANGE_ASSET_ID || !params.EXCHANGE_ASSET_VERSION || !params.GATEWAY_NAME)  {
+                       error("Not all parameters where specified")
+                   }
+               }
            }
        }
-   }
-}
 ----
 +
 This stage validates if all parameters are present. If this stage fails, specify the missing parameters, then rerun the pipeline.
@@ -112,6 +137,7 @@ This stage validates if all parameters are present. If this stage fails, specify
 
 Add the register and run stages to your Jenkins Pipeline:
 
+* For Flex Gateways installed in Docker Containers:
 [source,ssh]
 ----
 stage('Register flex gateway') {
@@ -149,83 +175,174 @@ stage('Run flex gateway') {
     }
 }
 ----
-After registering and running your Flex Gateway, you must obtain a valid authorization token from Access Management in order to authenticate subsequent requests.
 
-== Obtain an Authorization Token from Access Management
-To login into Anypoint, add the `Anypoint login` stage to your Jenkins pipeline:
+* For Kubernetes Ingress Controller Flex Gateways:
 [source,ssh]
 ----
-stage("Anypoint login") {
-   steps {
-       script {
-           def cmd = """curl -s -w "%{http_code}" --location --request POST 'https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token' -o 'login-response' \
-                     --header 'Content-Type: application/json' \
-                     --data-raw '{"grant_type": "client_credentials", "client_id": "${params.CONNECTED_APP_CLIENT_ID}", "client_secret": "${params.CONNECTED_APP_CLIENT_SECRET}"}'
-                     """
-           def status_code = sh(returnStdout: true, script: cmd).trim().toInteger()
-           if (status_code > 399) {
-               error("Anypoint login failed")
-           }
-       }
-   }
+stage('Register flex gateway') {
+    steps {
+        script {
+            sh """
+                docker run --entrypoint flexctl \
+                    -v "\$(pwd)":/registration -u 0 mulesoft/flex-gateway:${params.FLEX_VERSION} \
+                    register \
+                    --client-id=${params.CONNECTED_APP_CLIENT_ID} \
+                    --client-secret=${params.CONNECTED_APP_CLIENT_SECRET} \
+                    --environment=${params.ENV_ID} \
+                    --connected=true \
+                    --organization=${params.ORG_ID} \
+                    --output-directory=/registration \
+                    ${params.GATEWAY_NAME}
+                """
+                if (!fileExists('registration.yaml')) {
+                    error("Registration failed")
+                }
+        }
+    }
+}
+
+stage('Run flex gateway') {
+    steps {
+        script {
+            sh """
+                docker run -d \
+                -v "\$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
+                -p 8082:8082 \
+                mulesoft/flex-gateway:${params.FLEX_VERSION} > containerId
+            """
+        }
+    }
+}
+
+* For Flex Gateways installed as a Linux Service:
+[source,ssh]
+----
+stage('Register flex gateway') {
+    steps {
+        script {
+            sh """
+                flexctl register \
+                    --client-id=${params.CONNECTED_APP_CLIENT_ID} \
+                    --client-secret=${params.CONNECTED_APP_CLIENT_SECRET} \
+                    --environment=${params.ENV_ID} \
+                    --organization=${params.ORG_ID} \
+                    -output-directory=/usr/local/share/mulesoft/flex-gateway/conf.d \
+                    ${params.GATEWAY_NAME}
+                """
+                if (!fileExists('registration.yaml')) {
+                    error("Registration failed")
+                }
+        }
+    }
+}
+
+stage('Run flex gateway') {
+    steps {
+        script {
+            sh """
+                sudo systemctl start flex-gateway
+            """
+        }
+    }
 }
 ----
 
-The authorization token returned in this step is saved in a temporary file for subsequent requests.
+For more information about registering a Flex Gateway with a connected app, see xref:flex-conn-reg-run-app.adoc[Registering and Running in Connected Mode with a Connected App].
+
+== Obtain an Authorization Token from Access Management
+After registering and running your Flex Gateway, you must obtain a valid authorization token from Access Management in order to authenticate subsequent requests.
+
+To login into Anypoint, add the `Anypoint login` stage to your Jenkins pipeline:
+
+[source,ssh]
+----
+stage("Anypoint login") {
+           steps {
+               script {
+                   def cmd = """curl -s -w "%{http_code}" --location --request POST 'https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token' -o 'login-response' \
+                             --header 'Content-Type: application/json' \
+                             --data-raw '{"grant_type": "client_credentials", "client_id": "${params.CONNECTED_APP_CLIENT_ID}", "client_secret": "${params.CONNECTED_APP_CLIENT_SECRET}"}'
+                             """
+                   def status_code = sh(returnStdout: true, script: cmd).trim().toInteger()
+                   if (status_code > 399) {
+                       error("Anypoint login failed")
+                   }
+               }
+           }
+       }
+----
+
+The authorization token returned in this step is saved for subsequent requests.
 
 == Create an API Instance
-Having an authorization token from Access Management allows you to create an API Instance and deploy it to your Flex Gateway.
+Having an authorization token from Access Management allows you to create an API Instance and deploy it to your Flex Gateway. 
 
 You can repeat this step to add multiple API Instances.
 
-In this stage we create an API Instance that listens on port `8082` and `/httpbin` (as we can see in `proxyUri` field) path and proxies to `https://httpbin.org/`.
+To create an API Instance:
+
+. Collect the following information:
+* `<upstream-uri>` = the URI upstream of your API
+* `<your-proxy-uri>` = the proxy URI for you API Instance, for example, 'http://0.0.0.0:8081/'
+
+. After replacing the sample content, add the `Create API Instance` stage to you Jenkins pipeline:
 
 [source,ssh]
 ----
 stage("Create API Instance") {
-   steps {
-       script {
-           def login_response = parseJsonFile('login-response')
-
-
-           def cmd = """
-               curl -s -w "%{http_code}" --location --request POST 'https://anypoint.mulesoft.com/apimanager/api/v1/organizations/${params.ORG_ID}/environments/${params.ENV_ID}/apis' -o 'api-response' \
-               --header 'Authorization: Bearer ${login_response.access_token}' \
-               --header 'Content-Type: application/json' \
-               --data-raw '{
-                 "spec": {
-                    "groupId": "${params.EXCHANGE_GROUP_ID}",
-                    "assetId": "${params.EXCHANGE_ASSET_ID}",
-                    "version": "${params.EXCHANGE_ASSET_VERSION}"
-                 },
-                 "endpoint": {
-                    "deploymentType": "HY",
-                    "uri": "https://httpbin.org:443",
-                    "proxyUri": "http://0.0.0.0:8082/httpbin",
-                    "isCloudHub": null
-                 },
-                 "technology": "flexGateway"
-                }'
-           """
-
-
-           def status_code = sh(returnStdout: true, script: cmd).trim().toInteger()
-           if (status_code > 399) {
-               error("Error occurred while trying to create API Instance")
+           steps {
+               script {
+                   def login_response = parseJsonFile('login-response')
+                   def cmd = """
+                       curl -s -w "%{http_code}" --location --request POST 'https://anypoint.mulesoft.com/apimanager/api/v1/organizations/${params.ORG_ID}/environments/${params.ENV_ID}/apis' -o 'api-response' \
+                       --header 'Authorization: Bearer ${login_response.access_token}' \
+                       --header 'Content-Type: application/json' \
+                       --data-raw '{
+                         "spec": {
+                            "groupId": "${params.ORG_ID}",
+                            "assetId": "${params.EXCHANGE_ASSET_ID}",
+                            "version": "${params.EXCHANGE_ASSET_VERSION}"
+                         },
+                         "endpoint": {
+                            "deploymentType": "HY",
+                            "uri": "<upstream-uri>",
+                            "proxyUri": "<your-proxy-uri>",
+                            "isCloudHub": null
+                         },
+                         "technology": "flexGateway"
+                        }'
+                   """
+                   def status_code = sh(returnStdout: true, script: cmd).trim().toInteger()
+                   if (status_code > 399) {
+                       error("Error occurred while trying to create API Instance")
+                   }
+               }
            }
        }
-   }
-}
 ----
 
-== Apply a Basic Authentication Policy to the API Instance
+NOTE: Edit `"isCloudHub"` in your endpoint configuration to match you environment.
 
-After you create an API Instance, you can apply policies to the instance. In this case, we are applying a Basic Authentication Policy. For more information on how this works, see xref:flex-conn-manage-public-api.adoc[API Manager API].
 
-Add the `Apply policy` stage to your Jenkins pipeline:
+== Apply an API Policy
+
+After you create an API Instance, you can apply policies to the instance.
+
+To apply a policy:
+
+. Collect the following information:
+* Policy GAV
+** `<policy-group-id>` = the Policy Group ID from exchange
+** `<policy-asset-id>` = the Policy Asset ID from Exchange, for example `http-basic-authentication`
+** `<policy-asset-version>` = the Policy Asset Version from Exchange, for example `1.3.1`
+
+* `"configurationData"` = the policy configuration data
++ The configuration data fields are dependent on the policy. The `"username"` and `"password"` parameters are only an example. To find the configuration data for your policy, see xref:policies-included-directory.adoc[Included Policies Directory].
+
+. After replacing the sample content, add the `Apply policy` stage to your Jenkins pipeline:
 [source,ssh]
 ----
-stage("Apply Basic Authentication Policy to API Instance") {
+stage("Apply policy") {
    steps {
        script {
            def login_response = parseJsonFile('login-response')
@@ -242,9 +359,9 @@ stage("Apply Basic Authentication Policy to API Instance") {
                     "password": "test"
                  },
                  "pointcutData": null,
-                 "assetId": "http-basic-authentication",
-                 "assetVersion": "1.3.1",
-                 "groupId": "68ef9520-24e9-4cf2-b2f5-620025690913"
+                 "assetId": "<policy-asset-id>",
+                 "assetVersion": "<policy-asset-id>",
+                 "groupId": "<policy-group-id>"
                 }'
            """
 
@@ -331,6 +448,8 @@ stage("Validate deployment") {
 
 Use the following code blocks to stop your Flex Gateway and output the registration file:
 
+* For Flex Gateways installed in Docker Containers:
++
 [source,ssh]
 ----
 post {
@@ -351,222 +470,20 @@ post {
 
 ----
 
-== Full Jenkinsfile
-
+* For Kubernetes Ingress Controller Flex Gateway:
++
 [source,ssh]
 ----
-def parseYamlFile(String file) {
-  object = readYaml file: file
-  return object
-}
 
-def parseJsonFile(file) {
-  object = readJSON file: file
-  return object
-}
-
-pipeline {
-  agent any
-
-  parameters {
-      string(name: 'ENV_ID', defaultValue: '', description: 'Your environment id')
-      string(name: 'ORG_ID', defaultValue: '', description: 'Your organization id')
-      string(name: 'FLEX_VERSION', defaultValue: '', description: 'Flex version to run')
-      string(name: 'CONNECTED_APP_CLIENT_ID', defaultValue: '', description: 'Your connected app client id')
-      string(name: 'CONNECTED_APP_CLIENT_SECRET', defaultValue: '', description: 'Your connected app client secret')
-      string(name: 'EXCHANGE_GROUP_ID', defaultValue: '', description: 'The group id of the http api exchange asset')
-      string(name: 'EXCHANGE_ASSET_ID', defaultValue: '', description: 'The id of the http api exchange asset')
-      string(name: 'EXCHANGE_ASSET_VERSION', defaultValue: '', description: 'The version of the http api exchange asset')
-      string(name: 'GATEWAY_NAME', defaultValue: '', description: 'Unique gateway name')
-  }
-
-  stages {
-      stage('Check parameters') {
-          steps {
-              script {
-                  if (!params.ENV_ID || !params.ORG_ID || !params.FLEX_VERSION || !params.CONNECTED_APP_CLIENT_ID || !params.CONNECTED_APP_CLIENT_SECRET || !params.EXCHANGE_GROUP_ID || !params.EXCHANGE_ASSET_ID || !params.EXCHANGE_ASSET_VERSION || !params.GATEWAY_NAME)  {
-                      error("Not all parameters where specified")
-                  }
-              }
-          }
-      }
-
-      stage('Register flex gateway') {
-          steps {
-              script {
-                  sh """
-                      docker run --entrypoint flexctl \
-                       -v ${pwd()}:/registration -u 0 mulesoft/flex-gateway:${params.FLEX_VERSION} \
-                       register \
-                       --client-id=${params.CONNECTED_APP_CLIENT_ID} \
-                       --client-secret=${params.CONNECTED_APP_CLIENT_SECRET} \
-                       --environment=${params.ENV_ID} \
-                       --connected=true \
-                       --organization=${params.ORG_ID} \
-                       --output-directory=/registration \
-                       ${params.GATEWAY_NAME}
-                  """
-                  if (!fileExists('registration.yaml')) {
-                      error("Registration failed")
-                  }
-              }
-          }
-      }
-
-      stage('Run flex gateway') {
-          steps {
-              script {
-                  sh """
-                      docker run -d \
-                       -v ${pwd()}:/usr/local/share/mulesoft/flex-gateway/conf.d \
-                       -p 8082:8082 \
-                       mulesoft/flex-gateway:${params.FLEX_VERSION} > containerId
-                  """
-              }
-          }
-      }
-
-      stage("Anypoint login") {
-          steps {
-              script {
-                  def cmd = """curl -s -w "%{http_code}" --location --request POST 'https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token' -o 'login-response' \
-                            --header 'Content-Type: application/json' \
-                            --data-raw '{"grant_type": "client_credentials", "client_id": "${params.CONNECTED_APP_CLIENT_ID}", "client_secret": "${params.CONNECTED_APP_CLIENT_SECRET}"}'
-                            """
-                  def status_code = sh(returnStdout: true, script: cmd).trim().toInteger()
-                  if (status_code > 399) {
-                      error("Anypoint login failed")
-                  }
-              }
-          }
-      }
-
-      stage("Create API Instance") {
-          steps {
-              script {
-                  def login_response = parseJsonFile('login-response')
-
-                  def cmd = """
-                      curl -s -w "%{http_code}" --location --request POST 'https://anypoint.mulesoft.com/apimanager/api/v1/organizations/${params.ORG_ID}/environments/${params.ENV_ID}/apis' -o 'api-response' \
-                      --header 'Authorization: Bearer ${login_response.access_token}' \
-                      --header 'Content-Type: application/json' \
-                      --data-raw '{
-                        "spec": {
-                           "groupId": "${params.EXCHANGE_GROUP_ID}",
-                           "assetId": "${params.EXCHANGE_ASSET_ID}",
-                           "version": "${params.EXCHANGE_ASSET_VERSION}"
-                        },
-                        "endpoint": {
-                           "deploymentType": "HY",
-                           "uri": "https://httpbin.org:443",
-                           "proxyUri": "http://0.0.0.0:8082/httpbin",
-                           "isCloudHub": null
-                        },
-                        "technology": "flexGateway"
-                       }'
-                  """
-
-                  def status_code = sh(returnStdout: true, script: cmd).trim().toInteger()
-                  if (status_code > 399) {
-                      error("Error occurred while trying to create API Instance")
-                  }
-              }
-          }
-      }
-
-      stage("Apply Basic Authentication Policy to API Instance") {
-          steps {
-              script {
-                  def login_response = parseJsonFile('login-response')
-                  def api_response = parseJsonFile('api-response')
-
-                  def cmd = """
-                      curl -s -w "%{http_code}" -o /dev/null --location --request POST 'https://anypoint.mulesoft.com/apimanager/api/v1/organizations/${params.ORG_ID}/environments/${params.ENV_ID}/apis/${api_response.id}/policies' \
-                      --header 'Authorization: Bearer ${login_response.access_token}' \
-                      --header 'Content-Type: application/json' \
-                      --data-raw '{
-                        "configurationData":{
-                           "username": "user",
-                           "password": "test"
-                        },
-                        "pointcutData": null,
-                        "assetId": "http-basic-authentication",
-                        "assetVersion": "1.3.1",
-                        "groupId": "68ef9520-24e9-4cf2-b2f5-620025690913"
-                       }'
-                  """
-
-                  def status_code = sh(returnStdout: true, script: cmd).trim().toInteger()
-                  if (status_code > 399) {
-                      error("Error occurred while trying to apply Basic Auth Policy to the API Instance")
-                  }
-              }
-          }
-      }
-
-      stage("Deploy the API") {
-          steps {
-              script {
-                  def login_response = parseJsonFile('login-response')
-                  def api_response = parseJsonFile('api-response')
-                  def registration_file = parseYamlFile('registration.yaml')
-
-                  def cmd = """
-                      curl -s -w "%{http_code}" -o /dev/null --location --request POST 'https://anypoint.mulesoft.com/proxies/xapi/v1/organizations/${params.ORG_ID}/environments/${params.ENV_ID}/apis/${api_response.id}/deployments' \
-                      --header 'Content-Type: application/json' \
-                      --header 'Authorization: Bearer ${login_response.access_token}' \
-                      --data-raw '{
-                       "type": "HY",
-                       "gatewayVersion": "${params.FLEX_VERSION}",
-                       "targetId": "${registration_file.spec.platformConnection.agentId[0]}",
-                       "environmentId": "${params.ENV_ID}"
-                      }'
-                  """
-
-                  def status_code = sh(returnStdout: true, script: cmd).trim().toInteger()
-                  if (status_code > 399) {
-                      error("Error occurred while trying to deploy the API Instance")
-                  }
-              }
-          }
-      }
-
-      stage("Validate Deployment") {
-          steps {
-              script {
-                  sleep(time:10, unit:"SECONDS")
-
-                  def unauthorized_status_code = sh(script: "curl -s -w \"%{http_code}\" -o /dev/null http://localhost:8082/httpbin/headers -v", returnStdout: true).trim().toInteger()
-                  if (unauthorized_status_code != 401) {
-                      error("401 status code expected but the status code obtained is ${unauthorized_status_code}")
-                  }
-
-                  def authorized_status_code = sh(script: "curl -s -w \"%{http_code}\" -o /dev/null http://localhost:8082/httpbin/headers -v -u user:test", returnStdout: true).trim().toInteger()
-                  if (authorized_status_code != 200) {
-                      error("200 status code expected but the status code obtained is ${unauthorized_status_code}")
-                  }
-              }
-          }
-      }
-  }
-
-  post {
-      success {
-          script {
-              // Archive the build output artifacts.
-              archiveArtifacts artifacts: 'registration.yaml'
-          }
-      }
-      always {
-          script {
-              if (fileExists('containerId')) {
-                  sh(script: "docker rm -f ${readFile(file: 'containerId')}")
-              }
-          }
-      }
-  }
-}
 ----
+
+* For Flex Gateways installed in Docker Containers:
++
+[source,ssh]
+----
+
+----
+
 
 == See Also
 
