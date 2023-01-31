@@ -4,15 +4,23 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-An API gateway allows you to add a dedicated orchestration layer on top of your backend APIs and services
-to help you separate orchestration from implementation concerns. You can then leverage the governance capabilities
-of API Manager to apply, among other capabilities, throttling, security, caching, and logging to your APIs.
+An API gateway is an intermediary between a client application and a set of microservices or backend APIs. Responsibilities include request routing, rate limiting, caching, authentication, authorization, security, monitoring, and logging.
+
+A gateway allows you to add a dedicated orchestration layer on top of your backend APIs and services to help you separate orchestration from implementation concerns.
+
+Features of an API gateway include:
+
+* Request routing. A gateway routes requests to the appropriate microservice based on the request path or other conditions.
+* Rate limiting. A gateway can limit the rate of incoming requests to prevent overloading the microservices.
+* Authentication and Authorization. A gateway can authenticate and authorize incoming requests, ensuring that only authorized clients access the microservices.
+* Caching. A gateway can cache responses from microservices or backend APIs to improve performance.
+* Analytics. A gateway can collect analytics on requests and responses, which helps with monitoring and troubleshooting.
 
 Anypoint Platform offers three different runtime options for managing and securing your APIs.
 
 == Anypoint Flex Gateway
 
-Anypoint Flex Gateway is an ultrafast API gateway designed to manage and secure APIs running anywhere.
+Anypoint Flex Gateway is an ultrafast lightweight API gateway designed to manage and secure APIs running anywhere.
 Built to seamlessly integrate with DevOps and CI/CD workflows, Anypoint Flex Gateway delivers the
 performance required for the most demanding applications and microservices while providing enterprise
 security and manageability across any environment.
@@ -43,49 +51,3 @@ Your non-MuleSoft microservices might be written using different languages and p
 * Amplifies reuse of services with discovery of non-Mule services within Exchange, available for use in future projects
 
 For more information, see xref:service-mesh::getting-started-service-mesh.adoc[Get Started with Service Mesh].
-
-// Anypoint Flex Gateway is an ultrafast API gateway designed to manage and secure APIs running anywhere. Built to seamlessly integrate with DevOps and CI/CD workflows, the Anypoint Flex Gateway delivers the performance required for the most demanding applications while providing enterprise security and manageability across any environment.
-
-// xref:flex-gateway-getting-started.adoc[Get Started with Flex Gateway]
-
-// == Architecture
-
-// The following diagram describes overall Flex Gateway architecture, for both Local and Connected modes. Connected Mode includes the Anypoint Platform component. Local Mode is mostly disconnected from Anypoint Platform.
-
-// image::gateway-architecture-diagram.png[width=85%]
-
-// Flex Gateway consists of:
-
-// * <<controller-processes,Controller Processes>>
-// * <<envoy,Envoy>>
-// * <<fluentbit,Fluentbit>>
-
-// [[controller-processes]]
-// === Flex Gateway Controller Processes
-
-// Flex Gateway bundles and extends an Envoy distribution, adapting a configuration language into Envoy's configuration language. This is accomplished via the controller processes:
-
-// * RCM Agent interacts with the Anypoint Platform control plane. For example, creating an API in API Manager sends a configuration to RCM Agent, which in turn configures the API for the Configuration Service.
-// * Configuration Service configures Envoy via the xDS Envoy API.
-// * Kubernetes Operator interacts with the Kubernetes API when running Flex Gateway in Kubernetes.
-// * Object Store Service enables internal objects storage capabilities.
-
-// [[envoy]]
-// === Envoy
-
-// Flex Gateway includes policies that extend the bundled Envoy distribution via the Wasm API. This is accomplished with the following components:
-
-// * Envoy Core provides the extensible Wasm filters.
-// * Proxy-Wasm API bridges Envoy Core functionality and included Flex Gateway policies.
-// * Envoy Tracing enables access logging.
-// * Included Flex Gateway policies are custom Wasm components.
-
-// [[fluentbit]]
-// === Fluentbit
-
-// The Controller Processes and Envoy components send metrics and logs into Fluentbit, which is bundled inside of Flex Gateway. Flex Gateway uses Fluentbit to push logs and metrics to one or more different outputs. Examples of outputs include:
-
-// * Local file
-// * Anypoint Platform (for metering data)
-// * Sumo Logic
-

@@ -5,22 +5,26 @@ endif::[]
 :imagesdir: ../assets/images
 :page-mode: conn
 
-You can manage Flex Gateway in connected mode using the https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API] from the https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/[Anypoint Platform Developer Portal] instead of the using the API Manager user interface through Anypoint platform. This allows you to automate deployment through the command line.
+You can manage Flex Gateway in Connected Mode using the https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API] from the https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/[Anypoint Platform Developer Portal] instead of using API Manager user interface through Anypoint Platform. This enables you to use the command line to communicate with API Manager.
 
-Using the API Manager API, you can:
+Follow the steps in this tutorial to use the API Manager API to:
 
 * <<create-an-api-instance, Create an API Instance>>
 * <<deploy-an-api-instance, Deploy an API Instance>>
 * <<apply-a-policy, Apply a Policy>>
 * <<delete-an-api-instance, Delete an API Instance>>
 
+To automate these commands using a Jenkins pipeline, see xref:flex-conn-manage-jenkins.adoc[Automate Flex Gateway in Connected Mode Using a Jenkins Pipeline].
+
+For more information about the API Manager API, see the https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API Documentation].
+
 == Before You Begin
 Before you can manage Flex Gateway using the API Manager API, complete the following tasks:
 
-* xref:flex-install.adoc[Install Flex Gateway].
-* xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway in Connected Mode].
+. xref:flex-install.adoc[Install Flex Gateway].
+. xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway in Connected Mode].
 
-* xref:service-mesh::obtain-connected-apps-credentials.adoc[Configure a Connected App]:
+. xref:service-mesh::obtain-connected-apps-credentials.adoc[Configure a Connected App]:
 
 ** Use the *App acts on its behalf (client credentials)* type and include the following scopes:
 
@@ -33,35 +37,36 @@ You do not have to xref:flex-conn-reg-run-app.adoc[Register and Run Flex Gateway
 ** Save the *Id* and *Secret* of the Connected app you configure.
 
 
-* Collect the Group ID, Asset ID, and Asset Version (GAV) of the Exchange asset you want to create or apply.
+. Collect the Group ID, Asset ID, and Asset Version (GAV) of the Exchange asset you want to create or apply.
 +
 To collect you GAV from Exchange:
 +
-. Go to Exchange.
-. Find the asset to add or apply.
-. Collect the GAV from the URL.
+.. Go to Exchange.
+.. Find the asset to add or apply.
+.. Collect the Group ID and Asset ID from the Asset URL.
 +
-For example, the GAV collected from the API Manager API Exchange URL, `https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/minor/1.0/pages/home/`, is:
+For example, the IDs collected from the API Manager API Exchange URL, `https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/minor/1.0/pages/home/`, are:
 +
 *** Group ID: `f1e97bc6-315a-4490-82a7-23abe036327`
 *** Asset ID: `api-manager-api`
-*** Asset Version: `1.0`
 
-* Collect the following information from your Anypoint Platform instance:
+.. Collect the Asset Version from *Latest Stable*.
++
+For example, the version collected from the API Gateway HTTP basic authentication policy template is `1.3.1`.
 
-** The *Organization ID* for the organization where you want to run Flex Gateway
+. Collect the following information from your Anypoint Platform instance:
+
+** *Organization ID* for the organization where you want to run Flex Gateway
 +
 See xref:access-management::organization.adoc#find-your-organization-id[Find your Organization ID] for more information on how to find your Organization ID.
 
-** The *Environment ID* for the environment where you want to run Flex Gateway
+** *Environment ID* for the environment where you want to run Flex Gateway
 +
 See xref:api-manager::latest-overview-concept.adoc#what-api-manager-looks-like[What API Manager Looks Like]
 for more information on how to find your Environment ID.
-** The Runtime *Target ID* for the Flex Gateway you want to deploy the API to
+** Runtime *Target ID* for the Flex Gateway you want to deploy the API to
 +
 To find the *Target ID*, go to *Anypoint Platform > Runtime Manager > Flex Gateway*.
-
-* <<obtain-an-authorization-token-from-access-management, Obtain an Authorization token from Access Management>> as the first step in using the API Manager API.
 
 
 == Obtain an Authorization token from Access Management
@@ -70,10 +75,10 @@ To make calls using the API Manager API, you must obtain an authorization token.
 
 . Collect the following information:
 
-* `<connected-app-client-id>` = the *Id* of your connected app
-* `<connected-app-client-secret>` = the *Secret* of your connected app
+* `<connected-app-client-id>`: *Id* of your connected app
+* `<connected-app-client-secret>`: *Secret* of your connected app
 
-. After replacing the sample content, execute the following request to obtain your Authorization Token:
+. Execute the following request to obtain your Authorization Token after replacing the placeholders with the following: 
 +
 [source,ssh]
 ----
@@ -93,17 +98,17 @@ curl --location --request POST 'https://anypoint.mulesoft.com/accounts/api/v2/oa
 To create an API Instance using the API Manager API:
 
 . Collect the following information:
-* `<your-org-id>` = the *Organization ID* for the organization where you want to run Flex Gateway
-* `<your-env-id>` = the *Environment ID* for the organization where you want to run Flex Gateway
-* `<authorization-token>` = the authorization token collected in the <<obtain-an-authorization-token-from-access-management, Obtain an Authorization token from Access Management>> step
+* `<your-org-id>`: *Organization ID* for the organization where you want to run Flex Gateway
+* `<your-env-id>`: *Environment ID* for the organization where you want to run Flex Gateway
+* `<authorization-token>`: Authorization token collected in the <<obtain-an-authorization-token-from-access-management, Obtain an Authorization token from Access Management>> step
 * API GAV:
-** `<asset-group-id>` = the Group ID, obtained from exchange
-** `<asset-id-from-exchange>` = the Asset ID, obtained from exchange, of the API you want to create
-** `<asset-version>` = the Asset Version, obtained from exchange, of the API  you want to create
-* `<upstream-uri>` = the URI upstream of your API
-* `<your-proxy-uri>` = the proxy URI for you API Instance, for example, 'http://0.0.0.0:8081/'
+** `<asset-group-id>`: Group ID, obtained from exchange
+** `<asset-id-from-exchange>`: Asset ID, obtained from exchange, of the API you want to create
+** `<asset-version>`: Asset Version, obtained from exchange, of the API  you want to create
+* `<upstream-uri>`: URI upstream of your API
+* `<your-proxy-uri>`: Proxy URI for you API Instance, for example, 'http://0.0.0.0:8081/'
 
-. After replacing the sample content, make a POST request to Anypoint Platform:
+. Make a POST request to Anypoint Platform after replacing the sample content:
 +
 [source,ssh,subs=attributes+]
 ----
@@ -132,14 +137,11 @@ curl --location --request POST https://anypoint.mulesoft.com/apimanager/api/v1/o
 To deploy an API Instance using the API Manager API:
 
 . Collect the following information:
-* `<your-org-id>` = the *Organization ID* for the organization where you want to run Flex Gateway
-* `<your-env-id>` = the *Environment ID* for the organization where you want to run Flex Gateway
-* `<instance-id>` = the Instance ID, `"id"`, from <<create-an-api-instance, Create an API Instance>>
-* `<authorization-token>` = the authorization token collected in the <<obtain-an-authorization-token-from-access-management, Obtain an Authorization token from Access Management>> step
-* `<gateway-version>` = the version of Flex Gateway you are using, for example `1.4.0`
-* `<target-id-from-runtime-manager>` = the target ID collected from runtime manager
+* `<instance-id>`: Instance ID, `"id"`, from <<create-an-api-instance, Create an API Instance>>
+* `<gateway-version>`: Version of Flex Gateway you are using, for example `1.4.0`
+* `<target-id-from-runtime-manager>`: Target ID collected from runtime manager
 
-. After replacing the sample content, make a POST request to Anypoint Platform:
+. Make a POST request to Anypoint Platform after replacing the sample content:
 +
 [source,ssh,subs=attributes+]
 ----
@@ -160,23 +162,19 @@ Using the API Manager API, you can only apply Connected Mode policies to a Flex 
 To apply a policy to an API Instance using the API Manager API:
 
 . Collect the following information:
-* `<your-org-id>` = the *Organization ID* for the organization where you want to run Flex Gateway
-* `<your-env-id>` = the *Environment ID* for the organization where you want to run Flex Gateway
-* `<instance-id>` = the Instance ID, `"id"`, from <<create-an-api-instance, Create an API Instance>>
-* `<authorization-token>` = your authorization token collected in the <<obtain-an-authorization-token-from-access-management, Obtain an Authorization token from Access Management>> step
 * Policy GAV:
-** `<policy-group-id>` = the Policy Group ID from exchange
-** `<policy-asset-id>` = the Policy Asset ID from Exchange, for example `http-basic-authentication`
-** `<policy-asset-version>` = the Policy Asset Version from Exchange, for example `1.3.1`
+** `<policy-group-id>`: Policy Group ID from exchange
+** `<policy-asset-id>`: Policy Asset ID from Exchange, for example `http-basic-authentication`
+** `<policy-asset-version>`: Policy Asset Version from Exchange, for example `1.3.1`
 
-* `"configurationData"` =
-+ The configuration data fields are dependent on the policy. The `"username"` and `"password"` are only an example. To find the configuration data for your policy, see xref:policies-included-directory.adoc[Included Policies Directory].
+* `"configurationData"`: Required configuration parameters for the policy
++ Each policy has unique configuration data fields. The `"username"` and `"password"` fields are an example. To find the configuration data for your policy, see xref:policies-included-directory.adoc[Included Policies Directory].
 
-. After replacing the sample content, make a POST request to Anypoint Platform:
+. Make a POST request to Anypoint Platform after replacing the sample content:
 +
 [source,ssh,subs=attributes+]
 ----
-curl --location --request POST 'https://anypoint.mulesoft.com/proxies/xapi/v1/organizations/<your-org-id>/environments/<your-env-id>/apis/<instance-id>/policies' \
+curl --location --request POST 'https://anypoint.mulesoft.com/apimanager/api/v1/organizations/<your-org-id>/environments/<your-env-id>/apis/<instance-id>/policies' \
 --header 'Authorization: bearer <authorization-token>' \
 --header 'Content-Type: application/json' \
 --data-raw '{
@@ -193,16 +191,7 @@ curl --location --request POST 'https://anypoint.mulesoft.com/proxies/xapi/v1/or
 
 
 == Delete an API Instance
-To delete an API Instance using the API Manager API:
-
-. Collect the following information:
-* `<your-org-id>` = the *Organization ID* for the organization where you want to run Flex Gateway
-* `<your-env-id>` = the *Environment ID* for the organization where you want to run Flex Gateway
-* `<instance-id>` = the Instance ID, `"id"`, from <<create-an-api-instance, Create an API Instance>>
-* `<authorization-token>` = the authorization token collected in the <<obtain-an-authorization-token-from-access-management, Obtain an Authorization token from Access Management>> step
-
-. After replacing the sample content, make a DELETE request to Anypoint Platform:
-+
+To delete an API Instance using the API Manager API, make a DELETE request to Anypoint Platform after replacing the sample content:
 [source,ssh,subs=attributes+]
 ----
 curl --location --request DELETE 'https://anypoint.mulesoft.com/apimanager/api/v1/organizations/<your-org-id>/environments/<your-env-id>/apis/<instance-id>' \
@@ -213,6 +202,6 @@ curl --location --request DELETE 'https://anypoint.mulesoft.com/apimanager/api/v
 //Ciphers
 == See Also
 
-* xref:flex-install.adoc[Install Flex Gateway].
-* xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway].
+* xref:flex-install.adoc[Install Flex Gateway]
+* xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
 * https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[Anypoint Developer API Manager API]
