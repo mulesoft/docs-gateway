@@ -4,19 +4,27 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
+A Forward Proxy allows you to route all Flex Gateway connections through a single proxy connection. This allows you to isolate Flex Gateways to an internal network.
+
+
+Add a Forward Flex Gateway in Local Mode, modifying YAML configuration data by the following method:
+
+Linux and Docker: .yaml files
+
+The following procedures demonstrate applying a simple YAML configuration for an unsecured API with multiple upstream services.
+
+
+
+
+
 Anypoint Flex Gateway enables you to deliver metrics to any supported Fluentbit {fluentbit-ver-var} output. Refer to the xref:flex-local-configuration-reference-guide.adoc#logging[Declarative Configuration Reference Guide] for information on how to configure Flex Gateway for any of these supported outputs.
 
 The following examples describe how to configure Flex Gateway for use with the File and HTTP outputs.
 
-[NOTE]
-====
-To enable access logging, you must: 
-
-. Configure the File or HTTP output.
-. Apply the Message Logging policy via policy binding. See <<access-logs,Access Logs>>.
-====
 
 == File Configuration Example
+
+Configure Flex Gateway
 
 Configure Flex Gateway to send formatted runtime and access logs to a file called `log.txt` (Fluentbit `File` output), located within `/var/log` directory. As an example, the following definition specifies a `spec.logging.outputs.type` value of `file`:
 
