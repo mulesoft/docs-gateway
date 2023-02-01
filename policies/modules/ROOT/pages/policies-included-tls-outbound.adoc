@@ -18,8 +18,20 @@ endif::[]
 |===
 
 == Summary
+Flex Gateway supports both TLS and mutual authentication TLS (mTLS) in Connected Mode and Local Mode.
 
-You can configure an outbound mTLS context to enable authentication between an API proxy and an upstream service, by binding the Transport Layer Security policy to your API instance. Flex Gateway supports both TLS and mutual authentication TLS (mTLS).
+To apply TLS in Connected Mode, see xref:gateway::flex-conn-tls-config.adoc[Configuring TLS Context for Flex Gateway in Connected Mode].
+
+To apply TLS in Local Mode, see xref:gateway::flex-local-tls-config.adoc[Configuring TLS Context for Flex Gateway in Local Mode] and refer to the following configuration files in this documentation.
+
+You can configure an outbound TLS or mTLS context to enable authentication between an API proxy and an upstream service, by binding the Transport Layer Security policy to your API instance. 
+
+include::gateway::partial$task-tls-config.adoc[tags=port-sharing]
+
+[NOTE]
+====
+Policy ordering cannot be applied to the Transport Layer Security policy.
+====
 
 == Configuring Policy Parameters
 
@@ -99,15 +111,8 @@ include::gateway::partial$task-tls-config.adoc[tags=sample-config-mtls-outbound]
 
 include::anypoint-security::partial$flex-tls-cipher.adoc[tags=cipherSupportLocal;outboundImportantLocal;ciphers]
 
-[NOTE]
-====
-Flex Gateway supports multiple TLS certificates on a single gateway, but the certificates need to be applied on unique ports.
-====
 
-[NOTE]
-====
-Policy ordering cannot be applied to the Transport Layer Security policy.
-====
+
 
 == See Also
 * xref:gateway::flex-conn-tls-config.adoc[]
