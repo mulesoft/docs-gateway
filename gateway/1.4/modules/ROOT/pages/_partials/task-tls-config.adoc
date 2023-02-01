@@ -3,21 +3,28 @@ Using encryption, TLS policies protect communication between clients, API Instan
 in a YAML configuration file.
 
 //end::intro1[]
-//tag::intro2[]
-You can configure TLS either for a specific API Instance or for all API Instances running on your Flex Gateway.
-
-//end::intro2[]
 //tag::intro3[]
-
 Flex Gateway supports the following:
 
-* Regular TLS between a client and the API Instance (HTTPS)
-* Inbound mutual authentication TLS (mTLS) between an API Instance and a client
-* Outbound mTLS between an API Instance and an upstream service
+* Regular TLS between a client and the API Instance (HTTPS), referred to as inbound TLS
+* Regular TLS between an API Instance and an upstream service, referred to as outbound TLS
+* Mutual authentication TLS (mTLS) in both the inbound and outbound direction
 
+//tag::intro4[]
+Similar to policies, in Local Mode, you apply TLS context via an ApiInstance YAML resource using the xref:gateway::flex-local-configuration-reference-guide.adoc#api-instance[Declarative Configuration Reference Guide]. For this tutorial you do not need to refer to the guide, but you must refer to the TLS Inbound and TLS Outbound policies for information about the configuration parameters in your configuration files:
+
+* xref:policies::policies-included-tls.adoc[Transport Layer Security Policy - Inbound]
+* xref:policies::policies-included-tls-outbound.adoc[Transport Layer Security Policy - Outbound]
+
+The policy documentation contains the necessary parameters to enable mTLS, define TLS direction, and select the API to which to apply TLS.
+
+//end::intro4[]
+
+//tag::intro5[]
 You can configure the TLS context for a Flex Gateway running in a Docker container, as a Linux Service,
 or as a Kubernetes Ingress controller.
-//end::intro3[]
+
+//end::intro5[]
 //tag::icon-table[]
 
 [cols="1a,1a,1a"]
