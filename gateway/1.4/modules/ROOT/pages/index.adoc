@@ -75,10 +75,10 @@ The following table summarizes the differences between Connected Mode and Local 
 
 | *Use Case*
 | Choose for centralized management, observability, and security. Flex Gateway in Connected mode connects to the control plane.
-| Choose to operate independently of the control plane in a mostly disconnected manner. Manage Flex Gateway with locally stored declarative configuration files. Use Local Mode to build CI/CD pipelines.
+| Choose to operate independently of the control plane in a mostly disconnected manner. Manage with locally stored declarative configuration files. Use Local Mode to build CI/CD pipelines.
 
 | *Policy Application*
-| Use API Manager to apply policies.
+| Apply policies via API Manager.
 | Apply policies via local declarative configuration files.
 
 | *Air-Gapped?*
@@ -105,7 +105,7 @@ Use a standalone gateway when protecting a few APIs and the number of transactio
 
 While Flex Gateway is a high-performance Envoy-based gateway with a small footprint, MuleSoft also provides a simple Mule Gateway for Mule applications.
 
-Mule Runtime, based on Java Spring, includes an embedded Mule Gateway. By using this gateway, you can, for example:
+Mule runtime engine, based on Java Spring, includes an embedded Mule Gateway. By using this gateway, you can, for example:
 
 * Apply a basic authentication policy on top of a Mule application.
 * Enrich an incoming or outgoing message.
@@ -113,7 +113,7 @@ Mule Runtime, based on Java Spring, includes an embedded Mule Gateway. By using 
 
 Mule Gateway protects a single Mule API. The key advantage is that it's easy for Mule app developers to provide basic endpoint protection.
 
-You can also configure Mule Runtime in Anypoint Runtime Manager as a CloudHub Proxy application, protecting multiple backends. However, in this case the gateway cannot be easily scaled to support high-availability and high-performance applications. Further, Mule Runtime consumes more computes or vCores than the smaller-footprint Flex Gateway.
+You can also configure Mule in Anypoint Runtime Manager as a CloudHub Proxy application, protecting multiple backends. However, in this case the gateway cannot be easily scaled to support high-availability and high-performance applications. Further, Mule consumes more computes or vCores than the smaller-footprint Flex Gateway.
 
 Building custom policies on Mule Gateway is similar to building an application with Java using the Mule DSL. Building a custom policy in Flex Gateway is based on Envoy-provided Rust WASM SDKs. A Mule Gateway policy cannot be reused in Flex Gateway and vice versa, because the underlying architectures are fundamentally different.
 
@@ -127,15 +127,15 @@ MuleSoft recommends you choose Flex Gateway for high-availability and high-perfo
 
 | *Summary*
 | Envoy-based API gateway to secure all APIs, Mule and non-Mule, running anywhere.
-| Java-based API gateway embedded into Mule Runtime.
+| Java-based API gateway embedded into Mule.
 
 | *Tech Stack*
 | Underlying engine build upon Envoy, and FluentBit for logging.
-| Java Spring Application embedded into the Mule Runtime.
+| Java Spring Application embedded into the Mule.
 
 | *Use Case*
 | High-performant and high-availability. Secure any API anywhere.
-| Secure a Mule API "Basic Endpoint", or enable a dedicated proxy as an embedded library in a Mule Runtime. Also available as a Mule proxy application in CloudHub.
+| Secure a Mule API "Basic Endpoint", or enable a dedicated proxy as an embedded library in a Mule. Also available as a Mule proxy application in CloudHub.
 
 | *Key Capabilities*
 | Small footprint. Multiple deployment patterns and modes, including as a native Kubernetes Ingress controller. Connected Mode as well as Local Mode available.
