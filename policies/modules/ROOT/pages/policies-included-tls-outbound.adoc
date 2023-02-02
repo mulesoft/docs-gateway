@@ -17,16 +17,29 @@ endif::[]
 |
 |===
 
-== Summary
+[NOTE]
+====
+The TLS policy documentation is only applicable to Local Mode Flex Gateways. To apply TLS in Connected Mode, see xref:gateway::flex-conn-tls-config.adoc[Configuring TLS Context for Flex Gateway in Connected Mode].
+====
 
-You can configure an outbound mTLS context to enable authentication between an API proxy and an upstream service, by binding the Transport Layer Security policy to your API instance. Flex Gateway supports both TLS and mutual authentication TLS (mTLS).
+== Summary
+Flex Gateway supports outbound Transport Layer Security (TLS) and outbound mutual authentication TLS (mTLS) in Local Mode.
+
+To apply outbound TLS in Local Mode, use the xref:gateway::flex-local-tls-config.adoc[Configuring TLS Context for Flex Gateway in Local Mode] tutorial and refer to the following configuration files in this documentation.
+
+You can configure an outbound TLS context to enable authentication between a client and the API Instance by binding the TLS policy to your API instance or to all instances in your Flex Gateway. 
+
+include::gateway::partial$task-tls-config.adoc[tags=port-sharing]
+
+[NOTE]
+====
+Policy ordering cannot be applied to the Transport Layer Security policy.
+====
 
 == Configuring Policy Parameters
 
 To enable outbound mTLS when creating an API Instance using Flex Gateway as your runtime, you must manually configure the TLS context
 in a YAML configuration file. 
-
-When configuring the `ciphers` parameter, ensure that your API upstream supports the listed ciphers. For the supported ciphers, see <<local-cipher, TLS Cipher Support on Flex Gateway>>.
 
 Refer to the following policy definition and table of parameters:
 
@@ -43,6 +56,8 @@ Refer to the following policy definition and table of parameters:
     maxversion: <string> // OPTIONAL
     ciphers: <array> // OPTIONAL
 ----
+
+When configuring the `ciphers` parameter, ensure that your API upstream supports the listed ciphers. For the supported ciphers, see <<local-support, TLS Cipher Support on Flex Gateway>>.
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
@@ -99,15 +114,8 @@ include::gateway::partial$task-tls-config.adoc[tags=sample-config-mtls-outbound]
 
 include::anypoint-security::partial$flex-tls-cipher.adoc[tags=cipherSupportLocal;outboundImportantLocal;ciphers]
 
-[NOTE]
-====
-Flex Gateway supports multiple TLS certificates on a single gateway, but the certificates need to be applied on unique ports.
-====
 
-[NOTE]
-====
-Policy ordering cannot be applied to the Transport Layer Security policy.
-====
+
 
 == See Also
 * xref:gateway::flex-conn-tls-config.adoc[]
