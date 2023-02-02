@@ -13,25 +13,23 @@ Flex Gateway supports the following:
 //end::intro3[]
 
 //tag::intro4[]
-Similar to policies, in Local Mode, you apply TLS context via an ApiInstance YAML resource using the xref:gateway::flex-local-configuration-reference-guide.adoc#api-instance[Declarative Configuration Reference Guide]. For this tutorial you do not need to refer to the guide, but you must refer to the TLS Inbound and TLS Outbound policies for information about the configuration parameters in your configuration files:
+Similar to policies, in Local Mode, you apply TLS context via an API instance YAML resource using the xref:gateway::flex-local-configuration-reference-guide.adoc#api-instance[Declarative Configuration Reference Guide]. For this tutorial you do not need to refer to the reference guide, but you must refer to the TLS inbound and TLS outbound policies to enable mTLS, define TLS direction, and select the API to which to apply TLS:
 
 * xref:policies::policies-included-tls.adoc[Transport Layer Security Policy - Inbound]
 * xref:policies::policies-included-tls-outbound.adoc[Transport Layer Security Policy - Outbound]
 
-The policy documentation contains the necessary parameters to enable mTLS, define TLS direction, and select the API to which to apply TLS.
-
 //end::intro4[]
+
+//tag::port-sharing[]
+Flex Gateway supports multiple TLS certificates on a single gateway, but you must apply the certificates unique ports. Flex Gateway implements port-level TLS, meaning if you apply TLS to an API instace that shares a port with other instances, the same TLS context is applied to all instances sharing the port. This is not important if you chose to apply your TLS context to all instances, but it is important to remember if applying unique TLS contexts. If you apply TLS to one API instance, you do not need to apply the same TLS context to instances that share that port. Consequently, you cannot apply different TLS contexts to API instances that share the same port.
+
+//end::port-sharing[]
 
 //tag::intro5[]
 You can configure the TLS context for a Flex Gateway running in a Docker container, as a Linux Service,
 or as a Kubernetes Ingress controller.
 
 //end::intro5[]
-
-//tag::port-sharing[]
-Flex Gateway supports multiple TLS certificates on a single gateway, but you must apply the certificates unique ports. Flex Gateway implements port-level TLS, meaning if you apply TLS to an API instace that shares a port with other instances, the same TLS context is applied to all instances sharing the port. This is not important if you chose to apply your TLS context to all instances, but it is important to remember if applying unique TLS contexts. If you apply TLS to one API instance, you do not need to apply the same TLS context to instances that share that port. Consequently, you cannot apply different TLS contexts to API instances that share the same port.
-
-//end::port-sharing[]
 
 //tag::icon-table[]
 
@@ -101,6 +99,7 @@ The following configuration file only applies inbound TLS to one API instance. F
 * xref:policies::policies-included-tls.adoc[Transport Layer Security Policy - Inbound]
 * xref:policies::policies-included-tls-outbound.adoc[Transport Layer Security Policy - Outbound]
 //end::docker-config-file-step[]
+
 //tag::k8s-intro[]
 
 == Configure TLS Context for Flex Gateway as a Kubernetes Ingress Controller
