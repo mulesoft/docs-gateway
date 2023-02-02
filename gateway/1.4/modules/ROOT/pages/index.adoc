@@ -10,8 +10,8 @@ Anypoint Flex Gateway is an Envoy-based, ultrafast lightweight API gateway desig
 
 Flex Gateway comprises two components that work in tandem:
 
-* The control plane
-* The runtime
+* Control plane
+* Runtime
 
 The following graphic diagrams the relationship between these components:
 
@@ -31,10 +31,10 @@ The control plane is a MuleSoft-hosted platform that centralizes management and 
 
 The gateway runtime is a customer-hosted distributed entity installed in any cloud data center or, for testing purposes, on your local laptop. The runtime receives commands from the control plane and routes and protects the backend APIs. Built with security in mind, communications between the runtime and the control plane are secured through mTLS and HTTPs.
 
-FluentBit implementation enables log output to local files, or to aggregators such as New Relic, Sumo Logic, Splunk, among others.
+FluentBit implementation enables log output to local files, or to aggregators such as New Relic, Sumo Logic, and Splunk.
 
 == Replicas
-A runtime unit is called a `replica`. While a single runtime can support multiple backend APIs for high availability, MuleSoft recommends installing Flex Gateway as a cluster - a Kubernetes Ingress controller with multiple replicas running in parallel. Doing so increases gateway performance and robustness, and is recommended for high-performance applications that need to scale.
+A runtime unit is called a `replica`. While a single runtime can support multiple backend APIs for high availability, MuleSoft recommends installing Flex Gateway as a cluster, which is a Kubernetes Ingress controller with multiple replicas running in parallel. Using clusters increases gateway performance and robustness, and is recommended for high-performance applications that must scale.
 
 An optional external REDIS storage can be configured for features such as distributed rate limiting and distributed caching. Gateway replicas use the REDIS storage as a scratchpad to coordinate rate-limiting across multiple replicas, so customer SLAs are adhered to.
 
@@ -81,7 +81,7 @@ The following table summarizes the differences between Connected Mode and Local 
 
 | *Air-Gapped?*
 | No. Flex Gateway is connected to the control plane.
-| No. Flex Gateway is managed locally but connected to the control plane for registration and usage metrics.
+| No. Flex Gateway is managed locally but only connected to the control plane for registration and usage metrics.
 
 |===
 
@@ -89,21 +89,21 @@ The following table summarizes the differences between Connected Mode and Local 
 
 You can install Flex Gateway in a variety of ways:
 
-* A standalone single runtime or replica on various Linux environments including Ubuntu, Debian, Amazon Linux, RHEL, and CentOS.
+* A standalone single runtime or replica on various Linux environments including Ubuntu, Debian, Amazon Linux, RHEL, and CentOS
 
-* A standalone in a Docker container.
+* A standalone runtime in a Docker container
 
-* A sidecar to a backend application in a Docker container, thereby protecting a single backend application.
+* A sidecar to a backend application in a Docker container, thereby protecting a single backend application
 
-* An Ingress controller in Kubernetes, for highly-available, high-performance use cases.
+* An Ingress controller in Kubernetes, for highly-available, high-performance use cases
 
 In general, if the use case involves protecting a few APIs and the number of transactions are low, with a minimal impetus on high-availability or robustness, choose to install as a standalone gateway. Otherwise, choose to install as an Ingress controller in Kubernetes.
 
 == Flex Gateway vs. Mule Gateway
 
-While Flex Gateway is a high-performance Envoy-based gateway with a small footprint, MuleSoft also provides a simple Mule Gateway for Mule Applications.
+While Flex Gateway is a high-performance Envoy-based gateway with a small footprint, MuleSoft also provides a simple Mule Gateway for Mule applications.
 
-The Mule Runtime, based on Java Spring, includes an embedded Mule Gateway. By using this gateway, you can, for example:
+Mule Runtime, based on Java Spring, includes an embedded Mule Gateway. By using this gateway, you can, for example:
 
 * Apply a basic authentication policy on top of a Mule application.
 * Enrich an incoming or outgoing message.
@@ -113,7 +113,7 @@ Mule Gateway protects a single Mule API. The key advantage is that for applicati
 
 You can also configure Mule Runtime in Anypoint Runtime Manager as a CloudHub Proxy application, protecting multiple backends. However, in this case the gateway cannot be easily scaled to support high-availability and high-performance applications. Further, Mule Runtime consumes more computes or vCores than the smaller-footprint Flex Gateway.
 
-Building custom policies on the Mule gateway is akin to building an application with Java using the Mule DSL. Building a custom policy in Flex Gateway is based on Envoy-provided Rust WASM SDKs. A policy written for Mule Gateway cannot be reused in Flex Gateway and vice versa, as the underlying architectures are fundamentally different.
+Building custom policies on Mule gateway is akin to building an application with Java using the Mule DSL. Building a custom policy in Flex Gateway is based on Envoy-provided Rust WASM SDKs. A policy written for Mule Gateway cannot be reused in Flex Gateway and vice versa, as the underlying architectures are fundamentally different.
 
 For more information, see xref:mule-gateway::mule-gateway-capabilities-mule4.adoc[Mule Gateway Capabilities].
 
@@ -125,7 +125,7 @@ MuleSoft recommends you choose Flex Gateway for high-availability and high-perfo
 
 | *Summary*
 | Envoy-based API gateway to secure all APIs, Mule and non-Mule, running anywhere.
-| Java-based API gateway embedded into the Mule Runtime.
+| Java-based API gateway embedded into Mule Runtime.
 
 | *Tech Stack*
 | Underlying engine build upon Envoy, and FluentBit for logging.
