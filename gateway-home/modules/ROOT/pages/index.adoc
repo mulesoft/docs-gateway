@@ -1,53 +1,85 @@
-= Anypoint Platform Gateways
+= Anypoint Platform Gateways Overview
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
+:page-aliases: gateway-home::gateway-overview.adoc
 
 An API gateway is an intermediary between a client application and a set of microservices or backend APIs. Responsibilities include request routing, rate limiting, caching, authentication, authorization, security, monitoring, and logging.
 
-A gateway allows you to add a dedicated orchestration layer on top of your backend APIs and services to help you separate orchestration from implementation concerns.
+A gateway allows you to add a dedicated orchestration layer on top of your backend APIs and services to help you separate orchestration from implementation.
 
-Features of an API gateway include:
+Anypoint Platform offers two gateway products for managing and securing your APIs:
 
-* Request routing. A gateway routes requests to the appropriate microservice based on the request path or other conditions.
-* Rate limiting. A gateway can limit the rate of incoming requests to prevent overloading the microservices.
-* Authentication and Authorization. A gateway can authenticate and authorize incoming requests, ensuring that only authorized clients access the microservices.
-* Caching. A gateway can cache responses from microservices or backend APIs to improve performance.
-* Analytics. A gateway can collect analytics on requests and responses, which helps with monitoring and troubleshooting.
+* <<anypoint_flex_gateway,Anypoint Flex Gateway>>
+* <<anypoint_mule_gateway,Anypoint Mule Gateway>>
 
-Anypoint Platform offers three different runtime options for managing and securing your APIs.
-
+[[anypoint_flex_gateway]]
 == Anypoint Flex Gateway
 
-Anypoint Flex Gateway is an ultrafast lightweight API gateway designed to manage and secure APIs running anywhere.
+Anypoint Flex Gateway is an Envoy-based, ultrafast lightweight API gateway designed to manage and secure APIs running anywhere.
 Built to seamlessly integrate with DevOps and CI/CD workflows, Anypoint Flex Gateway delivers the
 performance required for the most demanding applications and microservices while providing enterprise
 security and manageability across any environment.
 
-For more information, see xref:gateway::flex-gateway-getting-started.adoc[Getting Started with Flex Gateway].
+For more information, see xref:gateway::index.adoc[].
 
+//For more information, see xref:gateway::flex-gateway-getting-started.adoc[Getting Started with Flex Gateway].
+
+[[anypoint_mule_gateway]]
 == Anypoint Mule Gateway
 
-Mule Runtime includes an embedded Mule Gateway. Using this gateway, any user can, for example, apply a basic authentication policy on top of a Mule application, enrich an incoming/outgoing message, or add any other complex capability to an API without having to write any code.
+Mule runtime engine includes an embedded Mule Gateway. Mule Gateway enables you to add a dedicated orchestration layer on top of your backend APIs and services to help you separate orchestration from implementation. You can leverage the governance capabilities of API Manager to apply, among other capabilities, throttling, security, caching, and logging to your APIs.
 
-Overall, Mule Gateway allows you to add a dedicated orchestration layer on top of your backend APIs and services to help you separate orchestration from implementation concerns. You can leverage the governance capabilities of API Manager to apply, among other capabilities, throttling, security, caching, and logging to your APIs.
+Using Mule Gateway, any user can, for example, apply a basic authentication policy on top of a Mule application, enrich an incoming/outgoing message, or add any other complex capability to an API without having to write any code.
 
 If you want to apply policies and generate analytics info, you must use either:
 
 * An API defined in a Mule application.
 * A Mule application that proxies your existing backend implementation.
 
-For more information, see xref:mule-gateway::mule-gateway-capabilities-mule4.adoc[Mule Gateway Capabilities].
+For more information, see xref:mule-gateway::mule-gateway-capabilities-mule4.adoc[].
 
-== Anypoint Service Mesh
+== Flex Gateway vs. Mule Gateway
 
-Anypoint Service Mesh enables you to extend your microservices network by including your non-MuleSoft applications into the Anypoint Platform sphere. You can then manage and secure your application network, including your non-Mule applications, seamlessly from a single pane.
+While Flex Gateway is a high-performance Envoy-based gateway with a small footprint, MuleSoft also provides a simple Mule Gateway for Mule applications.
 
-Your non-MuleSoft microservices might be written using different languages and platforms, or might be deployed in different environments. To alleviate issues arising from differences in these microservices, Anypoint Service Mesh ensures the following application management advantages:
+Mule runtime engine, based on Java Spring, includes an embedded Mule Gateway. By using this gateway, you can, for example:
 
-* Provides resilient service-to-service communication using zero-trust policies to handle traffic control, fault tolerance and load balancing
-* Extends MuleSoft API Management capabilities to any non-Mule service, with policies, security and analytics all applied directly from Anypoint Platform
-* Amplifies reuse of services with discovery of non-Mule services within Exchange, available for use in future projects
+* Apply a basic authentication policy on top of a Mule application.
+* Enrich an incoming or outgoing message.
+* Add any other complex capability to an API without having to write any code.
 
-For more information, see xref:service-mesh::getting-started-service-mesh.adoc[Get Started with Service Mesh].
+Mule Gateway protects a single Mule API. The key advantage is that it's easy for Mule app developers to provide basic endpoint protection.
+
+You can also configure Mule in Anypoint Runtime Manager as a CloudHub Proxy application, protecting multiple backends. However, in this case the gateway cannot be easily scaled to support high-availability and high-performance applications. Further, Mule consumes more computes or vCores than the smaller-footprint Flex Gateway.
+
+Building custom policies on Mule Gateway is similar to building an application with Java using the Mule DSL. Building a custom policy in Flex Gateway is based on Envoy-provided Rust WASM SDKs. A Mule Gateway policy cannot be reused in Flex Gateway and vice versa, because the underlying architectures are fundamentally different.
+
+MuleSoft recommends you choose Flex Gateway for high-availability and high-performance applications.
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| | Flex Gateway | Mule Gateway
+
+| *Summary*
+| Envoy-based API gateway to secure all APIs, Mule and non-Mule, running anywhere.
+| Java-based API gateway embedded into Mule.
+
+| *Tech Stack*
+| Underlying engine build upon Envoy, and FluentBit for logging.
+| Java Spring Application embedded into the Mule.
+
+| *Use Case*
+| High-performant and high-availability. Secure any API anywhere.
+| Secure a Mule API "Basic Endpoint", or enable a dedicated proxy as an embedded library in a Mule. Also available as a Mule proxy application in CloudHub.
+
+| *Key Capabilities*
+| Small footprint. Multiple deployment patterns and modes, including as a native Kubernetes Ingress controller. Connected Mode as well as Local Mode available.
+| Same technology as Mule integration applications. API auto-discovery for Mule applications. Connected Mode only.
+
+| *Custom Policy Development*
+| Rust WASM SDKs.
+| Java and Mule DSL.
+
+|===
