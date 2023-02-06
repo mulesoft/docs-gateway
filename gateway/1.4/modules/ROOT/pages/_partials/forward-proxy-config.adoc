@@ -18,7 +18,7 @@ Configuring a forward proxy does not alter these connections:
 
 * Connections to shared storage
 * Lightweight Directory Access Protocol (LDAP) connections
-* Transition Control Protocal (TCP) connections
+* Transition Control Protocol (TCP) connections
 * Non-HTTP log connections
 
 Configuring a forward proxy alters these connections:
@@ -28,7 +28,21 @@ Configuring a forward proxy alters these connections:
 * Connections to upstream services
 * HTTP log connections
 
-Configuring your proxy with the noProxy parameter enables direct connections for services in your internal network. For example, connections to upstream services and HTTP log connections inside your internal network connect directely to other internal services (Flex Gateway). When noProxy is enabled, connections to Anypoint Platform or outbound policy connections still use the forward proxy. For more information about how to enable the noProxy parameter, see <<noproxy-parameter, noProxy Parameter>>.
+Using the noProxy parameter you can configure connections inside your internal network to connect directely without using the forward proxy.
+
+== noProxy Parameter
+
+Adding the `noProxy` parameter allows services inside the trusted internal network to communicate without using the forward proxy.
+
+For example, when `noProxy` is enabled, connections to upstream services and HTTP log connections inside your internal network connect directely to other internal services (Flex Gateway). 
+
+However, When noProxy is enabled, connections to Anypoint Platform or outbound policy connections still use the forward proxy as they belong to external networks.
+
+The following diagram demonstrates the differences in communication using noProxy:
+
+image:no-proxy-diagram.png[align=center]
+
+In the diagram, when noProxy is disabled, Flex Gateway communicates with the internal API endpoint using the forward proxy. When noProxy is enabled, Flex Gateway communicates directly with the internal API endpoint.
 
 == Configuring Forward Proxy Parameters
 
@@ -74,16 +88,6 @@ spec:
 | Allows internal network connections to communicate without using the forward proxy
 |===
 
-
-== noProxy Parameter
-
-Adding the `noProxy` parameter allows services inside the trusted internal network to communicate without using the forward 
-
-The following diagram demonstrates the differences in communication using noProxy:
-
-image:no-proxy-diagram.png[align=center]
-
-In the diagram, when noProxy is disabled, Flex Gateway communicates with the internal API endpoint using the forward proxy. When noProxy is enabled, Flex Gateway communicates directly with the internal API endpoint.
 
 == File Configuration Example
 
