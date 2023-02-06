@@ -4,11 +4,22 @@ include::_attributes.adoc[]
 endif::[]
 :page-aliases: api-manager::re-order-policies-task.adoc, policies-included-reorder.adoc
 
-In Mule Gateway and Flex Gateway Connected Mode, you can configure the order of execution of included and custom API level policies via *API Manager* if it is necessary for certain policies to execute before others. However, you cannot configure API level policies to execute before automated policies. The following steps demonstrate how to reorder API level policies.
+In Mule Gateway and Flex Gateway, to execute certain policies before others, you can configure the order of execution of included and custom API level policies. However, you cannot configure API level policies to execute before automated policies.
 
-In Flex Gateway Local Mode, you configure policy ordering via a `PolicyBinding` YAML resource. For information about Local Mode policy order, see the xref:gateway::flex-local-configuration-reference-guide.adoc#policy-binding[Declarative Configuration Reference Guide].
+For Mule Gateway and Flex Gateway Connected Mode, you reorder policies via API Manager. For Flex Gateway Local Mode you order policies via `PolicyBinding` YAML resource.
 
 IMPORTANT: You cannot configure the execution order of the xref:policies::policies-included-cors.adoc[Cross-Origin Resource Sharing (CORS) policy]. In Mule Gateway and Flex Gateway, the CORS policy executes before automated and API level policies.
+
+== Flex Gateway Local Mode
+In Flex Gateway Local Mode, you configure policy ordering via a `PolicyBinding` YAML resource. 
+
+When defining a policy using a `PolicyBinding` YAML resource, edit the `order` parameter to match when you want the policy to execute. Ensure that you don't define the same order number to different policies.
+
+For information about Local Mode policy order, see the xref:gateway::flex-local-configuration-reference-guide.adoc#policy-binding[Declarative Configuration Reference Guide].
+
+
+
+== Mule Gateway and Flex Gateway Connected Mode
 
 To reorder API level policies in Mule Gateway and Flex Gateway Connected Mode:
 
