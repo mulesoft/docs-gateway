@@ -1,0 +1,199 @@
+//tag::configuration[]
+A forward proxy, such as Squid, enables you to route all external Flex Gateway connections through a single proxy connection.  
+
+For both Connected Mode and Local Mode, you configure a forward proxy using YAML configuration files.
+
+The following diagram demonstrates how an internal network communicates with an external network using a forward proxy. 
+
+image:forward-proxy-diagram.png[align=center]
+
+As in the diagram, when using a forward proxy, all communication into or out of your internal network travels through the forward proxy first. 
+
+In the previous example, all API upstream communication must also pass through the forward proxy. For more information about how to enable internal connections to communicate directly, see <<noproxy-parameter, noProxy Parameter>>.
+
+== Forward Proxy Connections
+Depending on how you configure your forward proxy, different connections route through the forward proxy.
+
+Configuring a forward proxy does not alter these connections:
+
+* Connections to shared storage
+* Lightweight Directory Access Protocol (LDAP) connections
+* Transition Control Protocal (TCP) connections
+* Non-HTTP log connections
+
+Configuring a forward proxy alters these connections:
+
+* Connections to Anypoint Platform
+* Outbound policy connections
+* Connections to upstream services
+* HTTP log connections
+
+Configuring your proxy with the noProxy parameter enables direct connections for services in your internal network. For example, connections to upstream services and HTTP log connections inside your internal network connect directely to other internal services (Flex Gateway). When noProxy is enabled, connections to Anypoint Platform or outbound policy connections still use the forward proxy. For more information about how to enable the noProxy parameter, see <<noproxy-parameter, noProxy Parameter>>.
+
+== Configuring Forward Proxy Parameters
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: forward-proxy
+spec:
+  forwardProxy: 
+    https: // REQUIRED
+      address: http://proxy:8888 // REQUIRED
+      basicAuth: // OPTIONAL
+        username: <string> // OPTIONAL
+        Password: <string> // OPTIONAL
+    noProxy: // OPTIONAL
+       - fluentd // OPTIONAL
+
+----
+
+|===
+|Parameter | Required or Optional | Description
+
+| `https.address`
+| required
+| Proxy adddress
+
+| `basicAuth`
+| Optional
+| Supplies authentication username and password
+
+| `basicAuth.username`
+| Optional
+| Authentication username
+
+| `basicAuth.Password`
+| Optional
+| Authentication password
+
+| `noProxy`
+| Optional
+| Allows internal network connections to communicate without using the forward proxy
+|===
+
+
+== noProxy Parameter
+
+Adding the `noProxy` parameter allows services inside the trusted internal network to communicate without using the forward 
+
+The following diagram demonstrates the differences in communication using noProxy:
+
+image:no-proxy-diagram.png[align=center]
+
+In the diagram, when noProxy is disabled, Flex Gateway communicates with the internal API endpoint using the forward proxy. When noProxy is enabled, Flex Gateway communicates directly with the internal API endpoint.
+
+== File Configuration Example
+
+. Create a YAML configuration file in the Flex Gateway configuration directory:
++
+[source,ssh]
+----
+sudo touch /usr/local/share/mulesoft/flex-gateway/conf.d/forward-proxy.yaml
+----
+
+. Update the file with your TLS context configuration details. For example:
++
+[source,ssh]
+----
+sudo vi /usr/local/share/mulesoft/flex-gateway/conf.d/forward-proxy.yaml
+----
++
+*Sample configuration for adding a forward proxy:*
++
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: forward-proxy
+spec:
+  forwardProxy:
+    https:
+      address: http://proxy:8888
+      basicAuth: // OPTIONAL
+        username: "username"
+        Password: "password"
+    noProxy: // OPTIONAL
+      - fluentd
+
+----
+
+//end::configuration[]
+
+//tag:localRegistration[]
+== Forward Proxy Flex Gateway Registration
+You must add additional registration flags when xref:flex-local-reg-run.adoc[registering a Flex Gateway in Local Mode].
+
+You must add the `--https-proxy` flag using your proxy `address` parameter:
+[source,ssh]
+----
+--https-proxy=http://proxy:8888
+----
+
+If you enable `basicAuth` also provide your `username` and `password` parameters:
+[source,ssh]
+----
+--https-proxy=http://<username>:<password>@proxy:8888
+----
+
+When enabling `noProxy`, also provide the `--no-proxy` flag when registering your Flex Gateway
+[source,ssh]
+----
+--no-proxy=fluentd
+----
+
+The following sample registration command shows flag placement:
+[source,ssh]
+----
+flexctl register \
+--username=<your-username> \
+--password=<your-password> \
+--environment=<your-environment-id> \
+--organization=<your-org-id> \
+--output-directory=/usr/local/share/mulesoft/flex-gateway/conf.d \
+--https-proxy=http://<username>:<password>@proxy:8888 \ 
+--no-proxy=fluentd \
+my-gateway
+----
+//end:localRegistration[]
+
+
+//tag:connRegistration[]
+== Forward Proxy Flex Gateway Registration
+You must add additional registration flags when xref:flex-conn-reg-run.adoc[registering a Flex Gateway in Connected Mode].
+
+You must add the `--https-proxy` flag using your proxy `address` parameter:
+[source,ssh]
+----
+--https-proxy=http://proxy:8888
+----
+
+If you enable `basicAuth` also provide your `username` and `password` parameters:
+[source,ssh]
+----
+--https-proxy=http://<username>:<password>@proxy:8888
+----
+
+When enabling `noProxy`, also provide the `--no-proxy` flag when registering your Flex Gateway
+[source,ssh]
+----
+--no-proxy=fluentd
+----
+
+The following sample registration command shows flag placement:
+[source,ssh]
+----
+flexctl register \
+--username=<your-username> \
+--password=<your-password> \
+--environment=<your-environment-id> \
+--organization=<your-org-id> \
+--output-directory=/usr/local/share/mulesoft/flex-gateway/conf.d \
+--https-proxy=http://<username>:<password>@proxy:8888 \ 
+--no-proxy=fluentd \
+my-gateway
+----
+//end:connRegistration[]
