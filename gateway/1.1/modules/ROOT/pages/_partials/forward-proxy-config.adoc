@@ -1,7 +1,7 @@
 //tag::configuration[]
 A forward proxy, such as Squid, allows you to route all Flex Gateway connections through a single proxy connection. This allows you to isolate Flex Gateways to an internal network. 
 
-For both Connected Mode and Local Mode, you configure a forward proxy YAML configuration files. 
+For both Connected Mode and Local Mode, you configure a forward proxy using YAML configuration files. 
 
 The following diagram demonstrates how an internal network communicates with an external network using a forward proxy. 
 
@@ -50,7 +50,7 @@ spec:
 
 | `noProxy`
 | Optional
-| Allows internal network connections to communicate without proxy
+| Allows internal network connections to communicate without using the forward proxy
 |===
 
 
@@ -93,10 +93,10 @@ spec:
   forwardProxy:
     https:
       address: http://proxy:8888
-      basicAuth:
+      basicAuth: // OPTIONAL
         username: "username"
         Password: "password"
-    noProxy:
+    noProxy: // OPTIONAL
       - fluentd
 
 ----
