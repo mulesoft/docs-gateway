@@ -9,7 +9,7 @@ image:forward-proxy-diagram.png[align=center]
 
 As in the diagram, when using a forward proxy, all communication into or out of your internal network travels through the forward proxy first. 
 
-In the previous example, all API upstream communication must also pass through the forward proxy. For more information about how to enable internal connections to communicate directly, without the forward proxy, see <<noproxy-parameter, noProxy Parameter>>.
+In the previous example, all API upstream communication must also pass through the forward proxy. For more information about how to enable some connections to communicate directly, without the forward proxy, see <<noproxy-parameter, noProxy Parameter>>.
 
 == Forward Proxy Connections
 Only HTTP and HTTPS connections route through the forward proxy.
@@ -21,7 +21,7 @@ The following connections route through the forward proxy:
 * Connections to upstream services
 * HTTP log connections
 
-Using the noProxy parameter you can configure HTTP and HTTPS connections inside your internal network to connect directely without using the forward proxy.
+Using the `noProxy` parameter you can configure HTTP and HTTPS connections to connect directely without using the forward proxy.
 
 Configuring a forward proxy does not alter these connections:
 
@@ -32,17 +32,21 @@ Configuring a forward proxy does not alter these connections:
 
 == noProxy Parameter
 
-Adding the `noProxy` parameter allows services inside your trusted internal network to communicate without using the forward proxy.
+Adding the `noProxy` parameter allows services you trust to communicate without using the forward proxy.
 
-For example, when you enable `noProxy`, connections to upstream services and HTTP log connections inside your internal network connect directely to other internal services (Flex Gateway). 
+For example, when you enable `noProxy`, you can list connections to upstream services and HTTP log connections to connect directely to Flex Gateway. 
 
-However, when you enable `noProxy`, connections to Anypoint Platform, outbound policy connections, or any connection to an external network still use the forward proxy.
+When using the `noProxy` parameter in the YAML configuration file, you must list the exact domain names of all domains to connect directely. You cannot list the domain suffix, for example, `.svc.cluster.local`. You need to list full domain name, `fluentd.svc.cluster.local`, for all `noProxy` connections.
+
+You can also skip adding the `noProxy` parameter to your configuration file and add the `--no-proxy` flag during registration. Using the `--no-proxy`, you do not need to list exact domain names. To learn more about the `--no-proxy` flag, see <<forward-proxy-flex-gateway-registration, Forward Proxy Flex Gateway Registration>>.
 
 The following diagram demonstrates the differences in communication using noProxy:
 
 image:no-proxy-diagram.png[align=center]
 
-In the diagram, when you do not enable `noProxy`, Flex Gateway communicates with the internal API endpoint using the forward proxy. When you do enable `noProxy`, Flex Gateway communicates directly with the internal API endpoint.
+In the diagram, when you do not enable `noProxy`, Flex Gateway communicates with the internal API endpoint using the forward proxy. When you do enable `noProxy`, listing the API Upstream domain, Flex Gateway communicates directly with the internal API endpoint.
+
+
 
 == Configuring Forward Proxy Parameters
 
@@ -60,7 +64,7 @@ spec:
         username: <string> // OPTIONAL
         Password: <string> // OPTIONAL
     noProxy: // OPTIONAL
-       - fluentd // OPTIONAL
+       - fluentd.svc.cluster.local
 
 ----
 
@@ -85,7 +89,7 @@ spec:
 
 | `noProxy`
 | Optional
-| Enables internal network connections to communicate without using the forward proxy
+| Array containing domain names to communicate to without using the forward proxy
 |===
 
 
@@ -144,11 +148,13 @@ Provide your `username` and `password` parameters if you enable `basicAuth`:
 --https-proxy=http://<username>:<password>@proxy:8888
 ----
 
-Provide the `--no-proxy` flag when registering your Flex Gateway is enabling `noProxy`:
+Provide the `--no-proxy` flag when registering your Flex Gateway when enabling `noProxy` without the YAML Conifguration file:
 [source,ssh]
 ----
---no-proxy=fluentd
+--no-proxy=.svc.cluster.local
 ----
+You can list partial domain names using the `--no-proxy` flag.
+
 
 The following sample registration command shows flag placement:
 [source,ssh]
@@ -160,7 +166,7 @@ flexctl register \
 --organization=<your-org-id> \
 --output-directory=/usr/local/share/mulesoft/flex-gateway/conf.d \
 --https-proxy=http://<username>:<password>@proxy:8888 \ 
---no-proxy=fluentd \
+--no-proxy=.svc.cluster.local \
 my-gateway
 ----
 
