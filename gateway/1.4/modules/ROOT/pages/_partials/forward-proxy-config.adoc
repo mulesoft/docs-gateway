@@ -9,10 +9,19 @@ image:forward-proxy-diagram.png[align=center]
 
 As in the diagram, when using a forward proxy, all communication into or out of your internal network travels through the forward proxy first. 
 
-In the previous example, all API upstream communication must also pass through the forward proxy. For more information about how to enable internal connections to communicate directly, see <<noproxy-parameter, noProxy Parameter>>.
+In the previous example, all API upstream communication must also pass through the forward proxy. For more information about how to enable internal connections to communicate directly, without the forward proxy, see <<noproxy-parameter, noProxy Parameter>>.
 
 == Forward Proxy Connections
-Depending on how you configure your forward proxy, different connections route through the forward proxy.
+Only HTTP and HTTPS connections route through the forward proxy.
+
+The following connections route through the forward proxy:
+
+* Connections to Anypoint Platform
+* Outbound policy connections
+* Connections to upstream services
+* HTTP log connections
+
+Using the noProxy parameter you can configure HTTP and HTTPS connections inside your internal network to connect directely without using the forward proxy.
 
 Configuring a forward proxy does not alter these connections:
 
@@ -21,28 +30,19 @@ Configuring a forward proxy does not alter these connections:
 * Transition Control Protocol (TCP) connections
 * Non-HTTP log connections
 
-Configuring a forward proxy alters these connections:
-
-* Connections to Anypoint Platform
-* Outbound policy connections
-* Connections to upstream services
-* HTTP log connections
-
-Using the noProxy parameter you can configure connections inside your internal network to connect directely without using the forward proxy.
-
 == noProxy Parameter
 
-Adding the `noProxy` parameter allows services inside the trusted internal network to communicate without using the forward proxy.
+Adding the `noProxy` parameter allows services inside your trusted internal network to communicate without using the forward proxy.
 
-For example, when `noProxy` is enabled, connections to upstream services and HTTP log connections inside your internal network connect directely to other internal services (Flex Gateway). 
+For example, when you enable `noProxy`, connections to upstream services and HTTP log connections inside your internal network connect directely to other internal services (Flex Gateway). 
 
-However, When noProxy is enabled, connections to Anypoint Platform or outbound policy connections still use the forward proxy as they belong to external networks.
+However, when you enable `noProxy`, connections to Anypoint Platform, outbound policy connections, or any connection to an external network still use the forward proxy.
 
 The following diagram demonstrates the differences in communication using noProxy:
 
 image:no-proxy-diagram.png[align=center]
 
-In the diagram, when noProxy is disabled, Flex Gateway communicates with the internal API endpoint using the forward proxy. When noProxy is enabled, Flex Gateway communicates directly with the internal API endpoint.
+In the diagram, when you do not enable `noProxy`, Flex Gateway communicates with the internal API endpoint using the forward proxy. When you do enable `noProxy`, Flex Gateway communicates directly with the internal API endpoint.
 
 == Configuring Forward Proxy Parameters
 
@@ -85,7 +85,7 @@ spec:
 
 | `noProxy`
 | Optional
-| Allows internal network connections to communicate without using the forward proxy
+| Enables internal network connections to communicate without using the forward proxy
 |===
 
 
@@ -138,13 +138,13 @@ You must add the `--https-proxy` flag using your proxy `address` parameter:
 --https-proxy=http://proxy:8888
 ----
 
-If you enable `basicAuth` also provide your `username` and `password` parameters:
+Provide your `username` and `password` parameters if you enable `basicAuth`:
 [source,ssh]
 ----
 --https-proxy=http://<username>:<password>@proxy:8888
 ----
 
-When enabling `noProxy`, also provide the `--no-proxy` flag when registering your Flex Gateway
+Provide the `--no-proxy` flag when registering your Flex Gateway is enabling `noProxy`:
 [source,ssh]
 ----
 --no-proxy=fluentd
@@ -178,13 +178,13 @@ You must add the `--https-proxy` flag using your proxy `address` parameter:
 --https-proxy=http://proxy:8888
 ----
 
-If you enable `basicAuth` also provide your `username` and `password` parameters:
+Provide your `username` and `password` parameters if you enable `basicAuth`:
 [source,ssh]
 ----
 --https-proxy=http://<username>:<password>@proxy:8888
 ----
 
-When enabling `noProxy`, also provide the `--no-proxy` flag when registering your Flex Gateway
+Provide the `--no-proxy` flag when registering your Flex Gateway is enabling `noProxy`:
 [source,ssh]
 ----
 --no-proxy=fluentd
