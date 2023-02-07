@@ -131,11 +131,22 @@ spec:
 
 //end::configuration[]
 
-//tag:localRegistration[]
-
+//tag::registrationTitle[]
 == Forward Proxy Flex Gateway Registration
+
+//end::registrationTitle
+
+//tag:localRegistration[]
 You must add additional registration flags when xref:flex-local-reg-run.adoc[registering a Flex Gateway in Local Mode].
 
+//end:localRegistration[]
+
+//tag:connRegistration[]
+You must add additional registration flags when xref:flex-conn-reg-run.adoc[registering a Flex Gateway in Connected Mode].
+
+//end:connRegistration[]
+
+//tag:registration[]
 You must add the `--https-proxy` flag using your proxy `address` parameter:
 [source,ssh]
 ----
@@ -170,44 +181,4 @@ flexctl register \
 my-gateway
 ----
 
-//end:localRegistration[]
-
-
-//tag:connRegistration[]
-
-== Forward Proxy Flex Gateway Registration
-You must add additional registration flags when xref:flex-conn-reg-run.adoc[registering a Flex Gateway in Connected Mode].
-
-You must add the `--https-proxy` flag using your proxy `address` parameter:
-[source,ssh]
-----
---https-proxy=http://proxy:8888
-----
-
-Provide your `username` and `password` parameters if you enable `basicAuth`:
-[source,ssh]
-----
---https-proxy=http://<username>:<password>@proxy:8888
-----
-
-Provide the `--no-proxy` flag when registering your Flex Gateway is enabling `noProxy`:
-[source,ssh]
-----
---no-proxy=fluentd
-----
-
-The following sample registration command shows flag placement:
-[source,ssh]
-----
-flexctl register \
---username=<your-username> \
---password=<your-password> \
---environment=<your-environment-id> \
---organization=<your-org-id> \
---output-directory=/usr/local/share/mulesoft/flex-gateway/conf.d \
---https-proxy=http://<username>:<password>@proxy:8888 \ 
---no-proxy=fluentd \
-my-gateway
-----
-
-//end:connRegistration[]
+//end:registration[]
