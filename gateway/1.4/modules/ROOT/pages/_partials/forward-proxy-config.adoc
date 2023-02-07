@@ -1,5 +1,5 @@
 //tag::configuration[]
-A forward proxy, such as Squid, enables you to route all external Flex Gateway connections through a single proxy connection.  
+A forward proxy, such as Squid, enables you to route external HTTP Flex Gateway connections through a proxy connection.  
 
 For both Connected Mode and Local Mode, you configure a forward proxy using YAML configuration files.
 
@@ -7,38 +7,35 @@ The following diagram demonstrates how an internal network communicates with an 
 
 image:forward-proxy-diagram.png[align=center]
 
-As in the diagram, when using a forward proxy, all communication into or out of your internal network travels through the forward proxy first. 
+As in the diagram, when using a forward proxy, HTTP communication into or out of your internal network must travel through the forward proxy. 
 
-In the previous example, all API upstream communication must also pass through the forward proxy. For more information about how to enable some connections to communicate directly, without the forward proxy, see <<noproxy-parameter, noProxy Parameter>>.
+In the previous example, all HTTP API upstream communication must also pass through the forward proxy. For more information about how to enable some connections to communicate directly, without the forward proxy, see <<noproxy-parameter, noProxy Parameter>>.
 
 == Forward Proxy Connections
-Only HTTP and HTTPS connections route through the forward proxy.
+Only HTTP connections route through the forward proxy.
 
 The following connections route through the forward proxy:
 
 * Connections to Anypoint Platform
 * Outbound policy connections
 * Connections to upstream services
-* HTTP log connections
+* HTTP (Fluent Bit) log connections
 
-Using the `noProxy` parameter you can configure HTTP and HTTPS connections to connect directely without using the forward proxy.
+Using the `noProxy` parameter you can configure HTTP and HTTPS connections to connect directly without using the forward proxy.
 
 Configuring a forward proxy does not alter these connections:
 
 * Connections to shared storage
 * Lightweight Directory Access Protocol (LDAP) connections
-* Transition Control Protocol (TCP) connections
 * Non-HTTP log connections
 
 == noProxy Parameter
 
-Adding the `noProxy` parameter allows services you trust to communicate without using the forward proxy.
+Adding the `noProxy` parameter allows HTTP services you trust to communicate without using the forward proxy.
 
-For example, when you enable `noProxy`, you can list connections to upstream services and HTTP log connections to connect directely to Flex Gateway. 
+For example, when you enable `noProxy`, you can list connections to upstream services and HTTP log connections to connect directly to Flex Gateway. 
 
-When using the `noProxy` parameter in the YAML configuration file, you must list the exact domain names of all domains to connect directely. You cannot list the domain suffix, for example, `.svc.cluster.local`. You need to list full domain name, `fluentd.svc.cluster.local`, for all `noProxy` connections.
-
-You can also skip adding the `noProxy` parameter to your configuration file and add the `--no-proxy` flag during registration. Using the `--no-proxy`, you do not need to list exact domain names. To learn more about the `--no-proxy` flag, see <<forward-proxy-flex-gateway-registration, Forward Proxy Flex Gateway Registration>>.
+When using the `noProxy` parameter in the YAML configuration file to communicate with HTTP logs, you must list the exact domain name. You cannot list the domain suffix, for example, `.svc.cluster.local`. You need to list full domain name, `<log-name>.svc.cluster.local`, for all HTTP log connections.
 
 The following diagram demonstrates the differences in communication using noProxy:
 
@@ -61,10 +58,11 @@ spec:
     https: // REQUIRED
       address: http://proxy:8888 // REQUIRED
       basicAuth: // OPTIONAL
-        username: <string> // OPTIONAL
-        Password: <string> // OPTIONAL
+        username: <string> // REQUIRED WITH basicAuth
+        password: <string> // REQUIRED WITH basicAuth
     noProxy: // OPTIONAL
-       - fluentd.svc.cluster.local
+       - fluentd
+       - .svc.cluster.local
 
 ----
 
@@ -80,7 +78,7 @@ spec:
 | Supplies authentication username and password
 
 | `basicAuth.username`
-| Optional
+| Required when `basicAuth` configured
 | Authentication username
 
 | `basicAuth.Password`
@@ -88,27 +86,17 @@ spec:
 | Authentication password
 
 | `noProxy`
-| Optional
+| Required when `basicAuth` configured
 | Array containing domain names to communicate to without using the forward proxy
 |===
 
 
-== File Configuration Example
+== File Configuration
 
-. Create a YAML configuration file in the Flex Gateway configuration directory:
-+
-[source,ssh]
-----
-sudo touch /usr/local/share/mulesoft/flex-gateway/conf.d/forward-proxy.yaml
-----
-
-. Update the file with your TLS context configuration details. For example:
-+
-[source,ssh]
-----
-sudo vi /usr/local/share/mulesoft/flex-gateway/conf.d/forward-proxy.yaml
-----
-+
+. Create a configuration file with a `.yaml` file extension:
+.. Give the file a custom name, such as `forward-proxy`.
+.. Save the file in the Flex Gateway configuration directory `/etc/mulesoft/flex-gateway/conf.d/forward-proxy.yaml`. This directory can contain multiple configuration files.
+. Copy and paste the following YAML snippet into the file, substituting your values:
 *Sample configuration for adding a forward proxy:*
 +
 [source,yaml]
@@ -122,10 +110,11 @@ spec:
     https:
       address: http://proxy:8888
       basicAuth: // OPTIONAL
-        username: "username"
-        Password: "password"
+        username: username
+        password: password
     noProxy: // OPTIONAL
       - fluentd
+      - .svc.cluster.local
 
 ----
 
@@ -133,21 +122,20 @@ spec:
 
 //tag::registrationTitle[]
 == Forward Proxy Flex Gateway Registration
-
 //end::registrationTitle
 
 //tag:localRegistration[]
-You must add additional registration flags when xref:flex-local-reg-run.adoc[registering a Flex Gateway in Local Mode].
+If registering your Flex Gateway forward proxy in an internal network without internet, you must add the `--https-proxy` when xref:flex-local-reg-run.adoc[registering a Flex Gateway in Local Mode].
 
 //end:localRegistration[]
 
 //tag:connRegistration[]
-You must add additional registration flags when xref:flex-conn-reg-run.adoc[registering a Flex Gateway in Connected Mode].
+If registering your Flex Gateway forward proxy in an internal network without internet, you must add the `--https-proxy` when xref:flex-conn-reg-run.adoc[registering a Flex Gateway in Connected Mode].
 
 //end:connRegistration[]
 
 //tag:registration[]
-You must add the `--https-proxy` flag using your proxy `address` parameter:
+Add the `--https-proxy` flag using your proxy `address` parameter:
 [source,ssh]
 ----
 --https-proxy=http://proxy:8888
@@ -158,14 +146,6 @@ Provide your `username` and `password` parameters if you enable `basicAuth`:
 ----
 --https-proxy=http://<username>:<password>@proxy:8888
 ----
-
-Provide the `--no-proxy` flag when registering your Flex Gateway when enabling `noProxy` without the YAML Conifguration file:
-[source,ssh]
-----
---no-proxy=.svc.cluster.local
-----
-You can list partial domain names using the `--no-proxy` flag.
-
 
 The following sample registration command shows flag placement:
 [source,ssh]
