@@ -35,7 +35,7 @@ Adding the `noProxy` parameter allows HTTP services you trust to communicate wit
 
 For example, when you enable `noProxy`, you can list connections to upstream services and HTTP log connections to connect directly to Flex Gateway. 
 
-When using the `noProxy` parameter in the YAML configuration file to communicate with HTTP logs, you must list the exact domain name. You cannot list the domain suffix, for example, `.svc.cluster.local`. You need to list full domain name, `<log-name>.svc.cluster.local`, for all HTTP log connections.
+When using the `noProxy` parameter in the YAML configuration file to communicate with HTTP logs, you must list the exact domain name. You cannot list the domain suffix, for example, `.svc.cluster.local`. You need to list full domain name, `<logging-name>.svc.cluster.local`, for all HTTP log connections.
 
 The following diagram demonstrates the differences in communication using noProxy:
 
@@ -97,7 +97,6 @@ spec:
 .. Give the file a custom name, such as `forward-proxy`.
 .. Save the file in the Flex Gateway configuration directory `/etc/mulesoft/flex-gateway/conf.d/forward-proxy.yaml`. This directory can contain multiple configuration files.
 . Copy and paste the following YAML snippet into the file, substituting your values:
-*Sample configuration for adding a forward proxy:*
 +
 [source,yaml]
 ----
@@ -122,7 +121,8 @@ spec:
 
 //tag::registrationTitle[]
 == Forward Proxy Flex Gateway Registration
-//end::registrationTitle
+
+//end::registrationTitle[]
 
 //tag:localRegistration[]
 If registering your Flex Gateway forward proxy in an internal network without internet, you must add the `--https-proxy` when xref:flex-local-reg-run.adoc[registering a Flex Gateway in Local Mode].
@@ -135,7 +135,7 @@ If registering your Flex Gateway forward proxy in an internal network without in
 //end:connRegistration[]
 
 //tag:registration[]
-Add the `--https-proxy` flag using your proxy `address` parameter:
+Add the `--https-proxy` flag with your proxy `address` parameter:
 [source,ssh]
 ----
 --https-proxy=http://proxy:8888
