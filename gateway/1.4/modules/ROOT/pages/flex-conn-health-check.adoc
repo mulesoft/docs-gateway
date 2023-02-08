@@ -8,7 +8,6 @@ include::partial$health-check-partial.adoc[tags=tlsImportant]
 
 include::partial$health-check-partial.adoc[tags=intro2]
 
-
 == Before You Begin
 
 Before configuring message logging for a Flex Gateway, complete the following tasks:
@@ -17,103 +16,59 @@ Before configuring message logging for a Flex Gateway, complete the following ta
 * xref:flex-conn-reg-run.adoc[Register and Run Flex Gateway]
 * xref:api-manager::create-instance-task.adoc[Add an API Instance]
 
-== Configure Message Logging in Connected Mode
+== Configure a Health Check Policy
 
-. From API Administration in API Manager, select the name of the API Instance.
+. Go to *Anypoint Platform > API Manager*.
+. From API Administration, select the name of the API Instance.
 . Click *Policies*.
 . Click *+ Add policy*.
-. Under the *Troubleshooting* category, click *Message Logging*.
+. Under the *Quality of service* category, click *Health Check*.
 . Click *Next*.
-. Click *+ Add*.
-. Enter a *Configuration Name*, for example, Info messages before calling API.
-. Enter a DataWeave expression that selects what information you want to see.
+. Configure the following parameters:
 +
-For example, `#[attributes.header['id']]` extracts the ids from the headers of
-the messages. See xref:dataweave::dataweave-variables-context.adoc[Predefined Variables]
-in the DataWeave documentation for more information.
-. If you want to filter log messages, enter a DataWeave expression.
+include::partial$health-check-partial.adoc[tlsImportant1]
+
+. Click *Apply & continue to Create Alert*.
+
+== Configure a Health Check Alert
+You are required to create an alert for the Health Check policy. Applying the policy navigates you to the Create Alert page, where you must create an alert.
+
+Creating an alert for a Health Check Policy is the same as the xref:gateway::flex-use-api-alerts.adoc[Using Flex Gateway API Alerts] task. However, when creating a Health Check alert after creating a Health Check policy, some fields are configured by default.
+
+To create an alert:
+
+. Specify values for the displayed alert options:
+* *Name*:
 +
-For example, `#[attributes.headers['id']==1]` displays log messages that have
-an id of 1 in the header.
-
-. If you want to affix a prefix to your logs, enter a *Category*.
-. Enter the severity level.
+Type an alert name, for example `trial-alert`. You can delete an alert anytime if not required.
+* *Severity*:
 +
-You can only enter one level. See <<severity-levels, Message Logging Severity Levels>>
-for a description of each severity level and the hierarchy for the levels.
+Select a severity for the alert:
 
-. If you want messages after the API is called, select *After Calling API*.
-. If you want to add additional configurations, click *+ Add*.
-. Click *Save*.
+** *Info*
 +
-Afterward, you should see a *Message Log* option for the API instance.
+Assign to alerts that do not require immediate attention when triggered. This severity indicates that the metric should be passively monitored.
+** *Warning*
 +
-Use the search field to search for specific logs based on the time and log severity (INFO, ERROR, WARN, DEBUG). You can download these logs for further analysis.
+Assign to alerts that require prompt attention when triggered. This severity indicates an alert should be closely monitored.
+** *Critical*
++
+Assign to alerts that require immediate attention when triggered. This severity indicates an alert should receive an immediate response.
 
-[[severity-levels]]
-== Message Logging Severity Levels
+. Configure the email notification:
 
-When you configure a Message Logging policy for your API instance you can assign a severity level. 
+* *Subject*
++
+Subject of the alert email to send when the alert is triggered. The subject can include variables. See <<alert-variables>>.
 
-=== Severity Levels Description
+* *Message*
++
+Body text for the email to send when the alert is triggered. The message body can include variables. See <<alert-variables>>.
 
-Each severity level includes a specific set of information in the log report. The following table
-describes the type of information that will be included in the logs for each severity level.
+* *Recipients*
++
+Recipients of the alert email. You can select up to 20 platform user IDs and enter up to 20 email addresses.
 
-[%header,cols='1a,5a'] 
-|===
-|Log Severity Level
-|Description
+. Click *Create*.
 
-|ERROR
-|Error events that prevent normal program execution but might allow the application to continue running.
-
-|WARN
-|Potentially harmful situations that indicate potential problems.
-
-|INFO
-|Informational messages that highlight the progress of the application.
-
-|DEBUG
-|Tracing information used by application developers.
-
-|===
-
-=== Severity Levels Hierarchy
-
-Log reports include only the severity level you select and the subsequent levels on the hierarchy .
-For example, if you select INFO, the log reports include the WARN and ERROR severity levels.
-However, if you select ERROR, the log reports include only error messages. The following table describes the hierarchy of the different severity levels:
-
-[%header,cols='1h,1a,1a,1a,1a',frame=all]
-|===
-|
-|ERROR
-|WARN
-|INFO
-|DEBUG
-
-|ERROR
-|&#10004;
-|
-|
-|
-
-|WARN
-|&#10004;
-|&#10004;
-|
-|
-
-|INFO
-|&#10004;
-|&#10004;
-|&#10004;
-|
-
-|DEBUG
-|&#10004;
-|&#10004;
-|&#10004;
-|&#10004;
-|===
+Alerts appear as *Pending* when they are created. After the Health Check request is made, the alert changes to a state of *OK*. Depending on the value, the alert transitions to *OK* or *Alerting*.
