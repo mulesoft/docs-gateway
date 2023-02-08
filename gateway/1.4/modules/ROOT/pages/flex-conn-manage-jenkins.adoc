@@ -58,7 +58,7 @@ For more information, see xref:api-manager::latest-overview-concept.adoc#what-ap
 
 == Initial Configuration
 
-Before you can create and deploy an API Instance to your Flex Gateway, you must complete the following steps:
+Before you can create and deploy an API instance to your Flex Gateway, you must complete the following steps:
 
 . <<define-useful-functions, Define Useful Functions>>.
 . <<define-useful-parameters, Define Useful Parameters>>.
@@ -100,9 +100,9 @@ To define the parameters:
 * `<connected-app-client-id>`: *Id* of your connected app
 * `<connected-app-client-secret>`:*Secret* of your connected app
 * API GAV:
-** `<asset-group-id>`: Group ID, obtained from exchange
-** `<asset-id-from-exchange>`: Asset ID, obtained from exchange, of the API you want to create
-** `<asset-version>`: Asset version, obtained from exchange, of the API  you want to create
+** `<asset-group-id>`: Group ID, obtained from Exchange
+** `<asset-id-from-exchange>`: Asset ID, obtained from Exchange, of the API you want to create
+** `<asset-version>`: Asset version, obtained from Exchange, of the API  you want to create
 * `<gateway-name>`: Name of your Flex Gateway
 
 . After replacing the sample content, add the parameter definitions to your Jenkinsfile to validate whether all parameters are present:
@@ -208,18 +208,21 @@ stage("Anypoint login") {
 The authorization token returned in this step is saved for subsequent requests.
 
 == Create an API Instance
-Having an authorization token from Access Management enables you to create an API Instance and deploy it to your Flex Gateway. 
+Having an authorization token from Access Management enables you to create an API instance and deploy it to your Flex Gateway. 
 
-You can repeat this step to add multiple API Instances.
+You can repeat this step to add multiple API instances.
 
-For example, this stage creates an API Instance that listens on port `8082` and `/httpbin` path and proxies to `https://httpbin.org/`.
+For example, this stage creates an API instance that listens on port `8082` and `/httpbin` path and proxies to `https://httpbin.org/`.
 
-To create an API Instance:
+To create an API instance:
 
 . Collect the following information:
 * `<upstream-uri>`: URI upstream of your API
-* `<your-proxy-uri>`: Proxy URI for you API Instance
+* `<your-proxy-uri>`: Proxy URI for you API instance
 * `"isCloudHub"`: Cloud Hub status, for example `null` or `true`
+
+. Optionally, collect your `"endpointUri"` or remove the `"endpointUri"` field:
+* `<your-consumer-endpoint>`: Consumer endpoint of your API, for example, `http://consumer-endpoint.com`
 
 . After replacing the HTTP addresses, add the `Create API Instance` stage to you Jenkinsfile:
 
@@ -246,11 +249,12 @@ stage("Create API Instance") {
                     "isCloudHub": null
                 },
                 "technology": "flexGateway"
+                "endpointUri": "<your-consumer-endpoint>" // OPTIONAL
                 }'
             """
             def status_code = sh(returnStdout: true, script: cmd).trim().toInteger()
             if (status_code > 399) {
-                error("Error occurred while trying to create API Instance")
+                error("Error occurred while trying to create API instance")
             }
         }
     }
@@ -261,12 +265,12 @@ stage("Create API Instance") {
 
 == Apply an API Policy
 
-After you create an API Instance, you can apply Connected Mode policies to the instance:
+After you create an API instance, you can apply Connected Mode policies to the instance:
 
 
 . Collect the following information:
 * Policy GAV
-** `<policy-group-id>`: Policy group ID from exchange
+** `<policy-group-id>`: Policy group ID from Exchange
 ** `<policy-asset-id>`: Policy asset ID from Exchange, for example `http-basic-authentication`
 ** `<policy-asset-version>`: Policy asset version from Exchange, for example `1.3.1`
 
@@ -304,7 +308,7 @@ stage("Apply policy") {
 
            def status_code = sh(returnStdout: true, script: cmd).trim().toInteger()
            if (status_code > 399) {
-               error("Error occurred while trying to apply Basic Auth Policy to the API Instance")
+               error("Error occurred while trying to apply Basic Auth Policy to the API instance")
            }
        }
    }
@@ -313,7 +317,7 @@ stage("Apply policy") {
 
 
 == Deploy an API Instance
-After you create an API Instance, you can deploy the instance.
+After you create an API instance, you can deploy the instance.
 
 To deploy the new instance, add the `Deploy API` stage to your Jenkinsfile:
 
@@ -342,7 +346,7 @@ stage("Deploy API") {
 
             def status_code = sh(returnStdout: true, script: cmd).trim().toInteger()
             if (status_code > 399) {
-                error("Error occurred while trying to deploy the API Instance")
+                error("Error occurred while trying to deploy the API instance")
             }
         }
     }
@@ -350,7 +354,7 @@ stage("Deploy API") {
 ----
 
 == Validate the API Instance is Deployed
-After you deploy your API Instance, validate whether the instance is deployed by adding the `Validate deployment` stage to your Jenkinsfile:
+After you deploy your API instance, validate whether the instance is deployed by adding the `Validate deployment` stage to your Jenkinsfile:
 
 
 [source,ssh]
