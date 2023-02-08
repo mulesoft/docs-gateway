@@ -1,0 +1,119 @@
+= Configuring a Health Check for Flex Gateway in Connected Mode
+
+include::partial$health-check-partial.adoc[tags=intro1]
+ 
+include::partial$health-check-partial.adoc[tags=tlsImportant]
+
+== How Health Check Works
+
+include::partial$health-check-partial.adoc[tags=intro2]
+
+
+== Before You Begin
+
+Before configuring message logging for a Flex Gateway, complete the following tasks:
+
+* xref:flex-install.adoc[Install Flex Gateway]
+* xref:flex-conn-reg-run.adoc[Register and Run Flex Gateway]
+* xref:api-manager::create-instance-task.adoc[Add an API Instance]
+
+== Configure Message Logging in Connected Mode
+
+. From API Administration in API Manager, select the name of the API Instance.
+. Click *Policies*.
+. Click *+ Add policy*.
+. Under the *Troubleshooting* category, click *Message Logging*.
+. Click *Next*.
+. Click *+ Add*.
+. Enter a *Configuration Name*, for example, Info messages before calling API.
+. Enter a DataWeave expression that selects what information you want to see.
++
+For example, `#[attributes.header['id']]` extracts the ids from the headers of
+the messages. See xref:dataweave::dataweave-variables-context.adoc[Predefined Variables]
+in the DataWeave documentation for more information.
+. If you want to filter log messages, enter a DataWeave expression.
++
+For example, `#[attributes.headers['id']==1]` displays log messages that have
+an id of 1 in the header.
+
+. If you want to affix a prefix to your logs, enter a *Category*.
+. Enter the severity level.
++
+You can only enter one level. See <<severity-levels, Message Logging Severity Levels>>
+for a description of each severity level and the hierarchy for the levels.
+
+. If you want messages after the API is called, select *After Calling API*.
+. If you want to add additional configurations, click *+ Add*.
+. Click *Save*.
++
+Afterward, you should see a *Message Log* option for the API instance.
++
+Use the search field to search for specific logs based on the time and log severity (INFO, ERROR, WARN, DEBUG). You can download these logs for further analysis.
+
+[[severity-levels]]
+== Message Logging Severity Levels
+
+When you configure a Message Logging policy for your API instance you can assign a severity level. 
+
+=== Severity Levels Description
+
+Each severity level includes a specific set of information in the log report. The following table
+describes the type of information that will be included in the logs for each severity level.
+
+[%header,cols='1a,5a'] 
+|===
+|Log Severity Level
+|Description
+
+|ERROR
+|Error events that prevent normal program execution but might allow the application to continue running.
+
+|WARN
+|Potentially harmful situations that indicate potential problems.
+
+|INFO
+|Informational messages that highlight the progress of the application.
+
+|DEBUG
+|Tracing information used by application developers.
+
+|===
+
+=== Severity Levels Hierarchy
+
+Log reports include only the severity level you select and the subsequent levels on the hierarchy .
+For example, if you select INFO, the log reports include the WARN and ERROR severity levels.
+However, if you select ERROR, the log reports include only error messages. The following table describes the hierarchy of the different severity levels:
+
+[%header,cols='1h,1a,1a,1a,1a',frame=all]
+|===
+|
+|ERROR
+|WARN
+|INFO
+|DEBUG
+
+|ERROR
+|&#10004;
+|
+|
+|
+
+|WARN
+|&#10004;
+|&#10004;
+|
+|
+
+|INFO
+|&#10004;
+|&#10004;
+|&#10004;
+|
+
+|DEBUG
+|&#10004;
+|&#10004;
+|&#10004;
+|&#10004;
+|===
