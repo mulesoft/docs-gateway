@@ -223,6 +223,7 @@ spec:
       - TLS_RSA_WITH_AES_256_CBC_SHA
 ----
 //end::sample-config-instance[]
+
 //tag::sample-config-mtls-intro[]
 *Sample configuration for adding an inbound mTLS context for a specific API Instance:*
 //end::sample-config-mtls-intro[]
@@ -256,8 +257,51 @@ spec:
 ----
 //end::sample-config-mtls[]
 
+
+//tag::sample-config-outbound-instance-intro[]
+*Sample configuration for adding outbound TLS context for a specific API Instance:*
+//end::sample-config-outbound-instance-intro[]
+//tag::sample-config-outbound-instance[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: tls-outbound
+spec:
+  targetRef:
+    Kind: Service
+    name: ingress-test-outbound-upstream
+  policyRef:
+    name: tls-outbound
+  config:
+    skipValidation: false
+    certificate:
+      key: |
+        # -----BEGIN PRIVATE KEY-----
+        # insert certificate key
+        # -----END PRIVATE KEY-----
+      crt: |
+        # -----BEGIN CERTIFICATE-----
+        # insert certificate
+        # -----END CERTIFICATE-----
+    alpn:
+      - http/1.1
+      - h2
+    minversion: "1.1"
+    maxversion: "1.3"
+    ciphers:
+      - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+----
+//end::sample-config-outbound-instance[]
+
 //tag::sample-config-mtls-outbound-intro[]
-*Sample configuration for adding outbound mTLS context:*
+*Sample configuration for adding outbound mTLS context for a specific API Instance::*
 //end::sample-config-mtls-outbound-intro[]
 //tag::sample-config-mtls-outbound[]
 [source,yaml]
