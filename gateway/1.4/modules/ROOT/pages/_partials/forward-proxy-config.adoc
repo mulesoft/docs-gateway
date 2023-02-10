@@ -5,11 +5,11 @@ For both Connected Mode and Local Mode, you configure a forward proxy using YAML
 
 The following diagram demonstrates how an internal network communicates with an external network using a forward proxy. 
 
-image:forward-proxy-diagram.png[align=center]
+image:forward-proxy-diagram.png[This is an image of all connetions to your Flex Gateway first traveling through a forward proxy, align=center]
 
 As in the diagram, when using a forward proxy, HTTP communication out of your internal network must travel through the forward proxy. 
 
-In the previous example, all HTTP API upstream communication must also pass through the forward proxy. For more information about how to enable some connections to communicate directly, without the forward proxy, see <<noproxy-parameter, noProxy Parameter>>.
+In this example, all HTTP API upstream communication must also pass through the forward proxy. For more information about how to enable some connections to communicate directly, without the forward proxy, see <<noproxy-parameter, noProxy Parameter>>.
 
 == Forward Proxy Connections
 Only HTTP connections route through the forward proxy.
@@ -21,7 +21,7 @@ The following connections route through the forward proxy:
 * Connections to upstream services
 * HTTP (Fluent Bit) log connections
 
-Using the `noProxy` parameter you can configure HTTP and HTTPS connections to connect directly without using the forward proxy.
+Using the `noProxy` parameter, you can configure HTTP and HTTPS connections to connect directly without using the forward proxy.
 
 Configuring a forward proxy does not alter these connections:
 
@@ -31,17 +31,17 @@ Configuring a forward proxy does not alter these connections:
 
 == noProxy Parameter
 
-Adding the `noProxy` parameter allows HTTP services you trust to communicate without using the forward proxy.
+Adding the `noProxy` parameter enables HTTP services you trust to communicate without using the forward proxy.
 
-For example, when you enable `noProxy`, you can list connections to upstream services and HTTP log connections to connect directly to Flex Gateway. 
+For example, when you enable `noProxy`, you can list HTTP log connections and connections to upstream services to have them connect directly to Flex Gateway. 
 
 When using the `noProxy` parameter in the YAML configuration file to communicate with HTTP logs, you must list the exact domain name. You cannot list the domain suffix, for example, `.svc.cluster.local`. You need to list full domain name, `<logging-name>.svc.cluster.local`, for all HTTP log connections.
 
 The following diagram demonstrates the differences in communication using noProxy:
 
-image:no-proxy-diagram.png[align=center]
+image:no-proxy-diagram.png[This is an image demonstrating the differences in internal connections when you do or do not enable noProxy, align=center]
 
-In the diagram, when you do not enable `noProxy`, Flex Gateway communicates with the internal API endpoint using the forward proxy. When you do enable `noProxy`, listing the API Upstream domain, Flex Gateway communicates directly with the internal API endpoint.
+In the diagram, when you do not enable `noProxy`, Flex Gateway communicates with the internal API endpoint using the forward proxy. When you enable `noProxy` and list the API Upstream domain, Flex Gateway communicates directly with the internal API endpoint.
 
 
 
@@ -75,7 +75,7 @@ spec:
 
 | `basicAuth`
 | Optional
-| Supplies authentication username and password
+| Supplies the authentication username and password
 
 | `basicAuth.username`
 | Required when `basicAuth` configured
