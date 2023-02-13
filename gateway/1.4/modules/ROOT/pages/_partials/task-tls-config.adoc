@@ -26,9 +26,16 @@ Similar to policies, in Local Mode, you apply TLS context via an API instance YA
 //end::intro4[]
 
 //tag::port-sharing[]
-Flex Gateway supports multiple TLS certificates on a single gateway, but you must apply the certificates to unique ports. Flex Gateway implements port-level TLS, meaning if you apply TLS to an API instace that shares a port with other instances, the same TLS context is applied to all instances sharing the port. This is not important if you choose to apply your TLS context to all instances, but it is important to remember if applying unique TLS contexts. If you apply TLS to one API instance, you do not need to apply the same TLS context to instances that share that port. Consequently, you cannot apply different TLS contexts to API instances that share the same port.
 
+Flex Gateway implements port-level TLS, meaning if you apply TLS to an API instance that shares a port with other instances, the same TLS context is applied to all instances sharing the port. Flex Gateway supports multiple TLS certificates on a single gateway, but you must apply the certificates to unique ports.
+If you apply TLS to one API instance, you do not need to apply the same TLS context to instances that share that port. Consequently, you cannot apply different TLS contexts to API instances that share the same port.
+ 
 //end::port-sharing[]
+
+//tag::outboundAllInstances[]
+Unlike inbound TLS, it is not suggested to apply the same outbound TLS context to all API Instances in your Flex Gateway because your API upstream services might come from different providers. Therefore, no configuration example for outbound TLS on all instances is provided.
+
+//end::outboundAllInstances[]
 
 //tag::intro5[]
 You can configure the TLS context for a Flex Gateway running in a Docker container, as a Linux Service,
@@ -120,7 +127,7 @@ The following configuration file only applies inbound TLS to one API instance. F
 //end::k8s-intro[]
 
 //tag::sample-config-all-intro[]
-*Sample configuration for adding TLS context for all API Instances running on this Flex Gateway:*
+*Sample configuration for adding inbound TLS context for all API Instances running on this Flex Gateway:*
 //end::sample-config-all-intro[]
 //tag::sample-config-all[]
 [source,yaml]
@@ -169,7 +176,7 @@ spec:
 ----
 //end::sample-config-all[]
 //tag::sample-config-instance-intro[]
-*Sample configuration for adding TLS context for a specific API Instance:*
+*Sample configuration for adding inbound TLS context for a specific API Instance:*
 //end::sample-config-instance-intro[]
 //tag::sample-config-instance[]
 [source,yaml]
@@ -216,6 +223,7 @@ spec:
       - TLS_RSA_WITH_AES_256_CBC_SHA
 ----
 //end::sample-config-instance[]
+
 //tag::sample-config-mtls-intro[]
 *Sample configuration for adding an inbound mTLS context for a specific API Instance:*
 //end::sample-config-mtls-intro[]
@@ -247,10 +255,44 @@ spec:
         # insert certificate
         # -----END CERTIFICATE-----
 ----
+
+This example uses the default values for `alpn`, `minversion`, `maxversion`, and `ciphers`.
 //end::sample-config-mtls[]
 
+
+//tag::sample-config-outbound-instance-intro[]
+*Sample configuration for adding outbound TLS context for a specific API Instance:*
+//end::sample-config-outbound-instance-intro[]
+//tag::sample-config-outbound-instance[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: tls-outbound
+spec:
+  targetRef:
+    name: ingress-test-outbound-upstream
+  policyRef:
+    name: tls-outbound
+  config:
+    skipValidation: true
+    certificate:
+      key: |
+        # -----BEGIN PRIVATE KEY-----
+        # insert certificate key
+        # -----END PRIVATE KEY-----
+      crt: |
+        # -----BEGIN CERTIFICATE-----
+        # insert certificate
+        # -----END CERTIFICATE-----
+----
+
+This example uses the default values for `alpn`, `minversion`, `maxversion`, and `ciphers`.
+//end::sample-config-outbound-instance[]
+
 //tag::sample-config-mtls-outbound-intro[]
-*Sample configuration for adding outbound mTLS context:*
+*Sample configuration for adding outbound mTLS context for a specific API Instance::*
 //end::sample-config-mtls-outbound-intro[]
 //tag::sample-config-mtls-outbound[]
 [source,yaml]
@@ -261,12 +303,15 @@ metadata:
   name: mtls-outbound
 spec:
   targetRef:
-    Kind: Service
     name: ingress-test-outbound-upstream
   policyRef:
     name: tls-outbound
   config:
     skipValidation: false
+    trustedCA: |
+      # -----BEGIN CERTIFICATE-----
+      # insert certificate
+      # -----END CERTIFICATE-----
     certificate:
       key: |
         # -----BEGIN PRIVATE KEY-----

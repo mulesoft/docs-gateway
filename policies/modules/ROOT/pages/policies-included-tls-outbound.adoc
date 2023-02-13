@@ -27,13 +27,15 @@ Flex Gateway supports outbound Transport Layer Security (TLS) and outbound mutua
 
 To apply outbound TLS in Local Mode, use the xref:gateway::flex-local-tls-config.adoc[Configuring TLS Context for Flex Gateway in Local Mode] tutorial and refer to the following configuration files in this documentation.
 
-You can configure an outbound TLS context to enable authentication between a client and the API Instance by binding the TLS policy to your API instance or to all instances in your Flex Gateway. 
+You can configure an outbound TLS context to enable authentication between an API Instance and an upstream service by binding the TLS policy to the API instance. 
 
 include::gateway::partial$task-tls-config.adoc[tags=port-sharing]
 
+include::gateway::partial$task-tls-config.adoc[tags=outboundAllInstances]
+
 [NOTE]
 ====
-Policy ordering cannot be applied to the Transport Layer Security policy.
+TLS policies do not support policy ordering.
 ====
 
 == Configuring Policy Parameters
@@ -57,6 +59,8 @@ Refer to the following policy definition and table of parameters:
     ciphers: <array> // OPTIONAL
 ----
 
+Not including optional parameters in your configuration file applies the parameters default values to your TLS context.
+
 When configuring the `ciphers` parameter, ensure that your API upstream supports the listed ciphers. For the supported ciphers, see <<local-support, TLS Cipher Support on Flex Gateway>>.
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -66,7 +70,12 @@ When configuring the `ciphers` parameter, ensure that your API upstream supports
 | `skipValidation`
 | Required
 | false
-|
+| Skipping validation disables outbound mTLS
+
+| `trustedCA`
+| Optional, unless `skipValidation` is false
+| N/A
+| The client certificate used in mTLS
 
 | `certificate`
 | Required
@@ -85,34 +94,39 @@ When configuring the `ciphers` parameter, ensure that your API upstream supports
 
 | `alpn`
 | Optional
-|
-|A prioritized list of supported application level protocols; for example, h2, http/1.1, and so forth.
+| `h2` and `http/1.1`
+| A prioritized list of supported application level protocols; for example, h2, http/1.1, and so forth.
 
 | `minversion`
 | Optional
-|
-|The minimum TLS version allowed
+| `1.2`
+| The minimum TLS version allowed
 
 | `maxversion`
 | Optional
-|
-|The maximum TLS version allowed
+| `1.3`
+| The maximum TLS version allowed
 
 | `ciphers`
 | Optional
-|
-|A list of supported TLS ciphers (IANA format)
+| For the default and other supported ciphers, see <<local-support, TLS Cipher Support on Flex Gateway>>.
+| A list of supported TLS ciphers (IANA format). 
 
 |===
 
 === Resource Configuration Examples
 
-// sample config applied to all apis on gateway intro
+// sample config outbound TLS applied to a a specific instance
+include::gateway::partial$task-tls-config.adoc[tags=sample-config-outbound-instance-intro]
+// sample config outbound TLS applied to a a specific instance
+include::gateway::partial$task-tls-config.adoc[tags=sample-config-outbound-instance]
+
+// sample config outbound mTLS applied to a a specific instance
 include::gateway::partial$task-tls-config.adoc[tags=sample-config-mtls-outbound-intro]
-//sample config applied to all apis on gateway
+// sample config outbound mTLS applied to a a specific instance
 include::gateway::partial$task-tls-config.adoc[tags=sample-config-mtls-outbound]
 
-include::anypoint-security::partial$flex-tls-cipher.adoc[tags=cipherSupportLocal;outboundImportantLocal;ciphers]
+include::anypoint-security::partial$flex-tls-cipher.adoc[tags=cipherSupportLocal;outboundImportantLocal;local-ciphers]
 
 
 
