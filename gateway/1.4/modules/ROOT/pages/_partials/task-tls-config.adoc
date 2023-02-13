@@ -255,6 +255,8 @@ spec:
         # insert certificate
         # -----END CERTIFICATE-----
 ----
+
+This example uses the default values for `alpn`, `minversion`, `maxversion`, and `ciphers`.
 //end::sample-config-mtls[]
 
 
@@ -270,12 +272,11 @@ metadata:
   name: tls-outbound
 spec:
   targetRef:
-    Kind: Service
     name: ingress-test-outbound-upstream
   policyRef:
     name: tls-outbound
   config:
-    skipValidation: false
+    skipValidation: true
     certificate:
       key: |
         # -----BEGIN PRIVATE KEY-----
@@ -285,19 +286,9 @@ spec:
         # -----BEGIN CERTIFICATE-----
         # insert certificate
         # -----END CERTIFICATE-----
-    alpn:
-      - http/1.1
-      - h2
-    minversion: "1.1"
-    maxversion: "1.3"
-    ciphers:
-      - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
-      - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
-      - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-      - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
-      - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
-      - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 ----
+
+This example uses the default values for `alpn`, `minversion`, `maxversion`, and `ciphers`.
 //end::sample-config-outbound-instance[]
 
 //tag::sample-config-mtls-outbound-intro[]
@@ -312,7 +303,6 @@ metadata:
   name: mtls-outbound
 spec:
   targetRef:
-    Kind: Service
     name: ingress-test-outbound-upstream
   policyRef:
     name: tls-outbound
