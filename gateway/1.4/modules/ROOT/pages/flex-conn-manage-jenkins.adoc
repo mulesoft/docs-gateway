@@ -7,7 +7,7 @@ endif::[]
 
 Using a Jenkins Pipeline, you can automate the workflow for Flex Gateway in Connected Mode. With a Jenkins Pipeline, you can register and run a Flex Gateway and use features of the API Manager API, such as creating and deploying API instances.
 
-Automating your Flex Gateway in Connected Mode work flow shares many similarities with the xref:flex-conn-manage-public-api.adoc[Manage Flex Gateway Using the API Manager API^] tutorial. Using this Jenkins Pipeline tutorial, you can automate the calls made to the API Manager API. To add additional features from the  https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API^], use the <<create-an-api-instance, Create an API Instance>> and <<apply-an-api-policy, Apply an API Policy>> Pipeline stages as examples.
+Automating your Flex Gateway in Connected Mode work flow shares many similarities with the xref:flex-conn-manage-public-api.adoc[Manage Flex Gateway Using the API Manager API] tutorial. Using this Jenkins Pipeline tutorial, you can automate the calls made to the API Manager API. To add additional features from the  https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API^], use the <<create-an-api-instance, Create an API Instance>> and <<apply-an-api-policy, Apply an API Policy>> Pipeline stages as examples.
 
 This tutorial has different steps with different code blocks. As you work through the steps, add the code blocks to the same Jenkinsfile. 
 
@@ -36,7 +36,7 @@ To collect your GAV from Exchange:
 .. Find the asset to add or apply.
 .. Collect the group ID and asset ID from the URL.
 +
-For example, the IDs collected from the API Manager API Exchange URL, `https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/minor/1.0/pages/home/`, are:
+For example, the IDs collected from the API Manager API Exchange URL, `+https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/minor/1.0/pages/home/+`, are:
 +
 *** Group ID: `f1e97bc6-315a-4490-82a7-23abe036327`
 *** Asset ID: `api-manager-api`
@@ -49,7 +49,7 @@ For example, the version collected from the API Gateway HTTP basic authenticatio
 
 ** *Organization ID* for the organization where you want to run Flex Gateway
 +
-For more information, see xref:access-management::organization.adoc#find-your-organization-id[Find Your Organization ID].
+For more information, see xref:access-management::organization.adoc#find-your-organization-id[Find your Organization ID].
 
 ** *Environment ID* for the environment where you want to run Flex Gateway
 +
@@ -180,7 +180,6 @@ stage('Run flex gateway') {
 }
 ----
 
-For more information about registering a Flex Gateway with a connected app, see xref:flex-conn-reg-run-app.adoc[Registering and Running in Connected Mode with a Connected App].
 
 === Obtain an Authorization Token from Access Management
 After registering and running your Flex Gateway, you must obtain a valid authorization token from Access Management in order to authenticate subsequent requests.
@@ -212,7 +211,7 @@ Having an authorization token from Access Management enables you to create an AP
 
 You can repeat this step to add multiple API instances.
 
-For example, this stage creates an API instance that listens on port `8082` and `/httpbin` path and proxies to `https://httpbin.org/`.
+For example, this stage creates an API instance that listens on port `8082` and `/httpbin` path and proxies to `+https://httpbin.org/+`.
 
 To create an API instance:
 
@@ -222,7 +221,7 @@ To create an API instance:
 * `"isCloudHub"`: Cloud Hub status, for example `null` or `true`
 
 . Optionally, collect your `"endpointUri"` or remove the `"endpointUri"` field:
-* `<your-consumer-endpoint>`: Consumer endpoint of your API, for example, `http://consumer-endpoint.com`
+* `<your-consumer-endpoint>`: Consumer endpoint of your API, for example, `+http://consumer-endpoint.com+`
 
 . After replacing the HTTP addresses, add the `Create API Instance` stage to you Jenkinsfile:
 
@@ -407,7 +406,6 @@ post {
 
 == See Also
 
-* xref:flex-install.adoc[Install Flex Gateway].
-* xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway].
+* xref:flex-conn-reg-run-app.adoc[Registering and Running in Connected Mode with a Connected App].
 * https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[Anypoint Developer API Manager API]
 * xref:flex-conn-manage-public-api.adoc[Manage Flex Gateway Using the API Manager API]
