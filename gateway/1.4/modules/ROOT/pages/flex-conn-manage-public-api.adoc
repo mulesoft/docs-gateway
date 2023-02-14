@@ -5,18 +5,11 @@ endif::[]
 :imagesdir: ../assets/images
 :page-mode: conn
 
-You can manage Flex Gateway in Connected Mode using the https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API] from the https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/[Anypoint Platform Developer Portal] instead of using API Manager user interface through Anypoint Platform. This enables you to use the command line to communicate with API Manager.
+You can manage Flex Gateway in Connected Mode using the API Manager API from the https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/[Anypoint Platform Developer Portal^] instead of using the API Manager user interface through Anypoint Platform. This enables you to use the command line to communicate with API Manager. Using the steps in this tutorial you can create, deploy, apply a policy to, and delete an API instance.
 
-Follow the steps in this tutorial to use the API Manager API to:
+For more information about the API Manager API, see the https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API documentation^].
 
-* <<create-an-api-instance, Create an API Instance>>
-* <<deploy-an-api-instance, Deploy an API Instance>>
-* <<apply-a-policy, Apply a Policy>>
-* <<delete-an-api-instance, Delete an API Instance>>
-
-To automate these commands using a Jenkins pipeline, see xref:flex-conn-manage-jenkins.adoc[Automate Flex Gateway in Connected Mode Using a Jenkins Pipeline].
-
-For more information about the API Manager API, see the https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API Documentation].
+NOTE: To automate these commands using a Jenkins pipeline, see xref:flex-conn-manage-jenkins.adoc[Automate Flex Gateway in Connected Mode Using a Jenkins Pipeline].
 
 == Before You Begin
 Before you can manage Flex Gateway using the API Manager API, complete the following tasks:
@@ -24,7 +17,7 @@ Before you can manage Flex Gateway using the API Manager API, complete the follo
 . xref:flex-install.adoc[Install Flex Gateway].
 . xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway in Connected Mode].
 
-. xref:service-mesh::obtain-connected-apps-credentials.adoc[Configure a Connected App]:
+. xref:access-management::connected-apps-developers.adoc#create-a-connected-app[Configure a Connected App]:
 
 ** Use the *App acts on its behalf (client credentials)* type and include the following scopes:
 
@@ -45,7 +38,7 @@ To collect your GAV from Exchange:
 .. Find the asset to add or apply.
 .. Collect the group ID and asset ID from the URL.
 +
-For example, the IDs collected from the API Manager API Exchange URL, `https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/minor/1.0/pages/home/`, are:
+For example, the IDs collected from the API Manager API Exchange URL, `+https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/minor/1.0/pages/home/+`, are:
 +
 *** Group ID: `f1e97bc6-315a-4490-82a7-23abe036327`
 *** Asset ID: `api-manager-api`
@@ -70,7 +63,7 @@ To find the *Target ID*, go to *Anypoint Platform > Runtime Manager > Flex Gatew
 
 == Obtain an Authorization token from Access Management
 
- You must obtain an authorization token to make calls using the API Manager API:
+You must obtain an authorization token to make calls using the API Manager API:
 
 . Collect the following information:
 
@@ -105,10 +98,10 @@ To create an API instance using the API Manager API:
 ** `<asset-id-from-exchange>`: Asset ID, obtained from Exchange, of the API you want to create
 ** `<asset-version>`: Asset version, obtained from Exchange, of the API  you want to create
 * `<upstream-uri>`: URI upstream of your API
-* `<your-proxy-uri>`: Proxy URI, a combination of your port and base path, for your API instance, for example, 'http://0.0.0.0:<port-to-populate>/<path>'
+* `<your-proxy-uri>`: Proxy URI, a combination of your port and base path for your API instance, for example, `\http://0.0.0.0:<port-to-populate>/<path>`
 
 . Optionally, collect your `"endpointUri"` or remove the `"endpointUri"` field:
-* `<your-consumer-endpoint>`: Consumer endpoint of your API, for example, `http://consumer-endpoint.com`
+* `<your-consumer-endpoint>`: Consumer endpoint of your API, for example, `+http://consumer-endpoint.com+`
 
 . Make a POST request to Anypoint Platform after replacing the sample content:
 +
@@ -205,6 +198,5 @@ curl --location --request DELETE 'https://anypoint.mulesoft.com/apimanager/api/v
 //Ciphers
 == See Also
 
-* xref:flex-install.adoc[Install Flex Gateway]
-* xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
+* xref:flex-conn-manage-jenkins.adoc[Automate Flex Gateway in Connected Mode Using a Jenkins Pipeline].
 * https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[Anypoint Developer API Manager API]
