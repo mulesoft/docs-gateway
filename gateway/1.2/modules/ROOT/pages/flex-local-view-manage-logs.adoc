@@ -141,4 +141,66 @@ spec:
           secondSection: true
 ----
 
+== View Logs
 
+After enabling access logs via policy binding, to view agent, envoy and Fluentbit logs, run the following commands.
+
+To view logs in Linux:
+[source,ssh]
+----
+journalctl -u flex-gateway*
+----
+
+To view logs in docker:
+
+* To view agent and envoy logs:
++
+[source,ssh]
+----
+docker logs -f <container-id>
+----
+
+* To view Fluentbit logs:
++
+. Access the Flex Gateway docker container:
++
+[source,ssh]
+----
+docker exec -it <container-id> /bin/bash
+----
++
+. View Fluentbit logs:
++
+[source,ssh]
+----
+cat /var/log/flex-gateway-fluent/current
+----
+
+To view logs in Kubernetes:
+
+* To view agent and envoy logs:
++
+[source,ssh]
+----
+kubectl logs -f <pod-name>
+----
+
+* To view Fluentbit logs:
++
+. Access the Flex Gateway container:
++
+[source,ssh]
+----
+kubectl exec -it <pod-name> –- /bin/bash
+----
++
+. View Fluentbit logs:
++
+[source,ssh]
+----
+cat /var/log/flex-gateway-fluent/current
+----
+
+== See Also
+
+* xref:policies::policies-included-message-logging.adoc[]
