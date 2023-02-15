@@ -31,8 +31,10 @@ You configure node affinity rules for a Pod within a YAML-formatted specificatio
 
 In the YAML file, you can set a required matching, preferred matching, or both types of matching for deployments to a node:
 
+//TODO: MAYBE TURN THE DESCRIPTIONS INTO SHARABLE INCLUDES 
+//SO THEY CAN BE USED IN INTRO PARAGRAPHS TO THE RELATED PROCEDURES
 * `requiredDuringSchedulingIgnoredDuringExecution`: The node must match all node affinity rules configured for a Pod when using this type of matching. Otherwise, the deployment fails. 
-* `preferredDuringSchedulingIgnoredDuringExecution`: If a node matches the node affinity rules of the Pod, the scheduler matches the node with the Pod. If no node matches the rule, another node is matched with the Pod. 
+* `preferredDuringSchedulingIgnoredDuringExecution`: Based on weighted preferences set for a Pod, the Kubernetes scheduler selects a node that matches best. The scheduler must select a node, so if no node matches any preferences, the scheduler selects a node that does not match. 
 
 The following examples show configuration options:
 
@@ -91,7 +93,7 @@ In preferred node matching, the Kubernetes scheduler selects a node based on wei
 Specify the YAML file such as the following one. The first condition to the rule in the example requires a node label as a `key`, an operator (such as `In`), and one or more values to accept for that key. 
 /// END REPEATED SECTION ///
 
-In preferred matching configurations, provide a `weight` value between `1` and `100` for each `preference` so that the Kubernetes scheduler can determine which rules are more important and select the best matching node. Matching is based on the sum of the weighted preferences that the node meets. The scheduler selects the node with the greatest total weight. 
+In addition, provide a `weight` value between `1` and `100` for each `preference` so that the Kubernetes scheduler can determine which rules are more important and select the best matching node. Matching is based on the sum of the weighted preferences that the node meets. The scheduler selects the node with the greatest total weight. 
 
 ----
 affinity:
@@ -100,16 +102,24 @@ affinity:
      - weight: <integer>
        preference:
          matchExpressions:
-           - key: <key>
+           - key: <node-label-key>
              operator: <operator>
              values:
                - <value>
-             # - Add as many values as you want
-         # - Add any other conditions to this rule that you want
-   # - Any any other rules you want
+             # - Add any other preferred values 
+     - weight: <integer>             
+       preference:       
+         matchExpressions:
+           - key: <node-label-key>
+             operator: <operator>
+             values:
+               - <value>
+             # - Add any other preferred values     
+           # - Add any other preferred conditions
+   # - Any any other preferred rules
 ----
 
-You can add any number of values, conditions, and rules that meet your preferences. 
+You can add any number of preferred values, conditions, and rules. 
 
 //TODO: THIS TEXT WAS INTRODUCED VERBATIM ABOVE; USE AN INCLUDE FOR IT
 * If you are installing Flex Gateway for the first time, install it with a command like this one:
