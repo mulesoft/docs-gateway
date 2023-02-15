@@ -14,14 +14,16 @@ To set host nodes for the Pod that contains Flex Gateway, you can use an Ingress
 
 When configuring node affinity, you must set a rule that includes the key of a node label and its values. You can use an existing label or create a new one. A node label is defined as a key-value pair.
 
-To list a cluster's nodes and node labels, run: 
+* To list a cluster's nodes and node labels, run: 
 +
+[source,kubernetes,subs=attributes+]
 ----
 kubectl get nodes --show-labels
 ----
 
-To create a label for a node in your cluster, run:
+* To create a label for a node in your cluster, run:
 +
+[source,kubernetes,subs=attributes+]
 ----
 kubectl label nodes <node-name> <label-key>=<label-value>
 ----
@@ -41,11 +43,11 @@ Configure node affinity rules within a Pod's specification file. In this YAML fi
 * `requiredDuringSchedulingIgnoredDuringExecution`: The node must match all node affinity rules configured for a Pod when using this type of matching. Otherwise, the deployment fails. 
 * `preferredDuringSchedulingIgnoredDuringExecution`: Based on weighted preferences set for a Pod, the Kubernetes scheduler selects the best matching node. The scheduler must select a node, so if no node matches any of the preferences, the scheduler selects a node that does not match. 
 
-The following examples show configuration options:
+For guidance, see the following configuration options:
 
 * <<strict_match_only>>
 * <<soft_match_only>>
-* <<strict_and_soft_matches>>
+* <<all_match_types>>
 
 //TODO (tech writer) - MAYBE MAKE THIS A HEADING INCLUDE TO H-SIZE (AS NEEDED):
 [[strict_match_only]]
@@ -55,11 +57,13 @@ The following examples show configuration options:
 In required node matching, the node must match all node affinity rules configured for a Pod. Otherwise, the deployment fails.
 //END REPEATED SECTION///
 
-//TODO (tech writer) - THIS TEXT IS REPEATED BELOW, SO TURN IT INTO AN INCLUDE:
-Configure a node affinity rule in the specification file for your Pod. Each condition to a rule requires a node label as a `key`, an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`,  `DoesNotExist`, `Gt`, and `Lt`.
-//END REPEATED SECTION///
 
-[src,yaml]
+//TAG for node affinity to reuse
+//tag::config-flex-affinity-condition[]
+Configure a node affinity rule in the specification file for your Pod. Each condition to a rule requires a node label as a `key`, an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`,  `DoesNotExist`, `Gt`, and `Lt`.
+//end::config-flex-affinity-condition[]
+
+[source,yaml,subs=attributes+]
 ----
 affinity:
  nodeAffinity:
@@ -76,21 +80,24 @@ affinity:
 
 You can add as many values and conditions as the node requires. 
 
-//TODO (tech writer) - THIS TEXT IS REPEATED BELOW, SO TURN THIS INTO AN INCLUDE:
+//TAG for upgrading pod YAML spec
+//tag::upgrade-flex-pod-spec-yaml[]
 The command to use when passing the YAML file depends on whether Flex Gateway is installed:
 
 * If you are installing Flex Gateway for the first time, install it with a command like this one:
 +
+[source,kubernetes,subs=attributes+]
 ----
 helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway -f <path-to-yaml-file> --set-file registration.content=<path-to-registration>
 ----
 
 * If Flex Gateway is installed already, use a command like this one to your running instance:
 +
+[source,kubernetes,subs=attributes+]
 ----
 helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway --reuse-values -f <path-to-yaml-file>
 ----
-//END REPEATED SECTION///
+//end::upgrade-flex-pod-spec-yaml[]
 
 //TODO (tech writer) - MAYBE MAKE THIS A HEADING INCLUDE TO H-SIZE (AS NEEDED):
 [[soft_match_only]]
@@ -100,15 +107,16 @@ helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-g
 In preferred node matching, the Kubernetes scheduler selects a node based on weighted preferences. The scheduler must select a node, so if no node matches any preferences, the scheduler selects a node that does not match. 
 //END REPEATED SECTION///
 
-//TODO (tech writer) - THIS TEXT WAS INTRODUCED VERBATIM ABOVE; USE AN INCLUDE FOR IT:
-Configure a node affinity rule in the specification file for your Pod. Each condition to a rule requires a node label as a `key`, an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`,
+//TODO (tech writer) - REPEATED SECTION: Use include tag //tag::config-flex-affinity-condition[]
+Configure a node affinity rule in the specification file for your Pod. Each condition to a rule requires a node label as a `key`, an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`,  `DoesNotExist`, `Gt`, and `Lt`.
 //END REPEATED SECTION///
 
-//TODO (tech writer) - THIS TEXT IS REPEATED BELOW, SO TURN IT INTO AN INCLUDE:
+//TAG for extras in PREFERRED node affinity
+//tag::config-flex-preferred-affinity-condition[]
 In addition, provide a `weight` value between `1` and `100` for each `preference` so that the Kubernetes scheduler can determine which rules are more important and select the best matching node. Matching is based on the sum of the weighted preferences that a node meets. The scheduler selects a node with the greatest total weight over other nodes of lesser weight. 
-//END REPEATED SECTION///
+//end::config-flex-preferred-affinity-condition[]
 
-[src,yaml]
+[source,yaml,subs=attributes+]
 ----
 affinity:
  nodeAffinity:
@@ -135,33 +143,36 @@ affinity:
 
 You can add any number of preferred values, conditions, and rules. 
 
-//TODO (tech writer) - THIS TEXT WAS INTRODUCED VERBATIM ABOVE; USE AN INCLUDE FOR IT:
+//TODO (tech writer) - REPEATED SECTION: Use tag::upgrade-flex-pod-spec-yaml[]
 * If you are installing Flex Gateway for the first time, install it with a command like this one:
 +
+[source,kubernetes,subs=attributes+]
 ----
 helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway -f <path-to-yaml-file> --set-file registration.content=<path-to-registration>
 ----
 
 * If Flex Gateway is installed already, use a command like this one to your running instance:
 +
+[source,kubernetes,subs=attributes+]
 ----
 helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway --reuse-values -f <path-to-yaml-file>
 ----
 //END REPEATED SECTION///
 
-=== Configure Strict and Soft Node Label Matching
+[[all_match_types]]
+=== Configure Strict and Preferred Node Matching Rules for a Pod
 
 You can configure both types of node affinity (required and preferred) in the same YAML file. The example combines the settings from <<strict_match_only>> and <<soft_match_only>>.  
 
-//TODO (tech writer) - THIS TEXT WAS INTRODUCED VERBATIM ABOVE; USE AN INCLUDE FOR IT:
+//TODO (tech writer) - REPEATED SECTION: Use tag::config-flex-affinity-condition[]
 Configure a node affinity rule in the specification file for your Pod. Each condition to a rule requires a node label as a `key`, an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`,  `DoesNotExist`, `Gt`, and `Lt`.
 //END REPEATED SECTION///
 
-//TODO (tech writer) - THIS TEXT IS REPEATED BELOW, SO TURN IT INTO AN INCLUDE:
+//TODO (tech writer) - REPEATED SECTION: Use tag::config-flex-preferred-affinity-condition[]
 In addition, provide a `weight` value between `1` and `100` for each `preference` so that the Kubernetes scheduler can determine which rules are more important and select the best matching node. Matching is based on the sum of the weighted preferences that a node meets. The scheduler selects a node with the greatest total weight over other nodes of lesser weight. 
 //END REPEATED SECTION///
 
-[src,yaml]
+[source,yaml,subs=attributes+]
 ----
 affinity:
   nodeAffinity:
@@ -195,17 +206,19 @@ affinity:
     # - Any any more preferred rules.
 ----
 
-//TODO (tech writer) - THIS TEXT IS REPEATED BELOW, SO TURN THIS INTO AN INCLUDE FOR SHARING:
+//TODO (tech writer) - REPEATED SECTION: Use include tag::upgrade-flex-pod-spec-yaml[] for this
 The command to use when passing the YAML file depends on whether Flex Gateway is installed:
 
 * If you are installing Flex Gateway for the first time, install it with a command like this one:
 +
+[source,kubernetes,subs=attributes+]
 ----
 helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway -f <path-to-yaml-file> --set-file registration.content=<path-to-registration>
 ----
 
 * If Flex Gateway is installed already, use a command like this one to your running instance:
 +
+[source,kubernetes,subs=attributes+]
 ----
 helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway --reuse-values -f <path-to-yaml-file>
 ----
