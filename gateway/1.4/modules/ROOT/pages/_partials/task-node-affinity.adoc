@@ -3,7 +3,7 @@
 //TODO (tech writer) - MAYBE MAKE THIS A HEADING INCLUDE TO H-SIZE, AS NEEDED:
 == Customize Node Affinity for Flex Gateway Deployments
 
-Flex Gateway is often critical to the security of a cluster, so it is important to host it on specialized nodes that match specific requirements, instead of using the nodes that host your deployments.
+Flex Gateway is often critical to the security of a cluster, so it is important to host it on specialized nodes that match specific requirements, instead of using the nodes that host your other deployments.
 
 To set host nodes for the Pod that contains Flex Gateway, you can use an Ingress Controller Helm chart. The chart supports node affinity configurations, which enable this customization. For more information about node affinity, see the https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity[Kubernetes documentation^].
 
@@ -20,7 +20,7 @@ To list a cluster's nodes and node labels, run:
 kubectl get nodes --show-labels
 ----
 
-To create a label to a node in your cluster, run:
+To create a label for a node in your cluster, run:
 +
 ----
 kubectl label nodes <node-name> <label-key>=<label-value>
@@ -55,7 +55,7 @@ The following examples show configuration options:
 In required node matching, the node must match all node affinity rules configured for a Pod. Otherwise, the deployment fails. 
 
 //TODO (tech writer) - THIS TEXT IS REPEATED BELOW, SO TURN IT INTO AN INCLUDE:
-Specify the YAML file such as the following one. The first condition to the rule in the example requires a node label as a `key`, and an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`, `DoesNotExist`, `Gt`, and `Lt`.
+Specify the YAML file such as the following one. Each condition to a rule requires a node label as a `key`, an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`, `DoesNotExist`, `Gt`, and `Lt`.
 /// END REPEATED SECTION ///
 
 [src,yaml]
@@ -99,7 +99,7 @@ helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-g
 In preferred node matching, the Kubernetes scheduler selects a node based on weighted preferences. The scheduler must select a node, so if no node matches any preferences, the scheduler selects a node that does not match. 
 
 //TODO (tech writer) - THIS TEXT WAS INTRODUCED VERBATIM ABOVE; USE AN INCLUDE FOR IT:
-Specify the YAML file such as the following one. The first condition to the rule in the example requires a node label as a `key`, and an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`, `DoesNotExist`, `Gt`, and `Lt`.
+Specify the YAML file such as the following one. Each condition to a rule requires a node label as a `key`, an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`, `DoesNotExist`, `Gt`, and `Lt`.
 /// END REPEATED SECTION ///
 
 //TODO (tech writer) - THIS TEXT IS REPEATED BELOW, SO TURN IT INTO AN INCLUDE:
@@ -152,7 +152,7 @@ helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-g
 You can configure both types of node affinity (`requiredDuringSchedulingIgnoredDuringExecution` and `preferredDuringSchedulingIgnoredDuringExecution`) in the same YAML file. The following example combines the settings from <<strict_match_only>> and <<soft_match_only>>.  
 
 //TODO (tech writer) - THIS TEXT WAS INTRODUCED VERBATIM ABOVE; USE AN INCLUDE FOR IT:
-Specify the YAML file such as the following one. The first condition to the rule in the example requires a node label as a `key`, and an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`, `DoesNotExist`, `Gt`, and `Lt`.
+Specify the YAML file such as the following one. Each condition to a rule requires a node label as a `key`, an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`, `DoesNotExist`, `Gt`, and `Lt`.
 /// END REPEATED SECTION ///
 
 //TODO (tech writer) - THIS TEXT IS REPEATED BELOW, SO TURN IT INTO AN INCLUDE:
