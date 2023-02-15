@@ -9,7 +9,7 @@ To set host nodes for Flex Gateway, you can use an Ingress Controller Helm chart
 [[list_add_labels]]
 === List and Create Labels to Nodes
 
-When configuring node affinity, you must set a rule that uses the key of a node label. (A node's label is defined as a key-value pair.) You can use an existing label or create a new one.
+When configuring node affinity, you must set a rule that includes the key of a node label. (A node label is defined as a key-value pair.) You can use an existing label or create a new one.
 
 To list a cluster's nodes and node labels, run: 
 +
@@ -29,10 +29,10 @@ For related Kubernetes documentation, see https://kubernetes.io/docs/tasks/confi
 
 You configure node affinity rules for a Pod within a YAML-formatted specification file. The Kubernetes scheduler uses the settings in this file to match nodes to Pods. 
 
-In the YAML file, you can set a strict (required) matching, soft (preferred) matching, or both types of matching for deployments to a node:
+In the YAML file, you can set a required matching, preferred matching, or both types of matching for deployments to a node:
 
-* `requiredDuringSchedulingIgnoredDuringExecution`: A strict match requires the nodes on which a Pod runs to match all conditions of all affinity rules. Otherwise, the deployment fails. 
-* `preferredDuringSchedulingIgnoredDuringExecution`: A soft match prefers  deployment to a Pod that does not configured conditions if no matching node is found. 
+* `requiredDuringSchedulingIgnoredDuringExecution`: The node must match all node affinity rules configured for a Pod when using this type of matching. Otherwise, the deployment fails. 
+* `preferredDuringSchedulingIgnoredDuringExecution`: If a node matches the node affinity rules of the Pod, the scheduler matches the node with the Pod. If no node matches the rule, another node is matched with the Pod. 
 
 The following examples show configuration options:
 
@@ -41,10 +41,12 @@ The following examples show configuration options:
 * <<strict_and_soft_matches>>
 
 [[strict_match_only]]
-=== Configure a Pod for Strict Node Matching
+=== Configure a Required Node Matching Rule for a Pod 
+
+In required node matching, the Kubernetes scheduler selects a node only if it meets all conditions. If no node matches the conditions you specify, the deployment will fail.
 
 //TODO: THIS TEXT IS REPEATED BELOW, SO TURN IT INTO AN INCLUDE FOR SHARING
-Specify the YAML file such as the following one. The first condition to the rule in the example requires a node label as a `key`, an operator (such as `In`), and one or more values to accept for that key. If no node matches the conditions you specify, the installment will fail. 
+Specify the YAML file such as the following one. The first condition to the rule in the example requires a node label as a `key`, an operator (such as `In`), and one or more values to accept for that key. 
 /// END REPEATED SECTION
 
 [src,yaml]
@@ -60,10 +62,9 @@ affinity:
              - <value>
            # - Add as many values as you require
        # - Add any other conditions to this rule that you require
-     # - Add any other rules  condition to this rule
 ----
 
-You can add as many values, conditions, and rules as the node requires.
+You can add as many conditions as the node requires. 
 
 //TODO: THIS TEXT IS REPEATED BELOW, SO TURN THIS INTO AN INCLUDE FOR SHARING:
 The command to use when passing the YAML file depends on whether Flex Gateway is installed:
@@ -82,11 +83,15 @@ helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-g
 /// END REPEATED SECTION ///
 
 [[soft_match_only]]
-=== Configure a Pod for Soft Node Matching
+=== Configure a Preferred Node Matching Rule for a Pod
+
+In preferred node matching, the Kubernetes scheduler selects a node based on weighted preferences. If no node matches any preferences, the scheduler selects a from node that does not match. 
 
 //TODO: THIS TEXT WAS INTRODUCED VERBATIM ABOVE; USE AN INCLUDE FOR IT
-Specify the YAML file such as the following one. The first condition to the rule in the example requires a node label as a `key`, an operator (such as `In`), and one or more values to accept for that key. You can add as many conditions as the node requires. If no node matches the conditions you specify, the deployment will fail.
+Specify the YAML file such as the following one. The first condition to the rule in the example requires a node label as a `key`, an operator (such as `In`), and one or more values to accept for that key. 
 /// END REPEATED SECTION ///
+
+In preferred matching configurations, provide a `weight` value between `1` and `100` for each `preference` so that the Kubernetes scheduler can determine which rules are more important and select the best matching node. Matching is based on the sum of the weighted preferences that the node meets. The scheduler selects the node with the greatest total weight. 
 
 ----
 affinity:
@@ -99,12 +104,19 @@ affinity:
              operator: <operator>
              values:
                - <value>
-             # - Add as many values as you require
-         # - Add any other conditions to this rule that you require
-   # - you can add more rules
+             # - Add as many values as you want
+         # - Add any other conditions to this rule that you want
+   # - Any any other rules you want
 ----
 
+You can add as many values, conditions, and rules as you like. 
+
+////
 Just to clarify, you must add a weight value between 1 and 100 to these rules. These values are used by the k8s scheduler to determine which rules are more important. If a node is valid to be selected, using these soft rules helps choose the best fitting node by adding the weights of the rules that each node fulfills, choosing the node with the highest sum.
+
+As mentioned in our yaml example, you can add more conditions to your rule, as well as adding more rules. Bear in mind that if no node matches these conditions, the scheduler will still pick a node to install flex gateway.
+
+////
 
 As mentioned in our yaml example, you can add more conditions to your rule, as well as adding more rules. Bear in mind that if no node matches these conditions, the scheduler will still pick a node to install flex gateway.
 
