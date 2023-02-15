@@ -33,7 +33,7 @@ For related Kubernetes documentation, see https://kubernetes.io/docs/tasks/confi
 
 The Kubernetes scheduler accepts node affinity rules for matching nodes to Pods. The match determines the node in which a Pod is deployed. 
 
-Configure node affinity rules within a Pod's YAML-formatted specification. In the YAML file, you can set rules for required, preferred, or both types of matching:
+Configure node affinity rules within a Pod's specification file. In this YAML file, you can set rules for required, preferred, or both types of matching:
 
 //TODO (tech writer) - MAYBE TURN THE DESCRIPTIONS INTO SHARABLE INCLUDES
 //     SO THEY CAN BE USED IN INTRO PARAGRAPHS TO THE RELATED PROCEDURES:
@@ -55,7 +55,7 @@ The following examples show configuration options:
 In required node matching, the node must match all node affinity rules configured for a Pod. Otherwise, the deployment fails. 
 
 //TODO (tech writer) - THIS TEXT IS REPEATED BELOW, SO TURN IT INTO AN INCLUDE:
-Specify the YAML file such as the following one. Each condition to a rule requires a node label as a `key`, an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`, `DoesNotExist`, `Gt`, and `Lt`.
+Configure a node affinity rule in the specification file for your Pod. Each condition to a rule requires a node label as a `key`, an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`,  `DoesNotExist`, `Gt`, and `Lt`.
 /// END REPEATED SECTION ///
 
 [src,yaml]
@@ -99,7 +99,7 @@ helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-g
 In preferred node matching, the Kubernetes scheduler selects a node based on weighted preferences. The scheduler must select a node, so if no node matches any preferences, the scheduler selects a node that does not match. 
 
 //TODO (tech writer) - THIS TEXT WAS INTRODUCED VERBATIM ABOVE; USE AN INCLUDE FOR IT:
-Specify the YAML file such as the following one. Each condition to a rule requires a node label as a `key`, an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`, `DoesNotExist`, `Gt`, and `Lt`.
+Configure a node affinity rule in the specification file for your Pod. Each condition to a rule requires a node label as a `key`, an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`,
 /// END REPEATED SECTION ///
 
 //TODO (tech writer) - THIS TEXT IS REPEATED BELOW, SO TURN IT INTO AN INCLUDE:
@@ -149,10 +149,10 @@ helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-g
 
 === Configure Strict and Soft Node Label Matching
 
-You can configure both types of node affinity (`requiredDuringSchedulingIgnoredDuringExecution` and `preferredDuringSchedulingIgnoredDuringExecution`) in the same YAML file. The following example combines the settings from <<strict_match_only>> and <<soft_match_only>>.  
+You can configure both types of node affinity (required and preferred) in the same YAML file. The example combines the settings from <<strict_match_only>> and <<soft_match_only>>.  
 
 //TODO (tech writer) - THIS TEXT WAS INTRODUCED VERBATIM ABOVE; USE AN INCLUDE FOR IT:
-Specify the YAML file such as the following one. Each condition to a rule requires a node label as a `key`, an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`, `DoesNotExist`, `Gt`, and `Lt`.
+Configure a node affinity rule in the specification file for your Pod. Each condition to a rule requires a node label as a `key`, an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`,  `DoesNotExist`, `Gt`, and `Lt`.
 /// END REPEATED SECTION ///
 
 //TODO (tech writer) - THIS TEXT IS REPEATED BELOW, SO TURN IT INTO AN INCLUDE:
