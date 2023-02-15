@@ -1,0 +1,172 @@
+//tag::helm-node-affinity[]
+
+== Customize Node Affinity for Flex Gateway Deployments
+
+Flex Gateway is typically critical to security, so it is important to host it on specialized nodes that match specific requirements, instead of using the nodes that host your deployments.
+
+To set host nodes for Flex Gateway, you can use an Ingress Controller Helm chart. The chart supports node affinity configurations, which enable this customization. For more information about node affinity, see the https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity[Kubernetes documentation^].
+
+[[list_add_labels]]
+=== List and Create Labels to Nodes
+
+When configuring node affinity, you must set a rule that uses the key of a node label. (A node's label is defined as a key-value pair.) You can use an existing label or create a new one.
+
+To list a cluster's nodes and node labels, run: 
++
+----
+kubectl get nodes --show-labels
+----
+
+To create a label to a node in your cluster, run:
++
+----
+kubectl label nodes <node-name> <label-key>=<label-value>
+----
+
+For related Kubernetes documentation, see https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes/#add-a-label-to-a-node[Add a Label to a Node^].
+
+=== Set Node Affinity
+
+You configure node affinity rules for a Pod within a YAML-formatted specification file. The Kubernetes scheduler uses the settings in this file to match nodes to Pods. 
+
+In the YAML file, you can set a strict (required) matching, soft (preferred) matching, or both types of matching for deployments to a node:
+
+* `requiredDuringSchedulingIgnoredDuringExecution`: A strict match requires the nodes on which a Pod runs to match all conditions of all affinity rules. Otherwise, the deployment fails. 
+* `preferredDuringSchedulingIgnoredDuringExecution`: A soft match prefers  deployment to a Pod that does not configured conditions if no matching node is found. 
+
+The following examples show configuration options:
+
+* <<strict_match_only>>
+* <<soft_match_only>>
+* <<strict_and_soft_matches>>
+
+[[strict_match_only]]
+=== Configure a Pod for Strict Node Matching
+
+//TODO: THIS TEXT IS REPEATED BELOW, SO TURN IT INTO AN INCLUDE FOR SHARING
+Specify the YAML file such as the following one. The first condition to the rule in the example requires a node label as a `key`, an operator (such as `In`), and one or more values to accept for that key. If no node matches the conditions you specify, the installment will fail. 
+/// END REPEATED SECTION
+
+[src,yaml]
+----
+affinity:
+ nodeAffinity:
+   requiredDuringSchedulingIgnoredDuringExecution:
+     nodeSelectorTerms:
+       - matchExpressions:
+         - key: <key>
+           operator: <operator>
+           values:
+             - <value>
+           # - Add as many values as you require
+       # - Add any other conditions to this rule that you require
+     # - Add any other rules  condition to this rule
+----
+
+You can add as many values, conditions, and rules as the node requires.
+
+//TODO: THIS TEXT IS REPEATED BELOW, SO TURN THIS INTO AN INCLUDE FOR SHARING:
+The command to use when passing the YAML file depends on whether Flex Gateway is installed:
+
+* If you are installing Flex Gateway for the first time, install it with a command like this one:
++
+----
+helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway -f <path-to-yaml-file> --set-file registration.content=<path-to-registration>
+----
+
+* If Flex Gateway is installed already, use a command like this one to your running instance:
++
+----
+helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway --reuse-values -f <path-to-yaml-file>
+----
+/// END REPEATED SECTION ///
+
+[[soft_match_only]]
+=== Configure a Pod for Soft Node Matching
+
+//TODO: THIS TEXT WAS INTRODUCED VERBATIM ABOVE; USE AN INCLUDE FOR IT
+Specify the YAML file such as the following one. The first condition to the rule in the example requires a node label as a `key`, an operator (such as `In`), and one or more values to accept for that key. You can add as many conditions as the node requires. If no node matches the conditions you specify, the deployment will fail.
+/// END REPEATED SECTION ///
+
+----
+affinity:
+ nodeAffinity:
+   preferredDuringSchedulingIgnoredDuringExecution:
+     - weight: <integer>
+       preference:
+         matchExpressions:
+           - key: <key>
+             operator: <operator>
+             values:
+               - <value>
+             # - Add as many values as you require
+         # - Add any other conditions to this rule that you require
+   # - you can add more rules
+----
+
+Just to clarify, you must add a weight value between 1 and 100 to these rules. These values are used by the k8s scheduler to determine which rules are more important. If a node is valid to be selected, using these soft rules helps choose the best fitting node by adding the weights of the rules that each node fulfills, choosing the node with the highest sum.
+
+As mentioned in our yaml example, you can add more conditions to your rule, as well as adding more rules. Bear in mind that if no node matches these conditions, the scheduler will still pick a node to install flex gateway.
+
+//TODO: THIS TEXT WAS INTRODUCED VERBATIM ABOVE; USE AN INCLUDE FOR IT
+* If you are installing Flex Gateway for the first time, install it with a command like this one:
++
+----
+helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway -f <path-to-yaml-file> --set-file registration.content=<path-to-registration>
+----
+
+* If Flex Gateway is installed already, use a command like this one to your running instance:
++
+----
+helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway --reuse-values -f <path-to-yaml-file>
+----
+/// END REPEATED SECTION ///
+
+=== Configure Strict and Soft Node Label Matching
+
+You can configure both types of node affinity (`requiredDuringSchedulingIgnoredDuringExecution` and `preferredDuringSchedulingIgnoredDuringExecution`) in the same YAML file. The following example uses the settings from <<strict_match_only>> and <<soft_match_only>>.   
+
+//TODO: sync comments and comment style
+----
+affinity:
+ nodeAffinity:
+   requiredDuringSchedulingIgnoredDuringExecution:
+     nodeSelectorTerms:
+       - matchExpressions:
+         - key: <key>
+           operator: <operator>
+           values:
+             - <value>
+           # - Add as many values as you want
+       # - you could add another condition to this rule
+   preferredDuringSchedulingIgnoredDuringExecution:
+     - weight: <integer>
+       preference:
+         matchExpressions:
+           - key: <key>
+             operator: <operator>
+             values:
+               - <value>
+           # - Add as many values as you want
+         # - you could add another condition to this rule
+   # - you can add more rules
+----
+
+//TODO: THIS TEXT IS REPEATED BELOW, SO TURN THIS INTO AN INCLUDE FOR SHARING:
+The command to use when passing the YAML file depends on whether Flex Gateway is installed:
+
+* If you are installing Flex Gateway for the first time, install it with a command like this one:
++
+----
+helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway -f <path-to-yaml-file> --set-file registration.content=<path-to-registration>
+----
+
+* If Flex Gateway is installed already, use a command like this one to your running instance:
++
+----
+helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway --reuse-values -f <path-to-yaml-file>
+----
+/// END REPEATED SECTION ///
+
+
+//end::helm-node-affinity[]
