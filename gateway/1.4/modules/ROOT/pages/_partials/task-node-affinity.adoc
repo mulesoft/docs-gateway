@@ -1,15 +1,18 @@
 //tag::helm-node-affinity[]
 
+//TODO (tech writer) - MAYBE MAKE THIS A HEADING INCLUDE TO H-SIZE, AS NEEDED:
 == Customize Node Affinity for Flex Gateway Deployments
 
-Flex Gateway is typically critical to security, so it is important to host it on specialized nodes that match specific requirements, instead of using the nodes that host your deployments.
+Flex Gateway is often critical to the security of a cluster, so it is important to host it on specialized nodes that match specific requirements, instead of using the nodes that host your deployments.
 
-To set host nodes for Flex Gateway, you can use an Ingress Controller Helm chart. The chart supports node affinity configurations, which enable this customization. For more information about node affinity, see the https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity[Kubernetes documentation^].
+To set host nodes for the Pod that contains Flex Gateway, you can use an Ingress Controller Helm chart. The chart supports node affinity configurations, which enable this customization. For more information about node affinity, see the https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity[Kubernetes documentation^].
 
+
+//TODO (tech writer) - MAYBE MAKE THIS A HEADING INCLUDE TO H-SIZE (AS NEEDED):
 [[list_add_labels]]
 === List and Create Labels to Nodes
 
-When configuring node affinity, you must set a rule that includes the key of a node label. (A node label is defined as a key-value pair.) You can use an existing label or create a new one.
+When configuring node affinity, you must set a rule that includes the key of a node label and its values. You can use an existing label or create a new one. A node label is defined as a key-value pair.
 
 To list a cluster's nodes and node labels, run: 
 +
@@ -25,16 +28,18 @@ kubectl label nodes <node-name> <label-key>=<label-value>
 
 For related Kubernetes documentation, see https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes/#add-a-label-to-a-node[Add a Label to a Node^].
 
+//TODO (tech writer) - MAYBE MAKE THIS A HEADING INCLUDE TO H-SIZE (AS NEEDED):
 === Set Node Affinity
 
-You configure node affinity rules for a Pod within a YAML-formatted specification file. The Kubernetes scheduler uses the settings in this file to match nodes to Pods. 
+The Kubernetes scheduler accepts node affinity rules for matching nodes to Pods. The match determines the node in which a Pod is deployed. 
 
-In the YAML file, you can set a required matching, preferred matching, or both types of matching for deployments to a node:
+Configure node affinity rules within a Pod's YAML-formatted specification. In the YAML file, you can set rules for required, preferred, or both types of matching:
 
-//TODO: MAYBE TURN THE DESCRIPTIONS INTO SHARABLE INCLUDES 
-//SO THEY CAN BE USED IN INTRO PARAGRAPHS TO THE RELATED PROCEDURES
+//TODO (tech writer) - MAYBE TURN THE DESCRIPTIONS INTO SHARABLE INCLUDES
+//     SO THEY CAN BE USED IN INTRO PARAGRAPHS TO THE RELATED PROCEDURES:
+
 * `requiredDuringSchedulingIgnoredDuringExecution`: The node must match all node affinity rules configured for a Pod when using this type of matching. Otherwise, the deployment fails. 
-* `preferredDuringSchedulingIgnoredDuringExecution`: Based on weighted preferences set for a Pod, the Kubernetes scheduler selects a node that matches best. The scheduler must select a node, so if no node matches any preferences, the scheduler selects a node that does not match. 
+* `preferredDuringSchedulingIgnoredDuringExecution`: Based on weighted preferences set for a Pod, the Kubernetes scheduler selects the best matching node. The scheduler must select a node, so if no node matches any of the preferences, the scheduler selects a node that does not match. 
 
 The following examples show configuration options:
 
@@ -42,14 +47,16 @@ The following examples show configuration options:
 * <<soft_match_only>>
 * <<strict_and_soft_matches>>
 
+//TODO (tech writer) - MAYBE MAKE THIS A HEADING INCLUDE TO H-SIZE (AS NEEDED):
 [[strict_match_only]]
 === Configure a Required Node Matching Rule for a Pod 
 
-In required node matching, the Kubernetes scheduler selects a node only if it meets all conditions. If no node matches the conditions you specify, the deployment will fail.
+//TODO (tech writer) - CANDIDATE FOR INCLUDE, SEE DESCRIPTION ABOVE:
+In required node matching, the node must match all node affinity rules configured for a Pod. Otherwise, the deployment fails. 
 
-//TODO: THIS TEXT IS REPEATED BELOW, SO TURN IT INTO AN INCLUDE FOR SHARING
-Specify the YAML file such as the following one. The first condition to the rule in the example requires a node label as a `key`, an operator (such as `In`), and one or more values to accept for that key. 
-/// END REPEATED SECTION
+//TODO (tech writer) - THIS TEXT IS REPEATED BELOW, SO TURN IT INTO AN INCLUDE:
+Specify the YAML file such as the following one. The first condition to the rule in the example requires a node label as a `key`, and an operator (such as `In` to accept any of the values), and one or more values to accept for a node with that key. 
+/// END REPEATED SECTION ///
 
 [src,yaml]
 ----
@@ -57,18 +64,18 @@ affinity:
  nodeAffinity:
    requiredDuringSchedulingIgnoredDuringExecution:
      nodeSelectorTerms:
-       - matchExpressions:
-         - key: <key>
-           operator: <operator>
-           values:
-             - <value>
-           # - Add as many values as you require
-       # - Add any other conditions to this rule that you require
+     - matchExpressions:
+       - key: <node-label-key>
+         operator: <operator>
+         values:
+         - <value>
+       # - Add any more values as the Pod requires.
+    # - Add any more conditions that the Pod requires.
 ----
 
 You can add as many values and conditions as the node requires. 
 
-//TODO: THIS TEXT IS REPEATED BELOW, SO TURN THIS INTO AN INCLUDE FOR SHARING:
+//TODO (tech writer) - THIS TEXT IS REPEATED BELOW, SO TURN THIS INTO AN INCLUDE:
 The command to use when passing the YAML file depends on whether Flex Gateway is installed:
 
 * If you are installing Flex Gateway for the first time, install it with a command like this one:
@@ -84,44 +91,47 @@ helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-g
 ----
 /// END REPEATED SECTION ///
 
+//TODO (tech writer) - MAYBE MAKE THIS A HEADING INCLUDE TO H-SIZE (AS NEEDED):
 [[soft_match_only]]
 === Configure a Preferred Node Matching Rule for a Pod
 
+//TODO (tech writer) - CANDIDATE FOR INCLUDE, SEE DESCRIPTION ABOVE:
 In preferred node matching, the Kubernetes scheduler selects a node based on weighted preferences. The scheduler must select a node, so if no node matches any preferences, the scheduler selects a node that does not match. 
 
-//TODO: THIS TEXT WAS INTRODUCED VERBATIM ABOVE; USE AN INCLUDE FOR IT
-Specify the YAML file such as the following one. The first condition to the rule in the example requires a node label as a `key`, an operator (such as `In`), and one or more values to accept for that key. 
+//TODO (tech writer) - THIS TEXT WAS INTRODUCED VERBATIM ABOVE; USE AN INCLUDE FOR IT:
+Specify the YAML file such as the following one. The first condition to the rule in the example requires a node label as a `key`, and an operator (such as `In` to accept any of the values), and one or more values to accept for a node with that key. 
 /// END REPEATED SECTION ///
 
-In addition, provide a `weight` value between `1` and `100` for each `preference` so that the Kubernetes scheduler can determine which rules are more important and select the best matching node. Matching is based on the sum of the weighted preferences that the node meets. The scheduler selects the node with the greatest total weight. 
+In addition, provide a `weight` value between `1` and `100` for each `preference` so that the Kubernetes scheduler can determine which rules are more important and select the best matching node. Matching is based on the sum of the weighted preferences that a node meets. The scheduler selects a node with the greatest total weight over other nodes of lesser weight. 
 
+[src,yaml]
 ----
 affinity:
  nodeAffinity:
    preferredDuringSchedulingIgnoredDuringExecution:
-     - weight: <integer>
-       preference:
-         matchExpressions:
-           - key: <node-label-key>
-             operator: <operator>
-             values:
-               - <value>
-             # - Add any other preferred values 
-     - weight: <integer>             
-       preference:       
-         matchExpressions:
-           - key: <node-label-key>
-             operator: <operator>
-             values:
-               - <value>
-             # - Add any other preferred values     
-           # - Add any other preferred conditions
-   # - Any any other preferred rules
+   - weight: <integer-x>
+     preference:
+       matchExpressions:
+       - key: <node-label-key1>
+         operator: <operator>
+         values:
+         - <value-key1>
+       # - Add any more preferred values 
+    - weight: <integer-y>
+      preference:
+        matchExpressions:
+        - key: <node-label-key2>
+          operator: <operator>
+          values:
+          - <value-key2>
+        # - Add any more preferred values.
+      # - Add any more preferred conditions.
+  # - Any any more preferred rules.
 ----
 
 You can add any number of preferred values, conditions, and rules. 
 
-//TODO: THIS TEXT WAS INTRODUCED VERBATIM ABOVE; USE AN INCLUDE FOR IT
+//TODO (tech writer) - THIS TEXT WAS INTRODUCED VERBATIM ABOVE; USE AN INCLUDE FOR IT:
 * If you are installing Flex Gateway for the first time, install it with a command like this one:
 +
 ----
@@ -137,35 +147,43 @@ helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-g
 
 === Configure Strict and Soft Node Label Matching
 
-You can configure both types of node affinity (`requiredDuringSchedulingIgnoredDuringExecution` and `preferredDuringSchedulingIgnoredDuringExecution`) in the same YAML file. The following example uses the settings from <<strict_match_only>> and <<soft_match_only>>.   
+You can configure both types of node affinity (`requiredDuringSchedulingIgnoredDuringExecution` and `preferredDuringSchedulingIgnoredDuringExecution`) in the same YAML file. The following example combines the settings from <<strict_match_only>> and <<soft_match_only>>.   
 
-//TODO: sync comments and comment style
+[src,yaml]
 ----
 affinity:
- nodeAffinity:
-   requiredDuringSchedulingIgnoredDuringExecution:
-     nodeSelectorTerms:
-       - matchExpressions:
-         - key: <key>
-           operator: <operator>
-           values:
-             - <value>
-           # - Add as many values as you want
-       # - you could add another condition to this rule
-   preferredDuringSchedulingIgnoredDuringExecution:
-     - weight: <integer>
-       preference:
-         matchExpressions:
-           - key: <key>
-             operator: <operator>
-             values:
-               - <value>
-           # - Add as many values as you want
-         # - you could add another condition to this rule
-   # - you can add more rules
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: <node-label-key>
+          operator: <operator>
+          values:
+          - <value>
+        # - Add any more values as the Pod requires.
+    # - Add any more conditions that the Pod requires.
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: <integer-x>
+        preference:
+          matchExpressions:
+          - key: <node-label-key1>
+            operator: <operator>
+            values:
+            - <value-for-key1>
+          # - Add any more preferred values 
+      - weight: <integer-y>
+        preference:
+          matchExpressions:
+          - key: <node-label-key2>
+            operator: <operator>
+            values:
+            - <value-for-key2>
+          # - Add any more preferred values.
+       # - Add any more preferred conditions.
+    # - Any any more preferred rules.
 ----
 
-//TODO: THIS TEXT IS REPEATED BELOW, SO TURN THIS INTO AN INCLUDE FOR SHARING:
+//TODO (tech writer) - THIS TEXT IS REPEATED BELOW, SO TURN THIS INTO AN INCLUDE FOR SHARING:
 The command to use when passing the YAML file depends on whether Flex Gateway is installed:
 
 * If you are installing Flex Gateway for the first time, install it with a command like this one:
