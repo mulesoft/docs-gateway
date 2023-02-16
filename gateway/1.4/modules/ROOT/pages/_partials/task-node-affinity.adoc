@@ -4,7 +4,7 @@
 
 Flex Gateway is often critical to the security of a cluster, so it is important to host it on a specialized node that meets specific requirements, instead of using the nodes that host your other deployments.
 
-To select a suitable host node for a Pod that contains Flex Gateway, you can incorporate custom node affinity rules from your Pod specification (Pod spec) into an Ingress Controller Helm chart. Helm packages files for related Kubernetes resources into a Helm chart. For more information about node affinity, see the https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity[Kubernetes documentation^].
+To select a suitable host node for a Pod that contains Flex Gateway, you can incorporate custom node affinity rules from your Pod specification (Pod spec) into the Flex Gateway Ingress Controller Helm chart. Helm packages files for related Kubernetes resources into a Helm chart. For more information about node affinity, see the https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity[Kubernetes documentation^].
 
 [[list_add_labels]]
 == List and Create Node Labels
@@ -72,7 +72,9 @@ You can add as many values and conditions as the node requires.
 
 //TAG for upgrading pod YAML spec
 //tag::upgrade-flex-pod-spec-yaml[]
-The command to use when passing the YAML file depends on whether Flex Gateway is installed:
+To incorporate the node affinity settings from your Pod spec into the Helm chart, you need to use a Helm command. https://helm.sh/docs/intro/install/[Helm^], a tool used to install Flex Gateway, monitoring tools, and applications. A minimum Helm version of 3.0.0 is required. 
+
+The Helm command to use depends on whether Flex Gateway is installed:
 
 * If you are installing Flex Gateway for the first time, use a command like this one for the installation:
 +
@@ -139,14 +141,14 @@ You can add any number of preferred values, conditions, and rules.
 
 //TODO (tech writer) - REPEATED SECTION TO REMOVE:
 //                     Use tag upgrade-flex-pod-spec-yaml
-* If you are installing Flex Gateway for the first time, install it with a command like this one:
+* If you are installing Flex Gateway for the first time, install it with a Helm command like this one:
 +
 [source,kubernetes,subs=attributes+]
 ----
 helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway -f <path-to-yaml-file> --set-file registration.content=<path-to-registration>
 ----
 
-* If Flex Gateway is installed already, use a command like this one to your running instance:
+* If Flex Gateway is installed already, use a Helm command like this one to your running instance:
 +
 [source,kubernetes,subs=attributes+]
 ----
