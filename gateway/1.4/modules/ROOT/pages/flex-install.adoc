@@ -1,0 +1,250 @@
+= Installing Flex Gateway
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+
+You can install Flex Gateway as a Linux service, in a Docker container, or as a Kubernetes Ingress controller.
+
+* If you want to run your Flex Gateway inside a virtual machine (VM), install
+it as a Linux service. 
+* If you want try the product quickly or demonstrate some of the product's capabilities in a non-production
+scenario, install it in a Docker container.
+* If you want use Flex Gateway as a load balancer at the edge of a Kubernetes cluster,
+install it as a Kubernetes Ingress controller.
+* If you want use Flex Gateway as a load balancer at the edge of an OpenShift cluster,
+install it as an OpenShift Ingress controller.
+
+[cols="1a,1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="#install-linux"]
+|image:install-docker-logo.png[25%,25%,xref="#install-docker"]
+|image:install-kubernetes-logo.png[20%,20%,xref="#install-kubernetes"]
+|image:install-openshift-logo.png[20%,20%,xref="#install-openshift"]
+
+|<<install-linux,Linux>>
+|<<install-docker,Docker>>
+|<<install-kubernetes,Kubernetes>>
+|<<install-openshift,OpenShift>>
+|===
+
+[[install-linux]]
+== Install as a Linux Service
+
+You can install Flex Gateway as a service in one of the following Linux environments:
+[cols="1a,1a,1a,1a,1a"]
+|===
+|image:install-ubuntu-logo.png[20%,20%,xref="#install-ubuntu"]
+|image:install-debian-logo.png[17%,17%,xref="#install-debian"]
+|image:install-amazon-linux-logo.png[22%,22%,xref="#install-amazon-linux"]
+|image:install-rhel-logo.png[23%,23%,xref="#install-rhel"]
+|image:install-centos-logo.png[20%,20%,xref="#install-centos"]
+
+|<<install-ubuntu,Ubuntu>>
+|<<install-debian,Debian>>
+|<<install-amazon-linux,Amazon Linux>>
+|<<install-rhel,RHEL>>
+|<<install-centos,CentOS>>
+|===
+
+[[install-ubuntu]]
+=== Ubuntu
+
+==== Before You Begin
+
+Before getting started, ensure that you have installed the following:
+
+* link:https://gnupg.org/[gnupg2^]
+* link:https://refspecs.linuxfoundation.org/LSB_3.0.0/LSB-PDA/LSB-PDA/lsbrelease.html[lsb-release^]
+* link:https://man7.org/linux/man-pages/man1/systemctl.1.html[systemctl^]
+
+==== Run Installation Commands
+
+To install Flex Gateway as a Ubuntu service execute the command block which does the following actions:
+
+* Retrieves the public package keys and adds the package repository
+* Updates the package list
+* Updates `apt-get`
+* Installs the Flex Gateway package
+
+[source,ssh]
+----
+curl -XGET https://flex-packages.anypoint.mulesoft.com/ubuntu/pubkey.gpg | sudo apt-key add -
+echo "deb [arch=amd64] https://flex-packages.anypoint.mulesoft.com/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/mulesoft.list
+sudo apt update
+sudo apt install -y flex-gateway
+----
+
+include::partial$reference-install-next-steps.adoc[]
+
+[[install-debian]]
+=== Debian
+
+==== Before You Begin
+
+Before getting started, ensure that you have installed the following:
+
+* link:https://gnupg.org/[gnupg2^]
+* link:https://refspecs.linuxfoundation.org/LSB_3.0.0/LSB-PDA/LSB-PDA/lsbrelease.html[lsb-release^]
+* link:https://man7.org/linux/man-pages/man1/systemctl.1.html[systemctl^]
+
+==== Run Installation Commands
+
+To install Flex Gateway as a Debian service execute the command block which does the following actions:
+
+* Retrieves the public package keys and adds the package repository
+* Updates the package list
+* Updates `apt-get`
+* Installs the Flex Gateway package
+
+[source,ssh]
+----
+curl -XGET https://flex-packages.anypoint.mulesoft.com/debian/pubkey.gpg | sudo apt-key add -
+echo "deb [arch=amd64] https://flex-packages.anypoint.mulesoft.com/debian $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/mulesoft.list
+sudo apt update
+sudo apt install -y flex-gateway
+----
+
+include::partial$reference-install-next-steps.adoc[]
+
+[[install-amazon-linux]]
+=== Amazon Linux
+
+==== Run Installation Commands
+
+To install Flex Gateway as an Amazon Linux service execute the command block which does the following actions:
+
+* Adds the Flex Gateway package repository with a reference to its public key
+* Installs the Flex Gateway package
+
+[source,ssh]
+----
+sudo tee /etc/yum.repos.d/flex-gateway.repo <<\EOF
+[flex-gateway]
+name = Anypoint Flex Gateway
+baseurl = https://flex-packages.anypoint.mulesoft.com/amazonlinux/$releasever/main
+gpgcheck=1
+gpgkey=https://flex-packages.anypoint.mulesoft.com/amazonlinux/pubkey.gpg
+repo_gpgcheck=1
+enabled=1
+EOF
+
+sudo yum install -y flex-gateway
+----
+
+include::partial$reference-install-next-steps.adoc[]
+
+[[install-rhel]]
+=== Red Hat Enterprise Linux
+
+==== Run Installation Commands
+
+To install Flex Gateway as a Red Hat Enterprise Linux service execute the command block which does the following actions:
+
+* Adds the Flex Gateway package repository with a reference to its public key
+* Installs the Flex Gateway package
+
+[source,ssh]
+----
+sudo tee /etc/yum.repos.d/flex-gateway.repo <<\EOF
+[flex-gateway]
+name = Anypoint Flex Gateway
+baseurl = https://flex-packages.anypoint.mulesoft.com/rhel/$releasever/main
+gpgcheck=1
+gpgkey=https://flex-packages.anypoint.mulesoft.com/rhel/pubkey.gpg
+repo_gpgcheck=1
+enabled=1
+EOF
+
+sudo yum install -y flex-gateway
+----
+
+include::partial$reference-install-next-steps.adoc[]
+
+[[install-centos]]
+=== CentOS
+
+==== Before You Begin
+
+==== Run Installation Commands
+
+To install Flex Gateway as an CentOS service execute the command block which does the following actions:
+
+* Adds the Flex Gateway package repository with a reference to its public key
+* Installs the Flex Gateway package
+
+[source,ssh]
+----
+sudo tee /etc/yum.repos.d/flex-gateway.repo <<\EOF
+[flex-gateway]
+name = Anypoint Flex Gateway
+baseurl = https://flex-packages.anypoint.mulesoft.com/centos/$releasever/main
+gpgcheck=1
+gpgkey=https://flex-packages.anypoint.mulesoft.com/centos/pubkey.gpg
+repo_gpgcheck=1
+enabled=1
+EOF
+
+sudo yum install -y flex-gateway
+----
+
+include::partial$reference-install-next-steps.adoc[]
+
+[[install-docker]]
+== Install in a Docker Container 
+
+To install Flex Gateway in a Docker container: 
+
+. Download the Flex Gateway Docker image: 
++
+[source,ssh,subs=attributes+]
+----
+docker pull mulesoft/flex-gateway:{gateway-ver-var}
+----
+
+. Verify the installation was successful: 
++
+[source,ssh]
+----
+docker images
+----
++
+You should see the Flex Gateway container image in the resulting list. 
++
+[source,text,subs=attributes+]
+----
+REPOSITORY                   TAG
+mulesoft/flex-gateway        {gateway-ver-var}
+----
+
+include::partial$reference-install-next-steps.adoc[]
+
+[[install-kubernetes]]
+== Install as a Kubernetes Ingress Controller
+
+To install Flex Gateway as a Kubernetes Ingress controller download the Flex Gateway container image: 
+
+[source,ssh,subs=attributes+]
+----
+docker pull mulesoft/flex-gateway:{gateway-ver-var}
+----
+
+include::partial$reference-install-next-steps.adoc[]
+
+[[install-openshift]]
+== Install as an OpenShift Ingress Controller
+
+[source,ssh,subs=attributes+]
+----
+docker pull mulesoft/flex-gateway:{gateway-ver-var}
+----
+
+include::partial$reference-install-next-steps.adoc[]
+
+== See Also
+
+* xref:flex-gateway-getting-started.adoc[]
+* xref:flex-review-prerequisites.adoc[]
+* xref:flex-conn-reg-run.adoc[]
+* xref:flex-local-reg-run.adoc[]
