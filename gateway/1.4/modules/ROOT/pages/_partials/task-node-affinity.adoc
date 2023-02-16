@@ -48,7 +48,7 @@ For guidance, see the following configuration options:
 In required node matching, the node must meet all node affinity rules configured for a Pod. Otherwise, the deployment fails.
 //end::temp-tag1[]
 
-//TAG for node affinity to reuse
+//TAG for common node affinity settings
 //tag::config-flex-affinity-condition[]
 Configure a node affinity rule in the specification file for your Pod. Each condition to a rule requires a node label as a `key`, an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`,  `DoesNotExist`, `Gt`, and `Lt`.
 //end::config-flex-affinity-condition[]
@@ -98,12 +98,12 @@ Notice that the command passes the YAML file for the Pod spec.
 
 In preferred node matching, the Kubernetes scheduler selects a node based on weighted preferences. The scheduler must select a node, so if no node matches any preferences, the scheduler selects a node that does not match. 
 
-//TODO (tech writer) - REPEATED SECTION: 
+//TODO (tech writer) - REPEATED SECTION TO REMOVE: 
 //                     Use include tag config-flex-affinity-condition
 Configure a node affinity rule in the Pod spec. Each condition to a rule requires a node label as a `key`, an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`,  `DoesNotExist`, `Gt`, and `Lt`.
 //END REPEATED SECTION///
 
-//TAG for extras in PREFERRED node affinity
+//TAG for extra settings used in preferred node affinity config
 //tag::config-flex-preferred-affinity-condition[]
 In addition, provide a `weight` value between `1` and `100` for each `preference` so that the Kubernetes scheduler can determine which rules are more important and select the best matching node. Matching is based on the sum of the weighted preferences that a node meets. The scheduler selects a node with the greatest total weight over other nodes of lesser weight. 
 //end::config-flex-preferred-affinity-condition[]
@@ -135,7 +135,7 @@ affinity:
 
 You can add any number of preferred values, conditions, and rules. 
 
-//TODO (tech writer) - REPEATED SECTION: 
+//TODO (tech writer) - REPEATED SECTION TO REMOVE:
 //                     Use tag upgrade-flex-pod-spec-yaml
 * If you are installing Flex Gateway for the first time, install it with a command like this one:
 +
@@ -157,12 +157,12 @@ helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-g
 
 You can configure both types of node affinity (required and preferred) in the same YAML file. The example combines the settings from <<strict_match_only>> and <<soft_match_only>>.  
 
-//TODO (tech writer) - REPEATED SECTION: 
+//TODO (tech writer) - REPEATED SECTION TO REMOVE:
 //                     Use tag config-flex-affinity-condition
 Configure a node affinity rule in the Pod spec. Each condition to a rule requires a node label as a `key`, an operator, and one or more values to accept for a node with that key. For operators, you can use `In`, `NotIn`, `Exists`,  `DoesNotExist`, `Gt`, and `Lt`.
 //END REPEATED SECTION///
 
-//TODO (tech writer) - REPEATED SECTION: 
+//TODO (tech writer) - REPEATED SECTION TO REMOVE:
 //                     Use tag config-flex-preferred-affinity-condition
 In addition, provide a `weight` value between `1` and `100` for each `preference` so that the Kubernetes scheduler can determine which rules are more important and select the best matching node. Matching is based on the sum of the weighted preferences that a node meets. The scheduler selects a node with the greatest total weight over other nodes of lesser weight. 
 //END REPEATED SECTION///
@@ -201,8 +201,8 @@ affinity:
     # - Any any more preferred rules.
 ----
 
-//TODO (tech writer) - REPEATED SECTION: 
-//                     Use tag upgrade-flex-pod-spec-yaml[]
+//TODO (tech writer) - REPEATED SECTION TO REMOVE:
+//                     Use tag upgrade-flex-pod-spec-yaml
 The command to use when passing the YAML file depends on whether Flex Gateway is installed:
 
 * If you are installing Flex Gateway for the first time, install it with a command like this one:
