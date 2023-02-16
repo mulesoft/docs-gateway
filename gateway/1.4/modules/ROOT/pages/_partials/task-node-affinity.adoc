@@ -4,7 +4,7 @@
 
 Flex Gateway is often critical to the security of a cluster, so it is important to host it on a specialized node that meets specific requirements, instead of using the nodes that host your other deployments.
 
-To select a suitable host node for a Pod that contains Flex Gateway, you can incorporate custom node affinity rules from your Pod specification (Pod spec) into the Flex Gateway Ingress Controller Helm chart. Helm packages files for related Kubernetes resources into a Helm chart. For more information about node affinity, see the https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity[Kubernetes documentation^].
+To select a suitable host node for a Pod that contains Flex Gateway, you can incorporate custom node affinity rules from your Pod specification (Pod spec) into a Helm chart for your Flex Gateway Ingress Controller. For more information about node affinity, see the https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity[Kubernetes documentation^].
 
 [[list_add_labels]]
 == List and Create Node Labels
@@ -45,7 +45,8 @@ For guidance, see the following configuration options:
 [[strict_match_only]]
 === Configure a Required Node Matching Rule for a Pod 
 
-In required node matching, the node must meet all node affinity rules configured for a Pod. Otherwise, the deployment fails.
+In required node matching, the node must meet all node affinity rules configured for a Pod. Otherwise, the deployment fails. 
+
 //end::temp-tag1[]
 
 //TAG for common node affinity settings
@@ -72,7 +73,9 @@ You can add as many values and conditions as the node requires.
 
 //TAG for upgrading pod YAML spec
 //tag::upgrade-flex-pod-spec-yaml[]
-To incorporate the node affinity settings from your Pod spec into the Helm chart, you need to use a Helm command. https://helm.sh/docs/intro/install/[Helm^], a tool used to install Flex Gateway, monitoring tools, and applications. A minimum Helm version of 3.0.0 is required. 
+After setting up node affinity in your Pod spec file, incorporate the updated file into the Helm chart for your Flex Gateway Ingress Controller. https://helm.sh/docs/intro/install[Helm^], a tool used to install Flex Gateway, monitoring tools, and applications. A minimum Helm version of 3.0.0 is required. 
+
+To incorporate the node affinity settings from your Pod spec into the Helm chart, you need to use a Helm command. 
 
 The Helm command to use depends on whether Flex Gateway is installed:
 
@@ -94,7 +97,7 @@ helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-g
 +
 Notice that the command passes the YAML file for the Pod spec.
 
-For information about the Helm command, see xref:https://helm.sh/docs/helm/helm_upgrade/[Helm Upgrade^].
+For information about the Helm command, see xref:https://helm.sh/docs/helm/helm_upgrade[Helm Upgrade^].
 //end::upgrade-flex-pod-spec-yaml[]
 
 [[soft_match_only]]
