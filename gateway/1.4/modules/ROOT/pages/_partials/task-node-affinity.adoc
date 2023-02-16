@@ -74,12 +74,14 @@ You can add as many values and conditions as the node requires.
 //tag::upgrade-flex-pod-spec-yaml[]
 The command to use when passing the YAML file depends on whether Flex Gateway is installed:
 
-* If you are installing Flex Gateway for the first time, install it with a command like this one:
+* If you are installing Flex Gateway for the first time, use a command like this one for the installation:
 +
 [source,kubernetes,subs=attributes+]
 ----
 helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway -f <path-to-yaml-file> --set-file registration.content=<path-to-registration>
 ----
++
+Notice that the command passes the YAML file for the Pod spec.
 
 * If Flex Gateway is installed already, use a command like this one to your running instance:
 +
@@ -87,6 +89,8 @@ helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-g
 ----
 helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway --reuse-values -f <path-to-yaml-file>
 ----
++
+Notice that the command passes the YAML file for the Pod spec.
 //end::upgrade-flex-pod-spec-yaml[]
 
 [[soft_match_only]]
