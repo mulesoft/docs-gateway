@@ -2,9 +2,9 @@
 //tag::temp-tag1[]
 = Select a Node for Flex Gateway Deployments
 
-Flex Gateway is often critical to the security of a cluster, so it is important to host it on a specialized node that matches specific requirements, instead of using the nodes that host your other deployments.
+Flex Gateway is often critical to the security of a cluster, so it is important to host it on a specialized node that meets specific requirements, instead of using the nodes that host your other deployments.
 
-To select a suitable host node for a Pod that contains Flex Gateway, you can use an Ingress Controller Helm chart. The chart supports node affinity configurations, which enable this customization. For more information about node affinity, see the https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity[Kubernetes documentation^].
+To select a suitable host node for a Pod that contains Flex Gateway, you can incorporate custom node affinity rules from your Pod specification (Pod spec) into an Ingress Controller Helm chart. Helm packages files for related Kubernetes resources into a Helm chart. For more information about node affinity, see the https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity[Kubernetes documentation^].
 
 [[list_add_labels]]
 == List and Create Node Labels
@@ -31,7 +31,7 @@ For related Kubernetes documentation, see https://kubernetes.io/docs/tasks/confi
 
 The Kubernetes scheduler can use node affinity rules to match nodes to Pods. The matching process enables the scheduler to select the node into which a Pod is deployed.
 
-Configure node affinity rules within a Pod specification (Pod spec). A Pod spec is YAML file in which you can specify rules for required, preferred, or both types of matching:
+Configure node affinity rules within a Pod spec. A Pod spec is YAML file in which you can specify rules for required, preferred, or both types of matching:
 
 * `requiredDuringSchedulingIgnoredDuringExecution`: The node must match all node affinity rules configured for a Pod when the Kubernetes scheduler applies this type of matching. Otherwise, the deployment fails. 
 * `preferredDuringSchedulingIgnoredDuringExecution`: Based on weighted preferences set for a Pod, the Kubernetes scheduler selects the best matching node. The scheduler must select a node, so if no node matches any of the preferences, the scheduler selects a node that does not match. 
@@ -91,6 +91,8 @@ helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-g
 ----
 +
 Notice that the command passes the YAML file for the Pod spec.
+
+For information about the Helm command, see xref:https://helm.sh/docs/helm/helm_upgrade/[Helm Upgrade^].
 //end::upgrade-flex-pod-spec-yaml[]
 
 [[soft_match_only]]
