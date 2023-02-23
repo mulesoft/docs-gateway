@@ -20,9 +20,9 @@ Before getting started with Flex Gateway, ensure that you have:
 
 To install the Flex Gateway Docker image, run the following command in a terminal window:
 
-[source,ssh]
+[source,ssh,subs=attributes+]
 ----
-docker pull mulesoft/flex-gateway:latest
+docker pull mulesoft/flex-gateway:{gateway-ver-var}
 ----
 
 [NOTE]
@@ -34,14 +34,14 @@ Use `sudo` if you encounter file permission issues when running this command.
 +
 [source,ssh]
 ----
-mkdir flex-config
+mkdir flex-registration
 ----
 
 . Navigate to the new directory by running:
 +
 [source,ssh]
 ----
-cd flex-config
+cd flex-registration
 ----
 
 . Log in to https://anypoint.mulesoft.com/login/[Anypoint Platform^] with your Anypoint username and password.
@@ -60,7 +60,7 @@ image::gateway-quickstart-add-gateway.png["Add a Flex Gateway page with code blo
 [NOTE]
 Use `sudo` if you encounter file permission issues when running this command.
 
-. Select *Flex Gateways* in the side navigation panel.
+. In Runtime Manager, select *Flex Gateways* from the side navigation panel.
 +
 Your registered Flex Gateway now appears in the list of gateways.
 
@@ -80,6 +80,9 @@ docker run --rm \
 Use `sudo` if you encounter file permission issues when running this command.
 
 A new Flex Gateway instance is now running in your terminal window.
+
+[NOTE]
+The Flex Gateway instance will continue running in the terminal window until the process is stopped, or until the window is closed.
 
 == Publish a Simple API
 
@@ -119,7 +122,7 @@ Inside the gateway instance Docker container, all HTTP requests made to `localho
 +
 [source,ssh]
 ----
-curl -s -o /dev/null -w "%{http_code}" --request GET 'http://localhost:8081/'
+curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://localhost:8081/'
 ----
 +
 The command executes a `GET` request to the API, and then prints the resulting `200` status code, indicating success.
@@ -127,7 +130,7 @@ The command executes a `GET` request to the API, and then prints the resulting `
 == Secure Your API Using the Basic Authentication Policy
 
 . While still in *API Manager*, select *API Administration* from the side navigation panel.
-. Select the highlighted name of the API created in the previous section.
+. Select the name of the API created in the previous section.
 . Select *Policies* from the side navigation panel.
 . In the *Policies* page, click *Add policy*.
 +
@@ -145,20 +148,23 @@ The following screenshot of the *Configure Basic Authentication - Simple policy*
 +
 image::gateway-quickstart-config-basic-auth.png["Configure Basic Authentication Policy page with User Password field selected",width=65%]
 
-. To test the API Instance _without_ authentication, run the following `curl` command:
+. To test the API Instance _without_ authentication, run the following `curl` command in the terminal window:
 +
 [source,ssh]
 ----
-curl -s -o /dev/null -w "%{http_code}" --request GET 'http://localhost:8081/'
+curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://localhost:8081/'
 ----
 +
 The command prints a resulting `401 (Unauthorized)` status code, because the request does not include the Authentication context.
-. To test the API Instance _with_ authentication, run the following command:
+. To test the API Instance _with_ authentication, run the following command in the terminal window:
 +
 [source,ssh]
 ----
-curl -s -o /dev/null -w "%{http_code}" --request GET 'http://localhost:8081/' -u user:password
+curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://localhost:8081/' -u user:password
 ----
++
+[NOTE]
+The `user` and `password` parameters must match what was specified when you applied the policy via *API Manager*.
 +
 The command prints the resulting `200` status code, indicating success.
 
@@ -166,6 +172,7 @@ The command prints the resulting `200` status code, indicating success.
 
 * xref:flex-review-prerequisites.adoc[]
 * xref:flex-install.adoc[]
+* xref:flex-gateway-uninstall.adoc[]
 * xref:flex-conn-reg-run.adoc[]
 * xref:flex-local-reg-run.adoc[]
 * xref:flex-conn-manage.adoc[]
