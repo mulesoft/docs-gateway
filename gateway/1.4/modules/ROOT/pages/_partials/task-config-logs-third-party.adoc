@@ -3,7 +3,7 @@ Anypoint Flex Gateway enables you to configure log output for consumption by thi
 
 //end::intro1[]
 //tag::intro2[]
-The following example demonstrates how to redirect Flex Gateway logs to Splunk.
+The following example demonstrates how to redirect Flex Gateway logs to Splunk. However, you can use any Fluent Bit {fluentbit-ver-var} output type. For more information about other output types, see https://docs.fluentbit.io/manual/v/1.8/pipeline/outputs[Fluent Bit Outputs documentation ^]. 
 //end::intro2[]
 //tag::icon-table[]
 
@@ -34,6 +34,16 @@ Additionally, ensure that you have:
 * Added an HTTP Event Collector (HEC) data input to the Cloud or Enterprise Splunk service. See the https://docs.splunk.com/Documentation/Splunk/7.0.3/Data/UsetheHTTPEventCollector[Splunk documentation^] about how to add a data input, and how to create an HEC token.
 
 //end::byb[]
+
+//tag::file-example[]
+
+== Logging Configuration File
+
+include::partial$logging-config-file.adoc[]
+
+The configuration file used in the following examples demonstrates how to redirect Flex Gateway logs to Splunk.
+
+//end::file-example[]
 //tag::linux[]
 
 [[linux-service]]
@@ -68,7 +78,7 @@ Flex Gateway configuration files, go to the last step.
 //end::docker-intro[]
 
 //tag::docker-config-file-step[]
-. Create and save a YAML configuration file in your `app` folder with your shared storage details.
+. Create and save a YAML configuration file in your `app` folder with your logging configuration details.
 +
 //end::docker-config-file-step[]
 //tag::k8s[]
@@ -76,7 +86,7 @@ Flex Gateway configuration files, go to the last step.
 [[kubernetes-ingress-controller]]
 == Configure Log Output for Flex Gateway as a Kubernetes Ingress Controller
 
-To configure shared storage for Flex Gateway, create a new resource using
+To configure logging for Flex Gateway, create a new resource using
 a YAML configuration file with your Splunk details.
 
 //end::k8s[]
@@ -110,5 +120,12 @@ spec:
       outputs: [splunk]
 ----
 
-Splunk will be begin ingesting logs soon after applying this resource. If no events appear in the Splunk dashboard, inspect the Flex Gateway `flex-gateway-fluentbit` logs to determine if there are configuration errors.
+Splunk begins ingesting logs soon after applying this resource. If no events appear in the Splunk dashboard, inspect the Flex Gateway `flex-gateway-fluent` logs to determine if there are configuration errors.
 //end::sample-config-all[]
+//tag::view-logs-local[]
+To view `flex-gateway-fluent` logs, see xref:flex-local-view-manage-logs.adoc#view-logs[Viewing and Managing Log Output].
+//end::view-logs-local[]
+
+//tag::view-logs-conn[]
+To view `flex-gateway-fluent` logs in API Manager, see *Anypoint Platform > API Manager > Logs*.
+//tag::view-logs-conn[]

@@ -4,21 +4,71 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Anypoint Flex Gateway enables you to deliver metrics to any supported Fluentbit {fluentbit-ver-var} output. Refer to the xref:flex-local-configuration-reference-guide.adoc#logging[Declarative Configuration Reference Guide] for information on how to configure Flex Gateway for any of these supported outputs.
+Anypoint Flex Gateway enables you to deliver runtime and access logging to any supported Fluent Bit {fluentbit-ver-var} output type. Runtime logs contain information such as when Flex Gateways start and when API instances are deployed. Access logs contains information such as API requests.
 
-The following examples describe how to configure Flex Gateway for use with the File and HTTP outputs.
+As well as being able to configure additional logging outputs, Flex Gateway maintains standard output,`flex-gateway-fluent`, runtime and access logs. You do not need to configure these logs. To view `flex-gateway-fluent` logs, see <<view-logs, View Logs>>.
+
+You configure logs for Flex Gateway running in local mode via a configuration YAML file described in this page, as well as in the xref:flex-local-configuration-reference-guide.adoc#logging[Declarative Configuration Reference Guide].
+
+This tutorial only demonstrates how to configure `File` or `HTTP` output types. To configure of third party Fluent Bit outputs, see xref:flex-local-third-party-logs-config.adoc[].
 
 [NOTE]
 ====
 To enable access logging, you must: 
 
-. Configure the File or HTTP output.
+. Configure the `File` or `HTTP` output.
 . Apply the Message Logging policy via policy binding. See <<access-logs,Access Logs>>.
 ====
 
+[cols="1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="#linux-service"]
+|image:install-docker-logo.png[25%,25%,xref="#docker-container"]
+|image:install-kubernetes-logo.png[20%,20%,xref="#kubernetes-ingress-controller"]
+
+|<<linux-service,Configure Log Output for Flex Gateway as a Linux Service>>
+|<<docker-container,Configure Log Output for Flex Gateway in a Docker Container>>
+|<<kubernetes-ingress-controller,Configure Log Output for Flex Gateway as a Kubernetes Ingress Controller>>
+|===
+
+[[linux-service]]
+== Configure Log Output for Flex Gateway as a Linux Service
+
+. Create a YAML configuration file in the Flex Gateway configuration directory:
++
+[source,ssh]
+----
+sudo touch /usr/local/share/mulesoft/flex-gateway/conf.d/logs-config.yaml
+----
+
+. Update the file with your <<file-configuration-example, `File`>> or <<http-configuration-example, `HTTP`>> output configuration details.
+
+[[docker-container]]
+== Configure Log Output for Flex Gateway in a Docker Container
+
+NOTE: If you have already added a volume for a folder with your
+Flex Gateway configuration files, go to the last step.
+
+. Stop your Flex Gateway and any replicas, using Ctrl+C.
+. Create a folder in the directory with your Flex Gateway configuration files and name it `app`.
+. Restart your Flex Gateway with an additional volume for the new `app` directory:
+. Create and save a YAML file with your <<file-configuration-example, `File`>> or <<http-configuration-example, `HTTP`>> output configuration details.
+
+[[kubernetes-ingress-controller]]
+== Configure Log Output for Flex Gateway as a Kubernetes Ingress Controller
+
+To configure logging for Flex Gateway, create a new resource using
+a YAML configuration file with your <<file-configuration-example, `File`>> or <<http-configuration-example, `HTTP`>> output configuration details.
+
+== Logging Configuration File
+
+include::partial$logging-config-file.adoc[]
+
+The following examples describe how to configure Flex Gateway logging with the `File` and `HTTP` outputs by using this configuration file.
+
 == File Configuration Example
 
-Configure Flex Gateway to send formatted runtime and access logs to a file called `log.txt` (Fluentbit `File` output), located within `/var/log` directory. As an example, the following definition specifies a `spec.logging.outputs.type` value of `file`:
+Configure Flex Gateway to send formatted runtime and access logs to a file called `log.txt` (Fluent Bit `File` output), located within `/var/log` directory. As an example, the following definition specifies a `spec.logging.outputs.type` value of `file`:
 
 NOTE: For Docker, in `spec.logging.output.parameters.file`, replace `/var/log` with the absolute path to the mounted configuration directory.
 
@@ -48,7 +98,7 @@ spec:
 
 == HTTP Configuration Example
 
-In addition to configuring logging for Fluentbit `File` output, you can also configure for Fluentbit `HTTP` output. As an example, the following definition specifies a `spec.logging.outputs.type` value of `http`:
+In addition to configuring logging for Fluent Bit `File` output, you can also configure for Fluent Bit `HTTP` output. As an example, the following definition specifies a `spec.logging.outputs.type` value of `http`:
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -142,9 +192,11 @@ spec:
           secondSection: true
 ----
 
+For more information about message logging configuration, see xref:policies::policies-included-message-logging.adoc[].
+
 == View Logs
 
-After enabling access logs via policy binding, to view agent, envoy, and Fluentbit logs, run the following commands.
+Flex Gateway also records standard output, `flex-gateway-fluent`, logs seprate from the logs you configured in this tutorial. To view the standard output logs, run the following commands:
 
 For Linux:
 [source,ssh]
@@ -167,3 +219,5 @@ kubectl logs -f <pod-name>
 == See Also
 
 * xref:policies::policies-included-message-logging.adoc[]
+* https://docs.fluentbit.io/manual/v/1.8/pipeline/outputs[Fluent Bit Outputs documentation ^]
+* xref:flex-local-third-party-logs-config.adoc[]
