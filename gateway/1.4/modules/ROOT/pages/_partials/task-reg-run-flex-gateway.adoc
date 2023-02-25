@@ -77,9 +77,27 @@ to generate set of instructions that includes a command block with the registrat
 // tag::reg-command-intro[]
 To register a Flex Gateway with Anypoint Platform, you must enter the registration command and then the start command. Each command includes information specific to your Anypoint Platform instance and *must be updated before* executing. See <<Before You Begin>> for more information on how to find the information you will need.
 //end::reg-command-intro[]
+//
+// tag::k8s-connected-intro[]
+In this mode, the gateway is managed entirely through Anypoint Platform, where you can: 
+
+* Deploy APIs to your cluster.
+* Apply policies and other configurations.
+* Create all resources through Anypoint Platform. 
+
+Resource creation through `kubectl apply` is restricted to specific resource types.
+
+// end::k8s-connected-intro[]
+//
+// tag::k8s-local-intro[]
+In Local Mode, Flex Gateway acts as an ingress controller that manages external access to your Kubernetes cluster. When using this mode, you must know what resources to create and apply, and use `kubectl apply` to deploy resources such as APIs, policies, or Flex Gateway-related resources to your gateway. Local Mode also supports the Ingress resources from Kubernetes, which are configured through a YAML file with properties, such as `apiVersion`, `kind`, `metadata`, `spec` for configuring a load balancer or proxy server, and `rules` for directing HTTP and HTTPS traffic (see https://kubernetes.io/docs/concepts/services-networking/ingress/[Kubernetes documentation^] on Ingress resources).
+
+// end::k8s-local-intro[]
+//
 // tag::k8s-reg-command-intro[]
 To register a Flex Gateway with Anypoint Platform as a Kubernetes ingress controller, you must enter the registration command and then install the flex-gateway Helm chart. Each command includes information specific to your Anypoint Platform instance and *must be updated before* executing. See <<Before You Begin>> for more information on how to find the information you will need.
 // end::k8s-reg-command-intro[] 
+
 //tag::sub-coll-info[]
 
 === Substitute Collected Information
