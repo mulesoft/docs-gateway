@@ -1,20 +1,29 @@
 //START TAG: flex-node-affinity-intro
 //tag::flex-node-affinity-intro[]
-= Select a Node for Flex Gateway Deployments on Kubernetes
+//= Select a Node for Flex Gateway Deployments on Kubernetes
 
 Flex Gateway is often critical to the security of a cluster, so it is important to host it on a specialized node that meets specific requirements, instead of using the nodes that host other deployments.
 
 To enable the Kubernetes scheduler to select a suitable host node for a Pod that contains Flex Gateway, you can incorporate custom node affinity rules from your Pod specification (Pod spec) into a Helm chart for your Flex Gateway Ingress Controller. For more information about node affinity, see the https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity[Kubernetes documentation^].
 
+The high-level tasks for configuring node affinity follow:
+
+. Finding or creating what node labels to use when defining node affinity rules and conditions (see <<list_add_labels>>).
+. Specifying rules and conditions in a YAML configuration file for the Pod (a Pod specification) that contains your containerized Flex Gateway application (see <<set_node_affinity>>).
+. Upgrading your Helm chart with the new YAML configuration (see <<upgrade_helm_chart>>).
+
+//end::flex-node-affinity-intro[]
+//END TAG
+
 ////
-//information only:
-//The tasks for this process require the following:
+//informational
+//== Before You Begin
 //
-//. Finding or creating what node labels to use when defining node affinity rules and conditions (<<list_add_labels>>).
-//. Specifying rules and conditions in a YAML configuration file for the Pod (a Pod specification) that contains your containerized Flex Gateway application (<<set_node_affinity>>).
-//. Upgrading your Helm chart with the new YAML configuration (<<upgrade_helm_chart>>). 
+//Meet the Kubernetes and Helm version requirements described in xref:flex-review-prerequisites.adoc[].
 ////
 
+//START TAG: flex-node-affinity-list-labels
+//tag::flex-node-affinity-list-labels[]
 [[list_add_labels]]
 == List and Create Node Labels
 
@@ -35,7 +44,7 @@ kubectl label nodes <node-name> <label-key>=<label-value>
 ----
 
 For related Kubernetes documentation, see https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes/#add-a-label-to-a-node[Add a Label to a Node^].
-//end::flex-node-affinity-intro[]
+//end::flex-node-affinity-list-labels[]
 //END TAG
 
 
