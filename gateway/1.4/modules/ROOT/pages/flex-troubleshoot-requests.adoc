@@ -6,12 +6,16 @@ endif::[]
 
 When configuring and running Flex Gateway, you might encounter connection issues. 
 
-You can troubleshoot the request connection between the API upstream and Flex Gateway, as well as the connection between Flex Gateway and the client, by isolating the connections. Isolating Flex Gateway connections allows you to localize the issue.
+By making direct requests, you can troubleshoot both the outbound connection between the upstream service and Flex Gateway and the inbound connection between Flex Gateway and the client. Making direct requests isolates Flex Gateway connections allowing you to localize the issue. 
 
-== Isolate Connection Between the API Upstream and Flex Gateway
-Isolating the connection between the API upstream and Flex Gateway allows you to test for connection issues between the two.
+The following diagram demonstrates the difference between inbound and outbound requests. 
 
-To isolate the connection between the API upstream and Flex Gateway:
+image:flex-inbound-outbound-requests.png[Inbound connections are between the client and Flex Gateway and outbound connections are between Flex Gateway and the upstream service, align=center]
+
+== Outbound Requests Between Flex Gateway and the Upstream Service
+Isolating the connection between the upstream service and Flex Gateway enables you to test for connection between the two.
+
+To make a direct outbound request to the upstream service:
 
 . Log into the Flex Gateway container or VM:
 
@@ -38,18 +42,18 @@ docker exec -it <container-id> bash
 kubectl -n <namespace> exec -it <pod-name> -- bash
 ----
 
-. Make a request to the upstream:
+. Make a request to the upstream service:
 +
 [source,ssh]
 ----
 curl -v <http://upstream.domain>
 ----
 
-== Isolate Connection Between Flex Gateway and the API Upstream
+== Inbound Requests Between the Client and Flex Gateway
 
-Isolating the connection between the Flex Gateway and the client allows you to test if the connection issue is due to a load balancer or another system added between the gateway and the client.
+Isolating the connection between Flex Gateway and the client enables you to test if the connection issue is due to a load balancer or another system added between Flex Gateway and the client.
 
-To isolate the connection between Flex Gateway and the client:
+To make a direct inbound request to the client:
 
 . Log into the Flex Gateway container or VM:
 
@@ -77,9 +81,9 @@ kubectl -n <namespace> exec -it <pod-name> -- bash
 ----
 
 
-. Make a request to Flex Gateway
+. Make a request to Flex Gateway:
 +
 [source,ssh]
 ----
 curl -v http://localhost:<api-instance-port>/<path>
---
+----
