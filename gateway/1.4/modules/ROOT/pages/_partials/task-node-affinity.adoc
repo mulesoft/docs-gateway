@@ -4,22 +4,23 @@
 
 Flex Gateway is often critical to the performance and security of a cluster, so it is important to host it on a specialized node that meets specific requirements, instead of using the nodes that host other deployments.
 
-To enable the Kubernetes scheduler to select a suitable host node for a Pod that contains Flex Gateway, you can set custom node affinity rules in a YAML configuration file that incorporates the Pod's requirements into a Helm chart for your Flex Gateway Ingress Controller. For more information about node affinity, see the https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity[Kubernetes documentation^].
+To enable the Kubernetes scheduler to select a suitable host node for a Pod that contains Flex Gateway, you can set custom node affinity rules in a YAML configuration file that incorporates the Pod's requirements into a Helm chart for your Flex Gateway deployment. For more information about node affinity, see the https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity[Kubernetes documentation^].
 
 The high-level tasks for configuring node affinity follow:
 
 . Finding or creating what node labels to use when defining node affinity rules and conditions (see <<list_add_labels>>).
-. Specifying rules and conditions in a YAML configuration file for a Pod  that contains your containerized Flex Gateway application (see <<set_node_affinity>>).
-. Upgrading your Helm chart with the new YAML configuration (see <<upgrade_helm_chart>>).
+. Specifying rules and conditions in a YAML configuration file for any Pod that contains your containerized Flex Gateway application (see <<set_node_affinity>>).
+. Upgrading your Helm chart with the YAML configuration (see <<upgrade_helm_chart>>).
 
 //end::flex-node-affinity-intro[]
 //END TAG
 
 ////
-//informational
+//informational only:
 //== Before You Begin
 //
-//Meet the Kubernetes and Helm version requirements described in xref:flex-review-prerequisites.adoc[].
+//Meet the Kubernetes and Helm version requirements described 
+//in xref:flex-review-prerequisites.adoc[].
 ////
 
 //START TAG: flex-node-affinity-list-labels
@@ -53,7 +54,7 @@ For related Kubernetes documentation, see https://kubernetes.io/docs/tasks/confi
 //START TAG
 //tag::set-node-affinity[]
 [[set_node_affinity]]
-== Set Node Affinity for a Pod
+== Configure Rules for Matching a Node to a Pod for a Flex Gateway Container
 
 The Kubernetes scheduler can use node affinity rules to match nodes to Pods. The matching process enables the scheduler to select the node into which a Pod is deployed.
 
@@ -239,9 +240,9 @@ affinity:
 [[upgrade_helm_chart]]
 == Upgrade the Helm Chart
 
-After adding the node affinity settings to your YAML configuration file, incorporate the file into the Helm chart for your Flex Gateway Ingress Controller so that the Kubernetes scheduler can use the setting. https://helm.sh/docs/intro/install[Helm^] is a tool used to install Flex Gateway, monitoring tools, and applications. A minimum Helm version of 3.0.0 is required. 
+After adding the node affinity settings to your YAML configuration file, incorporate the file into the Helm chart for a Flex Gateway deployment so that the Kubernetes scheduler can use the setting. 
 
-Use a Helm command to incorporate the node affinity settings from your YAML configuration file into the Helm chart. The command to use depends on whether Flex Gateway is installed:
+Use a `helm` command to incorporate the node affinity settings from your YAML configuration file into a Helm chart. The command to use depends on whether Flex Gateway is installed:
 
 * If you are installing Flex Gateway for the first time, use this command to set all values in the chart:
 +
@@ -253,7 +254,7 @@ helm -n gateway upgrade -i --create-namespace \
 --set-file registration.content=<path-to-registration>
 ----
 +
-Notice that the command passes the YAML file with the node affinity rules for a Pod.
+Notice that the command passes the YAML file with the node affinity rules.
 
 * If Flex Gateway is installed already, use this command to reuse the chart's existing configuration and set the node affinity configuration:
 +
@@ -264,7 +265,7 @@ helm -n gateway upgrade -i --create-namespace \
 --reuse-values -f <path-to-yaml-file>
 ----
 +
-Notice that the command passes the YAML file with the node affinity rules
+Notice that the command passes the YAML file with the node affinity rules.
 
 For information about the Helm command, see 
 https://helm.sh/docs/helm/helm_upgrade[Helm Upgrade^].
