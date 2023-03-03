@@ -48,10 +48,10 @@ In Local Mode, you apply the Header Injection policy to your API via declarative
     name: header-injection-flex
   config:
     inboundHeaders: <array> // OPTIONAL, default: []
-      - name: <string> // REQUIRED
+      - key: <string> // REQUIRED
         value: <string> // REQUIRED
     outboundHeaders: <array> // OPTIONAL, default: []
-      - name: <string> // REQUIRED
+      - key: <string> // REQUIRED
         value: <string> // REQUIRED
 ----
 
@@ -65,7 +65,7 @@ In Local Mode, you apply the Header Injection policy to your API via declarative
 | Empty array
 | List of headers to be injected at the beginning of the message processing.
 
-| `inboundHeaders.name` 
+| `inboundHeaders.key` 
 | Required
 | N/A
 | A string or DataWeave expression for header name
@@ -80,7 +80,7 @@ In Local Mode, you apply the Header Injection policy to your API via declarative
 | Empty array
 | List of header to be injected at the end of the message processing.
 
-| `outboundHeaders.name` 
+| `outboundHeaders.key` 
 | Required
 | N/A
 | A string or DataWeave expression for header name
@@ -106,10 +106,10 @@ In the following example, all the headers matching the configured `#[attributes.
     name: header-injection-flex
     config:
       inboundHeaders:
-        - name: "new-inbound-header"
+        - key: "new-inbound-header"
           value: "#[attributes.requestPath]"
       outboundHeaders:
-        - name: "new-outbound-header"
+        - key: "new-outbound-header"
           value: "#[attributes.requestPath]"
 ----
 
