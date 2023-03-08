@@ -1,20 +1,18 @@
-= Viewing and Managing Log Output
+= Configure Log Output
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Anypoint Flex Gateway enables you to deliver runtime and access logging to any supported Fluent Bit {fluentbit-ver-var} output type. This enables you to configure `File` or `HTTP` logging outputs. This tutorial only demonstrates how to configure `File` or `HTTP` Fluent Bit output types. To configure different Fluent Bit output types for third party services, see xref:flex-local-third-party-logs-config.adoc[].
+Anypoint Flex Gateway enables you to deliver runtime and access logging to any supported Fluent Bit {fluentbit-ver-var} output type. You configure log output via a custom YAML file. This enables you to configure `File` or `HTTP` logging outputs. This tutorial only demonstrates how to configure `File` or `HTTP` Fluent Bit output types. To configure different Fluent Bit output types for third party services, see xref:flex-local-third-party-logs-config.adoc[].
 
-As well as being able to configure Fluent Bit logging output types, Flex Gateway maintains standard output,`flex-gateway-fluent`, runtime and access logs. You do not need to configure these logs. To view `flex-gateway-fluent` logs, see <<view-logs, View Logs>>. Use the standard output logs for quick logging checks where an additional logging output is not needed.
-
-You configure logs for Flex Gateway running in local mode via a configuration YAML file described in this page. The logging configuration YAML file is also described in the xref:flex-local-configuration-reference-guide.adoc#logging[Declarative Configuration Reference Guide]. However, this page supplies a more detailed tutorial of log configuration.
+As well as being able to configure additional Fluent Bit logging output types, Flex Gateway maintains standard output,`flex-gateway-fluent`, runtime and access logs you do not need to configure. Use the standard output logs for quick logging checks where an additional logging output is not needed. To view the standard output logs, see xref:flex-local-view-logs[View Logs].
 
 == Runtime Logs
+Runtime logs contain information such as when Flex Gateways start and when API instances are deployed.
 
 == Access Logs
-
-
+Access logs contains information such as API requests.
 
 To enable access logging, you must: 
 
@@ -130,7 +128,7 @@ spec:
 
 
 [[access-logs]]
-== COnfiguring Access Logs
+== Configure Access Logs
 
 After specifying access log output (as described in the previous configuration examples), you must enable access logs via policy binding. 
 
@@ -196,27 +194,7 @@ spec:
 
 For more information about message logging configuration, see xref:policies::policies-included-message-logging.adoc[].
 
-== View Logs
 
-Flex Gateway also records standard output, `flex-gateway-fluent`, logs seprate from the logs you configured in this tutorial. To view the standard output logs, run the following commands:
-
-For Linux:
-[source,ssh]
-----
-journalctl -u flex-gateway
-----
-
-For Docker:
-[source,ssh]
-----
-docker logs -f <container-id>
-----
-
-For Kubernetes:
-[source,ssh]
-----
-kubectl logs -f <pod-name>
-----
 
 == See Also
 
