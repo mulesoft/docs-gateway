@@ -1,0 +1,42 @@
+= Viewing Logs
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Flex Gateway maintains standard output,`flex-gateway-fluent`, runtime and access logs. You do not need to configure these logs.
+
+Use the standard output logs for quick logging checks where an additional logging output is not needed, such as ensuring an external service is running or API requests are reaching Flex Gateway.
+
+As well as the standard output logs, you can configure additional Fluent Bit logging outputs. Configuring additional logging enables you to apply a custom output for the logs and customize the log level info. To configure additional logging, see:
+
+* xref:flex-local-view-manage-logs[]
+* xref:flex-local-third-party-logs-config.adoc[]
+
+If you configuring additional logging, find the appropriate method to view them. The following commands only display the standard output logs.
+
+== View Logs
+
+To view the standard output logs, run the following commands:
+
+For Linux:
+[source,ssh]
+----
+journalctl -u flex-gateway
+----
+
+For Docker:
+[source,ssh]
+----
+docker logs -f <container-id>
+----
+
+For Kubernetes:
+[source,ssh]
+----
+kubectl logs -f <pod-name>
+----
+
+== See Also
+
+* https://docs.fluentbit.io/manual/v/1.8/pipeline/outputs[Fluent Bit Outputs documentation ^]

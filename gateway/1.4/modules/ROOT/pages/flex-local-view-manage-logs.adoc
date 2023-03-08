@@ -4,21 +4,23 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Anypoint Flex Gateway enables you to deliver runtime and access logging to any supported Fluent Bit {fluentbit-ver-var} output type. Runtime logs contain information such as when Flex Gateways start and when API instances are deployed. Access logs contains information such as API requests.
+Anypoint Flex Gateway enables you to deliver runtime and access logging to any supported Fluent Bit {fluentbit-ver-var} output type. This enables you to configure `File` or `HTTP` logging outputs. This tutorial only demonstrates how to configure `File` or `HTTP` Fluent Bit output types. To configure different Fluent Bit output types for third party services, see xref:flex-local-third-party-logs-config.adoc[].
 
-As well as being able to configure additional logging outputs, Flex Gateway maintains standard output,`flex-gateway-fluent`, runtime and access logs. You do not need to configure these logs. To view `flex-gateway-fluent` logs, see <<view-logs, View Logs>>.
+As well as being able to configure Fluent Bit logging output types, Flex Gateway maintains standard output,`flex-gateway-fluent`, runtime and access logs. You do not need to configure these logs. To view `flex-gateway-fluent` logs, see <<view-logs, View Logs>>. Use the standard output logs for quick logging checks where an additional logging output is not needed.
 
-You configure logs for Flex Gateway running in local mode via a configuration YAML file described in this page, as well as in the xref:flex-local-configuration-reference-guide.adoc#logging[Declarative Configuration Reference Guide].
+You configure logs for Flex Gateway running in local mode via a configuration YAML file described in this page. The logging configuration YAML file is also described in the xref:flex-local-configuration-reference-guide.adoc#logging[Declarative Configuration Reference Guide]. However, this page supplies a more detailed tutorial of log configuration.
 
-This tutorial only demonstrates how to configure `File` or `HTTP` output types. To configure of third party Fluent Bit outputs, see xref:flex-local-third-party-logs-config.adoc[].
+== Runtime Logs
 
-[NOTE]
-====
+== Access Logs
+
+
+
 To enable access logging, you must: 
 
 . Configure the `File` or `HTTP` output.
-. Apply the Message Logging policy via policy binding. See <<access-logs,Access Logs>>.
-====
+. Apply the Message Logging policy via policy binding. See <<configuring-access-logs, Configuring Access Logs>>.
+
 
 [cols="1a,1a,1a"]
 |===
@@ -128,7 +130,7 @@ spec:
 
 
 [[access-logs]]
-== Access Logs
+== COnfiguring Access Logs
 
 After specifying access log output (as described in the previous configuration examples), you must enable access logs via policy binding. 
 
