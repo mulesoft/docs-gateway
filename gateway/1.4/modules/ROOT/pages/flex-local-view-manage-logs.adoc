@@ -1,132 +1,30 @@
-= Configure Message Logging for Flex Gateway in Local Mode
+= Configure Logging for Flex Gateway in Local Mode
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Anypoint Flex Gateway enables you to deliver runtime and access logs to any supported Fluent Bit {fluentbit-ver-var} output type, `File` or `HTTP` log outputs. You configure log output via a custom YAML file.
+include::partial$task-config-logs-third-party.adoc[tags=intro1]
 
-This tutorial only demonstrates how to configure `File` or `HTTP` Fluent Bit output types. To configure different Fluent Bit output types for third party services, see xref:flex-local-third-party-logs-config.adoc[].
+include::partial$task-config-logs-third-party.adoc[tags=icon-table]
 
-As well as being able to configure additional Fluent Bit log output types, Flex Gateway maintains standard output,`flex-gateway-fluent`, runtime and access logs you do not need to configure. Use the standard output logs for quick log checks where an additional log output is not needed. To view the standard output logs, see xref:flex-local-view-logs[View Logs].
+include::partial$task-config-logs-third-party.adoc[tags=byb]
 
-[cols="1a,1a,1a"]
-|===
-|image:install-linux-logo.png[20%,20%,xref="#linux-service"]
-|image:install-docker-logo.png[25%,25%,xref="#docker-container"]
-|image:install-kubernetes-logo.png[20%,20%,xref="#kubernetes-ingress-controller"]
+include::partial$task-config-logs-third-party.adoc[tags=runtime-access-logs]
 
-|<<linux-service,Configure Log Output for Flex Gateway as a Linux Service>>
-|<<docker-container,Configure Log Output for Flex Gateway in a Docker Container>>
-|<<kubernetes-ingress-controller,Configure Log Output for Flex Gateway as a Kubernetes Ingress Controller>>
-|===
+include::partial$task-config-logs-third-party.adoc[tags=file-example]
 
-== Runtime Logs
-Runtime logs contain information such as when Flex Gateways start and when API instances are deployed.
+include::partial$task-config-logs-third-party.adoc[tags=linux;view-logs-local;configure-message-logging-step]
 
-== Access Logs
-Access logs contains information such as API requests.
+include::partial$task-config-logs-third-party.adoc[tags=docker;view-logs-local;configure-message-logging-step]
 
-To enable access logging, you must: 
+include::partial$task-config-logs-third-party.adoc[tags=k8s;view-logs-local;configure-message-logging-step]
 
-. Configure the `File` or `HTTP` output.
-. Apply the Message Logging policy via policy binding. See <<configuring-access-logs, Configuring Access Logs>>.
+include::partial$task-config-logs-third-party.adoc[tags=file-configuration-example]
 
-== Logging Configuration File
+include::partial$task-config-logs-third-party.adoc[tags=http-configuration-example]
 
-include::partial$logging-config-file.adoc[]
-
-The following examples describe how to configure Flex Gateway logging with the `File` and `HTTP` outputs by using this configuration file.
-
-[[linux-service]]
-== Configure Log Output for Flex Gateway as a Linux Service
-
-. Create a YAML configuration file in the Flex Gateway configuration directory:
-+
-[source,ssh]
-----
-sudo touch /usr/local/share/mulesoft/flex-gateway/conf.d/logs-config.yaml
-----
-
-. Update the file with your <<file-configuration-example, `File`>> or <<http-configuration-example, `HTTP`>> output configuration details.
-
-[[docker-container]]
-== Configure Log Output for Flex Gateway in a Docker Container
-
-NOTE: If you have already added a volume for a folder with your
-Flex Gateway configuration files, go to the last step.
-
-. Stop your Flex Gateway and any replicas, using Ctrl+C.
-. Create a folder in the directory with your Flex Gateway configuration files and name it `app`.
-. Restart your Flex Gateway with an additional volume for the new `app` directory:
-. Create and save a YAML file with your <<file-configuration-example, `File`>> or <<http-configuration-example, `HTTP`>> output configuration details.
-
-[[kubernetes-ingress-controller]]
-== Configure Log Output for Flex Gateway as a Kubernetes Ingress Controller
-
-To configure logging for Flex Gateway, create a new resource using
-a YAML configuration file with your <<file-configuration-example, `File`>> or <<http-configuration-example, `HTTP`>> output configuration details.
-
-== File Configuration Example
-
-Configure Flex Gateway to send formatted runtime and access logs to a file called `log.txt` (Fluent Bit `File` output), located within `/var/log` directory. As an example, the following definition specifies a `spec.logging.outputs.type` value of `file`:
-
-NOTE: For Docker, in `spec.logging.output.parameters.file`, replace `/var/log` with the absolute path to the mounted configuration directory.
-
-----
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: Configuration
-metadata:
-  name: logging-config
-spec:
-  logging:
-    outputs:
-    - name: default
-      type: file
-      parameters:
-        file: /var/log/log.txt # Docker: replace `/var/log` with the absolute path to the mounted configuration directory
-        format: template
-        template: |
-          [{logger}][{level}][{kind}] {message}
-    runtimeLogs:
-      logLevel: info
-      outputs:
-      - default
-    accessLogs:
-      outputs:
-      - default
-----
-
-== HTTP Configuration Example
-
-In addition to configuring logging for Fluent Bit `File` output, you can also configure for Fluent Bit `HTTP` output. As an example, the following definition specifies a `spec.logging.outputs.type` value of `http`:
-
-----
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: Configuration
-metadata:
-  name: logging-config
-spec:
-  logging:
-    outputs:
-    - name: default
-      type: http
-      parameters:
-        host: collectors.au.sumologic.com
-        port: "443"
-        URI: /receiver/v1/http/[PrivateKey]
-        format: json_lines
-        json_date_key: timestamp
-        json_date_format: iso8601
-    runtimeLogs:
-      logLevel: info
-      outputs:
-      - default
-    accessLogs:
-      outputs:
-      - default
-----
-
+include::partial$task-config-logs-third-party.adoc[tags=splunk-configuration-example]
 
 [[access-logs]]
 == Configure Access Logs
