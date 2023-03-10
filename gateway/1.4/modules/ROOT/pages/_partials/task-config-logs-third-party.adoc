@@ -1,11 +1,21 @@
 //tag::intro1[]
-Anypoint Flex Gateway enables you to deliver runtime and access logs to any supported Fluent Bit {fluentbit-ver-var} output type. You configure log output via a custom YAML file.
+Anypoint Flex Gateway enables you to deliver runtime and access logs to any supported Fluent Bit {fluentbit-ver-var} output type. You configure log output via a custom YAML file. Additionally, to view access logs, you must also apply a Message Logging policy.
 
 The following configuration file examples demonstrates how to redirect Flex Gateway logs to output types: `File`, `HTTP`, and `Splunk`. However, you can use any Fluent Bit {fluentbit-ver-var} output type, such as `Azure Log Analytics`, `Amazon S3`, `Kafka`, and more. For a complete list of Fluent Bit output types, see https://docs.fluentbit.io/manual/v/1.8/pipeline/outputs[Fluent Bit Outputs documentation^]. 
 
-As well as being able to configure additional Fluent Bit log output types, Flex Gateway maintains standard output,`flex-gateway-fluent`, runtime and access logs you do not need to configure. Use the standard output logs for quick log checks where an additional log output is not needed. To view the standard output logs, see xref:gateway::flex-local-view-logs[View Logs].
-
 //end::intro1[]
+
+//tag::intro2-conn[]
+As well as being able to configure additional Fluent Bit log output types, Flex Gateway maintains standard output in API Manager. Use the standard output logs for quick log checks where an additional log output is not needed. To view the standard output logs, see *Anypoint Platform > API Manager > Logs*. For access logs to be visible in *Logs*, you must additionally apply a Message Logging policy.
+
+//end::intro2-conn[]
+
+
+//tag::intro2-local[]
+As well as being able to configure additional Fluent Bit log output types, Flex Gateway maintains standard output logs names `flex-gateway-fluent`. Use the standard output logs for quick log checks where an additional log output is not needed. To view the standard output logs, see xref:gateway::flex-local-view-logs[View Logs].
+
+//end::intro2-local[]
+
 //tag::icon-table[]
 
 [cols="1a,1a,1a"]
@@ -51,7 +61,7 @@ Runtime logs include the following information:
 You can configure the runtime logs loglevel.
 
 === Access Logs
-Access logs describe incoming interaction with Envoy over a period od time. Access logs describe incoming requests and response to specific APIs. 
+Access logs describe incoming interaction with Envoy over a period of time. Access logs describe incoming requests and response for specific APIs. 
 
 To enable access logging, you must: 
 
