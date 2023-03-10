@@ -1,7 +1,7 @@
 //tag::intro1[]
 Anypoint Flex Gateway enables you to deliver runtime and access logs to any supported Fluent Bit {fluentbit-ver-var} output type. You configure log output via a custom YAML file. Additionally, to view access logs, you must also apply a Message Logging policy.
 
-The following configuration file examples demonstrates how to redirect Flex Gateway logs to output types: `File`, `HTTP`, and `Splunk`. However, you can use any Fluent Bit {fluentbit-ver-var} output type, such as `Azure Log Analytics`, `Amazon S3`, `Kafka`, and more. For a complete list of Fluent Bit output types, see https://docs.fluentbit.io/manual/v/1.8/pipeline/outputs[Fluent Bit Outputs documentation^]. 
+The following configuration file examples demonstrates how to direct Flex Gateway logs to output types: `File`, `HTTP`, and `Splunk`. However, you can use any Fluent Bit {fluentbit-ver-var} output type, such as `Azure Log Analytics`, `Amazon S3`, `Kafka`, and more. For a complete list of Fluent Bit output types, see https://docs.fluentbit.io/manual/v/1.8/pipeline/outputs[Fluent Bit Outputs documentation^]. 
 
 //end::intro1[]
 
@@ -39,7 +39,7 @@ Before configuring Flex Gateway log output for Splunk, complete the following ta
 * xref:flex-install.adoc[Install Flex Gateway]
 * xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
 
-Additionally, depending on your output, ensure the service where you are directing logs to is operational. For Splunk, you need to configure:
+Additionally, depending on your output, ensure the service where you are directing logs to is operational. For Splunk, you must configure:
 
 * A running https://www.splunk.com/[Splunk^] service. You can test Splunk by setting up a free Splunk Cloud trial.
 * Added an HTTP Event Collector (HEC) data input to the Cloud or Enterprise Splunk service. See the https://docs.splunk.com/Documentation/Splunk/7.0.3/Data/UsetheHTTPEventCollector[Splunk documentation^] about how to add a data input, and how to create an HEC token.
@@ -61,7 +61,7 @@ Runtime logs include the following information:
 You can configure the runtime logs loglevel.
 
 === Access Logs
-Access logs describe incoming interaction with Envoy over a period of time. Access logs describe incoming requests and response for specific APIs. 
+Access logs describe incoming interaction with Envoy over a period of time and incoming requests and response for specific APIs. 
 
 To enable access logging, you must: 
 
@@ -194,7 +194,7 @@ spec:
 [[http-configuration-example]]
 == HTTP Configuration Example
 
-In addition to configuring logging for Fluent Bit `File` output, you can also configure for Fluent Bit `HTTP` output. As an example, the following definition specifies a `spec.logging.outputs.type` value of `http`:
+In addition to configuring logging for Fluent Bit `File` output, you can also configure for Fluent Bit `HTTP` output. As an example, the following definition specifies a `spec.logging.outputs.type` value of `HTTP`:
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -205,7 +205,7 @@ spec:
   logging:
     outputs:
     - name: default
-      type: http
+      type: HTTP
       parameters:
         host: collectors.au.sumologic.com
         port: "443"
