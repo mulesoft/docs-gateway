@@ -1,0 +1,37 @@
+= Basic Deployment Models for Flex Gateway
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Flex Gateway supports three deployment models, all of which apply to Connected Mode and Local Mode.
+
+NOTE: This overview uses Kubernetes terminology, but you can extend to other technological stacks with the appropriate network controls applied.
+
+== Standalone Deployment
+
+In standalone deployment, Flex Gateway acts as a standalone service to protect one or more integration API flows to manage internal traffic. You deploy Flex Gateway in a separate pod and namespace from the consumer applications.
+
+image:ad-standalone-deployment.png[In standalone deployment, Flex Gateway and the consumer applications are in different Kubernetes namespaces.]
+
+In the diagram, all external traffic passes through a load balancer before entering the Flex Gateway namespace. The traffic then passes through Flex Gateway before reaching the consumer application namespace.
+
+== Ingress Deployment
+
+In ingress deployment, Flex Gateway acts as a standalone service that protects applications by managing incoming request. You deploy Flex Gateway in a separate pod and namespace from the consumer applications. Ingress deployment is similar to standalone deployment, but traffic in ingress deployment comes from external services.
+
+image:ad-ingress-deployment[In ingress deployment, Flex Gateway and the consumer applications are in different Kubernetes namespace. Flex Gateway is used as an ingress controller.]
+
+In the diagram, all external traffic passes through a load balancer before entering the Flex Gateway namespace. The traffic then passes through Flex Gateway, before reaching the consumer application namespace.
+
+== Sidecar Deployment
+In sidecar deployment, you deploy Flex Gateway in the same pod as the service it is protecting. Each Flex Gateway deployment exclusively protects the APIs exposed by its protected service. A new Flex Gateway replica is added with each new protected service. 
+
+image:ad-sidecar-deployment.png[In sidecar deployment, Flex Gateway and the consumer application are in the same Kubernetes pod.]
+
+In the diagram, traffic passes from the load balancer, to Flex Gateway, then the consumer application. Flex Gateway and the consumer application are both in the same pod.
+
+== See Also
+
+* xref:flex-architecture-basic-deployments.adoc[]
+* xref:flex-architecture-shared-storage.adoc[]
