@@ -1,0 +1,35 @@
+= Use Case 3: Non-Organization Owned API Exposed to Organization-Owned API Consumer
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Use case three covers all patterns of a non-organization owned API exposed to an organization-owned API consumer.
+
+Use case examples: 
+* A payments service needs to obtain exchange rates from an external service provider
+* An internal API Consumer accesses the organization’s external ServiceNow instance (SaaS service)
+
+== Pattern 7: External Non-Org API exposed to Internal Org Consumer
+In pattern seven, you deploy Flex Gateway as an egress controller. You can use Flex Gateway to monitor, control, and enrich the flows to external services. Additionally, you can rate limit external access and track metrics and analytics.
+
+image:ad-uc-1-p-3.png[Flex Gateway acts as an egress controller to monitor incoming traffic from the external API.]
+
+The following diagram demonstrates the physical implementation of an External Non-Org API exposed to an internal Org Consumer on Kubernetes. The diagram assumes that the firewall terminates the incoming non-org external mTLS connection.
+
+image:ad-uc-3-p-7-physical.png[A detailed view of pattern seven containing the necessary services to support Flex Gateway]
+
+== Pattern 8: External Non-Org API exposed to External Org Consumer
+In pattern eight, Flex Gateway acts as an intermediary between two organization external entities. Flex Gateway runs as an ingress and egress controller applying secure communication and policy enforcement.
+
+image:ad-uc-1-p-4.png[Flex Gateway acts as an intermediary between an external application and external API.]
+
+The following diagram demonstrates the physical implementation of external non-org API exposed to an external org Consumer on Kubernetes. The diagram assumes that the firewall terminates the incoming external mTLS connection.
+
+image:ad-uc-3-p-4-physical.png[A detailed view of pattern eight containing the necessary services to support Flex Gateway]
+
+== See Also
+
+* xref:flex-architecture-uc1.adoc[]
+* xref:flex-architecture-uc2.adoc[]
+* xref:flex-architecture-uc4.adoc[]

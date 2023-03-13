@@ -1,0 +1,83 @@
+= Use Case 1: Organization-Owned API Exposed to Organization-Owned API Consumer
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Use case one covers all patterns of a trusted organization API exposed to a trusted organization API consumer.
+
+== Pattern 1: Org Internal API Exposed to Org Internal Consumer
+
+Pattern examples:
+
+* Sales accessing a customer service API where both sales and customer service are internal areas of the customer organization
+* Call center application calls API exposed by customer domain to retrieve customer information
+* Mobile bank mobile calls customer and account services to display account overview screen to end consumer
+
+== Pattern 1A: Internal Org API Exposed to Internal Org Consumer Using the Same Vpc or Network
+In this use case pattern both services are available on the same infrastructure, for example, the same public cloud VPC, the same datacenter, or the same Kubernetes cluster. You can deploy Flex gateway in either sidecar mode or standalone gateway mode.
+
+image:ad-uc-1-p-1a.png[For both standalone and sidecar mode Flex Gateway and the APIs are in the same internal network.]
+
+The following diagram demonstrates the physical implementation of a standalone Flex Gateway running in Connected Mode. A network policy (Netpol) permits ingress access only from Flex Gateway. You may configure the consumer application in the same or a different namespace from the Flex Gateway and the provider services.
+
+image:ad-uc-1-p-1a-physical.png[A more detailed view of UC1 contains load balancers and Netpol protection]
+
+When the API provider is located in a different kubernetes cluster from Flex Gateway and the consumer application, you can either deploy a Flex Gateway runtime on each of the clusters, as in Pattern 1B, or establish network restrictions in the secure channel between clusters, using Flex Gateway in only one of them as in the following diagram. The second cluster only allows connections from Flex Gateway and uses a standard ingress.
+
+image:ad-uc-1-p-1b-seprate-clusters.png[A detailed view of pattern 1A containing the necessary services to support Flex gateway] 
+
+== Pattern 1B: Organization Internal API Exposed to Organization Internal Consumer Using a Different Vpc or Network
+In this use case pattern, the API provider is in infrastructure isolated from the API consumer. However, there is a secure communication channel available between the two networks.
+
+You deploy Flex Gateway as an ingress controller because traffic is considered external to the location of the provider. Flex Gateway receives and processes the incoming traffic sitting behind the firewall.
+
+You can use the Flex gateway to terminate TLS or mTLS connection if required.
+
+image:ad-uc-1-p-1b.png[Information travels from a trusted network to the internal network containing Flex Gateway]
+
+The following diagram demonstrates the physical implementation on Kubernetes.
+
+image:ad-uc-1-p-1b-physical.png[The previous networks are now kubernetes clusters and there are load balancers separating the APIs from Flex Gateway.] 
+
+== Pattern 2: Organization Internal API exposed Organization External Consumer
+In pattern two, the organization-owned API is in infrastructure isolated from the organization-owned API consumer, for example, a package delivery tracking API that is accessed from a user interface. The consumer can only access the exposed API via the internet. In this use case, you deploy Flex Gateway as an ingress controller. 
+
+image:ad-uc-1-p-2.png[Consumer application requests pass through the internet and a firewall before reaching Flex Gateway]
+
+This example is similar to Pattern 1B. However, traffic arrives from the public internet instead of a private channel. Because traffic is coming from the public internet, you must add additional controls to strengthen communication security before reaching Flex Gateway.
+
+The following diagram demonstrates the physical implementation of Org Internal API exposed to Org External Consumer on Kubernetes. The diagram assumes that the firewall terminates the incoming external mTLS connection.
+
+image:ad-uc-1-p-3-physical.png[The previous networks are now Kubernetes clusters, there are load balancers separating the APIs from Flex Gateway, and mTLS connections to external networks.]
+
+== Pattern 3: Organization External API Exposed to Organization Internal Consumer
+Pattern three is the inverse of pattern two. You can use Flex Gateway to monitor, control, and enrich the flows to external services, for example by rate limiting the external access or metrics and analytics tracking for this external service connection.
+
+Pattern examples:
+
+* Payments service needs to obtain exchange rates from an external service provider.
+* An internal API Consumer accesses the organization’s external ServiceNow instance (SaaS service).
+
+For pattern three, you deploy Flex Gateway as a standalone gateway acting as an egress container.
+
+image:ad-uc-1-p-3.png[Flex Gateway is deployed as an egress controller to monitor incoming traffic from the external API.]
+
+The following diagram demonstrates the physical implementation of External Org API exposed to an Internal Org Consumer on Kubernetes. The diagram assumes that the firewall terminates the incoming external mTLS connection.
+
+image:ad-uc-1-p-3-physical.png[The previous networks are now kubernetes clusters, there are load balancers separating the APIs from Flex Gateway, and mTLS connections to external networks.]
+
+== Pattern 4: Organization External API Exposed to Organization External Consumer
+In pattern four, Flex Gateway acts as an intermediary between two organization external entities, for example, an organization’s WorkDay instance (SaaS service) accesses the organization’s ServiceNow instance (SaaS service). Flex Gateway runs as an Ingress and Egress controller applying secured communication and policy enforcement.
+
+image:ad-uc-1-p-4.png[Flex Gateway acts as an intermediary between an external application and external API.]
+
+The following diagram demonstrates the physical implementation of an external organization API exposed to an external organization Consumer on Kubernetes. The diagram assumes that the firewall terminates the incoming Org External mTLS connection.
+
+image:ad-uc-1-p-4-physical.png[A detailed view of pattern four containing the necessary services to support Flex gateway]
+
+== See Also
+
+* xref:flex-architecture-uc2.adoc[]
+* xref:flex-architecture-uc3.adoc[]
+* xref:flex-architecture-uc4.adoc[]

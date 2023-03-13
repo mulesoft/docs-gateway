@@ -1,0 +1,31 @@
+= Use Case 2: Organization Owned API Exposed to Non-organization Owned API Consumer
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Use case two covers all patterns of an organization-owned API exposed to a non-organization-owned API consumer, for example, a user making a request to your public facing API.
+
+== Pattern 5: Organization Internal API exposed to Non-Organization External Consumer
+In pattern five, the organization owned API is in infrastructure isolated from the API consumer. The consumer can only access the exposed API via the internet. In this use case, you deploy Flex Gateway as an ingress controller.
+
+image:ad-uc-1-p-2.png[Consumer application requests pass through the internet and a firewall before reaching Flex Gateway.]
+
+The following diagram demonstrates the physical implementation of Internal Org API exposed to Non-Org External Consumer on Kubernetes. The diagram assumes that the firewall terminates the incoming external mTLS connection.
+
+image:ad-uc-2-p-5-physical.png [A detailed view of pattern five containing the necessary services to support Flex gateway]
+
+== Pattern 6: Org External API exposed to Non-Org External Consumer
+In pattern six, Flex Gateway acts as an intermediary between two external network entities. Flex Gateway runs as an ingress and egress controller applying secured communication and policy enforcement.
+
+image:ad-uc-1-p-4.png[Flex Gateway acts as an intermediary between an external application and external API.]
+
+The following diagram demonstrates the physical implementation of External Org API exposed to an external non-org Consumer on Kubernetes. The diagram assumes that the firewall terminates the external mTLS connections.
+
+image:ad-uc-2-p-6-physical.png[A detailed view of pattern six containing the necessary services to support Flex gateway]
+
+== See Also
+
+* xref:flex-architecture-uc1.adoc[]
+* xref:flex-architecture-uc3.adoc[]
+* xref:flex-architecture-uc4.adoc[]
