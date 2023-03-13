@@ -1,0 +1,66 @@
+= Integration Use Cases
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+The following integration use cases are determined by the ownership of the API Provider and the ownership of the API Consumer. Each use case also provides physical patterns demonstrating the necessary services in the system. 
+
+For all use case diagrams, Flex Gateway is running in Connected Mode. However, you can also run Flex Gateway in Local Mode for all use cases. You can also use a combination of Connected Mode and Local Mode for separate runtimes in the same or in different environments.
+
+NOTE: The use case diagrams use Kubernetes terminology, but you can extend to other technological stacks with the appropriate network controls applied.
+
+Flex Gateway supports four use cases:
+
+* xref:flex-architecture-uc1.adoc[]
+* xref:flex-architecture-uc2.adoc[] 
+* xref:flex-architecture-uc3.adoc[] 
+* xref:flex-architecture-uc4.adoc[] 
+
+image:ad-intergration-use-cases.png[The four use cases are linked to products they could support.]
+
+Each use case supports different integration patterns that vary depending on the location of APIs relative to the network Flex Gateway is in. You can use different use case patterns depending on the different API owners and networks in your system. 
+
+In each use case, there are three different classifications of networks. The classifications describe the networks relation to your organization and the network Flex Gateway is in:
+
+* Org Internal: networks owned by your organization and in the same network as Flex Gateway. 
+* Org External: trusted networks external to your organization but in a different network than Flex Gateway, for example, your organization’s Splunk instance. 
+* Non-Org External: networks not trusted by your company and not in the same network as Flex Gateway. An API provider’s or API consumers network status affects the necessary security protocols (mTLS) you take when communicating.
+
+The following table relates the previously mentioned use cases to use case patterns and the networks involved in the pattern.
+
+[%header%autowidth.spread,cols="a,a,a,a,a"]
+|===
+| Use Case | Pattern | Provider Network | Consumer Network | Role of Flex Gateway
+| UC1: Organization Owned API Exposed to Organization Owned API Consumer | P1A: Internal Org API Exposed to Internal Org Consumer Using the Same Vpc or Network | Org Internal | Org Internal | Role of Flex Gateway
+| UC1: Organization Owned API Exposed to Organization Owned API Consumer | P1B: Internal Org API Exposed to Internal Org Consumer Using a Different Vpc or Network | Org Internal | Org Internal | Role of Flex Gateway
+| UC1: Organization Owned API Exposed to Organization Owned API Consumer | P2: Org Internal API exposed Org External Org Consumer | Org Internal | Org External | Role of Flex Gateway
+| UC1: Organization Owned API Exposed to Organization Owned API Consumer | P3: Org External API exposed to Internal Org Consumer | Org External | Org Internal | Role of Flex Gateway
+| UC1: Organization Owned API Exposed to Organization Owned API Consumer | P4: Org External API Exposed to Org External Consumer | Org External | Org External | Role of Flex Gateway
+| UC2: Organization Owned API Exposed to Non-Organization owned API Consumer | P5: Org Internal API exposed to Non-Org External Consumer | Org Internal | Non-Org External | Role of Flex Gateway
+| UC2: Organization Owned API Exposed to Non-Organization owned API Consumer | P6: Org External API exposed to Non-Org External Consumer | Org External | Non-Org External | Role of Flex Gateway
+| UC3: Non-Organization Owned API Exposed to Organization Owned API Consumer | P7: Non-Org External API exposed to Org Internal Consumer | Non-Org External | Org Internal | Role of Flex Gateway
+| UC3: Non-Organization Owned API Exposed to Organization Owned API Consumer | P8: Non-Org External API exposed to Org External Consumer | Non-Org External | Org External | Role of Flex Gateway
+| UC4: Non-Organization owned API Exposed to External Non-Organization owned API Consumer | P9: Non-Org External API exposed to Non-Org External Consumer | Non-Org External | Non-Org External | Role of Flex Gateway
+|===
+
+== mTLS considerations for integration flows
+Flex Gateway supports Mutual Transport Layer Security (mTLS) for all Flex Gateway initiated or terminated connections. Mulesoft reconmends using mTLS on all communication flows. 
+
+For inbound connections that cross a network security boundary, Mulesoft recommends using a network application firewall as close to the boundary as possible. For inbound connections, the user configures the external mTLS connection to terminate at the firewall and configures a new mTLS context between the firewall and Flex Gateway.
+
+=== Certificate authorities
+Different certificate authorities (CA) participate in the mTLS connection depending on the type of integration. In the use cases, we consider three CA classes. Color codes and labels represent the different mTLS contexts. Each mTLS context contains a truststore containing CAs to validate far-side certificates and certificates and a keystore containing a certificate issued by this same CA. The following table describes the three possible mTLS contexts.
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| mTLS context symbol | Certificate authority | Description
+| image:ad-internal-org-mtls.png[white hexagon with mtls written in the middle] | Org Internal mTLS | For internal network communication, the expectation is that only the customer organization uses these certificates within the internal network.
+| image:ad-external-org-mtls.png[green hexagon with mtls written in the middle] | Org External mTLS | For external communication with trusted parties over the public internet, the organization may issue certificates using this CA for use by external consumers 1st or 3rd parties to access services provided by the organization.
+| image:ad-external-non-org-mtls.png[grey hexagon with mtls written in the middle] | Non-Org External mTLS | For external communication with entities that aren't trusted, the 3rd party organization controls the CA. The 3rd party CA issues certificates to the organization to use when communicating with the 3rd party services.
+|===
+
+== See Also
+
+* xref:flex-architecture-basic-deployments.adoc[]
+* xref:flex-architecture-shared-storage.adoc[]
