@@ -3,6 +3,7 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
+:page-aliases: gateway::flex-shared-responsibility.adoc
 
 Anypoint Flex Gateway is an Envoy-based, ultrafast lightweight API gateway designed to manage and secure APIs running anywhere. Built to seamlessly integrate with DevOps and CI/CD workflows, Flex Gateway delivers the performance required for the most demanding applications and microservices while providing enterprise security and manageability across any environment.
 
@@ -100,6 +101,43 @@ You can install Flex Gateway in a variety of ways:
 * An Ingress controller in Kubernetes, for high-availability, high-performance use cases
 
 Use a standalone gateway when protecting a few APIs and the number of transactions is low, with a minimal impetus on high-availability or robustness. Otherwise, use an Ingress controller in Kubernetes.
+
+== Shared Responsibility
+
+The successful operation of Flex Gateway is a responsibility shared between you and MuleSoft.
+
+=== MuleSoft Responsibility
+
+MuleSoft is responsible for:
+
+* Providing and supporting Flex Gateway (including the agent, Envoy package, and FluentBit package)
+* Providing and supporting a base Helm chart for the installation of Flex Gateway on a Kubernetes cluster
+* Providing and supporting an online Docker image registry
+* Providing and supporting an online package repository for installation on Linux
+
+=== Your Responsibility
+
+When running on any target, you are responsible for:
+
+* Maintaining connectivity to the Anypoint Control Plane
+* Not running third-party software that interferes with normal Flex Gateway operation, such as antivirus, DPI, or application security systems
+
+When running in Kubernetes, you are responsible for:
+
+* Adapting the base Helm chart for your specific needs
+* Managing the Kubernetes cluster, including:
+** Ingress controller and external load balancing
+** Customizations to Ingress resources
+** Log forwarding
+** Monitoring
+** Network ports, NAT gateways, and proxies
+** Container runtime and networking
+** Provisioning and management of the Kubernetes environment, which requires:
+*** Your IT team to provision and manage the infrastructure
+*** Your network team to configure allowed ports and proxy settings
+*** Your security team to verify compliance and obtain security certificates
+
+See xref:general::usage-reports.adoc[Viewing Usage Reports] for information about your monthly Flex Gateway usage.
 
 == Next Steps
 
