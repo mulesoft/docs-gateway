@@ -4,65 +4,64 @@ include::_attributes.adoc[]
 endif::[]
 :version-helm: 3.0.0
 
-Get started with Anypoint Flex Gateway on a Kubernetes cluster. Use Kubernetes, Docker, and Helm to install, register, and run Flex Gateway in Connected Mode. 
+Get started with Anypoint Flex Gateway on a Kubernetes cluster. Set up a Flex Gateway container that connects to Anypoint Platform in Connected Mode, and use the container to control local traffic to an API implementation. This guide covers the following high-level tasks:
+
+* Installing, registering, deploying, and running a Flex Gateway container in Connected Mode. 
+* Creating an API in Anypoint API Manager that runs on your Flex Gateway container. 
+* Connecting to the API, first without any authentication, and then with a basic authentication policy that you set up for the API in API Manager. 
+
+The Flex Gateway deployment process requires a working Kubernetes cluster that you create or that is provisioned for you by a Kubernetes professional. 
+
+Setting up a Kubernetes cluster requires a level of skill and expertise that is _beyond the scope of this guide to provide_. Cluster configuration in Kubernetes differs markedly by service provider and platform. For basic cluster setup questions, consult documentation from your Kubernetes service provider. 
+
+If you lack a Kubernetes cluster but want to try out Flex Gateway quickly, without creating a cluster, see xref:flex-gateway-getting-started.adoc[Getting Started with Flex Gateway] (for Docker), which does not require deployment to a cluster.
 
 == Before You Begin
 
-Before starting the procedures in this guide, ensure that you have the following:
+Before starting the procedures in this guide, ensure that the following prerequisites are in place:
  
 * A username and password for your Anypoint Platform organization. If you don’t have Anypoint Platform yet, https://anypoint.mulesoft.com/login/signup[create a Trial organization^] on Anypoint Platform.
 //TODO: VERIFY THAT Manage Servers and Read Servers permissions in Runtime Manager IS NO LONGER NEEDED
 
-//TODO: verify Linux prerequisite and supported flavors
+//os prereqs
 * A Linux or MacOS machine with an x86 processor. M1 and M2 processors are not supported.
-+
-include::partial$prerequisites.adoc[tag=intro]
-
-** {empty}
-include::partial$prerequisites.adoc[tag=amazon-linux]
-
-** {empty}
-include::partial$prerequisites.adoc[tag=centos]
-
-** {empty}
-include::partial$prerequisites.adoc[tag=debian]
-
-** {empty}
-include::partial$prerequisites.adoc[tag=red-hat]
-
-** {empty}
-include::partial$prerequisites.adoc[tag=ubuntu]
 
 //docker prereq
 * {empty}
 include::partial$prerequisites.adoc[tag=docker]
++
+Run `docker --version` from a terminal window to find out if this tool is installed. If you need to install Docker, try https://www.docker.com/[Docker Desktop^]. 
 
 //helm prereq
 * {empty}
-include::partial$prerequisites.adoc[tag=helm]
+include::partial$prerequisites.adoc[tag=helm] 
++
+Run `helm version` from a terminal window to find out if this tool is installed and check the version. To install or upgrade, use the https://helm.sh/[Helm^] website. 
 
 //kubectl prereq to select cluster prior to deployment
 * {empty}
 include::partial$prerequisites.adoc[tag=kubectl]
++
+Run `kubectl version --output=yaml` from a terminal window to find out if this tool is installed. If not, find `kubectl` among the installation tools available through the https://kubernetes.io/docs/tasks/tools/[Kubernetes documentation^]. 
 
-* A Kubernetes cluster into which you deploy a Flex Gateway replica. The cluster's host must be running. See <<k8-cluster>>. 
+//curl prereq to test the API with flex
+* {empty}
+include::partial$prerequisites.adoc[tag=curl]
++
+Run `curl --version` from a terminal window to find out if this tool is installed. If not, you can download it with a package manager for your machine. 
 
-[[k8-cluster]]
-=== Kubernetes Cluster Requirement
+[[k8-cluster-reqs]]
+== Kubernetes Cluster Requirements
 
-To complete the procedures in this guide, you must create a Kubernetes cluster or use an existing one for your Flex Gateway deployment. 
-//TODO: DOES THE CLUSTER NEED ANY SPECIAL CHARACTERISTICS TO WORK WITH THE K8 STEPS IN RTM?
+The host for your Kubernetes cluster can be any xref:flex-review-prerequisites.adoc#software-requirements[supported Kubernetes provider], including common cloud-based services, such as Amazon Elastic Kubernetes Service (EKS), Azure Kubernetes Service (AKS), or Google Kubernetes Engine (GKE).
 
-For this guide, MuleSoft recommends that you use a cluster that is hosted on one of the common cloud-based services, such as Amazon Elastic Kubernetes Service (EKS), Azure Kubernetes Service (AKS), or Google Kubernetes Engine (GKE).
-//TODO: MULESOFT IS NOT TESTING ON A CLOUD-BASED SERVICE, SO IS IT A GOOD IDEA TO RECOMMEND USING  ONE?
+To complete the procedures in this guide, you must create a Kubernetes cluster or use an existing one for your Flex Gateway deployment. The Kubernetes cluster must contain a least one node to which you can deploy a Flex Gateway container (or replica). This guide uses Helm to deploy the container and connect it to Anypoint Platform. This process generates a Kubernetes `Service` resource of the `LoadBalancer` type by default. To avoid deployment errors, your cluster must support this process.
 
-//TODO: NOTE TO SELF: CREATE A CLUSTER WITH THIS PROCEDURE AND TEST STEPS:
-If you have an Amazon Web Service (AWS) account, you can create an EKS cluster using https://docs.aws.amazon.com/eks/latest/userguide/create-cluster.html[Amazon EKS User Guide^]. The AWS Management Console provides one of the easier paths to creating the EKS cluster. The configuration requires an https://docs.aws.amazon.com/eks/latest/userguide/service_IAM_role.html#create-service-role[eksClusterRole^]. 
+Instead of presenting procedures for Kubernetes cluster configuration, this guide provides a set of `kubectl` command examples to help you determine whether your cluster is ready for deployment. See <<check-cluster>> before attempting the other procedures in the guide.
 
-[NOTE]
-To prevent potential timeout and connectivity errors when running procedures in this guide, avoid using simpler tools such as minikube to create a local cluster. 
-//TODO: I SEEM TO BE GETTING THE SAME TIMEOUT ISSUE WITH MY EKS CLUSTER
+Note that if you have an Amazon Web Service (AWS) account and the level of experience and expertise required for creating your own Kubernetes cluster, you can create an EKS cluster using https://docs.aws.amazon.com/eks/latest/userguide/create-cluster.html[Amazon EKS User Guide^]. The AWS Management Console provides a way to create the EKS cluster, set up users and permissions, and configure node groups on dedicated virtual machines. 
 
+[[install-flex]]
 == Step 1: Install Flex Gateway
 
 Use Docker to install the Flex Gateway Docker image.
@@ -75,7 +74,7 @@ Use Docker to install the Flex Gateway Docker image.
 docker pull mulesoft/flex-gateway:{gateway-ver-var}
 ----
 +
-When successful, this command returns a message similar to this one:
+When successful, this command prints a message similar to this one in your terminal window:
 +
 ----
 latest: Pulling from mulesoft/flex-gateway
@@ -86,9 +85,10 @@ docker.io/mulesoft/flex-gateway:latest
 +
 Use `sudo` if you encounter file permission issues when running this command. 
 
+[[register-flex]]
 == Step 2: Register Flex Gateway
 
-Register the Flex Gateway image from a terminal window using a temporary token generated by Anypoint Runtime Manager. The procedure produces a `registration.yaml` file that you incorporate into your Helm chart when you deploy the Flex Gateway replica to your cluster and connect it to Anypoint Platform.
+Register the Flex Gateway image from a terminal window using a temporary token generated by Anypoint Runtime Manager. This procedure produces a local `registration.yaml` file that contains registration properties for a Flex Gateway container with a name that you provide. You incorporate these properties into a Helm chart when you deploy the Flex Gateway container into your cluster and connect the container to Anypoint Platform.
 
 . From a terminal window, prepare a directory for a Flex Gateway registration file (`registration.yaml`).
 .. Create a directory:
@@ -111,13 +111,14 @@ cd flex-registration
 .. Select *Kubernetes*.
 .. In the Kubernetes page, locate the command in the *Register your gateway* section:
 +
-image::gateway-quickstart-k8-add-gateway.png["Add registration code block from Add a Flex Gateway page"]
+image::gateway-quickstart-k8-add-gateway-rtm.png["Add registration code block from Add a Flex Gateway page"]
 +
 The highlighted command block includes your unique organization ID and a temporary token. 
 
-. In your terminal window, copy the command block into your `/flex-registration` directory, and provide a name for your Flex Gateway replica before running the command: 
-.. Replace `<gateway-name>`, located at the end of the command block, with a name of your choice, such as `my-gw`, for example:
+. In your terminal window, copy the command block into your `/flex-registration` directory, and provide a name for your Flex Gateway container before running the command: 
+.. In the copied command, notice `<gateway-name>` at the end of the command block, and replace that text with a name of your choice, such as `my-gateway`, for example:
 +
+[source,docker]
 ----
 docker run --entrypoint flexctl -u $UID \
 >   -v "$(pwd)":/registration mulesoft/flex-gateway \
@@ -125,12 +126,12 @@ docker run --entrypoint flexctl -u $UID \
 >   --token=_TOKEN_VALUE_HERE_ \
 >   --output-directory=/registration \
 >   --connected=true \
->   my-gw
+>   my-gateway
 ----
 +
 Runtime Manager provides the required organization and token values.
 
-.. Run the copied command.
+.. Run the edited command from your terminal window.
 +
 When successful, the command produces a `registration.yaml` in your `/flex-registration` directory and provides the following message in your terminal window:
 +
@@ -141,23 +142,23 @@ in directory "/registration". For security, modify the file permissions
 to restrict production scenario access to the user running flex.
 ----
 +
-The `Registration completed` message in the terminal window refers to a `/registration` directory that resides within the Docker container.  
+Note that the message in the terminal window refers to a `/registration` directory that resides within the Docker container. 
 +
 Use `sudo` if you encounter file permission issues when running this command. If your token expires before you run the command, a `400 Bad Request` error occurs, so you need to refresh the Runtime Manager page to generate a new token and run the modified command that appears on the page.
 
-
+[[create-repo]]
 == Step 3: Create a Repository for the Helm Chart
 
-Add and update a local repository that stores a Helm chart with your Flex Gateway replica's configuration. Note that you can get more information about the properties of the Helm chart for Flex Gateway in https://artifacthub.io/packages/helm/flex-gateway/flex-gateway[ArtifactHUB^].
+Add and update a local repository that stores a Helm chart with your Flex Gateway container's configuration. Note that you can get more information about the properties of the Helm chart for Flex Gateway in https://artifacthub.io/packages/helm/flex-gateway/flex-gateway[ArtifactHUB^].
 
-. Add the Helm repo: 
+. Create a Helm repository named `flex-gateway` for your Helm chart: 
 +
 [source,helm]
 ----
 helm repo add flex-gateway https://flex-packages.anypoint.mulesoft.com/helm
 ----
 +
-The command either creates a repository or skips the repository creation process if one exists already:
+The command either creates a repository or skips the repository creation process if a Helm repository with that name exists already:
 +
 * If the repository is new, the command returns the following message:
 +
@@ -180,31 +181,19 @@ Hang tight while we grab the latest from your chart repositories...
 ...Successfully got an update from the "flex-gateway" chart repository
 Update Complete. ⎈Happy Helming!⎈
 ----
++
+If you have more than one Helm repository on your machine, the message in your terminal window lists all of them.
 
 [[deploy-flex]]
-== Step 4: Deploy Flex Gateway
+== Step 4: Deploy and Connect Flex Gateway
 
-Use Helm to deploy a Flex Gateway container (replica) to a node in your cluster and connect it to Anypoint Platform. After deploying, you can use Runtime Manager to verify that the replica of your Flex Gateway is present and connected to Anypoint Platform. 
+Use Helm to deploy a Flex Gateway container to a node in your cluster and connect it to Anypoint Platform. After deploying, use Runtime Manager to verify that the container is present and connected to Anypoint Platform. 
 
-. From your terminal window, use `kubectl` to point to the cluster into which you plan to deploy the Flex Gateway replica, for example: 
-+
-.. List available clusters by running the following command in your terminal window:
-+
-[source,kubectl]
-----
-kubectl config get-contexts
-----
-.. From the list of contexts that returns, identify the cluster to host your Flex Gateway replica.
-.. Run the following command, replacing `my-cluster` with the cluster you identified: 
-+
-[source,kubectl]
-----
-kubectl config use-context my-cluster
-----
-+
-For more guidance, see <<use-cluster>>.
+Before you begin, confirm that your Kubernetes cluster is available by following the steps in <<check-cluster>>, and review <<k8-cluster-reqs>> if you have not done so already. These prerequisites help avoid deployment errors. 
 
-. Run the Helm command for deploying your Flex Gateway replica and connecting it to Anypoint Platform. 
+After confirming that your Kubernetes cluster is ready, complete the following steps:
+
+. Run the Helm command for deploying your Flex Gateway container and connecting it to Anypoint Platform. 
 +
 [source,helm]
 ----
@@ -213,9 +202,11 @@ helm -n gateway upgrade -i --create-namespace \
 --set-file registration.content=registration.yaml
 ----
 +
+This command creates the `gateway` namespace and `ingress` if they do not exist, and it creates or updates the `flex-gateway` Helm chart in the `flex-gateway` Helm repo. The command syntax for the Helm repository and chart names is `<helm-repo-name>/<helm-chart-name>`. 
++
 When successful, the following occurs:
 +
-* The command returns a message similar to the following one:
+* The command prints a message indicating an upgrade to your `ingress` release:
 +
 ----
 Release "ingress" has been upgraded. Happy Helming!
@@ -223,74 +214,85 @@ NAME: ingress
 LAST DEPLOYED: Mon Mar 13 22:44:11 2023
 NAMESPACE: gateway
 STATUS: deployed
-REVISION: 3
+REVISION: 1
 TEST SUITE: None
 ----
++
+The REVISION increments by `1` each time you run this command with the same namespace, repository, and chart names. For example, if you run the command a second time, you find a new revision number (`REVISION: 2`). The `LAST DEPLOYED` date reflects the date of that revision. 
 
-* A new Flex Gateway replica is running in your terminal window.
+* A new Flex Gateway container is running in your terminal window.
 +
-The replica runs until you stop the process or close the terminal window in which it is running.
+The container runs until you stop the process or close the terminal window in which it is running.
 
-. To locate the replica in Runtime Manager, select *Flex Gateways* from the side navigation panel.
+. Return to Runtime Manager: 
+.. Select *&#8592; Flex Gateways* from the side navigation panel of the Kubernetes *Add a Flex Gateway* page. 
 +
-The name of your registered Flex Gateway replica appears in the list of gateways.
+image::gateway-quickstart-k8-return-to-gateway-list.png["Return to Flex Gateway container list in Runtime Manager"]
+.. Navigate to your registered container in the *Flex Gateways* page that opens:
 +
-image::gateway-quickstart-k8-my-gateway-rtm.png["Flex Gateway Replica my-gateway in Runtime Manager"]
+image::gateway-quickstart-k8-my-gateway-rtm.png["Flex Gateway container my-gateway in Runtime Manager"]
++
+You can use the search field in the page to narrow the list of containers.
++
+Make sure that the status *Connected*. 
++
+If the status is *Disconnected*, it is likely that the cluster configuration is incorrect. This issue can occur, for example, if the `helm -n gateway upgrade` times out before an `ingress` is created or if the cluster is misconfigured. Check <<troubleshooting>> for more information. 
 
 
 //TODO: ADAPT STEP 5 AS NEEDED FOR K8, IN PROGRESS
 [[create-api]]
-== Step 5: Publish and Deploy a Simple API to Your Flex Gateway Replica
+== Step 5: Publish and Deploy a Simple API to Your Flex Gateway Container
 
-In Anypoint API Manager, create and deploy a simple API to your Flex Gateway replica. 
+Create and deploy a simple API to your Flex Gateway container in Anypoint API Manager. 
 
-. Select *API Manager* from the Anypoint Platform menu.
+. In Runtime Manager, click the *View APIs* menu option for your container to navigate to the container's *View APIs* page.
 +
-Alternatively, from Runtime Manager, you can click the name of your new, connected Flex replica, click the three vertical dots at the end of the replica row, and click 
-
-. Click *Add API*, followed by *Add new API*:
+image::gateway-quickstart-k8-view-apis.png["View APIs menu item for a Flex Gateway container"]
 +
-image::gateway-quickstart-add-new-api.png["Add new API page with Add new API selected",width=55%]
+Alternatively, you can navigate to API Manager from the Anypoint Platform menu.
+//TODO: FIX IMAGE lists my-gw... not my-gateway
+. From the page that opens, click *Add API* (and if present, *Add new API*) to navigate to the *APIs / Add API* page in API Manager.
 +
-//TODO: WHY DOES THE UI CALL THE FLEX REPLICA A RUNTIME? 
-. From the *Add API* page, select *Flex Gateway* as your runtime.
-. Select your registered gateway in the *Select a gateway* section.
-. Click *Next*.
+image::gateway-quickstart-k8-select-gateway-for-api.png["Add API page with Flex Gateway Runtime and my-gateway selected"]
+. Work through the API configuration pages (*Runtime*, *API*, *Endpoint*, *Review*) to provide an API:
+.. From the *Runtime* page, select *Flex Gateway* as your runtime.
+.. In the *Select a gateway* area of the page, select your registered gateway.
 +
-The following screenshot of the *Add API* page highlights the specified options:
+You can use the search field to locate it, if necessary.
+.. Click *Next* to open the *API* page.
+. In the *API* page, set up an endpoint for your API.
 +
-image::gateway-quickstart-select-gateway-for-api.png["Add API page with Flex Gateway Runtime and my-gw gateway selected",width=100%]
-
-. Click *Create New API*.
-. Specify an API name and select *HTTP API* as the asset type.
-. Click *Next*.
-. From the *Endpoint* page, enter the following in the *Implementation URI* field:
+image::gateway-quickstart-select-endpoint.png["Screenshot of 'Endpoint' page",width=100%]
++
+.. In *Runtime* configuration page, click *Create an API*.
+.. Specify an API name, such as *my-api*.
+.. Select *HTTP API* as the asset type.
+.. Click *Next*.
+.. From the *Endpoint* page that opens, copy the following URI into the *Implementation URI* field:
 +
 [source]
 ----
 https://jsonplaceholder.typicode.com/
 ----
-. Enter `8081` in the *Port* field.
-. Click *Next*.
+.. Type `8081` in the *Port* field.
 +
-The following screenshot of the *Endpoint* page highlights the specified options.
-+
-image::gateway-quickstart-select-endpoint.png["Screenshot of 'Endpoint' page",width=100%]
-
-. Click *Save & Deploy*.
+You can use any localhost port number that is available, typically `8081` through `8089`.
+.. Click *Next* to 
+.. Click *Save & Deploy*.
 +
 Inside the API instance, all HTTP requests to `localhost` on port `8081` are proxied to the `jsonplaceholder` service.
-. To test the API Instance, run the following command in a new terminal window:
+. To test the API instance, run the following command in a new terminal window:
 +
-[source,ssh]
+[source,curl]
 ----
 curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://localhost:8081/'
 ----
 +
 The command executes a `GET` request to the API, and then prints the resulting `200` status code, indicating success.
 
-To connect to an implementation on a remote host, you can use port `80`, get the external IP address for your API by using `kubectl -n gateway get services`, and using that IP in your `curl` command instead of using `localhost:8081`. For details, see <<connect-remote>>. 
-
+[NOTE]
+To connect to an implementation on a remote host, you can use port `80`, get the external IP address for your API by using `kubectl -n gateway get services`, and use that IP in your `curl` command instead of using `localhost:8081`.
+//TODO: LINK TO MORE DETAILS IF WE PROVIDE THIS
 
 //TODO: ADAPT STEP 6 AS NEEDED FOR K8, IN PROGRESS
 == Step 6: Secure Your API Using the Basic Authentication Policy
@@ -339,8 +341,10 @@ The command prints the resulting `200` status code, indicating success.
 
 [[troubleshooting]]
 == Troubleshooting
-// TODO: TROUBLESHOOTING IN PROGRESS
-If you encounter an error, look for a resolution here.
+//iterative troubleshooting info to add as needed:
+//TODO: ADD WHAT TO DO IF THE CLUSTER APPEARS IN RTM BUT IS IN A DISCONNECTED STATE.
+
+If you encounter an error, look for a resolution here. 
 
 * If Docker is not started, a `docker` command returns an error message similar to this one:
 +
@@ -354,15 +358,17 @@ If you get this error, you need to start Docker.
 * If you lose your connection to Anypoint Platform, the following error occurs:
 +
 ----
-[flexctl][error] reg facade call returned error response: HTTP/1.1 400 Bad Request
+[flexctl][error] reg facade call returned error response:
+HTTP/1.1 400 Bad Request
 ----
 +
 If you get this error, you need to log in to Anypoint Platform. 
 
-* If your cluster is not running when you attempt to deploy Flex Gateway using `helm`, you need to start the cluster
+* If your cluster is not running when you attempt to deploy Flex Gateway using `helm`, the following error can occur:
 +
 ----
-Error: Kubernetes cluster unreachable: the server could not find the requested resource
+Error: Kubernetes cluster unreachable: 
+the server could not find the requested resource
 ----
 +
 You can check whether that your cluster host is running your cluster, for example:
@@ -381,37 +387,41 @@ KubeDNS is running at https://34.30.50.119/api/v1/namespaces/kube-system/service
 Metrics-server is running at https://34.30.50.119/api/v1/namespaces/kube-system/services/https:metrics-server:/proxy
 ----
 +
-If the cluster is not up, the command returns a result similar to this one:
+If the cluster is not up, the command can return a result similar to this one:
 +
 ----
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 error: the server doesn't have a resource type "services"
 ----
++
+For additional assistance, see <<check-cluster>>.
 
-* If the Helm upgrade command fails to generate a Service resource of the LoadBalancer type, the command hangs for 5 minutes (due to the `--wait`) flag in the command and produces the following timeout error:
+* If the Helm upgrade command fails to generate a `Service` resource of the `LoadBalancer` type, the command hangs for 5 minutes (due to the `--wait`) flag in the command and produces the following timeout error:
 +
 [source,error]
 ----
 Error: UPGRADE FAILED: timed out waiting for the condition
 ----
 +
-This error typically means that your cluster is not generating the LoadBalancer. Such an issue can occur if you are using minikube, for example. Use one of the recommended cloud services to host your cluster. See <<k8-cluster>>.
+This error typically means that your cluster configuration is incorrect or that your cluster configuration tool does not support this process. See <<k8-cluster-reqs>>.
 
-[[use-cluster]]
-=== Switching to the Cluster Intended for Your Flex Gateway Deployment
+[[check-cluster]]
+=== Check Your Cluster
 
-If you have multiple clusters, you need to make sure that you are using the correct one. To check, you can use `kubectl` to list and select the cluster to use.
+Before deploying a Flex Gateway container to your Kubernetes cluster, you must make sure that your cluster is ready. To check, you can use `kubectl` to list and select (use) a cluster and to get a list of nodes that the cluster uses. If any steps in this section fail, the deployment process is likely to produce errors.
 
-For example, assume that you have a variety of clusters (`my-cluster`, `my-aks`, `my-gke`, `my-eks`). In this case, it is necessary to use the correct one before running the registration commands. 
-+
-Run `kubectl config get-contexts` to list the clusters, for example:
+To prevent potential timeout and connectivity errors when running procedures in this guide, avoid relying on simpler tools, such as minikube, to create a local cluster unless you are experienced with the tool's cluster configuration details and have the expertise necessary to make the cluster meet the <<k8-cluster-reqs>>. 
+
+. Run `kubectl config get-contexts` to list the clusters, for example:
 +
 [source,kubectl]
 ----
 kubectl config get-contexts
 ----
 +
-The command returns list of your clusters. This _example_ lists several clusters:
+This command is particularly helpful if you have multiple Kubernetes clusters. You can use the command to get the name of the the correct cluster. For example, assume that you have a variety of clusters (`my-cluster`, `my-aks`, `my-gke`, `my-eks`). The command prints a list of your clusters. 
++
+The following _example_ shows a list of clusters produced by the command:
 +
 ----
 CURRENT   NAME          CLUSTER       AUTHINFO    NAMESPACE
@@ -420,35 +430,67 @@ CURRENT   NAME          CLUSTER       AUTHINFO    NAMESPACE
           my-gke        my-gke                    my-gke
           my-eks        my-eks                    my-eks
 ----
-
-. Use the cluster into which you plan to install and register Flex Gateway.
 +
-This example selects the cluster `my-eks`: 
+If your cluster is not listed and you are using a custom cluster context file on your machine to connect to your cluster, you might need to add its path to a `KUBECONFIG` environment variable that points to that file. By default, `kubectl` searches for a file named `config` in the `$HOME/.kube` directory. That file lists each `context`, which provides properties such as the cluster name, user, and certificate authority data. 
++
+You can check by running `echo $KUBECONFIG` from your terminal window, which prints a environment variable's value, similar to this example: 
++
+----
+{KUBECONFIG}:/Users/me/.kube/config:/Users/me/.kube/additional-clusters/my-gke:/Users/me/.kube/additional-clusters/my-aks:/Users/me/.kube/additional-clusters/my-eks
+----
++
+Adding the path to any additional cluster context files on your machine enables the `kubectl config get-contexts` to list them and for you to use them.
++
+For more detail, see the https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/[Kubernetes documentation^] on the `kubeconfig` file. 
+
+. Provide the name of a cluster into which you plan to deploy a Flex Gateway container.
++
+The following example uses the cluster `my-eks`, identified in the cluster list: 
 +
 ----
 kubectl config use-context my-eks
 ----
 +
-The command returns a output like this:
+The command switches to the selected cluster context and prints a message similar to this one:
 +
 ----
 Switched to context "my-eks".
 ----
++
+If you receive an error that begins `error: no context exists with the name`, ensure you are using the `NAME` of the cluster listed by `kubectl config get-contexts` and not the `CLUSTER` value.
 
-See <<deploy-flex>> for the deployment procedure. 
+. Check that your cluster has one or more nodes:
++
+[source,kubectl]
+----
+kubectl get nodes
+----
++
+The command returns a output similar to this example:
++
+----
+NAME                                           STATUS   ROLES    AGE   VERSION
+ip-192-168-70-170.us-west-2.compute.internal   Ready    <none>   17h   v1.23.16-eks-48e63af
+ip-192-168-9-230.us-west-2.compute.internal    Ready    <none>   17h   v1.23.16-eks-48e63af
+----
++
+Make sure that some node are in the `Ready` status. 
+//TODO: WHAT TO DO IF NOT?
+//TODO: SHOULD I REPLACE THESE REAL NAMES AND VERSIONS WITH MADE-UP ONES?
+//TODO: WHAT OTHER CHARACTERISTICS SHOULD WE LOOK FOR?
 
-[[connect-remote]]
-=== Connect to an Implementation on a Remote Host
+. Determine your next steps:
+
+* If your cluster is not ready, either provide one and rerun the steps in this procedure, or try the Docker-only guide, xref:flex-gateway-getting-started.adoc[].
+* If you have not started the Flex setup procedures, be sure to review <<k8-cluster-reqs>> before proceeding to <<install-flex>>.
+* If you have successfully completed all the procedures for installing and registering your container with Docker and creating a repository for your Helm chart, and you are ready to begin the deployment procedure, go to <<deploy-flex>>. 
 
 
+== See Also
 
-== Next Steps
+Learn other ways to set up and configure Flex Gateway for a Kubernetes cluster, and review other policy configuration options.
 
 * xref:flex-review-prerequisites.adoc[]
-* xref:flex-install.adoc[]
-* xref:flex-gateway-uninstall.adoc[]
-* xref:flex-conn-reg-run.adoc[]
-* xref:flex-local-reg-run.adoc[]
-* xref:flex-conn-manage.adoc[]
-* xref:flex-local-manage.adoc[]
+* xref:flex-gateway-set-up.adoc[]
+* xref:flex-gateway-configuration.adoc[]
 * xref:policies::policies-included-directory.adoc[]
