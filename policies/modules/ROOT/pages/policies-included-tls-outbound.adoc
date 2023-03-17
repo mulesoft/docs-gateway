@@ -49,8 +49,9 @@ Refer to the following policy definition and table of parameters:
 - policyRef:
     name: tls-outbound
   config:
-    skipValidation: <boolean> // REQUIRED
-    certificate: // REQUIRED
+    skipValidation: <boolean> // OPTIONAL
+    trustedCA: <string> // OPTIONAL
+    certificate: // OPTIONAL
         key: <string> // REQUIRED
         crt: <string> // REQUIRED
     alpn: <array> // OPTIONAL
@@ -68,17 +69,17 @@ When configuring the `ciphers` parameter, ensure that your API upstream supports
 |Parameter | Required or Optional | Default Value | Description
 
 | `skipValidation`
-| Required
+| Optional
 | false
 | Skipping validation disables outbound mTLS
 
 | `trustedCA`
-| Optional, unless `skipValidation` is false
+| Optional
 | N/A
 | The client certificate used in mTLS
 
 | `certificate`
-| Required
+| Optional
 | N/A
 | A TLS certificate key pair
 
