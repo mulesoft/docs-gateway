@@ -1,10 +1,21 @@
 //tag::intro1[]
-Anypoint Flex Gateway enables you to configure log output for consumption by third-party services. Logs can be delivered to any supported Fluent Bit {fluentbit-ver-var} output. You configure log output via a custom YAML file.
+Anypoint Flex Gateway enables you to deliver runtime and access logs to any supported Fluent Bit {fluentbit-ver-var} output type. You configure log output via a custom YAML file. Additionally, to view access logs, you must also apply a Message Logging policy.
+
+The following configuration file examples demonstrate how to direct Flex Gateway logs to output types: `File`, `HTTP`, and `Splunk`. However, you can use any Fluent Bit {fluentbit-ver-var} output type, such as `Azure Log Analytics`, `Amazon S3`, `Kafka`, and more. For a complete list of Fluent Bit output types, see https://docs.fluentbit.io/manual/v/{fluentbit-url-ver-var}/pipeline/outputs[Fluent Bit Output documentation^]. 
 
 //end::intro1[]
-//tag::intro2[]
-The following example demonstrates how to redirect Flex Gateway logs to Splunk. However, you can use any Fluent Bit {fluentbit-ver-var} output type. For more information about other output types, see https://docs.fluentbit.io/manual/v/1.8/pipeline/outputs[Fluent Bit Outputs documentation ^]. 
-//end::intro2[]
+
+//tag::intro2-conn[]
+As well as being able to configure additional Fluent Bit log output types, Flex Gateway sends logs to API Manager. Use the logs for quick log checks when an additional log output is not needed. To view the standard output logs, go to *Anypoint Platform > API Manager > Logs*. For access logs to be visible in *Logs*, you must additionally apply a Message Logging policy.
+
+//end::intro2-conn[]
+
+
+//tag::intro2-local[]
+As well as being able to configure additional Fluent Bit log output types, Flex Gateway maintains standard output logs. Use the standard output logs for quick checks when additional log output is not needed. To view the standard output logs, see xref:gateway::flex-local-view-logs.adoc[View Logs].
+
+//end::intro2-local[]
+
 //tag::icon-table[]
 
 [cols="1a,1a,1a"]
@@ -28,12 +39,33 @@ Before configuring Flex Gateway log output for Splunk, complete the following ta
 * xref:flex-install.adoc[Install Flex Gateway]
 * xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
 
-Additionally, ensure that you have:
+Additionally, depending on your output, ensure that the service where you are directing logs to is operational. For Splunk, you must configure:
 
 * A running https://www.splunk.com/[Splunk^] service. You can test Splunk by setting up a free Splunk Cloud trial.
 * Added an HTTP Event Collector (HEC) data input to the Cloud or Enterprise Splunk service. See the https://docs.splunk.com/Documentation/Splunk/7.0.3/Data/UsetheHTTPEventCollector[Splunk documentation^] about how to add a data input, and how to create an HEC token.
 
 //end::byb[]
+
+//tag::runtime-access-logs[]
+
+== Runtime Logs and Access Logs
+Runtime and access logs both appear in the same log output. However, you can choose whether or not to include both logs in your log output. To use access logs, you must also apply a Message Logging policy.
+
+=== Runtime Logs
+Runtime logs include the following information:
+
+* The startup and shutdown of Flex Gateway, Fluent Bit, and Envoy
+* Deployed APIs and policies
+* Possible misconfigurations of Flex Gateway or other errors
+
+You can configure the runtime log level.
+
+=== Access Logs
+Access logs describe incoming interaction with Envoy over a period of time and incoming requests and responses for specific APIs. 
+
+To enable access logging, you must apply a Message Logging policy to the API instances you want to monitor. To apply a Message Logging policy, see <<configure-access-logs, Configuring Access Logs>>.
+
+//end::runtime-access-logs[]
 
 //tag::file-example[]
 
@@ -41,7 +73,12 @@ Additionally, ensure that you have:
 
 include::partial$logging-config-file.adoc[]
 
-The configuration file used in the following examples demonstrates how to redirect Flex Gateway logs to Splunk.
+To view configuration files with applied values, see the following configuration file examples:
+
+* <<file-configuration-example, File Configuration Example>>
+* <<http-configuration-example, HTTP Configuration Example>>
+* <<splunk-configuration-example, Splunk Configuration Example>>
+
 
 //end::file-example[]
 //tag::linux[]
@@ -53,18 +90,17 @@ The configuration file used in the following examples demonstrates how to redire
 +
 [source,ssh]
 ----
-sudo touch /usr/local/share/mulesoft/flex-gateway/conf.d/logs-splunk-config.yaml
+sudo touch /usr/local/share/mulesoft/flex-gateway/conf.d/logs-config.yaml
 ----
 
-. Update the file with your Splunk configuration details. For example:
+. Update the file with your desired output configuration details as shown in the following examples:
 +
-[source,ssh]
-----
-sudo vi /usr/local/share/mulesoft/flex-gateway/conf.d/logs-splunk-config.yaml
-----
+* <<file-configuration-example, File Configuration Example>>
+* <<http-configuration-example, HTTP Configuration Example>>
+* <<splunk-configuration-example, Splunk Configuration Example>>
 +
 //end::linux[]
-//tag::docker-intro[]
+//tag::docker[]
 
 [[docker-container]]
 == Configure Log Output for Flex Gateway in a Docker Container
@@ -72,30 +108,128 @@ sudo vi /usr/local/share/mulesoft/flex-gateway/conf.d/logs-splunk-config.yaml
 NOTE: If you have already added a volume for a folder with your
 Flex Gateway configuration files, go to the last step.
 
-. Stop your Flex Gateway and any replicas, using Ctrl+C.
+. Press Ctrl+C to stop your Flex Gateway and any replicas.
 . Create a folder in the directory with your Flex Gateway configuration files and name it `app`.
 . Restart your Flex Gateway with an additional volume for the new `app` directory:
-//end::docker-intro[]
+//end::docker[]
 
-//tag::docker-config-file-step[]
-. Create and save a YAML configuration file in your `app` folder with your logging configuration details.
+//tag::docker2[]
+. Create and save a YAML file with your desired output configuration details as shown in the following examples:
 +
-//end::docker-config-file-step[]
+* <<file-configuration-example, File Configuration Example>>
+* <<http-configuration-example, HTTP Configuration Example>>
+* <<splunk-configuration-example, Splunk Configuration Example>>
++
+//end::docker2[]
 //tag::k8s[]
 
 [[kubernetes-ingress-controller]]
 == Configure Log Output for Flex Gateway as a Kubernetes Ingress Controller
 
-To configure logging for Flex Gateway, create a new resource using
-a YAML configuration file with your Splunk details.
+To configure logging for Flex Gateway:
 
+. Create a new resource using a YAML configuration file with your desired output configuration details as shown in the following examples:
++
+* <<file-configuration-example, File Configuration Example>>
+* <<http-configuration-example, HTTP Configuration Example>>
+* <<splunk-configuration-example, Splunk Configuration Example>>
++
 //end::k8s[]
 
-//tag::sample-config-all-intro[]
-The following `Configuration` resource defines Splunk output:
-//end::sample-config-all-intro[]
+//tag::view-logs-conn[]
+If no events appear in the logging output, check the Flex Gateway standard output logs for any configuration errors.
++
+To view standard output logs in API Manager, go to *Anypoint Platform > API Manager > Logs*.
+//end::view-logs-conn[]
 
-//tag::sample-config-all[]
+//tag::view-logs-local[]
+If no events appear in the logging output, check the Flex Gateway standard output logs for any configuration errors.
++
+To view standard output logs, see xref:gateway::flex-local-view-logs.adoc[View Logs].
+//end::view-logs-local[]
+
+//tag::configure-message-logging-step[]
+. If you are configuring access logs, see <<access-logs, Configure Access Logs>> to apply a Message Logging policy.
+
+//end::configure-message-logging-step[]
+
+//tag::file-configuration-example[]
+
+[[file-configuration-example]]
+== File Configuration Example
+
+Configure Flex Gateway to send formatted runtime and access logs to a file called `log.txt` (Fluent Bit `File` output), in the `/var/log` directory. As an example, the following definition specifies a `spec.logging.outputs.type` value of `file`:
+
+NOTE: For Docker, in `spec.logging.output.parameters.file`, replace `/var/log` with the absolute path to the mounted configuration directory.
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: logging-config
+spec:
+  logging:
+    outputs:
+    - name: default
+      type: file
+      parameters:
+        file: /var/log/log.txt # Docker: replace `/var/log` with the absolute path to the mounted configuration directory
+        format: template
+        template: |
+          [{logger}][{level}][{kind}] {message}
+    runtimeLogs:
+      logLevel: info
+      outputs:
+      - default
+    accessLogs:
+      outputs:
+      - default
+----
+
+//end::file-configuration-example[]
+
+//tag::http-configuration-example[]
+
+[[http-configuration-example]]
+== HTTP Configuration Example
+
+To configuring logging for Fluent Bit `File` output, you can also configure for Fluent Bit `HTTP` output. As an example, the following definition specifies a `spec.logging.outputs.type` value of `HTTP`:
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: logging-config
+spec:
+  logging:
+    outputs:
+    - name: default
+      type: HTTP
+      parameters:
+        host: collectors.au.sumologic.com
+        port: "443"
+        URI: /receiver/v1/http/[PrivateKey]
+        format: json_lines
+        json_date_key: timestamp
+        json_date_format: iso8601
+    runtimeLogs:
+      logLevel: info
+      outputs:
+      - default
+    accessLogs:
+      outputs:
+      - default
+----
+
+//end::http-configuration-example[]
+
+//tag::splunk-configuration-example[]
+
+[[splunk-configuration-example]]
+== Splunk Configuration Example
+
+Splunk begins ingesting logs soon after you apply this resource. 
+
 [source,yaml]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -120,12 +254,4 @@ spec:
       outputs: [splunk]
 ----
 
-Splunk begins ingesting logs soon after applying this resource. If no events appear in the Splunk dashboard, inspect the Flex Gateway `flex-gateway-fluent` logs to determine if there are configuration errors.
-//end::sample-config-all[]
-//tag::view-logs-local[]
-To view `flex-gateway-fluent` logs, see xref:flex-local-view-manage-logs.adoc#view-logs[Viewing and Managing Log Output].
-//end::view-logs-local[]
-
-//tag::view-logs-conn[]
-To view `flex-gateway-fluent` logs in API Manager, see *Anypoint Platform > API Manager > Logs*.
-//end::view-logs-conn[]
+//end::splunk-configuration-example[]
