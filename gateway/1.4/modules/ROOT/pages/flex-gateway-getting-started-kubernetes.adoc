@@ -16,6 +16,8 @@ Setting up a Kubernetes cluster requires a level of skill and expertise that is 
 
 If you lack a Kubernetes cluster but want to try out Flex Gateway quickly, without creating a cluster, see xref:flex-gateway-getting-started.adoc[Getting Started with Flex Gateway] (for Docker), which does not require deployment to a cluster.
 
+If you have an Amazon Web Service (AWS) account and the level of experience and expertise required for creating your own Kubernetes cluster, you can create an EKS cluster using https://docs.aws.amazon.com/eks/latest/userguide/create-cluster.html[Amazon EKS User Guide^]. The AWS Management Console provides a way to create the EKS cluster, set up users and permissions, and configure node groups on dedicated virtual machines. 
+
 == Before You Begin
 
 Before starting the procedures in this guide, ensure that the following prerequisites are in place:
@@ -55,11 +57,28 @@ Run `curl --version` from a terminal window to find out if this tool is installe
 
 The host for your Kubernetes cluster can be any xref:flex-review-prerequisites.adoc#software-requirements[supported Kubernetes provider], including common cloud-based services, such as Amazon Elastic Kubernetes Service (EKS), Azure Kubernetes Service (AKS), or Google Kubernetes Engine (GKE).
 
-To complete the procedures in this guide, you must create a Kubernetes cluster or use an existing one for your Flex Gateway deployment. The Kubernetes cluster must contain a least one node to which you can deploy a Flex Gateway container (or replica). This guide uses Helm to deploy the container and connect it to Anypoint Platform. This process generates a Kubernetes `Service` resource of the `LoadBalancer` type by default. To avoid deployment errors, your cluster must support this process.
+To complete the procedures in this guide, you must create a Kubernetes cluster or use an existing one for your Flex Gateway deployment. This guide uses Helm to deploy your Flex Gateway container to a Kubernetes cluster and connect the container to Anypoint Platform. 
 
-Instead of presenting procedures for Kubernetes cluster configuration, this guide provides a set of `kubectl` command examples to help you determine whether your cluster is ready for deployment. See <<check-cluster>> before attempting the other procedures in the guide.
+[IMPORTANT]
+Do not rely on the <<min-cluster-reqs,minimum requirements listed for this guide>> in a _production environment_. The Kubernetes cluster required for the deployment procedure in this guide needs _only a small fraction_ of the compute resources required of a cluster in a typical production environment. 
 
-Note that if you have an Amazon Web Service (AWS) account and the level of experience and expertise required for creating your own Kubernetes cluster, you can create an EKS cluster using https://docs.aws.amazon.com/eks/latest/userguide/create-cluster.html[Amazon EKS User Guide^]. The AWS Management Console provides a way to create the EKS cluster, set up users and permissions, and configure node groups on dedicated virtual machines. 
+[[min-cluster-reqs]]
+The minimum requirements for the Kubernetes cluster used _in this guide_ follow:
+
+* Minimal compute resources required for the deployment procedure are no greater  (and _likely far less than_) the following equivalent to EKS t3.micro size: 
+
+** vCPU: 2 vCPUs
+** Memory: 1 GiB
+** Network: Up to 5 Gigabit
+** Max ENI: 2
+** Max IPs: 4 
+
+* At least 1 node.
+* Support for the creation of a `Service` resource of the `LoadBalancer` type.
++
+This process generates a Kubernetes `Service` resource of the `LoadBalancer` type by default. To avoid deployment errors, your cluster must support this process.
+
+To determine whether your cluster is ready for the <<deploy-flex, deployment procedure>>, it is important to review <<check-cluster>> for a set of `kubectl` and other examples _before starting_ the deployment procedure. 
 
 [[install-flex]]
 == Step 1: Install Flex Gateway
@@ -233,13 +252,12 @@ image::gateway-quickstart-k8-return-to-gateway-list.png["Return to Flex Gateway 
 image::gateway-quickstart-k8-my-gateway-rtm.png["Flex Gateway container my-gateway in Runtime Manager"]
 +
 You can use the search field in the page to narrow the list of containers.
+
+.. Make sure that the status of your new container is *Connected*. 
 +
-Make sure that the status *Connected*. 
-+
-If the status is *Disconnected*, it is likely that the cluster configuration is incorrect. This issue can occur, for example, if the `helm -n gateway upgrade` times out before an `ingress` is created or if the cluster is misconfigured. Check <<troubleshooting>> for more information. 
+If the status is *Disconnected*, it is likely that the cluster configuration is incorrect. This issue can occur, for example, if the `helm -n gateway upgrade` times out before an `ingress` is created or if the cluster does not allow for a `LoadBalancer` resource. Check <<troubleshooting>> for more information. 
 
 
-//TODO: ADAPT STEP 5 AS NEEDED FOR K8, IN PROGRESS
 [[create-api]]
 == Step 5: Publish and Deploy a Simple API to Your Flex Gateway Container
 
@@ -252,91 +270,158 @@ image::gateway-quickstart-k8-view-apis.png["View APIs menu item for a Flex Gatew
 Alternatively, you can navigate to API Manager from the Anypoint Platform menu.
 //TODO: FIX IMAGE lists my-gw... not my-gateway
 . From the page that opens, click *Add API* (and if present, *Add new API*) to navigate to the *APIs / Add API* page in API Manager.
+. From *APIs / Add API*, configure an API by working through the API configuration pages, starting with the *Runtime* configuration:
 +
 image::gateway-quickstart-k8-select-gateway-for-api.png["Add API page with Flex Gateway Runtime and my-gateway selected"]
-. Work through the API configuration pages (*Runtime*, *API*, *Endpoint*, *Review*) to provide an API:
-.. From the *Runtime* page, select *Flex Gateway* as your runtime.
-.. In the *Select a gateway* area of the page, select your registered gateway.
 +
-You can use the search field to locate it, if necessary.
+.. From the *Runtime* configuration page, select *Flex Gateway* as your runtime.
+//TODO: WHY DO WE CALL FLEX A RUNTIME?
+.. Find and select your container in the *Select a gateway* area of the page.
++
+Use the search field to locate it, if necessary.
 .. Click *Next* to open the *API* page.
-. In the *API* page, set up an endpoint for your API.
+
+. In the *API* configuration page associated with *APIs / Add API*, provide an API name and asset type:
 +
-image::gateway-quickstart-select-endpoint.png["Screenshot of 'Endpoint' page",width=100%]
+image::gateway-quickstart-k8-api-config-api.png["Screenshot of 'API' page",width=100%]
 +
-.. In *Runtime* configuration page, click *Create an API*.
-.. Specify an API name, such as *my-api*.
+.. Click *Create an API*.
+.. Provide an API name, such as *my-api*.
 .. Select *HTTP API* as the asset type.
-.. Click *Next*.
-.. From the *Endpoint* page that opens, copy the following URI into the *Implementation URI* field:
+.. Click *Next* to open the *Endpoint* configuration page.
+
+. In the *Endpoint* page associated with *APIs / Add API*, set up an endpoint for your API:
++
+image::gateway-quickstart-k8-api-config-endpoint.png["Screenshot of 'Endpoint' page",width=100%]
++
+. Copy the following URI into the *Implementation URI* field:
 +
 [source]
 ----
 https://jsonplaceholder.typicode.com/
 ----
-.. Type `8081` in the *Port* field.
+.. Type `80` in the *Port* field.
+.. Click *Next* to open the *Review* page.
+
+. In the *Review* page associated with *APIs / Add API*: 
+.. Review your API configuration.
+.. If necessary, use *Edit* to revise any configurations. 
+.. When your configuration is correct, click *Save & Deploy*.
+//TODO: YOU CAN'T GO BACK AND EDIT THIS CONFIG AFTER DEPLOYING IT?
 +
-You can use any localhost port number that is available, typically `8081` through `8089`.
-.. Click *Next* to 
-.. Click *Save & Deploy*.
+Inside the API instance, all HTTP requests to the external IP associated with your Flex Gateway container that use port `80` are proxied to the `jsonplaceholder` service.
+. From a terminal window, test the API instance:
+..
+.. Get your external IP address and use it to check that your IP redirects to the *Implementation URI*:
 +
-Inside the API instance, all HTTP requests to `localhost` on port `8081` are proxied to the `jsonplaceholder` service.
-. To test the API instance, run the following command in a new terminal window:
+[source,kubectl]
+----
+kubectl -n gateway get services
+----  
++
+The command returns a result that looks similar to this one:
++
+----
+NAME    TYPE         CLUSTER-IP     EXTERNAL-IP     PORT(S)                    AGE
+ingress LoadBalancer 10.100.222.333 123456.aws.com  80:12345/TCP,443:12345/TCP 7d7h
+----
++
+To protect the `IP` and `PORT` values, the example edits the values.
++
+.. Run the following `curl` a command, replacing `your_external_ip` with the `EXTERNAL-IP` from the preceding step:
 +
 [source,curl]
 ----
-curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://localhost:8081/'
+curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://your_external_ip:80/users'
 ----
 +
 The command executes a `GET` request to the API, and then prints the resulting `200` status code, indicating success.
++
+To see from the *Implementation URI*, you can also run a simpler `curl` command to return an array of JSON objects, for example: 
++
+[source,curl]
+----
+$ curl http://you_external_url:80/users
+----
++
+JSON Output:
++
+----
+[
+  {
+    "id": 1,
+    "name": "Leanne Graham",
+    ...
+  },
+  ...
+]
+----    
 
-[NOTE]
-To connect to an implementation on a remote host, you can use port `80`, get the external IP address for your API by using `kubectl -n gateway get services`, and use that IP in your `curl` command instead of using `localhost:8081`.
-//TODO: LINK TO MORE DETAILS IF WE PROVIDE THIS
-
-//TODO: ADAPT STEP 6 AS NEEDED FOR K8, IN PROGRESS
 == Step 6: Secure Your API Using the Basic Authentication Policy
 
-Add a policy to your API.
+Use API Manager to add a basic authentication policy to your API.
 
 . In *API Manager*, select *API Administration* from the side navigation panel.
-. Select the name of the API that you created in <<create-api>>.
-. Select *Policies* from the side navigation panel.
-. In the *Policies* page, click *Add policy*.
+. Find and click the name of the API that you created in <<create-api>>, such as *my-api*.
+. Navigate to the *Policies* page for your API:
+.. Select *Policies* from the side navigation panel.
+.. In the *Policies* page, click *Add policy*.
 +
-The following screenshot of the *Policies* page highlights the specified options:
+image::gateway-quickstart-add-policy.png["Add Policy page with Add policy button",width=100%]
+. In the page that opens, find the *Security* policy called *Basic Authentication - Simple* policy.
 +
-image::gateway-quickstart-add-policy.png["Add Policy page with Add policy button",width=65%]
-
-. Select the *Basic Authentication - Simple* policy.
-.. Click *Next*.
-.. For *User Name*, enter `user`.
-.. For *User Password*, enter `password`.
+image::gateway-quickstart-k8-basic-auth.png["Screenshot of 'Add a policy' page"]
++
+. Click *Next*.
+. Configure a Basic Authentication policy:
++
+image::gateway-quickstart-config-basic-auth.png["Screenshot of 'Configure Basic Authentication - Simple policy' page"]
++
+.. For *User Name*, enter `user` instead of your real user name. 
++
+You are not required to change this value if you do not need to protect it.
++
+.. For *User Password*, enter `pw`.
++
+You are not required to change this value if you do not need to protect it.
++
 .. Click *Apply*.
-+
-The following figure highlights the options in the *Configure Basic Authentication - Simple policy* page:
-+
-image::gateway-quickstart-config-basic-auth.png["Configure Basic Authentication Policy page with User Password field selected",width=65%]
 
-. To test the API Instance _without_ authentication, run the following `curl` command in the terminal window:
+. Test the API instance:
+.. Run the following `curl` a command _without_ authentication parameters, replacing `your_external_ip` with the `EXTERNAL-IP` from the preceding step:
 +
-[source,ssh]
+[source,curl]
 ----
-curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://localhost:8081/'
-----
-+
-The command prints a resulting `401 (Unauthorized)` status code, because the request does not include the Authentication context.
-. To test the API Instance _with_ authentication, run the following command in the terminal window:
-+
-[source,ssh]
-----
-curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://localhost:8081/' -u user:password
+curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://your_external_ip:80/users'
 ----
 +
-[NOTE]
-The `user` and `password` parameters must match what was specified when you applied the policy via *API Manager*.
+The command returns an error similar to this one because the URI lacks authentication parameters:
++
+----
+{"error":"Registered authentication is set to HTTP basic authentication 
+but there was no security context on the session."}
+----
++
+.. Run the following `curl` a command _with_ authentication parameters, replacing `your_external_ip` with the `EXTERNAL-IP` from the preceding step:
++
+[source,curl]
+----
+curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://your_external_ip:80/users' -u user:pw
+----
 +
 The command prints the resulting `200` status code, indicating success.
++
+The `user` and `password` parameters (`user:pw`) must match the values you specified when you applied the policy. If you enter incorrect authentication parameters, the following error occurs:
++
+----
+{"error":"Authentication Attempt Failed"}
+----
++
+To address the error, return to the policy configuration page for your API in in API Gateway, and edit the policy configuration.
++
+image::gateway-quickstart-k8-config-basic-auth-edit-dialogue.png["Screenshot of 'Configure Basic Authentication - Simple policy' edit dialogue"]
++
+image::gateway-quickstart-k8-config-basic-auth-edit.png["Screenshot of 'Configure Basic Authentication - Simple policy' configuration page"]
 
 
 [[troubleshooting]]
