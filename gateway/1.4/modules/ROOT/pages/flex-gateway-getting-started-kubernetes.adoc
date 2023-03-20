@@ -388,11 +388,10 @@ kubectl -n gateway get services
 curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://_your_external_ip_:80/users'
 ----
 +
-The command returns an error similar to the following one because the URI lacks authentication parameters:
+The command returns a `401` because the URI lacks authentication parameters:
 +
 ----
-{"error":"Registered authentication is set to HTTP basic authentication 
-but there was no security context on the session."}
+401
 ----
 +
 .. Run the following `curl` a command _with_ authentication parameters, replacing `your_external_ip` with your `EXTERNAL-IP` from the preceding step:
