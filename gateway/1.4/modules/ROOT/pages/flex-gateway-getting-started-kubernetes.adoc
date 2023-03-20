@@ -82,9 +82,16 @@ To determine whether your cluster is ready for the <<deploy-flex, deployment pro
 [[install-flex]]
 == Step 1: Install Flex Gateway
 
-Use Docker to pull the Flex Gateway Docker image.
+Use Docker to download the Flex Gateway image from the Docker Hub registry.
 
-. Start your Docker application.
+. Check that Docker is running by executing the following command in a terminal window:
++
+[source,docker,subs=attributes+]
+----
+docker info
+----
++
+If you receive an error that includes `ERROR: Cannot connect to the Docker daemon`, troubleshoot your Docker installation.
 . Run the following command in a terminal window:
 +
 [source,docker,subs=attributes+]
@@ -139,7 +146,7 @@ Notice that Runtime Manager provides the required organization and token values.
 
 . Before running the command, replace `<gateway-name>` at the end of the command block with a _unique_ name for your Flex Gateway container, such as `my-gateway`.
 +
-The name that you provide for your Flex Gateway container must be unique within the scope of your Anypoint Platform organization and environment. Completing this registration step is required once _and allowed no more than once_ per named container and organization.
+The name that you provide for your gateway must be unique within the scope of your Anypoint Platform organization and environment. Completing this registration step is required once _and allowed no more than once_ per named gateway and organization.
 
 . Run the edited command from your terminal window.
 +
@@ -250,11 +257,11 @@ You can use the search field in the page to narrow the list of containers.
 
 .. Make sure that the status of your new container is *Connected*. 
 +
-If the status is *Disconnected*, it is likely that the cluster configuration is incorrect. This issue can occur, for example, if the `helm -n gateway upgrade` times out before an `ingress` is created or if the cluster does not allow for a `LoadBalancer` resource. Check <<troubleshooting>> for more information. 
+If the status is *Disconnected*, it is likely that the cluster configuration is incorrect or there is a network issue. Check <<troubleshooting>> for more information. 
 
 
 [[create-api]]
-== Step 5: Publish and Deploy a Simple API to Your Flex Gateway Container
+== Step 5: Publish and Deploy a Simple API to Flex Gateway
 
 Create and deploy a simple API to your Flex Gateway container in Anypoint API Manager. 
 
