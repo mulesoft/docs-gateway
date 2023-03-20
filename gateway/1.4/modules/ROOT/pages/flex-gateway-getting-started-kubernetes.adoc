@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :version-helm: 3.0.0
 
-Get started with Anypoint Flex Gateway on a Kubernetes cluster. Set up a Flex Gateway container that connects to Anypoint Platform, and use the container to control traffic to an API implementation. This guide covers the following high-level tasks:
+Get started with Anypoint Flex Gateway on a Kubernetes cluster. Set up a Flex Gateway deployment that connects to Anypoint Platform, and use the deployment to route traffic to your API. This guide covers the following high-level tasks:
 
 * Installing, registering, deploying, and running a Flex Gateway container in Connected Mode. 
 * Creating a simple API in Anypoint API Manager that runs on your Flex Gateway container. 
@@ -82,7 +82,7 @@ To determine whether your cluster is ready for the <<deploy-flex, deployment pro
 [[install-flex]]
 == Step 1: Install Flex Gateway
 
-Use Docker to install the Flex Gateway Docker image.
+Use Docker to pull the Flex Gateway Docker image.
 
 . Start your Docker application.
 . Run the following command in a terminal window:
@@ -143,7 +143,7 @@ The name that you provide for your Flex Gateway container must be unique within 
 
 . Run the edited command from your terminal window.
 +
-When successful, the command produces a `registration.yaml` in your `/flex-registration` directory and provides the following message in your terminal window:
+When successful, the command produces a `registration.yaml` in your `./flex-registration` directory and provides the following message in your terminal window:
 +
 ----
 Starting registration, please be patient.
@@ -168,7 +168,7 @@ Create a local repository that stores a Helm chart with your Flex Gateway contai
 helm repo add flex-gateway https://flex-packages.anypoint.mulesoft.com/helm
 ----
 +
-The command either creates a repository or skips the repository creation process if a Helm repository with that name exists already:
+The command either adds the repository or skips this process if a Helm repository with that name exists already on your machine:
 +
 * If the repository is new, the command returns the following message:
 +
@@ -215,7 +215,7 @@ helm -n gateway upgrade -i --create-namespace \
 --set-file registration.content=registration.yaml
 ----
 +
-This command creates the `gateway` namespace and `ingress` if they do not exist, and it creates or updates the `flex-gateway` Helm chart in the `flex-gateway` Helm repo. The command syntax for the Helm repository and chart names is `<helm-repo-name>/<helm-chart-name>`. 
+This command creates the `gateway` namespace and `ingress` if they do not exist. The command syntax for the Helm repository and chart names is `<helm-repo-name>/<helm-chart-name>`. 
 +
 When successful, the following occurs:
 +
