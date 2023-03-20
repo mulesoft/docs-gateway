@@ -422,12 +422,13 @@ image::gateway-quickstart-k8-config-basic-auth-edit.png["Screenshot of 'Configur
 [[troubleshooting]]
 == Troubleshooting
 //iterative troubleshooting info to add as needed:
-//TODO: ADD WHAT TO DO IF THE CLUSTER APPEARS IN RTM BUT IS IN A DISCONNECTED STATE.
 
-If you encounter an error, look for a resolution or more information here. 
+If you encounter an error when running a command, check for troubleshooting information: 
+
+<<docker-troubleshooting>> | <<helm-troubleshooting>>
 
 [[docker-troubleshooting]]
-=== Docker Issues
+=== Docker Command Issues
 
 Troubleshoot errors returned by a `docker` command:
 
@@ -460,22 +461,30 @@ To avoid this issue, provide a _unique name_ for your Flex Gateway container whe
 +
 To avoid this issue, generate a new token for the command by refreshing the *Add a Flex Gateway* page for Kubernetes and rerun the <<reg-command, registration command>>.
 
+
+[[helm-troubleshooting]]
+=== Helm Command Issues
+
+Troubleshoot errors returned by a helm command:
+
 [[cluster_unreachable]]
-* If your cluster is not running when you attempt to deploy Flex Gateway using `helm`, the following error can occur:
+* If your Kubernetes cluster is not running when you attempt to deploy Flex Gateway using `helm`, the following error can occur:
 +
 ----
 Error: Kubernetes cluster unreachable: 
 the server could not find the requested resource
 ----
 +
-You can check whether that your cluster host is running your cluster, for example:
+Start the service that runs your cluster. 
++
+You can check that your Kubernetes cluster host is running your cluster, for example:
 +
 [source,kubectl]
 ----
 kubectl cluster-info
 ----
 +
-If the cluster is up, the command returns a result similar to this one:
+If the cluster is running, the command returns a result similar to this one:
 +
 ----
 Kubernetes control plane is running at https://34.30.50.119
@@ -492,9 +501,6 @@ error: the server doesn't have a resource type "services"
 ----
 +
 For additional information, see <<check-cluster>>.
-
-[[helm-troubleshooting]]
-=== Helm Issues
 
 Troubleshoot errors returned by a `helm` command:
 
