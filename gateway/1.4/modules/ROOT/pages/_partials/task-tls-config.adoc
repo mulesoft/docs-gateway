@@ -396,3 +396,82 @@ Flex Gateway supports multiple TLS certificates on a single gateway, but the cer
 Policy ordering cannot be applied to the Transport Layer Security policies.
 ====
 //end::config-ref[]
+
+//tag::sample-config-tls-outbound-insecure-intro[]
+*Sample configuration for adding outbound TLS with no certificate validation::*
+//end::sample-config-tls-outbound-insecure-intro[]
+//tag::sample-config-tls-outbound-insecure[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: tls-outbound-insecure
+spec:
+  targetRef:
+    name: ingress-test-outbound-upstream
+    kind: Service
+  policyRef:
+    name: tls-outbound
+  config:
+    skipValidation: true
+----
+//end::sample-config-tls-outbound-insecure[]
+
+//tag::sample-config-tls-outbound-oneway-intro[]
+*Sample configuration for one way outbound TLS::*
+//end::sample-config-tls-outbound-oneway-intro[]
+//tag::sample-config-tls-outbound-oneway[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: tls-outbound
+spec:
+  targetRef:
+    name: ingress-test-outbound-upstream
+    kind: Service
+  policyRef:
+    name: tls-outbound  
+  config:
+    trustedCA: |
+      # -----BEGIN CERTIFICATE-----
+      # insert certificate
+      # -----END CERTIFICATE-----
+----
+//end::sample-config-tls-outbound-oneway[]
+
+//tag::sample-config-mtls-intro[]
+*Sample configuration for one way outbound TLS::*
+//end::sample-config-mtls-intro[]
+//tag::sample-config-mtls[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: mtls-outbound
+spec:
+  targetRef:
+    name: ingress-test-outbound-upstream
+    kind: Service
+  policyRef:
+    name: tls-outbound
+  config:
+    trustedCA: |
+      # -----BEGIN CERTIFICATE-----
+      # insert certificate
+      # -----END CERTIFICATE-----
+    certificate:
+      key: |
+        # -----BEGIN PRIVATE KEY-----
+        # insert certificate key
+        # -----END PRIVATE KEY-----
+      crt: |
+        # -----BEGIN CERTIFICATE-----
+        # insert certificate
+        # -----END CERTIFICATE-----
+----
+//end::sample-config-mtls[]
+

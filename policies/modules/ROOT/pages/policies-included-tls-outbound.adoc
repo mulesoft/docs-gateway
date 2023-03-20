@@ -49,8 +49,9 @@ Refer to the following policy definition and table of parameters:
 - policyRef:
     name: tls-outbound
   config:
-    skipValidation: <boolean> // REQUIRED
-    certificate: // REQUIRED
+    skipValidation: <boolean> // OPTIONAL
+    trustedCA: <string> // OPTIONAL
+    certificate: // OPTIONAL
         key: <string> // REQUIRED
         crt: <string> // REQUIRED
     alpn: <array> // OPTIONAL
@@ -68,12 +69,12 @@ When configuring the `ciphers` parameter, ensure that your API upstream supports
 |Parameter | Required or Optional | Default Value | Description
 
 | `skipValidation`
-| Required
+| Optional
 | false
 | Skipping validation disables outbound mTLS
 
 | `trustedCA`
-| Optional, unless `skipValidation` is false
+| Optional
 | N/A
 | The client certificate used in mTLS
 
@@ -83,7 +84,7 @@ When configuring the `ciphers` parameter, ensure that your API upstream supports
 | A TLS certificate key pair
 
 | `certificate.key`
-| Required
+| Optional
 | N/A
 | The private key part of the certificate
 
@@ -116,15 +117,20 @@ When configuring the `ciphers` parameter, ensure that your API upstream supports
 
 === Resource Configuration Examples
 
-// sample config outbound TLS applied to a a specific instance
-include::gateway::partial$task-tls-config.adoc[tags=sample-config-outbound-instance-intro]
-// sample config outbound TLS applied to a a specific instance
-include::gateway::partial$task-tls-config.adoc[tags=sample-config-outbound-instance]
+// sample config TLS with no validation
+include::gateway::partial$task-tls-config.adoc[tags=sample-config-tls-outbound-insecure-intro]
+// sample config TLS with no validation
+include::gateway::partial$task-tls-config.adoc[tags=sample-config-tls-outbound-insecure]
 
 // sample config outbound mTLS applied to a a specific instance
-include::gateway::partial$task-tls-config.adoc[tags=sample-config-mtls-outbound-intro]
+include::gateway::partial$task-tls-config.adoc[tags=sample-config-mtls-intro]
 // sample config outbound mTLS applied to a a specific instance
-include::gateway::partial$task-tls-config.adoc[tags=sample-config-mtls-outbound]
+include::gateway::partial$task-tls-config.adoc[tags=sample-config-mtls]
+
+// sample config one way outbound TLS
+include::gateway::partial$task-tls-config.adoc[tags=sample-config-tls-outbound-oneway-intro]
+// sample config one way outbound TLS
+include::gateway::partial$task-tls-config.adoc[tags=sample-config-tls-outbound-oneway]
 
 include::anypoint-security::partial$flex-tls-cipher.adoc[tags=cipherSupportLocal;outboundImportantLocal;local-ciphers]
 
