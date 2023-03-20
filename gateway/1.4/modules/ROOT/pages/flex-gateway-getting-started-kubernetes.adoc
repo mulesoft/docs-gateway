@@ -255,7 +255,7 @@ image::gateway-quickstart-k8-my-gateway-rtm.png["Flex Gateway my-gateway in Runt
 +
 You can use the search field in the page to narrow the list of gateways.
 
-.. Make sure that the status of your new container is *Connected*. 
+.. Make sure that the status of your gateway is *Connected*. 
 +
 If the status is *Disconnected*, it is likely that the cluster configuration is incorrect or there is a network issue. Check <<troubleshooting>> for more information. 
 
@@ -263,11 +263,11 @@ If the status is *Disconnected*, it is likely that the cluster configuration is 
 [[create-api]]
 == Step 5: Publish and Deploy a Simple API to Flex Gateway
 
-Create and deploy a simple API to your Flex Gateway container in Anypoint API Manager. 
+Create and deploy a simple API to your gateway in Anypoint API Manager. 
 
-. In Runtime Manager, click the *View APIs* menu option for your container to navigate to the container's *View APIs* page.
+. In Runtime Manager, click the *View APIs* menu option for your gateway to navigate to its *View APIs* page.
 +
-image::gateway-quickstart-k8-view-apis.png["View APIs menu item for a Flex Gateway container"]
+image::gateway-quickstart-k8-view-apis.png["View APIs menu item for Flex Gateway"]
 +
 Alternatively, you can navigate to API Manager from the Anypoint Platform menu.
 . From the page that opens, click *Add API* (and if present, *Add new API*) to navigate to the *APIs / Add API* page in API Manager.
@@ -276,7 +276,7 @@ Alternatively, you can navigate to API Manager from the Anypoint Platform menu.
 image::gateway-quickstart-k8-select-gateway-for-api.png["Add API page with Flex Gateway Runtime and my-gateway selected"]
 +
 .. From the *Runtime* configuration page, select *Flex Gateway* as your runtime.
-.. Find and select your container in the *Select a gateway* area of the page.
+.. Find and select your gateway in the *Select a gateway* area of the page.
 +
 Use the search field to locate it, if necessary.
 .. Click *Next* to open the *API* page.
@@ -325,13 +325,13 @@ NAME    TYPE         CLUSTER-IP     EXTERNAL-IP     PORT(S)                    A
 ingress LoadBalancer 10.100.222.333 123456.aws.com  80:12345/TCP,443:12345/TCP 7d7h
 ----
 +
-To protect the `IP` and `PORT` values, the example edits the values.
+The `EXTERNAL-IP` value in the example is placeholder and not an actual value.
 +
 .. Run the following `curl` command, replacing `your_external_ip` with _your_ `EXTERNAL-IP` from the preceding step:
 +
 [source,curl]
 ----
-curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://your_external_ip:80/users'
+curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://_your_external_ip_:80/users'
 ----
 +
 The command executes a `GET` request to the API, and then prints the resulting `200` status code, indicating success.
