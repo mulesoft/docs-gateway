@@ -164,7 +164,7 @@ Note that the message in the terminal window refers to a `/registration` directo
 Use `sudo` if you encounter file permission issues when running this command. If your token expires before you run the command, a `400 Bad Request` error occurs. In this case, you must refresh the Runtime Manager page to generate a new token and run the modified command that appears on the page.
 
 [[create-repo]]
-== Step 3: Create a Repository for the Helm Chart
+== Step 3: Add a Repository for the Helm Chart
 
 Add the Flex Gateway chart repository. Note that you can get more information about the properties of the Helm chart for Flex Gateway in https://artifacthub.io/packages/helm/flex-gateway/flex-gateway[ArtifactHUB^].
 
@@ -459,12 +459,12 @@ HTTP/1.1 400 Bad Request
 ----
 +
 The reason for this error is available within the error message. Common causes include: 
-
++
 [[name-already-exists]]
 ** `an active target with the same name already exists in this organization and environment`
 +
 To avoid this issue, provide a _unique name_ for your gateway when running the <<reg-command, registration command>>. Note that you _cannot reuse the same name_ even if a previous registration with that name was successful. When this error occurs, the command generates an _empty_ `registration.yaml`, which prevents re-registration _and_ produces an error when you try to use the file when deploying the gateway to your cluster. 
-
++
 [[no-token]]
 ** `no valid registration token was found`
 +
@@ -484,7 +484,7 @@ Error: UPGRADE FAILED: execution error at (flex-gateway/templates/deployment.yam
 registerSecretName, registration.content or registration.secretName is required!
 ----
 +
-When this error occurs, makes sure that the `registration.yaml` file is not empty. If the file is empty, reregister your gateway with a new, unique name to generate a new `registration.yaml` (see <<register-flex>>) and rerun the procedures that follow the registration step. 
+When this error occurs, make sure that the `registration.yaml` file is not empty. If the file is empty, reregister your gateway with a new, unique name to generate a new `registration.yaml` (see <<register-flex>>) and rerun the procedures that follow the registration step. 
 
 [[cluster_unreachable]]
 * If your Kubernetes cluster is not running when you attempt to deploy Flex Gateway using `helm`, the following error might occur:
