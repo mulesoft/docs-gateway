@@ -91,7 +91,7 @@ Use Docker to download the Flex Gateway image from the Docker Hub registry.
 docker info
 ----
 +
-If you receive an error after executing this command, see the information on <<docker-troubleshooting,Docker troubleshooting>>.  
+If you receive an error after executing this command, see the information about <<docker-troubleshooting,Docker troubleshooting>>.  
 . Run the following command in a terminal window:
 +
 [source,docker,subs=attributes+]
@@ -99,7 +99,7 @@ If you receive an error after executing this command, see the information on <<d
 docker pull mulesoft/flex-gateway:{gateway-ver-var}
 ----
 +
-When successful, this command prints a message similar to this one in your terminal window:
+When successful, this command prints a message similar to the following one in your terminal window:
 +
 ----
 latest: Pulling from mulesoft/flex-gateway
@@ -213,7 +213,7 @@ Confirm that your Kubernetes cluster is available by following the steps in <<ch
 
 After confirming that your Kubernetes cluster is ready, complete the following steps:
 
-. Run the Helm command for deploying your gateway and connecting it to Anypoint Platform. 
+. Run the Helm command for deploying your gateway and connecting it to Anypoint Platform:
 +
 [source,helm]
 ----
@@ -237,7 +237,7 @@ REVISION: 1
 TEST SUITE: None
 ----
 +
-The `REVISION` increments the `ingress` release by `1` each time you run this command with the same namespace, repository, and chart names. For example, if you run the command a second time, you find a new revision number (`REVISION: 2`). The `LAST DEPLOYED` date reflects the date of that revision.
+The `REVISION` value increments the `ingress` release by `1` each time you run this command with the same namespace, repository, and chart names. For example, if you run the command a second time, you find a new revision number (`REVISION: 2`). The `LAST DEPLOYED` date reflects the date of that revision.
 +
 If you receive an `UPGRADE FAILED` response, see <<upgrade-failed,troubleshooting>> information about this issue. 
 
@@ -253,7 +253,7 @@ You can use the search field in the page to narrow the list of gateways.
 
 .. Make sure that the status of your gateway is *Connected*. 
 +
-If the status is *Disconnected*, it is likely that the cluster configuration is incorrect or there is a network issue. Check <<troubleshooting>> for more information.
+If the status is *Disconnected*, it is likely that the cluster configuration is incorrect or a network issue occurred. Check <<troubleshooting>> for more information.
 //TODO: COVER BOTH TYPES OF ISSUES; MAKE SURE MOST COMMON ARE COVERED
 //      don't have network-related troubleshooting yet; 
 //      so have some config troubleshooting
@@ -261,7 +261,7 @@ If the status is *Disconnected*, it is likely that the cluster configuration is 
 [[create-api]]
 == Step 5: Publish and Deploy a Simple API to Flex Gateway
 
-Create and deploy a simple API to your gateway in Anypoint API Manager. 
+Create and deploy a simple API to your gateway in Anypoint API Manager:
 
 . In Runtime Manager, click the *View APIs* menu option for your gateway to navigate to its *View APIs* page.
 +
@@ -285,7 +285,7 @@ image::gateway-quickstart-k8-api-config-api.png["Screenshot of 'API' page",width
 +
 .. Click *Create new API*.
 +
-The remaining procedures walk you through steps for creating and testing a new HTTP API in Anypoint Exchange. Notice, however, that it is also possible to select an existing API from Exchange from this page. That process is described in the xref:api-gateway::create-instance-task.adoc#add-a-new-api[Add a New API] within the API Manager documentation.
+The remaining procedures walk you through steps for creating and testing a new HTTP API in Anypoint Exchange. Notice, however, that it is also possible to select an existing API from Exchange from this page. That process is described in the xref:api-gateway::create-instance-task.adoc#add-a-new-api[Add a New API] in the API Manager documentation.
 +
 .. Provide an API name, such as *my-api*.
 .. Select *HTTP API* as the asset type.
@@ -356,12 +356,12 @@ Use API Manager to add a basic authentication policy to your API.
 . Find and click the name of the API that you created in <<create-api>>, such as *my-api*.
 . Navigate to the *Policies* page for your API:
 .. Select *Policies* from the side navigation panel.
-.. In the *Policies* page, click *Add policy*.
+.. On the *Policies* page, click *Add policy*.
 +
 image::gateway-quickstart-add-policy.png["Add Policy page with Add policy button",width=90%]
 . In the page that opens, find the *Security* policy called *Basic Authentication - Simple* policy.
 +
-image::gateway-quickstart-k8-basic-auth.png["Screenshot of 'Add a policy' page",width=90%]
+image::gateway-quickstart-k8-basic-auth.png["Add a policy page",width=90%]
 +
 Be careful to avoid selecting the similarly named policy for LDAP.
 . Click *Next*.
@@ -447,7 +447,7 @@ Troubleshoot errors returned by a `docker` command:
 Error response from daemon: Bad response from Docker engine
 ----
 +
-If you get this error, you need to start Docker.
+If you get this error, start Docker.
 
 
 [[bad-request]]
@@ -461,7 +461,7 @@ HTTP/1.1 400 Bad Request
 The reason for this error is available within the error message. Common causes include: 
 
 [[name-already-exists]]
-** `an active target with the same name already exists in this organization and environment`. 
+** `an active target with the same name already exists in this organization and environment`
 +
 To avoid this issue, provide a _unique name_ for your gateway when running the <<reg-command, registration command>>. Note that you _cannot reuse the same name_ even if a previous registration with that name was successful. When this error occurs, the command generates an _empty_ `registration.yaml`, which prevents re-registration _and_ produces an error when you try to use the file when deploying the gateway to your cluster. 
 
@@ -484,7 +484,7 @@ Error: UPGRADE FAILED: execution error at (flex-gateway/templates/deployment.yam
 registerSecretName, registration.content or registration.secretName is required!
 ----
 +
-When this error occurs, check the `registration.yaml`. Make sure the file is not empty. If the file is empty, re-register your gateway with a new, unique name to generate a new `registration.yaml` (see <<register-flex>>) and rerun the procedures that follow the registration step. 
+When this error occurs, makes sure that the `registration.yaml` file is not empty. If the file is empty, reregister your gateway with a new, unique name to generate a new `registration.yaml` (see <<register-flex>>) and rerun the procedures that follow the registration step. 
 
 [[cluster_unreachable]]
 * If your Kubernetes cluster is not running when you attempt to deploy Flex Gateway using `helm`, the following error can occur:
@@ -496,7 +496,7 @@ the server could not find the requested resource
 +
 Start the service that runs your cluster. 
 +
-You can check that your Kubernetes cluster host is running your cluster, for example:
+Check that your Kubernetes cluster host is running your cluster, for example:
 +
 [source,kubectl]
 ----
@@ -561,7 +561,7 @@ kubectl -n gateway describe service
 [[check-cluster]]
 == Check Your Cluster
 
-Before deploying Flex Gateway to your Kubernetes cluster in <<deploy-flex>>, you must make sure that your cluster is ready. To check, you can use `kubectl` to list and select (use) a cluster and to get a list of nodes that the cluster uses. If any steps in this section fail, the deployment process is likely to produce errors.
+Before deploying Flex Gateway to your Kubernetes cluster in <<deploy-flex>>, ensure that your cluster is ready. Use `kubectl` to list and select (use) a cluster and to get a list of nodes that the cluster uses. If any steps in this section fail, the deployment process is likely to produce errors.
 
 To prevent potential timeout and connectivity errors when running procedures in this guide, your cluster must meet the <<k8-cluster-reqs>>. 
 
@@ -592,9 +592,9 @@ You can check by running `echo $KUBECONFIG` from your terminal window, which pri
 {KUBECONFIG}:/Users/me/.kube/config:/Users/me/.kube/additional-clusters/my-gke:/Users/me/.kube/additional-clusters/my-aks:/Users/me/.kube/additional-clusters/my-eks
 ----
 +
-Adding the path to any additional cluster context files on your machine enables the `kubectl config get-contexts` to list them and for you to use them.
+Adding the path to any additional cluster context files on your machine enables the `kubectl config get-contexts` command to list the cluster contexts and for you to use them.
 +
-For more detail, see the https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/[Kubernetes documentation^] on the `kubeconfig` file. 
+For more detail, see the https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/[Kubernetes documentation^] about the `kubeconfig` file. 
 
 . Provide the name of a cluster into which you plan to deploy your gateway.
 +
@@ -610,7 +610,7 @@ The command switches to the selected cluster context and prints a message simila
 Switched to context "my-eks".
 ----
 +
-If you receive an error that begins `error: no context exists with the name`, ensure you are using the `NAME` of the cluster listed by `kubectl config get-contexts` and not the `CLUSTER` value.
+If you receive an error that begins `error: no context exists with the name`, ensure you are using the `NAME` value of the cluster listed by `kubectl config get-contexts` and not the `CLUSTER` value.
 
 . Check that your cluster has one or more nodes:
 +
@@ -627,7 +627,7 @@ ip-192-168-70-170   Ready    <none>   17h   v1.x.x
 ip-192-168-9-230    Ready    <none>   17h   v1.x.x
 ----
 +
-Make sure that some nodes are in the `Ready` status. 
+Make sure that at least one node is in the `Ready` status. 
 //TODO: WHAT specifically TO DO IF NOT Ready?
 //TODO: WHAT OTHER CHARACTERISTICS should they check for? 
 //      Can we check whether the node can create an Service resource of LoadBalancer type, for ex?
