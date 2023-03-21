@@ -230,9 +230,9 @@ When successful, the following occurs:
 * The command prints a message indicating an upgrade to your `ingress` release:
 +
 ----
-Release "ingress" has been upgraded. Happy Helming!
+Release "ingress" does not exist. Installing it now.
 NAME: ingress
-LAST DEPLOYED: Mon Mar 13 22:44:11 2023
+LAST DEPLOYED: Mon Mar 20 21:36:19 2023
 NAMESPACE: gateway
 STATUS: deployed
 REVISION: 1
@@ -326,11 +326,11 @@ The command returns a result that looks similar to this example:
 +
 [[get-services]]
 ----
-NAME    TYPE         CLUSTER-IP     EXTERNAL-IP     PORT(S)                    AGE
-ingress LoadBalancer 10.100.222.333 123456.aws.com  80:12345/TCP,443:12345/TCP 7d7h
+NAME    TYPE         CLUSTER-IP     EXTERNAL-IP       PORT(S)                    AGE
+ingress LoadBalancer 10.100.145.109 <123456.aws.com>  80:30524/TCP,443:31710/TCP 7d7h
 ----
 +
-The `EXTERNAL-IP` value in the example is placeholder and not an actual value.
+The `EXTERNAL-IP` value `<123456.aws.com>` is an example and not an actual value.
 +
 .. Run the following `curl` command, replacing `your_external_ip` with _your_ `EXTERNAL-IP` from the preceding step:
 +
@@ -339,7 +339,11 @@ The `EXTERNAL-IP` value in the example is placeholder and not an actual value.
 curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://_your_external_ip_:80/users'
 ----
 +
-The command executes a `GET` request to the API, and then prints the resulting `200` status code, indicating success.
+The command executes a `GET` request to the API and prints a success code:
++
+----
+200
+----
 +
 You can also run a simpler `curl` command to return an array of JSON objects from the service's `/users` endpoint, for example: 
 +
