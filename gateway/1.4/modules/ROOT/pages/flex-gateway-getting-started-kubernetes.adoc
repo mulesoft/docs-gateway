@@ -520,22 +520,22 @@ error: the server doesn't have a resource type "services"
 For additional information, see <<check-cluster>>.
 
 [[upgrade-failed]]
-* If the Helm upgrade command fails to generate a `Service` resource of the `LoadBalancer` type, the command hangs for 5 minutes (due to the `--wait`) flag in the command and produces the following timeout error:
+* Some issues can cause the Helm upgrade command to hang for 5 minutes (due to the `--wait` flag in the command) and produce the following timeout error:
 +
 ----
 Error: UPGRADE FAILED: timed out waiting for the condition
 ----
 +
-This error typically means that your cluster configuration is incorrect or that your cluster configuration tool does not support this process. See <<k8-cluster-reqs>>. You can troubleshoot further by running the following commands:
+This error typically means that your cluster configuration is incorrect or that your cluster configuration tool does not support this process. See <<k8-cluster-reqs>>. One potential cause is the failure to generate a `Service` resource of the `LoadBalancer` type. You can troubleshoot further by running the following commands:
 
-* {empty}
+** {empty}
 +
 [source,kubectl]
 ----
 kubectl -n gateway describe deployment
 ----
 
-* {empty}
+** {empty}
 +
 [source,kubectl]
 ----
