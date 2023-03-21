@@ -526,7 +526,21 @@ For additional information, see <<check-cluster>>.
 Error: UPGRADE FAILED: timed out waiting for the condition
 ----
 +
-This error typically means that your cluster configuration is incorrect or that your cluster configuration tool does not support this process. See <<k8-cluster-reqs>>.
+This error typically means that your cluster configuration is incorrect or that your cluster configuration tool does not support this process. See <<k8-cluster-reqs>>. You can troubleshoot further by running the following commands:
+
+* {empty}
++
+[source,kubectl]
+----
+kubectl -n gateway describe deployment
+----
+
+* {empty}
++
+[source,kubectl]
+----
+kubectl -n gateway describe service
+----
 
 * If the `registration.yaml` file is invalid when you pass it to the Helm during deployment of Flex Gateway, the following error results:
 +
