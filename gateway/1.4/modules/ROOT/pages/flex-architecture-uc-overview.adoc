@@ -35,21 +35,50 @@ External networks untrusted by your company and in a different network as Flex G
 
 If an API provider or API consumer is organization-owned, it belongs to either the organization's internal network or the organization's external networks.
 
-The following table relates the previously mentioned use cases to use case patterns, the networks involved in the pattern, and whether Flex Gateway acts as an ingress or egress contoller or both.  
+The following tables:
 
-[%header%autowidth.spread,cols="a,a,a,a,a"]
+* Relates the previously mentioned use cases to use case patterns
+* Shows the networks involved in the pattern
+* Indicates whether Flex Gateway acts as an ingress controller, egress contoller, or both.
+
+
+
+== UC1: Organization-Owned API Exposed to Organization-Owned API Consumer
+
+[%header%autowidth.spread,cols="a,a,a,a"]
 |===
-| Use Case | Pattern | Provider Network | Consumer Network | Role of Flex Gateway
-| UC1: Organization Owned API Exposed to Organization Owned API Consumer | P1A: Organization internal API exposed to organization internal consumer using the same VPC or network | Organization internal | Organization internal | Ingress
-| UC1: Organization Owned API Exposed to Organization Owned API Consumer | P1B: Organization internal API exposed to organization internal consumer using a different VPC or network | Organization internal | Organization internal | Ingress
-| UC1: Organization Owned API Exposed to Organization Owned API Consumer | P2: Organization internal API exposed organization external consumer | Organization internal | Organization external | Ingress
-| UC1: Organization Owned API Exposed to Organization Owned API Consumer | P3: Organization external API exposed to organization internal consumer | Organization external | Organization internal | Egress
-| UC1: Organization Owned API Exposed to Organization Owned API Consumer | P4: Organization external API exposed to organization external consumer | Organization external | Organization external | Ingress and Egress
-| UC2: Organization Owned API Exposed to Non-Organization owned API Consumer | P5: Organization internal API exposed to non-organization external consumer | Organization internal | Non-organization external | Ingress
-| UC2: Organization Owned API Exposed to Non-Organization owned API Consumer | P6: Organization external API exposed to non-organization external consumer | Organization external | Non-organization external | Ingress and Egress
-| UC3: Non-Organization Owned API Exposed to Organization Owned API Consumer | P7: Non-organization external API exposed to organization internal consumer | Non-organization external | Organization internal | Egress
-| UC3: Non-Organization Owned API Exposed to Organization Owned API Consumer | P8: Non-organization external API exposed to Organization external consumer | Non-organization external | Organization external | Ingress and Egress
-| UC4: Non-Organization owned API Exposed to External Non-Organization owned API Consumer | P9: Non-organization external API exposed to non-organization external consumer | Non-organization external | Non-organization external | Ingress and Egress
+| Pattern | Provider Network | Consumer Network | Role of Flex Gateway
+| P1A: Organization internal API exposed to an organization internal consumer using the same VPC or network as the API | Organization internal | Organization internal | Ingress
+| P1B: Organization internal API exposed to an organization internal consumer using a different VPC or network from the API | Organization internal | Organization internal | Ingress
+| P2: Organization internal API exposed to an organization external consumer | Organization internal | Organization external | Ingress
+| P3: Organization external API exposed to an organization internal consumer | Organization external | Organization internal | Egress
+| P4: Organization external API exposed to an organization external consumer | Organization external | Organization external | Ingress and Egress
+|===
+
+
+== UC2: Organization-Owned API Exposed to Non-Organization-Owned API Consumer 
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Pattern | Provider Network | Consumer Network | Role of Flex Gateway
+| P5: Organization internal API exposed to a non-organization external consumer | Organization internal | Non-organization external | Ingress
+| P6: Organization external API exposed to a non-organization external consumer | Organization external | Non-organization external | Ingress and Egress
+|===
+
+== UC3: Non-Organization-Owned API Exposed to Organization-Owned API Consumer 
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Pattern | Provider Network | Consumer Network | Role of Flex Gateway
+| P7: Non-organization external API exposed to an organization internal consumer | Non-organization external | Organization internal | Egress
+| P8: Non-organization external API exposed to an organization external consumer | Non-organization external | Organization external | Ingress and Egress
+|===
+
+== UC4: Non-Organization-Owned API Exposed to External Non-Organization-Owned API Consumer 
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Pattern | Provider Network | Consumer Network | Role of Flex Gateway
+| P9: Non-organization external API exposed to a non-organization external consumer | Non-organization external | Non-organization external | Ingress and Egress
 |===
 
 == mTLS considerations for integration flows
