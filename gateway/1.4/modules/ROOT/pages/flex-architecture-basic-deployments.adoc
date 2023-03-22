@@ -22,14 +22,14 @@ As the diagram shows, all external traffic in a standalone deployment passes thr
 
 == Ingress Deployment
 
-In an ingress deployment, Flex Gateway acts as a standalone service that protects applications by managing incoming requests. In this type of deployment, you deploy Flex Gateway in a separate pod and namespace from the consumer applications. An ingress deployment is similar to a standalone deployment, but traffic in an ingress deployment comes from external services.
+In an ingress deployment, Flex Gateway acts as a standalone service that protects applications by managing incoming requests. In this type of deployment, you deploy Flex Gateway in a separate pod and namespace from the consumer applications. An ingress deployment is similar to a standalone deployment, but traffic in an ingress deployment comes from external services:
 
 image:ad-ingress-deployment.png[[In ingress deployment, Flex Gateway and the consumer applications are in different Kubernetes namespace. Flex Gateway is used as an ingress controller.]
 
 As the diagram shows, all external traffic in an ingress deployment passes through a load balancer before entering the Flex Gateway namespace. The traffic then passes through Flex Gateway before reaching the consumer application namespace.
 
 == Sidecar Deployment
-In a sidecar deployment, you deploy Flex Gateway in the same pod as the service that it is protecting. Each Flex Gateway deployment exclusively protects the APIs exposed by its protected service. A new Flex Gateway replica is added with each new protected service. 
+In a sidecar deployment, you deploy Flex Gateway in the same pod as the service that it is protecting. Each Flex Gateway deployment exclusively protects the APIs exposed by its protected service. A new Flex Gateway replica is added with each new protected service:
 
 image:ad-sidecar-deployment.png[In sidecar deployment, Flex Gateway and the consumer application are in the same Kubernetes pod.]
 
