@@ -3,8 +3,8 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
-:keywords: tokenization, api gateway, flex gateway, gateway, policy
-// :page-aliases: api-manager::policy-mule4-tokenization.adoc
+:keywords: tokenization, api gateway, mule gateway, gateway, policy
+:page-aliases: api-manager::policy-mule4-tokenization.adoc
 
 [%autowidth.spread,cols="a,a"]
 |===
@@ -16,7 +16,7 @@ endif::[]
 
 [%autowidth.spread,cols="a,a"]
 !===
-.3+>.^!400 ! A token is invalid, or the tokenization failed. ! The provided expression is invalid or returns no result to tokenize. 
+.3+>.^!400 ! A token is invalid, or the tokenization failed. ! The provided expression is invalid or returns no result to tokenize.
 ! The status code to be returned can be configured.
 !===
 | 502 - Connection to the tokenization service is unavailable or not configured.
@@ -24,7 +24,7 @@ endif::[]
 
 == Summary
 
-Tokenization is the process of masking a value or piece of information that can be considered sensitive data into a token that can be mapped back to its original value using detokenization concepts. If your API contains sensitive data, the tokenization policy is a highly effective way to protect it. 
+Tokenization is the process of masking a value or piece of information that can be considered sensitive data into a token that can be mapped back to its original value using detokenization concepts. If your API contains sensitive data, the tokenization policy is a highly effective way to protect it.
 
 The data is displayed in the same format as the original value, but its actual value is not revealed initially. This policy is designed to work only for Anypoint Runtime Fabric deployments.
 
@@ -37,7 +37,7 @@ To apply and manage the Tokenization policy, you must have:
 * Obtained the *Manage Policies* permission.
 * To xref:anypoint-security::tokenization-example.adoc[configure] and run the tokenization service, you must have:
 ** Installed Runtime Fabric
-** Obtained the *Manage Tokenization Services* permission 
+** Obtained the *Manage Tokenization Services* permission
 * An operating tokenization service
 
 == Scope and Considerations
@@ -49,7 +49,7 @@ Before you apply this policy, review the following considerations:
 All the formats that you configured need to be contained in the same tokenization service.
 * You can use one instance of the policy to tokenize a value either in the request or in the response, but not in both.
 * The policy is not aware of the state of the tokenization service until runtime. If you deleted your tokenization service or if it is not operational, the policy cannot establish communication with it. This causes all the requests to fail until the service is available again.
-During policy configuration, the services menu displays only the tokenization services that are ready to use. 
+During policy configuration, the services menu displays only the tokenization services that are ready to use.
 +
 If you do not see the service you want, verify if it is already deployed.
 
@@ -71,7 +71,7 @@ When you apply the policy to your API from the UI, the following parameters are 
 |===
 | Element | Description | Required
 | Direction
-| Whether the values to tokenize are extracted from the request or the response (default). 
+| Whether the values to tokenize are extracted from the request or the response (default).
 | Yes
 
 | Fail on unmatched expressions
@@ -97,9 +97,9 @@ Only expressions using dots as field separators are allowed. While `\#[payload.p
 If you do not specify a selector expression, the policy is applied, but does not tokenize anything from the payload.
 
 | Format
-| Type of information to be tokenized. Formats vary depending on the selected service. 
+| Type of information to be tokenized. Formats vary depending on the selected service.
 
-If you do not see any formats in the list, verify that the tokenization service that you selected contains at least one. 
+If you do not see any formats in the list, verify that the tokenization service that you selected contains at least one.
 | No +
 If you do not specify a format, the policy is applied but does not tokenize anything from the payload.
 

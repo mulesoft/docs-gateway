@@ -3,8 +3,8 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
-:keywords: detokenization, api gateway, flex gateway, gateway, policy
-// :page-aliases: api-manager::policy-mule4-detokenization.adoc
+:keywords: detokenization, api gateway, mule gateway, policy
+:page-aliases: api-manager::policy-mule4-detokenization.adoc
 
 [%autowidth.spread,cols="a,a"]
 |===
@@ -16,15 +16,15 @@ endif::[]
 
 [%autowidth.spread,cols="a,a"]
 !===
-.3+>.^! 400 ! The provided expression is invalid or returns no result to detokenize. 
+.3+>.^! 400 ! The provided expression is invalid or returns no result to detokenize.
 
 *NOTE*: You can configure the status code to be returned.
 !===
 | 502 - Connection to the tokenization service is unavailable or not configured.
 |===
 
-== Summary 
-Detokenization is the process of returning the previously masked sensitive data back into its original value to reduce the risk of compromising sensitive information. You can tokenize your data to replace sensitive information with tokens to reduce the risk of compromising sensitive information. 
+== Summary
+Detokenization is the process of returning the previously masked sensitive data back into its original value to reduce the risk of compromising sensitive information. You can tokenize your data to replace sensitive information with tokens to reduce the risk of compromising sensitive information.
 
 For example, an application can require the bank account number or the credit card number for generating monthly credit card statements. Detokenized sensitive data must always be read under strict security controls.
 
@@ -42,24 +42,16 @@ To apply and manage the Detokenization policy, you must have:
 
 Before you apply this policy, review the following considerations:
 
-* One instance of the policy supports only one tokenization service. 
+* One instance of the policy supports only one tokenization service.
 +
 All the formats that you configured must be contained in the same tokenization service.
 * You can use one instance of the policy to tokenize a value either in the request or the response, but not in both.
 * If you deleted your tokenization service or if it is not operational, the policy cannot establish communication with it. This causes all the requests to fail until the service is available again.
-* During policy configuration, the services menu displays only the tokenization services that are ready to use. 
+* During policy configuration, the services menu displays only the tokenization services that are ready to use.
 +
 If you do not see the service you want, check to see if it is already deployed.
 
 == Configuring Policy Parameters
-
-=== Flex Gateway Local Mode
-
-The Detokenization policy is not supported in Flex Gateway Local Mode.
-
-=== Flex Gateway Connected Mode
-
-The Detokenization policy is not supported in Flex Gateway Connected Mode.
 
 === Mule Gateway
 
@@ -69,7 +61,7 @@ When you apply this policy to your API, the following fields are displayed in th
 |===
 | Element | Description | Required
 | Direction
-| Whether the values to detokenize are extracted from the request or the response (default). 
+| Whether the values to detokenize are extracted from the request or the response (default).
 | Yes
 
 | Fail on unmatched expressions
