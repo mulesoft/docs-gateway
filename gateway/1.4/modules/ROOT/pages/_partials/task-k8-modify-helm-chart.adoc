@@ -1,0 +1,106 @@
+= Configure Helm Chart Settings
+
+The Helm chart for your Kubernetes cluster is configurable. To configure the values, use Helm to get a list of the current values in your chart and to update the chart with new values.
+
+== Before You Begin
+
+* Register and deploy Flex Gateway to a Kubernetes cluster. For guidance, see  xref:flex-gateway-set-up.adoc[] or xref:flex-gateway-getting-started-kubernetes.adoc[].
+
+[[update-cpu-memory-example]]
+== Modify Your Helm Chart
+
+The following example generates a release with new CPU and memory values: 
+
+. From the command line, navigate to the file directory that contains the YAML configuration file for your gateway release, such as a `registration.yaml` for an `ingress` release.
+
+. Ensure that your Helm repository is up and available by running `helm repo up`. 
+
+. Display the values in your Helm chart:
++
+.Command Syntax:
+[source,helm syntax]
+----
+helm show values <repository name>/<chart name>
+----
++
+.Example:
+[source,helm]
+----
+helm show values flex-gateway/flex-gateway
+----
+
+. In the command output, check your settings.
++
+The following example lists the CPU and memory settings for a release, which are located beneath the `Deployment` section of the output:
++
+----
+# *******************
+# Deployment
+# *******************
+
+...
+
+resources:
+  limits:
+    # -- CPU resource limits in millicores.
+    cpu: 1000m
+    # -- Memory resource limits.
+    memory: 1024Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+----
+
+. Change the `cpu` and `memory` values of your chart, for example:
++
+[source,helm]
+----
+helm upgrade ingress flex-gateway/flex-gateway \
+-i --wait -n gateway --create-namespace \
+--set-file registration.content=registration.yaml
+--set resources.limits.cpu=1500m \
+--set resources.limits.memory=2048Mi \
+--set resources.requests.cpu=260m \
+--set resources.requests.memory=384Mi
+----
++
+When successful, the command returns output similar to this:
++
+----
+Release "ingress" has been upgraded. Happy Helming!
+NAME: ingress
+LAST DEPLOYED: Thu Mar 23 13:15:19 2023
+NAMESPACE: gateway
+STATUS: deployed
+REVISION: 8
+TEST SUITE: None
+----
+
+. Using your Helm repository and chart names, verify the update to your chart, for example:
++
+[source,helm]
+----
+helm show values flex-gateway/flex-gateway
+----
++
+The output displays the new `Deployment` values:
++
+----
+# *******************
+# Deployment
+# *******************
+
+...
+
+resources:
+  limits:
+    # -- CPU resource limits in millicores.
+    cpu: 1000m
+    # -- Memory resource limits.
+    memory: 1024Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+----
+
+
