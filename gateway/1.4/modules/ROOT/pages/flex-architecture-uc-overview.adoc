@@ -84,17 +84,17 @@ The following tables:
 == mTLS considerations for integration flows
 Flex Gateway supports Mutual Transport Layer Security (mTLS) for all Flex Gateway initiated or terminated connections. Mulesoft reconmends using mTLS on all communication flows. 
 
-For inbound connections that cross a network security boundary, Mulesoft recommends using a network application firewall as close to the boundary as possible. For inbound connections, the user configures the external mTLS connection to terminate at the firewall and configures a new mTLS context between the firewall and Flex Gateway.
+For inbound connections that cross a network security boundary, use a network application firewall as close to the boundary as possible. For inbound connections, configure the external mTLS connection to terminate at the firewall and configure a new mTLS context between the firewall and Flex Gateway.
 
 === Certificate authorities
-Different certificate authorities (CA) participate in the mTLS connection depending on the type of integration. In the use cases, we consider three CA classes. Color codes and labels represent the different mTLS contexts. Each mTLS context contains a truststore containing CAs to validate far-side certificates and certificates and a keystore containing a certificate issued by this same CA. The following table describes the three possible mTLS contexts.
+Different certificate authorities (CA) participate in the mTLS connection, depending on the type of integration. In the use case diagrams, color codes and labels represent the different mTLS contexts. Each mTLS context contains a truststore that contains CAs for validating far-side certificates and a keystore that contains a certificate issued by this same CA. The following table describes the three possible mTLS contexts:
 
 [%header%autowidth.spread,cols="a,a,a"]
 |===
 | mTLS context symbol | Certificate authority | Description
 | image:ad-internal-org-mtls.png[white hexagon with mtls written in the middle] | Organization internal mTLS | For internal network communication, the expectation is that only the customer organization uses these certificates within the internal network.
-| image:ad-external-org-mtls.png[green hexagon with mtls written in the middle] | Organization external mTLS | For external communication with trusted parties over the public internet, the organization may issue certificates using this CA for use by external consumers first or third parties to access services provided by the organization.
-| image:ad-external-non-org-mtls.png[grey hexagon with mtls written in the middle] | Non-organization external mTLS | For external communication with entities that aren't trusted, the third party organization controls the CA. The third party CA issues certificates to the organization to use when communicating with the third party services.
+| image:ad-external-org-mtls.png[green hexagon with mtls written in the middle] | Organization external mTLS | For external communication with trusted parties over the public internet, the organization can issue certificates that external consumers or third parties can use to access the services provided by the organization.
+| image:ad-external-non-org-mtls.png[grey hexagon with mtls written in the middle] | Non-organization external mTLS | For external communication with entities that aren't trusted, the third party organization controls the CA. The third party CA issues certificates for the organization to use when communicating with the third-party services.
 |===
 
 == See Also
