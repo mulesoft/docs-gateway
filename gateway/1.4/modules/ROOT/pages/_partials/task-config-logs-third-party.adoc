@@ -6,13 +6,13 @@ The following configuration file examples demonstrate how to direct Flex Gateway
 //end::intro1[]
 
 //tag::intro2-conn[]
-As well as being able to configure additional Fluent Bit log output types, Flex Gateway sends logs to API Manager. Use the logs for quick log checks when an additional log output is not needed. To view the standard output logs, go to *Anypoint Platform > API Manager > Logs*. For access logs to be visible in *Logs*, you must additionally apply a Message Logging policy.
+As well as being able to configure additional Fluent Bit log output types, Flex Gateway sends runtime logs to runtime manager and access logs to API Manager. Use the logs for quick log checks when an additional log output is not needed. To view runtime logs, see xref:flex-view-logs-in-monitoring.adoc[], and to configure and view access logs, see xref:flex-conn-message-log.adoc[]. For access logs to be visible in *Logs*, you must additionally apply a Message Logging policy.
 
 //end::intro2-conn[]
 
 
 //tag::intro2-local[]
-As well as being able to configure additional Fluent Bit log output types, Flex Gateway maintains standard output logs. Use the standard output logs for quick checks when additional log output is not needed. To view the standard output logs, see xref:gateway::flex-local-view-logs.adoc[View Logs].
+As well as being able to configure additional Fluent Bit log output types, Flex Gateway maintains standard output logs. Use the standard output logs for quick checks when additional log output is not needed. To view the standard output logs, see xref:gateway::flex-local-view-logs.adoc[View Logs]. Both runtime and access logs appear in standard output logs. However, access logs are only present if you apply a Message Logging polivy.
 
 //end::intro2-local[]
 
@@ -58,12 +58,10 @@ Runtime logs include the following information:
 * Deployed APIs and policies
 * Possible misconfigurations of Flex Gateway or other errors
 
-You can configure the runtime log level.
-
 === Access Logs
 Access logs describe incoming interaction with Envoy over a period of time and incoming requests and responses for specific APIs. 
 
-To enable access logging, you must apply a Message Logging policy to the API instances you want to monitor. To apply a Message Logging policy, see <<configure-access-logs, Configuring Access Logs>>.
+To enable access logs, you must apply a Message Logging policy to the API instances you want to monitor. To apply a Message Logging policy, see <<configure-access-logs, Configuring Access Logs>>.
 
 //end::runtime-access-logs[]
 
@@ -137,9 +135,9 @@ To configure logging for Flex Gateway:
 //end::k8s[]
 
 //tag::view-logs-conn[]
-If no events appear in the logging output, check the Flex Gateway standard output logs for any configuration errors.
+If no events appear in the logging output, check the Flex Gateway runtime logs for any configuration errors.
 +
-To view standard output logs in API Manager, go to *Anypoint Platform > API Manager > Logs*.
+To view runtime logs, see xref:flex-view-logs-in-monitoring.adoc[],
 //end::view-logs-conn[]
 
 //tag::view-logs-local[]
@@ -193,7 +191,7 @@ spec:
 [[http-configuration-example]]
 == HTTP Configuration Example
 
-To configuring logging for Fluent Bit `File` output, you can also configure for Fluent Bit `HTTP` output. As an example, the following definition specifies a `spec.logging.outputs.type` value of `HTTP`:
+You can configure Flex Gateway to send formatted runtime and access logs to a `HTTP` output. As an example, the following definition specifies a `spec.logging.outputs.type` value of `HTTP`:
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
