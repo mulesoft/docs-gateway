@@ -1,8 +1,9 @@
 = Configure Helm Chart Settings
 
-The Helm chart for your Kubernetes cluster is configurable. To configure the values, use Helm to get a list of the current values in your chart, update your chart with new values.
+The Helm chart for your Kubernetes cluster is configurable. To configure the values, use the Helm command `helm show values` to get a list of the current values in your chart, and use  the `helm upgrade` command to update your chart with new values:
 
-Use the `--set` option for specific settings or the `-f` option to pass a file that contains the new values to the `helm upgrade` command.
+* Use the `--set` option for specific settings.
+* Use the `-f` option to pass a file that contains the new values.
 
 == Before You Begin
 
@@ -59,7 +60,7 @@ resources:
 ----
 helm upgrade ingress flex-gateway/flex-gateway \
 -i --wait -n gateway --create-namespace \
---set-file registration.content=registration.yaml 
+--set-file registration.content=registration.yaml \
 --set resources.limits.cpu=1500m \
 --set resources.limits.memory=2048Mi \
 --set resources.requests.cpu=260m \
