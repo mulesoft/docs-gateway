@@ -1,11 +1,17 @@
+//TODO: IS THIS TITLE CORRECT? 
 = Installing Flex Gateway
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-
-You can install Flex Gateway as a Linux service, in a Docker container, or as a Kubernetes Ingress controller.
+//TODO: Need to clarify what this step is for in each case:
+//      For k8 and OpenShift, this is a prerequisite to _registering_ Flex. 
+//      It does not install to a k8 cluster.
+//
+//      Q: In the Linux and Docker cases, are we running the Flex that we 
+//         download or just downloading Flex so we can register it? 
+You can install Flex Gateway as a Linux service, in a Docker container, or on a Kubernetes cluster.
 
 * If you want to run your Flex Gateway inside a virtual machine (VM), install
 it as a Linux service. 
@@ -13,23 +19,14 @@ it as a Linux service.
 scenario, install it in a Docker container.
 * If you want use Flex Gateway as a load balancer at the edge of a Kubernetes cluster,
 install it as a Kubernetes Ingress controller.
+//TODO: is this the only installation use case?
 * If you want use Flex Gateway as a load balancer at the edge of an OpenShift cluster,
 install it as an OpenShift Ingress controller.
 
-[cols="1a,1a,1a,1a"]
-|===
-|image:install-linux-logo.png[20%,20%,xref="#install-linux"]
-|image:install-docker-logo.png[25%,25%,xref="#install-docker"]
-|image:install-kubernetes-logo.png[20%,20%,xref="#install-kubernetes"]
-|image:install-openshift-logo.png[20%,20%,xref="#install-openshift"]
+//table with tech logos and links (linux, docker, k8, openshift)
+include::partial$task-reg-run-flex-gateway.adoc[tags=table-logos-links]
 
-|<<install-linux,Linux>>
-|<<install-docker,Docker>>
-|<<install-kubernetes,Kubernetes>>
-|<<install-openshift,OpenShift>>
-|===
-
-[[install-linux]]
+[[linux]]
 == Install as a Linux Service
 
 You can install Flex Gateway as a service in one of the following Linux environments:
@@ -191,7 +188,7 @@ sudo yum install -y flex-gateway
 
 include::partial$reference-install-next-steps.adoc[]
 
-[[install-docker]]
+[[docker]]
 == Install in a Docker Container 
 
 To install Flex Gateway in a Docker container: 
@@ -220,9 +217,12 @@ mulesoft/flex-gateway        {gateway-ver-var}
 
 include::partial$reference-install-next-steps.adoc[]
 
-[[install-kubernetes]]
+[[kubernetes]]
+//TODO: We're not installing a controller here. We're preparing to register.
 == Install as a Kubernetes Ingress Controller
 
+//TODO: We're not installing a controller here. We're preparing to register.
+//      Q: What is the registration for? A connection to Anypoint Platform? What about local mode?
 To install Flex Gateway as a Kubernetes Ingress controller download the Flex Gateway container image: 
 
 [source,ssh,subs=attributes+]
@@ -232,15 +232,22 @@ docker pull mulesoft/flex-gateway:{gateway-ver-var}
 
 include::partial$reference-install-next-steps.adoc[]
 
-[[install-openshift]]
-== Install as an OpenShift Ingress Controller
+[[openshift]]
+//TODO: We're not installing a controller here. We're preparing to register.
+//      Q: What is the registration for? A connection to Anypoint Platform? What about local mode?
+//      TODO: Need to explain what's going on with the registration. 
+//TODO: Need title suggestions; and how to break up k8 from OpenShift
+//TODO: Also fix kubernetes section.
+== Prepare to Register Flex Gateway with Anypoint Platform (Kubernetes, OpenShift)
+
+Registering Flex Gateway with Anypoint Platform is a precondition to running a gateway. The registration process requires a Flex Gateway image. The `docker pull` command downloads this image. 
 
 [source,ssh,subs=attributes+]
 ----
 docker pull mulesoft/flex-gateway:{gateway-ver-var}
 ----
 
-include::partial$reference-install-next-steps.adoc[]
+include::partial$reference-install-next-steps.adoc[tags:post-download-flex-image;connected-local-k8]
 
 == See Also
 
