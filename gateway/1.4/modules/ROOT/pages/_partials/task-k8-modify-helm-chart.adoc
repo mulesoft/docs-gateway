@@ -1,11 +1,6 @@
 = Configure Pod Settings for a Flex Gateway Deployment Through a Helm Chart
 
-Change settings for a Pod that contains a Flex Gateway deployment. Use one of the following `helm upgrade` command options to specify this revision to your Helm chart for the deployment: 
-
-* Use the `--set` option to specify a single setting. Multiple `--set` options are allowed in the same command, which makes it possible to provide more than one setting with this option. 
-* Use the `-f` option to pass a configuration file with one or more settings.
-
-The example in this guide sets the following CPU and memory values:
+Change settings for a Pod that contains a Flex Gateway deployment. The example in this guide sets the following CPU and memory values:
 
 * `resources.limits.cpu=1500m`
 * `resources.limits.memory=2048Mi`
@@ -18,7 +13,7 @@ Find the default values for these and other deployment settings by opening the `
 
 == Before You Begin
 
-Register and deploy Flex Gateway to a Kubernetes cluster. For guidance, see  xref:flex-gateway-set-up.adoc[] or xref:flex-gateway-getting-started-kubernetes.adoc[].
+Register and deploy Flex Gateway to a Kubernetes cluster. For guidance, see xref:flex-gateway-set-up.adoc[] or xref:flex-gateway-getting-started-kubernetes.adoc[].
 
 [[update-cpu-memory-example]]
 == Check Your Current Settings
@@ -85,14 +80,13 @@ This example displays default settings from `REVISION` number `2`.
 
 * If your deployment has always used the default Helm chart values, _no_ CPU or memory `resources` values appear in the output. 
 
-. To change the `cpu` and `memory` values, use the `helm upgrade` command with either of the following options, whichever one is more convenient for you:
+. Use one of the following procedures to change settings in the Helm chart for your Flex Gateway deployment: 
 
-* <<use-helm-set-option>>
-* <<use-helm-f-option>>
-
+* <<use-helm-set-option>> uses `--set` options in a `helm upgrade` command. The command allows multiple `--set` options in the same command. 
+* <<use-helm-f-option>> passes a configuration file with multiple settings though the `-f` option to `helm upgrade`.
 
 [[use-helm-set-option]]
-== Modify Settings for Your Deployment by Using --set
+== Modify Settings for Your Deployment
 
 After following the steps in <<update-cpu-memory-example>>, use the `--set` option to pass new values individually to the Helm chart for your Flex Gateway deployment. Alternatively, follow the procedure in <<use-helm-f-option>>.
 
@@ -145,7 +139,7 @@ TEST SUITE: None
 helm get values --revision=3 ingress -n gateway
 ----
 +
-The output displays the new `Deployment` values:
+The output displays the new `resources` settings for the Pod:
 +
 ----
 USER-SUPPLIED VALUES:
@@ -159,6 +153,8 @@ resources:
     cpu: 260m
     memory: 384Mi
 ----
++
+Note that the `resources` settings are not displayed through the `registration.yaml`.
 
 [[use-helm-f-option]]
 == Provide a File with Modified Settings for Your Deployment
@@ -175,7 +171,7 @@ For example, use `echo` to create a configuration file named `my-config-file` th
 +
 [source,echo]
 ----
-echo '{resources.limits.cpu: 1500m, resources.limits.memory: \ 2048Mi,resources.requests.cpu: 260m, resources.requests.memory: 384Mi}' \
+echo '{resources.limits.cpu: 1500m, resources.limits.memory:2048Mi, resources.requests.cpu: 260m, resources.requests.memory: 384Mi}' \
 > my-config-file
 ----
 
@@ -216,7 +212,7 @@ TEST SUITE: None
 helm get values --revision=4 ingress -n gateway
 ----
 +
-The output displays the new `Deployment` values:
+The output displays the new `resources` settings for the Pod:
 +
 ----
 USER-SUPPLIED VALUES:
@@ -230,3 +226,5 @@ resources:
     cpu: 260m
     memory: 384Mi
 ----
++
+Note that the `resources` settings are not displayed through the `registration.yaml`.
