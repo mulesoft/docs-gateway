@@ -37,22 +37,22 @@ You deploy Flex Gateway as an ingress controller behind a firewall because traff
 
 You can use Flex Gateway to terminate the TLS or mTLS connection if required.
 
-image:ad-uc-1-p-1b.png[Information travels from a trusted network to the internal network that contains Flex Gateway.]
+image:ad-uc-1-p-1b.png["Information travels from a trusted network to the internal network that contains Flex Gateway."]
 
 The following diagram shows the physical implementation on Kubernetes.
 
-image:ad-uc-1-p-1b-physical.png[The previous networks are now Kubernetes clusters and there are load balancers that separate the APIs from Flex Gateway.] 
+image:ad-uc-1-p-1b-physical.png["The previous networks are now Kubernetes clusters and there are load balancers that separate the APIs from Flex Gateway."] 
 
 == Pattern 2: Organization Internal API exposed an Organization External Consumer
 In pattern two, the organization-owned API is isolated from the organization-owned API consumer; for example, in a package delivery tracking API that is accessed from a user interface. The consumer can access the exposed API only via the internet. In this use case, you deploy Flex Gateway as an ingress controller. 
 
-image:ad-uc-1-p-2.png[Consumer application requests pass through the internet and a firewall before reaching Flex Gateway.]
+image:ad-uc-1-p-2.png["Consumer application requests pass through the internet and a firewall before reaching Flex Gateway."]
 
 This pattern is similar to Pattern 1B. However, in this pattern, traffic arrives from the public internet instead of from a private channel. Because traffic is coming from the public internet, you must add additional controls to strengthen communication security before reaching Flex Gateway.
 
 The following diagram shows the physical implementation of a scenario in which an organization's internal API is exposed to an organization's internal consumer on Kubernetes. The diagram assumes that the firewall terminates the incoming external mTLS connection.
 
-image:ad-uc-1-p-2-physical.png[The previous networks are now Kubernetes clusters, there are load balancers separating the APIs from Flex Gateway, and mTLS connections to external networks.]
+image:ad-uc-1-p-2-physical.png["The previous networks are now Kubernetes clusters, there are load balancers separating the APIs from Flex Gateway, and mTLS connections to external networks."]
 
 == Pattern 3: Organization External API Exposed to an Organization Internal Consumer
 In pattern three, the API Consumer is in the same network as Flex Gateway. You can use Flex Gateway to monitor, control, and enrich the flows to external services. For example, Flex Gateway can provide rate limiting for the external access traffic, or metrics and analytics tracking for this external service connection.
@@ -64,20 +64,20 @@ Pattern examples:
 
 For pattern three, you deploy Flex Gateway as a standalone gateway that acts as an egress container.
 
-image:ad-uc-1-p-3.png[Flex Gateway is deployed as an egress controller to monitor incoming traffic from the external API.]
+image:ad-uc-1-p-3.png["Flex Gateway is deployed as an egress controller to monitor incoming traffic from the external API."]
 
 The following diagram shows the physical implementation of a scenario in which an organization's external API is exposed to an organization's internal consumer on Kubernetes. The diagram assumes that the firewall terminates the incoming external mTLS connection.
 
-image:ad-uc-1-p-3-physical.png[The previous networks are now kubernetes clusters. There are load balancers that separate the APIs from Flex Gateway and mTLS connections to external networks.]
+image:ad-uc-1-p-3-physical.png["The previous networks are now kubernetes clusters. There are load balancers that separate the APIs from Flex Gateway and mTLS connections to external networks."]
 
 == Pattern 4: Organization External API Exposed to an Organization External Consumer
 In pattern four, Flex Gateway acts as an intermediary between two organizations' external entities, for example, when an organization’s WorkDay instance (SaaS service) accesses the organization’s ServiceNow instance (SaaS service). In this pattern, Flex Gateway runs as an ingress and egress controller that applies secured communication and policy enforcement.
 
-image:ad-uc-1-p-4.png[Flex Gateway acts as an intermediary between an external application and external API.]
+image:ad-uc-1-p-4.png["Flex Gateway acts as an intermediary between an external application and external API."]
 
-The following diagram shows the physical implementation of a scenario in which an external organization's API is exposed to an external organization's Consumer on Kubernetes. The diagram assumes that the firewall terminates the incoming organization's external mTLS connection.
+The following diagram shows the physical implementation of a scenario in which an external organization's API is exposed to an external organization's consumer on Kubernetes. The diagram assumes that the firewall terminates the incoming organization's external mTLS connection.
 
-image:ad-uc-1-p-4-physical.png[A detailed view of pattern four, which contains the necessary services to support Flex gateway]
+image:ad-uc-1-p-4-physical.png"[A detailed view of pattern four, which contains the necessary services to support Flex Gateway"]
 
 == See Also
 
