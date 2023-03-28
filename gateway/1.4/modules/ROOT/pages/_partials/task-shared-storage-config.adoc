@@ -7,23 +7,20 @@ Production workflows should use https://redis.io/[Redis^], though defining it is
 //tag::intro2[]
 You configure shared storage via a custom YAML file.
 
-//TODO: "Ingress controller" OK?
 The following steps demonstrate Redis-based storage support for Flex Gateway running in a Docker container, as a Linux Service,
-or as a Kubernetes Ingress controller.
+or as a Kubernetes cluster.
 //end::intro2[]
 //tag::icon-table[]
 
 [cols="1a,1a,1a"]
 |===
-|image:install-linux-logo.png[20%,20%,xref="flex-{page-mode}-shared-storage-config.adoc#configure-shared-storage-for-flex-gateway-as-a-linux-service"]
-|image:install-docker-logo.png[25%,25%,xref="flex-{page-mode}-shared-storage-config.adoc#configure-shared-storage-for-flex-gateway-in-a-docker-container"]
-//TODO: "Ingress controller" OK?
-|image:install-kubernetes-logo.png[20%,20%,xref="flex-{page-mode}-shared-storage-config.adoc#configure-shared-storage-for-flex-gateway-as-a-kubernetes-ingress-controller"]
+|image:install-linux-logo.png[20%,20%,xref="flex-{page-mode}-shared-storage-config.adoc#linux"]
+|image:install-docker-logo.png[25%,25%,xref="flex-{page-mode}-shared-storage-config.adoc#docker"]
+|image:install-kubernetes-logo.png[20%,20%,xref="flex-{page-mode}-shared-storage-config.adoc#k8"]
 
-|xref:flex-{page-mode}-shared-storage-config.adoc#configure-shared-storage-for-flex-gateway-as-a-linux-service[Configure Shared Storage for Flex Gateway as a Linux Service]
-|xref:flex-{page-mode}-shared-storage-config.adoc#configure-shared-storage-for-flex-gateway-in-a-docker-container[Configure Shared Storage for Flex Gateway in a Docker Container]
-//TODO: "Ingress controller" OK?
-|xref:flex-{page-mode}-shared-storage-config.adoc#configure-shared-storage-for-flex-gateway-as-a-kubernetes-ingress-controller[Configure Shared Storage for Flex Gateway as a Kubernetes Ingress Controller]
+|xref:flex-{page-mode}-shared-storage-config.adoc#linux[Configure Shared Storage for Flex Gateway as a Linux Service]
+|xref:flex-{page-mode}-shared-storage-config.adoc#docker[Configure Shared Storage for Flex Gateway in a Docker Container]
+|xref:flex-{page-mode}-shared-storage-config.adoc#k8[Configure Shared Storage for Flex Gateway on a Kubernetes Cluster]
 |===
 
 //end::icon-table[]
@@ -39,6 +36,7 @@ Before configuring shared storage for Flex Gateway, complete the following tasks
 //end::byb[]
 //tag::linux[]
 
+[[linux]]
 == Configure Shared Storage for Flex Gateway as a Linux Service
 
 . Create a folder in the `/etc/mulesoft/flex-gateway/conf.d` directory and name it `custom`:
@@ -65,6 +63,7 @@ sudo vi /etc/mulesoft/flex-gateway/conf.d/custom/shared-storage-config.yaml
 //end::linux[]
 //tag::docker-intro[]
 
+[[docker]]
 == Configure Shared Storage for Flex Gateway in a Docker Container
 
 NOTE: If you have already added a volume for a folder with your
@@ -81,8 +80,8 @@ Flex Gateway configuration files, go to the last step.
 //end::docker-config-file-step[]
 //tag::k8s[]
 
-//TODO: "Ingress Controller" OK?
-== Configure Shared Storage for Flex Gateway as a Kubernetes Ingress Controller
+[[k8]]
+== Configure Shared Storage for Flex Gateway on a Kubernetes Cluster
 
 To configure shared storage for Flex Gateway, create a new resource using
 a YAML configuration file with your storage details.
