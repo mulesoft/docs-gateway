@@ -1,61 +1,120 @@
-= Configure Helm Chart Settings
+= Configure Pod Settings for a Flex Gateway Deployment Through a Helm Chart
 
-The Helm chart for your Kubernetes cluster is configurable. To configure the values, use the Helm command `helm show values` to get a list of the current values in your chart, and use  the `helm upgrade` command to update your chart with new values:
+Change settings for a Pod that contains a Flex Gateway deployment. Use one of the following `helm upgrade` command options to specify this revision to your Helm chart for the deployment: 
 
-* Use the `--set` option for specific settings.
-* Use the `-f` option to pass a file that contains the new values.
+* Use the `--set` option to specify a single setting. Multiple `--set` options are allowed in the same command, which makes it possible to provide more than one setting with this option. 
+* Use the `-f` option to pass a configuration file with one or more settings.
+
+The example in this guide sets the following CPU and memory values:
+
+* `resources.limits.cpu=1500m`
+* `resources.limits.memory=2048Mi`
+* `resources.requests.cpu=260m`
+* `resources.requests.memory=384Mi`
+
+Use the example as a guide to updating any values in the Helm chart for your Flex Gateway deployment. 
+
+Find the default values for these and other deployment settings by opening the `flex-gateway` page in https://artifacthub.io/packages/helm/flex-gateway/flex-gateway[ArtifactHUB^] or by running `helm show values flex-gateway/flex-gateway`.
 
 == Before You Begin
 
 Register and deploy Flex Gateway to a Kubernetes cluster. For guidance, see  xref:flex-gateway-set-up.adoc[] or xref:flex-gateway-getting-started-kubernetes.adoc[].
 
 [[update-cpu-memory-example]]
-== Modify Your Helm Chart
+== Check Your Current Settings
 
-The following example generates a release with new CPU and memory values: 
+Before updating settings for a Pod that contains a Flex Gateway deployment, check the Pod's settings for the current deployment.
 
-. From the command line, navigate to the file directory that contains the YAML configuration file for your gateway release, such as a `registration.yaml` for an `ingress` release.
+. Ensure that your Helm repository is up and available by running the following command from a terminal window:
++
+[source,helm]
+----
+helm repo up
+----
 
-. Ensure that your Helm repository is up and available by running `helm repo up`. 
+//TODO: Link to troubleshooting info for this once it's moved to the Troubleshooting section (from getting started for k8).
 
-. Display the values in your Helm chart:
+. Find the `REVISION` number of the latest deployment.
++
+The following example requests the history of the `ingress` release in the `gateway` namespace:
++
+[source,helm]
+----
+helm history ingress -n gateway
+----
++
+The command returns a result similar to this one:
++
+----
+REVISION  UPDATED                 	STATUS    	CHART             	APP VERSION	DESCRIPTION     
+1         Mon Mar 27 09:36:20 2023	superseded	flex-gateway-1.4.2	1.4.2      	Upgrade complete
+2         Mon Mar 27 11:40:56 2023	deployed  	flex-gateway-1.4.2	1.4.2      	Upgrade complete
+----
+
+. Check for `USER-SUPPLIED VALUES` settings for `resources` in the currently deployed revision:
 +
 .Command Syntax:
 [source,helm syntax]
 ----
-helm show values <repository name>/<chart name>
+helm get values --revision=<version-number> <release-name> -n <namespace>
 ----
 +
 .Example:
 [source,helm]
 ----
-helm show values flex-gateway/flex-gateway
+helm get values --revision=2 ingress -n gateway
 ----
-
-. In the command output, check your settings.
 +
-The following example lists the CPU and memory settings for a release, which are located beneath the `Deployment` section of the output:
+
+* If a deployment has ever modified the default Helm chart settings for resource limits on and requests for CPU and memory, the output displays `resources` values for those settings. The following example shows CPU and memory `resources` settings below the `registration` data in the Pod (not in `registration.yaml`).
 +
 ----
-# *******************
-# Deployment
-# *******************
-
-...
-
+USER-SUPPLIED VALUES:
+registration:
+  ...
 resources:
   limits:
-    # -- CPU resource limits in millicores.
     cpu: 1000m
-    # -- Memory resource limits.
-    memory: 1024Mi
+    memory: 2024Mi
   requests:
     cpu: 250m
     memory: 256Mi
 ----
-
-. Change the `cpu` and `memory` values of your chart, for example:
 +
+This example displays default settings from `REVISION` number `2`. 
+
+* If your deployment has always used the default Helm chart values, _no_ CPU or memory `resources` values appear in the output. 
+
+. To change the `cpu` and `memory` values, use the `helm upgrade` command with either of the following options, whichever one is more convenient for you:
+
+* <<use-helm-set-option>>
+* <<use-helm-f-option>>
+
+
+[[use-helm-set-option]]
+== Modify Settings for Your Deployment by Using --set
+
+After following the steps in <<update-cpu-memory-example>>, use the `--set` option to pass new values individually to the Helm chart for your Flex Gateway deployment. Alternatively, follow the procedure in <<use-helm-f-option>>.
+
+. From the command line, navigate to the directory that contains the YAML registration file for your gateway release, such as a `registration.yaml` for an `ingress` release.
++
+This file is generated when you register your gateway with Anypoint Platform in xref:flex-conn-reg-run.adoc[Connected Mode] or xref:flex-local-reg-run.adoc[Local Mode]. The file provides `registration.content` data for the `helm upgrade` step in this procedure. 
+
+. Change the `cpu` and `memory` values by using the `helm upgrade` command.
++
+.Syntax:
+----
+helm upgrade <release-name> <repository name>/<chart name> \
+-i --wait -n <namespace> --create-namespace \
+--set-file registration.content=registration.yaml \
+--set <key-to-update>=<new-value> 
+--set <next-key-to-update>=<new-value> 
+...
+----
++
+The `helm upgrade` command relies on the `registration.yaml` file but does not add your new settings to this file. 
++
+.Example:
 [source,helm]
 ----
 helm upgrade ingress flex-gateway/flex-gateway \
@@ -72,117 +131,81 @@ When successful, the command returns output similar to this:
 ----
 Release "ingress" has been upgraded. Happy Helming!
 NAME: ingress
-LAST DEPLOYED: Thu Mar 23 13:15:19 2023
+LAST DEPLOYED: Mon Mar 27 11:58:36 2023
 NAMESPACE: gateway
 STATUS: deployed
-REVISION: 8
+REVISION: 3
 TEST SUITE: None
-----
+----  
 
-. Using your Helm repository and chart names, verify the update to your chart, for example:
+. Using the new `REVISION` value, check the `resources` settings, for example:
 +
 [source,helm]
 ----
-helm show values flex-gateway/flex-gateway
+helm get values --revision=3 ingress -n gateway
 ----
 +
 The output displays the new `Deployment` values:
 +
 ----
-# *******************
-# Deployment
-# *******************
-
-...
-
+USER-SUPPLIED VALUES:
+registration:
+  ...
 resources:
   limits:
-    # -- CPU resource limits in millicores.
-    cpu: 1000m
-    # -- Memory resource limits.
-    memory: 1024Mi
+    cpu: 1500m
+    memory: 2048Mi
   requests:
-    cpu: 250m
-    memory: 256Mi
+    cpu: 260m
+    memory: 384Mi
 ----
 
+[[use-helm-f-option]]
+== Provide a File with Modified Settings for Your Deployment
 
-== Pass a Configuration File to Your Helm Chart
+After following the steps in <<update-cpu-memory-example>>, use the `--f` option with `helm upgrade` to pass a file that contains new Helm chart settings for your Flex Gateway deployment. Alternatively, follow the procedure in <<use-helm-set-option>>.
 
-Your Helm chart accepts updates through a separate configuration file. 
-
-Syntax:
-----
-helm -n <namespace> upgrade <chart released name> <chart name> \ -f <file> --set-file registration.content=registration.yaml
-----
-
-. From the command line, navigate to the file directory that contains the YAML configuration file for your gateway release, such as a `registration.yaml` for an `ingress` release.
-
-. Ensure that your Helm repository is up and available by running `helm repo up`. 
-
-. Display the values in your Helm chart:
+. From the command line, navigate to the directory that contains the YAML registration file for your gateway release, such as a `registration.yaml` for an `ingress` release.
 +
-.Command Syntax:
-[source,helm syntax]
-----
-helm show values <repository name>/<chart name>
-----
-+
-.Example:
-[source,helm]
-----
-helm show values flex-gateway/flex-gateway
-----
-
-. In the command output, check your settings.
-+
-The following example lists the CPU and memory settings for a release, which are located beneath the `Deployment` section of the output:
-+
-----
-# *******************
-# Deployment
-# *******************
-
-...
-
-resources:
-  limits:
-    # -- CPU resource limits in millicores.
-    cpu: 1000m
-    # -- Memory resource limits.
-    memory: 1024Mi
-  requests:
-    cpu: 250m
-    memory: 256Mi
-----
+This file is generated when you register your gateway with Anypoint Platform in xref:flex-conn-reg-run.adoc[Connected Mode] or xref:flex-local-reg-run.adoc[Local Mode]. The file provides `registration.content` data for the `helm upgrade` step in this procedure. 
 
 . Generate a configuration file that contains your new settings.
 +
-For example, use `echo` to create a YAML file with new `cpu` and `memory` values for your chart:
+For example, use `echo` to create a configuration file named `my-config-file` that contains the new `cpu` and `memory` values:
 +
 [source,echo]
 ----
-echo '{resources.limits.cpu: 1501m, resources.limits.memory: 2049Mi,resources.requests.cpu: 261m, resources.requests.memory: 385Mi}' > my-config-file.yaml
+echo '{resources.limits.cpu: 1500m, resources.limits.memory: \ 2048Mi,resources.requests.cpu: 260m, resources.requests.memory: 384Mi}' \
+> my-config-file
 ----
 
-. Pass the new values from your YAML file to your Helm chart, for example:
+. Pass the new values from your configuration file to your Helm chart, for example:
++
+.Syntax:
+----
+helm -n <namespace> upgrade <release-name> \
+<repository name>/<chart name> -f <your-settings-config-file> \
+--set-file registration.content=<registration-yaml-file>
+----
 +
 [source,helm]
 ----
 helm -n gateway upgrade ingress \
-flex-gateway/flex-gateway -f my-config-file.yaml \
+flex-gateway/flex-gateway -f my-config-file \
 --set-file registration.content=registration.yaml
 ----
++
+The `helm upgrade` command relies on the `registration.yaml` file but does not add your new settings to this file. 
 +
 When successful, the command returns output similar to this:
 +
 ----
 Release "ingress" has been upgraded. Happy Helming!
 NAME: ingress
-LAST DEPLOYED: Thu Mar 23 14:10:50 2023
+LAST DEPLOYED: Mon Mar 27 16:38:07 2023
 NAMESPACE: gateway
 STATUS: deployed
-REVISION: 9
+REVISION: 4
 TEST SUITE: None
 ----
 
@@ -190,25 +213,20 @@ TEST SUITE: None
 +
 [source,helm]
 ----
-helm show values flex-gateway/flex-gateway
+helm get values --revision=4 ingress -n gateway
 ----
 +
 The output displays the new `Deployment` values:
 +
 ----
-# *******************
-# Deployment
-# *******************
-
-...
-
+USER-SUPPLIED VALUES:
+registration:
+  ...
 resources:
   limits:
-    # -- CPU resource limits in millicores.
-    cpu: 1000m
-    # -- Memory resource limits.
-    memory: 1024Mi
+    cpu: 1500m
+    memory: 2048Mi
   requests:
-    cpu: 250m
-    memory: 256Mi
+    cpu: 260m
+    memory: 384Mi
 ----
