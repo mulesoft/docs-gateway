@@ -23,11 +23,6 @@ Before starting the procedures in this guide, ensure that the following prerequi
 * A username and password for your Anypoint Platform organization. If you do not have an Anypoint Platform account, https://anypoint.mulesoft.com/login/signup[create a Trial organization^] on Anypoint Platform.
 //TODO: VERIFY Manage Servers and Read Servers permissions in RTM NO LONGER NEEDED
 
-//os prereqs
-* A Linux or MacOS machine with an x86 processor. M1 and M2 processors are not supported for running Flex Gateway.
-//TODO: Determine whether they can use M1 and/or M2 for the guide without errors or workarounds
-//TODO: VERIFY not Windows x86 -- pending testing 
-
 //docker prereq
 * {empty}
 include::partial$prerequisites.adoc[tag=docker]
@@ -68,7 +63,7 @@ The following minimum requirements apply to a small Kubernetes cluster used for 
 
 * Support for the creation of a `Service` resource of the `LoadBalancer` type.
 +
-To avoid deployment errors when using this guide, your cluster must support this process. However, Flex Gateway supports these services: `ClusterIP`, `NodePort`, `LoadBalancer` (default), `ExternalName`. 
+To avoid deployment errors when using this guide, your cluster must support this default process. However, note that Flex Gateway supports these services: `ClusterIP`, `NodePort`, `LoadBalancer` (default), `ExternalName`. 
 
 * Compute resources needed for the deployment procedure are _very unlikely_ to exceed the following values (equivalent to the EKS t3.micro instance type): 
 
@@ -228,7 +223,7 @@ helm -n gateway upgrade -i --create-namespace \
 +
 This command creates the `gateway` namespace and `ingress` release if they do not exist. The command syntax for the Helm repository and chart names is `<helm-repo-name>/<helm-chart-name>`. 
 +
-The command uses `--set gateway.mode=connected` because the default for the Helm chart is `--set gateway.mode=local`.
+The command uses `--set gateway.mode=connected` because the default for the Helm chart is Local Mode.
 +
 When successful, the command prints a message indicating an upgrade to your `ingress` release:
 +
@@ -246,7 +241,7 @@ The `REVISION` value increments the `ingress` release by `1` each time you run t
 +
 If you receive an `UPGRADE FAILED` response, see <<upgrade-failed,troubleshooting>> information about this issue. 
 
-. Check the status of your new pod by running the following `kubectl` command:
+. If you want to check the status of the Pod that contains your gateway, run the following `kubectl` command:
 +
 [source,kubectl]
 ----
@@ -308,14 +303,15 @@ The remaining procedures walk you through steps for creating and testing a new H
 +
 .. Provide an API name, such as *my-api*.
 .. Select *HTTP API* as the asset type.
-+
-Though this guide focuses on a simple HTTP API, you can find HTTPS configuration details, see xref:flex-conn-tls-config.adoc[].
 .. Click *Next* to open the *Endpoint* configuration page.
 
 . In the *Endpoint* page associated with *APIs / Add API*, set up an endpoint for your API:
 +
 image::gateway-quickstart-k8-api-config-endpoint.png["Screenshot of 'Endpoint' page",width=90%]
 +
+.. For the *Scheme*, use the default, *HTTP* setting.
++
+This guide focuses on a simple HTTP API. For HTTPS configuration details, see xref:flex-conn-tls-config.adoc[].
 .. Copy the following URI into the *Implementation URI* field:
 +
 [source]
