@@ -7,6 +7,11 @@ endif::[]
 
 You can implement custom policies via WebAssembly (WASM) extensions that run on Envoy as custom filters. You implement these policies using the https://github.com/proxy-wasm/proxy-wasm-rust-sdk[WebAssembly for Proxies (Rust SDK)^]. The following examples assume knowledge about Rust and related tools.
 
+[NOTE]
+====
+Ensure that the custom policy only imports libraries that are available in `proxy-wasm-rust-sdk`. Importing libraries not avaliable in `proxy-wasm-rust-sdk` results in a `missing import` error during policy deployment.
+====
+
 == Lifecycle Events
 
 Custom policies are based on https://github.com/proxy-wasm/spec[proxy-wasm ABI^], an event-driven, Envoy-agnostic, low-level interface for L4/L7 proxies. This interface specifies how a WASM extension and its host interact, and it includes listenable lifecycle events: HTTP request lifecycle events and also WASM filter lifecycle events.
@@ -330,5 +335,3 @@ wasm-gc target/wasm32-wasi/release/flex_custom_policy_example.wasm -o target/fle
 The optimized binary can now be found in the `./target` directory. Push this binary to Exchange when publishing the new policy implementation.
 +
 For more information on pushing custom policies to Exchange, refer to xref:policies::policies-custom-flex-getting-started.adoc[Publish a Flex Gateway or Mule 4 Custom Policy].
-
-
