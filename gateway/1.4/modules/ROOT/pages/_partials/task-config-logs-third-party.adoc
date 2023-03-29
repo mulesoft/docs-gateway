@@ -160,6 +160,7 @@ Configure Flex Gateway to send formatted runtime and access logs to a file calle
 
 NOTE: For Docker, in `spec.logging.output.parameters.file`, replace `/var/log` with the absolute path to the mounted configuration directory.
 
+[source,yaml]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Configuration
@@ -174,7 +175,7 @@ spec:
         file: /var/log/log.txt # Docker: replace `/var/log` with the absolute path to the mounted configuration directory
         format: template
         template: |
-          [{logger}][{level}][{kind}] {message}
+          [{date}][{logger}][{level}][{kind}] {message}
     runtimeLogs:
       logLevel: info
       outputs:
@@ -193,6 +194,7 @@ spec:
 
 You can configure Flex Gateway to send formatted runtime and access logs to a `HTTP` output. As an example, the following definition specifies a `spec.logging.outputs.type` value of `HTTP`:
 
+[source,yaml]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Configuration
