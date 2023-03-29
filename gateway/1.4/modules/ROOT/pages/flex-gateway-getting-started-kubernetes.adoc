@@ -63,7 +63,7 @@ The following minimum requirements apply to a small Kubernetes cluster used for 
 
 * Support for the creation of a `Service` resource of the `LoadBalancer` type.
 +
-This requirement avoids deployment errors when you use this guide. However, it is possible to customize the `Service` type when deploying a gateway. Flex Gateway supports the following services: `ClusterIP`, `NodePort`, `LoadBalancer` (default), `ExternalName`. See the `service.type` key in the xref:https://artifacthub.io/packages/helm/flex-gateway/flex-gateway[Helm chart for Flex Gateway].
+This requirement avoids deployment errors when you use this guide. However, it is possible to customize the `Service` type when deploying a gateway. Flex Gateway supports the following services: `ClusterIP`, `NodePort`, `LoadBalancer` (default), `ExternalName`. See the `service.type` key in the https://artifacthub.io/packages/helm/flex-gateway/flex-gateway[Helm chart for Flex Gateway^].
 
 * Compute resources needed for the deployment procedure are _very unlikely_ to exceed the following values (equivalent to the EKS t3.micro instance type): 
 
@@ -320,7 +320,8 @@ https://jsonplaceholder.typicode.com/
 ----
 .. Type `80` in the *Port* field.
 +
-The example in this guide uses HTTP port `80` instead of the API Manager default port, `8081`. 
+The example in this guide uses HTTP port `80` instead of the API Manager default port, `8081` because the created `Service` created maps the incoming port `80` to the target port `80` on the Pod. See the `service.http.port` key in the https://artifacthub.io/packages/helm/flex-gateway/flex-gateway[Helm chart for Flex Gateway^].
+
 .. Click *Next* to open the *Review* page.
 
 . In the *Review* page associated with *APIs / Add API*: 
