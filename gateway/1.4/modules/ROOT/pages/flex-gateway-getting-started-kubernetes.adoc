@@ -6,9 +6,9 @@ endif::[]
 
 Get started with Anypoint Flex Gateway on a Kubernetes cluster. Set up a Flex Gateway deployment that connects to Anypoint Platform, and use the deployment to route traffic to your API. This guide covers the following high-level tasks:
 
-* Downloading, registering, and deploying Flex Gateway in Connected Mode
+* Downloading, registering, and deploying Flex Gateway in xref:flex-conn-reg-run-token.adoc#k8-token[Connected Mode] with a token
 * Creating a simple API in Anypoint API Manager that runs on your gateway
-* Protecting the API with a basic authentication policy that you configure for it in API Manager
+* Protecting the API with a basic authentication policy that you configure in API Manager
 
 The Flex Gateway deployment process requires a working Kubernetes cluster that you create or that is provisioned for you by a Kubernetes professional. 
 
@@ -22,10 +22,6 @@ Before starting the procedures in this guide, ensure that the following prerequi
  
 * A username and password for your Anypoint Platform organization. If you do not have an Anypoint Platform account, https://anypoint.mulesoft.com/login/signup[create a Trial organization^] on Anypoint Platform.
 //TODO: VERIFY Manage Servers and Read Servers permissions in RTM NO LONGER NEEDED
-
-//os prereqs
-* A Linux or MacOS machine with an x86 processor. M1 and M2 processors are not supported.
-//TODO: VERIFY not Windows x86 -- pending testing 
 
 //docker prereq
 * {empty}
@@ -67,7 +63,7 @@ The following minimum requirements apply to a small Kubernetes cluster used for 
 
 * Support for the creation of a `Service` resource of the `LoadBalancer` type.
 +
-To avoid deployment errors when using this guide, your cluster must support this process. However, Flex Gateway supports these Ingress Controller services: `ClusterIP`, `NodePort`, `LoadBalancer` (default), `ExternalName`. 
+This requirement avoids deployment errors when you use this guide. However, it is possible to customize the `Service` type when deploying a gateway. Flex Gateway supports the following services: `ClusterIP`, `NodePort`, `LoadBalancer` (default), `ExternalName`. See the `service.type` key in the https://artifacthub.io/packages/helm/flex-gateway/flex-gateway[Helm chart for Flex Gateway^].
 
 * Compute resources needed for the deployment procedure are _very unlikely_ to exceed the following values (equivalent to the EKS t3.micro instance type): 
 
@@ -79,12 +75,14 @@ To avoid deployment errors when using this guide, your cluster must support this
 
 To determine whether your cluster is ready for the <<deploy-flex, deployment procedure>>, review <<check-cluster>> _before starting_ the deployment. The checks require you to run a set of `kubectl` commands.
 
-[[install-flex]]
+[[download-flex]]
 == Step 1: Download the Flex Gateway Image
 
-Use Docker to download the Flex Gateway image from the Docker Hub registry.
+Use Docker to download the Flex Gateway image from the Docker Hub registry. 
 
-. Check that Docker is running by running the following command in a terminal window:
+This procedure is a prerequisite to registering the Flex Gateway with Anypoint Platform in <<register-flex>>. Registration is required during the gateway deployment through Helm in <<deploy-flex>>. 
+
+. Check that Docker is running by executing the following command in a terminal window:
 +
 [source,docker,subs=attributes+]
 ----
@@ -225,6 +223,8 @@ helm -n gateway upgrade -i --create-namespace \
 +
 This command creates the `gateway` namespace and `ingress` release if they do not exist. The command syntax for the Helm repository and chart names is `<helm-repo-name>/<helm-chart-name>`. 
 +
+The command uses `--set gateway.mode=connected` because the default for the Helm chart is Local Mode.
++
 When successful, the command prints a message indicating an upgrade to your `ingress` release:
 +
 ----
@@ -240,6 +240,20 @@ TEST SUITE: None
 The `REVISION` value increments the `ingress` release by `1` each time you run this command with the same namespace, repository, and chart names. For example, if you run the command a second time, you find a new revision number (`REVISION: 2`). The `LAST DEPLOYED` date reflects the date of that revision.
 +
 If you receive an `UPGRADE FAILED` response, see <<upgrade-failed,troubleshooting>> information about this issue. 
+
+. If you want to check the status of the Pod that runs your gateway, execute the following `kubectl` command:
++
+[source,kubectl]
+----
+kubectl get pods -n gateway 
+----
++
+The output indicates whether the pod is running successfully in the `gateway` namespace:
++
+----
+NAME                       READY   STATUS        RESTARTS   AGE
+ingress-57bc75cb46-dmkdq   1/1     Running       0          35s
+----
 
 . Return to Runtime Manager: 
 .. Select *&#8592; Flex Gateways* from the side navigation panel of the Kubernetes *Add a Flex Gateway* page. 
@@ -295,6 +309,9 @@ The remaining procedures walk you through steps for creating and testing a new H
 +
 image::gateway-quickstart-k8-api-config-endpoint.png["Screenshot of 'Endpoint' page",width=90%]
 +
+.. For the *Scheme*, use the default, *HTTP* setting.
++
+This guide focuses on a simple HTTP API. For HTTPS configuration details, see xref:flex-conn-tls-config.adoc[].
 .. Copy the following URI into the *Implementation URI* field:
 +
 [source]
@@ -302,6 +319,9 @@ image::gateway-quickstart-k8-api-config-endpoint.png["Screenshot of 'Endpoint' p
 https://jsonplaceholder.typicode.com/
 ----
 .. Type `80` in the *Port* field.
++
+The example in this guide uses HTTP port `80` instead of the API Manager default port, `8081`, because the created `Service` maps incoming port `80` to target port `80` on the Pod. See the `service.http.port` key in the https://artifacthub.io/packages/helm/flex-gateway/flex-gateway[Helm chart for Flex Gateway^].
+
 .. Click *Next* to open the *Review* page.
 
 . In the *Review* page associated with *APIs / Add API*: 
@@ -441,10 +461,15 @@ If you encounter an error when running a command, check for troubleshooting info
 Troubleshoot errors returned by a `docker` command:
 
 [[daemon-bad-response]]
-* If Docker is not started, a `docker` command returns an error message similar to the following:
+* If Docker is not started, a `docker` command returns an error message similar to the following ones:
 +
 ----
 Error response from daemon: Bad response from Docker engine
+----
++
+----
+ERROR: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. 
+       Is the docker daemon running?
 ----
 +
 If you get this error, start Docker.
@@ -636,7 +661,7 @@ Make sure that at least one node is in the `Ready` status.
 +
 Alternatively, try the Docker-only guide, xref:flex-gateway-getting-started.adoc[], which does not use a Kubernetes cluster, and skip the next steps. 
 
-. If you have not started the Flex Gateway setup procedures yet, be sure to review <<k8-cluster-reqs>> before proceeding to <<install-flex>>.
+. If you have not started the Flex Gateway setup procedures yet, be sure to review <<k8-cluster-reqs>> before proceeding to <<download-flex>>.
 
 . If you have successfully completed all the procedures for downloading and registering your gateway with Docker and adding a repository for your Helm chart, and you are ready to begin the deployment procedure, go to <<deploy-flex>>. 
 
@@ -648,3 +673,4 @@ Learn other ways to set up and configure Flex Gateway for a Kubernetes cluster, 
 * xref:flex-gateway-set-up.adoc[]
 * xref:flex-gateway-configuration.adoc[]
 * xref:policies::policies-included-directory.adoc[]
+* xref:flex-conn-node-affinity-config.adoc[]
