@@ -66,17 +66,17 @@ to generate set of instructions that includes a command block with the registrat
 == Register and Run with a Token as a Linux Service
 // end::token-linux-heading[]
 // tag::app-k8s-heading[]
-== Register and Run with a Connected App as a Kubernetes Ingress Controller
+== Register and Run with a Connected App in a Kubernetes Cluster
 // end::app-k8s-heading[]
 // tag::user-k8s-heading[]
-== Register and Run with a Username and Password as a Kubernetes Ingress Controller
+== Register and Run with a Username and Password in a Kubernetes Cluster
 // end::user-k8s-heading[]
 // tag::token-k8s-heading[]
-== Register and Run with a Token as a Kubernetes Ingress Controller
+== Register and Run with a Token in a Kubernetes Cluster
 // end::token-k8s-heading[]
 // tag::reg-command-intro[]
 To register a Flex Gateway with Anypoint Platform, you must enter the registration command and then the start command. Each command includes information specific to your Anypoint Platform instance and *must be updated before* executing. See <<Before You Begin>> for more information on how to find the information you will need.
-//end::reg-command-intro[]
+// end::reg-command-intro[]
 //
 // tag::k8s-connected-intro[]
 
@@ -88,6 +88,7 @@ In Connected Mode, Flex Gateway typically serves as an ingress or a standalone g
 
 In Connected Mode, resource creation through `kubectl apply` is possible but restricted to the following resource types:
 Configuration, Service, Extension, and PolicyBinding of types `tls`, `tls-inbound`, and `tls-outbound`. For more info about resources, see xref:flex-local-configuration-reference-guide.adoc[].
+
 // end::k8s-connected-intro[]
 //
 // tag::k8s-local-intro[]
@@ -99,18 +100,22 @@ When using this mode, you must know what resources to create and apply, and use 
 Local Mode also supports the Ingress resources from Kubernetes, which are configured through a YAML file with properties, such as `apiVersion`, `kind`, `metadata`, `spec` for configuring a load balancer or proxy server, and `rules` for directing HTTP and HTTPS traffic (see https://kubernetes.io/docs/concepts/services-networking/ingress/[Kubernetes documentation^] on Ingress resources).
 
 // end::k8s-local-intro[]
-//
+
 // tag::k8s-reg-command-intro[]
-To register a Flex Gateway with Anypoint Platform as a Kubernetes ingress controller, you must enter the registration command and then install the flex-gateway Helm chart. Each command includes information specific to your Anypoint Platform instance and *must be updated before* executing. See <<Before You Begin>> for more information on how to find the information you will need.
+To register Flex Gateway with Anypoint Platform, run the Docker registration command with required options. After registering, use a Helm command to install the Helm chart for the registered gateway, and deploy the gateway to a cluster. The deployment process requires an existing cluster. See <<Before You Begin>> for more prerequisites to these procedures.
 // end::k8s-reg-command-intro[] 
 
-//tag::sub-coll-info[]
+// tag::k8s-mode-overview[]
+For information about this mode, see xref:flex-gateway-k8-overview.adoc[].
+// end::k8s-mode-overview[]
+
+// tag::sub-coll-info[]
 
 === Substitute Collected Information
 
 Before executing the registration command, replace the following sample information with the information you collected:
 
-//end::sub-coll-info[] 
+// end::sub-coll-info[] 
 // tag::user-replace-content[]
 
 * `--username` = the username for an Anypoint Platform user with _Read Servers_ and _Manage Servers_ permissions for Runtime Manager
@@ -207,19 +212,18 @@ In the output directory, you should see the following new registration file(s):
 IMPORTANT: These generated files are credentials for you to connect your Flex Gateway. If you lose them you
 can no longer connect your Flex Gateway.
 // end::after-reg[]
-//tag::after-reg-2[]
+// tag::after-reg-2[]
 
-//end::after-reg-2[]
-//tag::linux-after-reg[]
+// end::after-reg-2[]
+// tag::linux-after-reg[]
 
-//end::linux-after-reg[]
-//tag::k8s-after-reg[]
+// end::linux-after-reg[]
+// tag::k8s-after-reg[]
 
-//end::k8s-after-reg[]
+// end::k8s-after-reg[]
 // tag::connected-after-reg[]
-
-You should also see your new Flex Gateway in Runtime Manager after clicking *Flex Gateway* in the left navigation. 
-The gateway's status is disconnected for now. You need to start the gateway to connect it.
+In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation. Notice
+that your gateway's status is currently *Disconnected*.
 // end::connected-after-reg[]
 // tag::start-command[]
 
@@ -242,8 +246,8 @@ NOTE: Specify an optional name you want to assign to your Flex Replica by includ
 
 Before executing the start command below, update the absolute path to the directory where your Flex Gateway configuration and registration files reside.
 
-//end::start-command-local-intro[]
-//tag::start-command-local[]
+// end::start-command-local-intro[]
+// tag::start-command-local[]
 
 [source,ssh,subs=attributes+]
 ----
@@ -254,8 +258,8 @@ mulesoft/flex-gateway
 ----
 NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
 
-//end::start-command-local[]
-//tag::start-command-local-valid[]
+// end::start-command-local[]
+// tag::start-command-local-valid[]
 The Docker logs should include this line:
 
 [source,ssh]
@@ -300,7 +304,7 @@ You should see a list of services. Flex Gateway is successfully running if each 
 ----
 
 // end::linux-start-commands[]
-//tag::k8s-install-helm-chart[]
+// tag::k8s-install-helm-chart[]
 
 === Install Helm Chart into the Namespace
 
@@ -344,17 +348,17 @@ REVISION: 1
 TEST SUITE: None
 ----
 
-//end::k8s-install-helm-chart[]
-//tag::gateway-connected[]
+// end::k8s-install-helm-chart[]
+// tag::gateway-connected[]
 
-Now if you check in Runtime Manager after clicking *Flex Gateway* in the left navigation, your gateway's status is connected. You may need to refresh the page.
+In Runtime Manager, click **&#8592; Flex Gateway* in the left navigation. Notice that your gateway's status is *Connected*. Refresh the page, if necessary.
 
 If a Flex Replica
 in Connected Mode is stopped it will be removed from the UI in Runtime Manager after 30 days. Otherwise,
 it will appear in the Runtime Manager UI even if it is no longer running.
 
-//end::gateway-connected[]
-//tag::helm-chart-options[]
+// end::gateway-connected[]
+// tag::helm-chart-options[]
 
 [[helm-chart-options]]
 === Helm Chart Configuration Options
@@ -376,4 +380,4 @@ To view the Helm chart `README`, execute the following:
 helm show readme flex-gateway/flex-gateway
 ----
 
-//end::helm-chart-options[]
+// end::helm-chart-options[]

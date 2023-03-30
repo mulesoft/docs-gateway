@@ -1,10 +1,10 @@
-= Getting Started with Flex Gateway on a Kubernetes Cluster
+= Getting Started with Flex Gateway in a Kubernetes Cluster
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :version-helm: 3.0.0
 
-Get started with Anypoint Flex Gateway on a Kubernetes cluster. Set up a Flex Gateway deployment that connects to Anypoint Platform, and use the deployment to route traffic to your API. This guide covers the following high-level tasks:
+Get started with Anypoint Flex Gateway in a Kubernetes cluster. Set up a Flex Gateway deployment that connects to Anypoint Platform, and use the deployment to route traffic to your API. This guide covers the following high-level tasks:
 
 * Downloading, registering, and deploying Flex Gateway in xref:flex-conn-reg-run-token.adoc#k8-token[Connected Mode] with a token
 * Creating a simple API in Anypoint API Manager that runs on your gateway
@@ -47,7 +47,7 @@ include::partial$prerequisites.adoc[tag=curl]
 +
 Run `curl --version` from a terminal window to determine if this tool is installed. If not, you can download it with a package manager for your machine. 
 
-[[k8-cluster-reqs]]
+[[kubernetes-cluster-reqs]]
 == Cluster Requirements
 
 The host for your Kubernetes cluster can be any xref:flex-review-prerequisites.adoc#software-requirements[supported Kubernetes provider], including common cloud-based services, such as Amazon Elastic Kubernetes Service (EKS), Azure Kubernetes Service (AKS), or Google Kubernetes Engine (GKE).
@@ -207,7 +207,7 @@ Use Helm to deploy Flex Gateway to a node in your cluster and connect it to Anyp
 
 Before you begin: 
  
-Confirm that your Kubernetes cluster is available by following the steps in <<check-cluster>>. Review <<k8-cluster-reqs>> if you have not done so already. These prerequisites help avoid deployment errors. 
+Confirm that your Kubernetes cluster is available by following the steps in <<check-cluster>>. Review <<kubernetes-cluster-reqs>> if you have not done so already. These prerequisites help avoid deployment errors. 
 
 After confirming that your Kubernetes cluster is ready, complete the following steps:
 
@@ -553,7 +553,7 @@ For additional information, see <<check-cluster>>.
 Error: UPGRADE FAILED: timed out waiting for the condition
 ----
 +
-This error typically means that your cluster configuration is incorrect or that your cluster configuration tool does not support this process. See <<k8-cluster-reqs>>. One potential cause is the failure to generate a `Service` resource of the `LoadBalancer` type. You can troubleshoot further by running the following commands:
+This error typically means that your cluster configuration is incorrect or that your cluster configuration tool does not support this process. See <<kubernetes-cluster-reqs>>. One potential cause is the failure to generate a `Service` resource of the `LoadBalancer` type. You can troubleshoot further by running the following commands:
 
 ** {empty}
 +
@@ -569,26 +569,12 @@ kubectl -n gateway describe deployment
 kubectl -n gateway describe service
 ----
 
-//TODO: this was from Israel. Not clear what upgrade error and 
-//      why we would uninstall the ingress for the namespace. 
-//Israel: "If you receive an upgrade error when execute the command, you can  
-//         remove the ingress released chart or omit the released argument:"
-//
-//## Command to remove ingress chart released
-//helm -n <namespace> uninstall ingress
-//
-// TODO: WHEN WOULD WE OMIT -i --create-namespace --wait?
-//## Command without install ingress chart arguments
-// helm -n <namespace> upgrade \
-//ingress flex-gateway/flex-gateway \
-//--set-file registration.content=<registration_file>
-
 [[check-cluster]]
 == Check Your Cluster
 
 Before deploying Flex Gateway to your Kubernetes cluster in <<deploy-flex>>, ensure that your cluster is ready. Use `kubectl` to list and select (use) a cluster and to get a list of nodes that the cluster uses. If any steps in this section fail, the deployment process is likely to produce errors.
 
-To prevent potential timeout and connectivity errors when running procedures in this guide, your cluster must meet the <<k8-cluster-reqs>>. 
+To prevent potential timeout and connectivity errors when running procedures in this guide, your cluster must meet the <<kubernetes-cluster-reqs>>. 
 
 . Run `kubectl config get-contexts` to list the clusters, for example:
 +
@@ -661,7 +647,7 @@ Make sure that at least one node is in the `Ready` status.
 +
 Alternatively, try the Docker-only guide, xref:flex-gateway-getting-started.adoc[], which does not use a Kubernetes cluster, and skip the next steps. 
 
-. If you have not started the Flex Gateway setup procedures yet, be sure to review <<k8-cluster-reqs>> before proceeding to <<download-flex>>.
+. If you have not started the Flex Gateway setup procedures yet, review <<kubernetes-cluster-reqs>> before proceeding to <<download-flex>>.
 
 . If you have successfully completed all the procedures for downloading and registering your gateway with Docker and adding a repository for your Helm chart, and you are ready to begin the deployment procedure, go to <<deploy-flex>>. 
 
