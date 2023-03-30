@@ -64,7 +64,7 @@ helm get values --revision=2 ingress -n gateway
 ----
 +
 
-The following example shows CPU and memory `resources` settings below the `registration` data in the Pod (not in `registration.yaml`):
+The following example shows CPU and memory `resources` settings below the `registration` data in the Pod:
 +
 ----
 USER-SUPPLIED VALUES:
@@ -91,30 +91,24 @@ This example displays settings from `REVISION` number `2`. The output displays o
 
 After following the steps in <<update-cpu-memory-example>>, use the `--set` option to pass new values individually to the Helm chart for your Flex Gateway deployment. Alternatively, follow the procedure in <<use-helm-f-option>>.
 
-. From the command line, navigate to the directory that contains the YAML registration file for your gateway release, such as a `registration.yaml` for an `ingress` release.
-+
-This file is generated when you register your gateway with Anypoint Platform in xref:flex-conn-reg-run.adoc[Connected Mode] or xref:flex-local-reg-run.adoc[Local Mode]. The file provides `registration.content` data for the `helm upgrade` step in this procedure. 
-
 . Change the `cpu` and `memory` values by using the `helm upgrade` command.
 +
 .Syntax:
 ----
-helm upgrade <release-name> <repository name>/<chart name> \
--i --wait -n <namespace> --create-namespace \
---set-file registration.content=registration.yaml \
+helm upgrade <release-name> <repository-name>/<chart-name> \
+--wait -n <namespace> \
+--reuse-values \
 --set <key-to-update>=<new-value> 
 --set <next-key-to-update>=<new-value> 
 ...
 ----
 +
-The `helm upgrade` command relies on the `registration.yaml` file but does not add your new settings to this file. 
-+
 .Example:
 [source,helm]
 ----
 helm upgrade ingress flex-gateway/flex-gateway \
--i --wait -n gateway --create-namespace \
---set-file registration.content=registration.yaml \
+--wait -n gateway \
+--reuse-values \
 --set resources.limits.cpu=1500m \
 --set resources.limits.memory=2048Mi \
 --set resources.requests.cpu=260m \
@@ -154,26 +148,25 @@ resources:
     cpu: 260m
     memory: 384Mi
 ----
-+
-Note that the `resources` settings are not displayed through the `registration.yaml`.
 
 [[use-helm-f-option]]
 == Provide a File with Modified Settings for Your Helm Chart
 
-After following the steps in <<update-cpu-memory-example>>, use the `--f` option with `helm upgrade` to identify the file that contains new Helm chart settings for your Flex Gateway deployment. Alternatively, follow the procedure in <<use-helm-set-option>>.
+After following the steps in <<update-cpu-memory-example>>, use the `-f` option with `helm upgrade` to identify the file that contains new Helm chart settings for your Flex Gateway deployment. Alternatively, follow the procedure in <<use-helm-set-option>>.
 
-. From the command line, navigate to the directory that contains the YAML registration file for your gateway release, such as a `registration.yaml` for an `ingress` release.
+. Create a configuration file that contains your new settings.
 +
-This file is generated when you register your gateway with Anypoint Platform in xref:flex-conn-reg-run.adoc[Connected Mode] or xref:flex-local-reg-run.adoc[Local Mode]. The file provides `registration.content` data for the `helm upgrade` step in this procedure. 
-
-. Generate a configuration file that contains your new settings.
+For example, create a YAML file named `my-config-file.yaml` that contains the new `cpu` and `memory` values:
 +
-For example, use `echo` to create a configuration file named `my-config-file` that contains the new `cpu` and `memory` values:
-+
-[source,echo]
+[source,yaml]
 ----
-echo '{resources.limits.cpu: 1500m, resources.limits.memory:2048Mi, resources.requests.cpu: 260m, resources.requests.memory: 384Mi}' \
-> my-config-file
+resources:
+  limits:
+    cpu: 1500m
+    memory: 2048Mi
+  requests:
+    cpu: 260m
+    memory: 384Mi
 ----
 
 . Pass the new values from your configuration file to your Helm chart, for example:
@@ -181,19 +174,21 @@ echo '{resources.limits.cpu: 1500m, resources.limits.memory:2048Mi, resources.re
 .Syntax:
 ----
 helm -n <namespace> upgrade <release-name> \
-<repository name>/<chart name> -f <your-settings-config-file> \
---set-file registration.content=<registration-yaml-file>
+--wait \
+--reuse-values \
+<repository name>/<chart name> \
+-f <your-settings-config-file>
 ----
 +
 .Example:
 [source,helm]
 ----
 helm -n gateway upgrade ingress \
-flex-gateway/flex-gateway -f my-config-file \
---set-file registration.content=registration.yaml
+--wait \
+--reuse-values \
+flex-gateway/flex-gateway \
+-f my-config-file.yaml
 ----
-+
-The `helm upgrade` command relies on the `registration.yaml` file but does not add your new settings to this file. 
 +
 When successful, the command returns output similar to this:
 +
@@ -228,5 +223,3 @@ resources:
     cpu: 260m
     memory: 384Mi
 ----
-+
-Note that the `resources` settings are not displayed through the `registration.yaml`.
