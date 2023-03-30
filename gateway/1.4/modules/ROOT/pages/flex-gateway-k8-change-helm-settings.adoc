@@ -95,9 +95,10 @@ After following the steps in <<update-cpu-memory-example>>, use the `--set` opti
 +
 .Syntax:
 ----
-helm upgrade <release-name> <repository-name>/<chart-name> \
---wait -n <namespace> \
+helm -n <namespace> upgrade <release-name> \
+--wait \
 --reuse-values \
+<repository-name>/<chart-name> \
 --set <key-to-update>=<new-value> 
 --set <next-key-to-update>=<new-value> 
 ...
@@ -106,9 +107,10 @@ helm upgrade <release-name> <repository-name>/<chart-name> \
 .Example:
 [source,helm]
 ----
-helm upgrade ingress flex-gateway/flex-gateway \
---wait -n gateway \
+helm -n gateway upgrade ingress \
+--wait \
 --reuse-values \
+flex-gateway/flex-gateway \
 --set resources.limits.cpu=1500m \
 --set resources.limits.memory=2048Mi \
 --set resources.requests.cpu=260m \
@@ -176,7 +178,7 @@ resources:
 helm -n <namespace> upgrade <release-name> \
 --wait \
 --reuse-values \
-<repository name>/<chart name> \
+<repository-name>/<chart-name> \
 -f <your-settings-config-file>
 ----
 +
