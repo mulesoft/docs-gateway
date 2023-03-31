@@ -1,18 +1,33 @@
 = Provide a Domain Name for Your Kubernetes Service
 
-//COPY&PASTE ORIGINAL, UNEDITED GOOGLE DOC FROM AGUSTIN
+Use ExternalDNS to expose your Kubernetes service through a domain name instead of a difficult-to-understand external IP or random host name. 
 
-Integrating external-dns with flex gateway
+https://github.com/kubernetes-sigs/external-dns/blob/master/README.md[ExternalDNS^] is an open source project that supports DNS configurations for many DNS providers. The tool is _not_ a DNS server or provider. Instead, ExternalDNS discovers Kubernetes resources through public DNS servers and configures the resources for DNS providers.
 
-External-dns is a tool used to publish your k8s exposed service with a more human-friendly domain, instead of using your external IPs or a random available hostname that is quite difficult to understand. This can be useful if you want to expose your service using your domain, instead of using IPs. 
+The example in this guide provides procedures for configuration with the AWS Route 53 provider, which is one of its stable releases. 
 
-This document is valid for eks deployments, and we are assuming that you have an IAM policy to allow external-dns to update Route53 Resource Record Sets and Hosted Zones. If you are using another target or want to create this IAM Policy, please check external-dns documentation
+== Before You Begin
 
+Ensure that the following prerequisites are in place:
 
-Adding external-dns service to your cluster
+* A Kubernetes cluster on AWS
 
-To add external-dns to your cluster, create a new yaml file with the following content.
+* A Flex Gateway deployment to an AWS cluster or a registered Flex Gateway instance (gateway)
++
+For gateway registration and deployment processes, see xref:flex-gateway-set-up.adoc[] or xref:flex-gateway-k8-getting-started.adoc[]. 
 
+* An AWS Identity and Access Management (IAM) policy that allows ExternalDNS to update Amazon Route 53 Resource Record Sets and Hosted Zones 
++
+To use another target or create the IAM Policy with these permissions, see the https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/aws.md[ExternalDNS documentation^].
+
+== Add ExternalDNS to Your Cluster
+
+Add ExternalDNS (`external-dns`) to your cluster by creating and deploying a YAML configuration file with the following content to your cluster:
+
+. Create a YAML file with the following settings.
++
+[source,yaml]
+----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -36,16 +51,16 @@ spec:
           args:
             - --source=service
             - --source=ingress
-            - --domain-filter=<your-domain> # will make ExternalDNS see only the hosted zones matching provided domain, omit to process all available hosted zones. e.g. example.com
+            - --domain-filter=<your-domain> # makes only hosted zones visible
             - --provider=aws
-            - --policy=upsert-only # would prevent ExternalDNS from deleting any records, omit to enable full synchronization
-            - --aws-zone-type=public # only look at public hosted zones (valid values are public, private or no value for both)
+            - --policy=upsert-only # prevents record deletion
+            - --aws-zone-type=public # public zones only
             - --registry=txt
             - --txt-owner-id=my-hostedzone-identifier
           env:
             - name: AWS_DEFAULT_REGION
-              value: <aws-region> # change to region where EKS is installed. e.g. us-east-1
-      # # Uncomment below if using static credentials
+              value: <aws-region> # sets the EKS region
+      # # Uncomment the following settings when using static credentials
       #       - name: AWS_SHARED_CREDENTIALS_FILE
       #        value: /.aws/credentials
       #     volumeMounts:
@@ -56,24 +71,49 @@ spec:
       #   - name: aws-credentials
       #     secret:
       #       secretName: external-dns
-Bear in mind to look at the –domain-filter flag in this file, since it will be critical to make external-dns work as intended
+----
 
- Then apply it to your cluster with
+. In your new YAML file, set the following options, as needed, for your deployment:
+
+* `args` options:
+
+** `- --domain-filter=<your-domain>`: Make hosted zones that match your domain visible to ExternalDNS. Omit this option to process all available hosted zones.
++
+The option is critical for making `external-dns` work as intended.
+
+** `- --policy=upsert-only`: Prevent ExternalDNS from deleting any records. Omit this option to enable full synchronization.
+
+** `- --aws-zone-type=public`: Make only public hosted zones visible. Valid values are `public`, `private`, or no value for both types of zones.
+
+* `env` option `value: <aws-region>`: Set the region in which your EKS cluster is installed, for example, `us-east-1`.
+
+. Apply the configuration to your cluster by using the following command from a terminal window:
+
+[source,kubctl]
+----
 kubectl create --filename <external-dns-yaml> --namespace <your-namespace>
+----
 
-Installing flex gateway
+== Install Flex Gateway
 
-Flex gateway’s helm chart allows you to add annotations that can be used to integrate with external-dns, by using “extraAnnotations” param.
+To integrate `external-dns` with Flex Gateway, configure annotations for your gateway's Helm chart. 
 
-Using this parameter, we should add annotations under a specific key, with the domains we want flex gateway to have, to your helm upgrade command. Like this
-
+. Use the `extraAnnotations` parameter to set an annotation that specifies an ExternalDNS key with your gateway domains:
++
+----
 --set extraAnnotations."external-dns\.alpha\.kubernetes\.io/hostname"=<domain-1>,<domain-2>...
+----
 
-Full command if installing for the first time
-
+. If you are deploying Flex Gateway to the cluster for the first time, run the following command, replacing the placeholder values with the path to your gateway's registration YAML file (by default, `registration.yaml`) and your domain names: 
++
+[source,helm]
+----
 helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway --set-file registration.content=<path-to-registration> --set extraAnnotations."external-dns\.alpha\.kubernetes\.io/hostname"=<domain-1>,<domain-2>...
+----
 
-If you just want to add this to your running gateway
+. If you are updating a running gateway with the annotation, run the following command:
 
+[source,helm]
+----
 helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway --reuse-values --set extraAnnotations."external-dns\.alpha\.kubernetes\.io/hostname"=<domain-1>,<domain-2>...
-
+----
