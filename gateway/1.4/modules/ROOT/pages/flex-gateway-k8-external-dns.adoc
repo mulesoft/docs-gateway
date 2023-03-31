@@ -94,17 +94,15 @@ The option is critical for making `external-dns` work as intended.
 kubectl create --filename <external-dns-yaml> --namespace <your-namespace>
 ----
 
-== Install Flex Gateway
+== Set the DNS Names through Your Helm Chart for Flex Gateway
 
-To integrate `external-dns` with Flex Gateway, configure annotations for your gateway's Helm chart. 
+Use the `extraAnnotations` parameter with `helm upgrade` to set the domain names. Provide an annotation that specifies an ExternalDNS key with your gateway domains:
 
-Use the `extraAnnotations` parameter in `helm upgrade` to set an annotation that specifies an ExternalDNS key with your gateway domains:
-+
 ----
 --set extraAnnotations."external-dns\.alpha\.kubernetes\.io/hostname"=<domain-1>,<domain-2>...
 ----
 
-The command options to use depends on whether your registered gateway is deployed to a cluster:
+The `helm upgrade` command options to use depends on whether your registered gateway is deployed to a cluster:
 
 . If you are deploying Flex Gateway to the cluster for the first time, run the following command, replacing the placeholder values with the path to your gateway's registration YAML file (by default, `registration.yaml`) and your domain names: 
 +
