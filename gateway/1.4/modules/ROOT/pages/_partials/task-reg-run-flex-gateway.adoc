@@ -1,3 +1,5 @@
+include::_attributes.adoc[]
+
 // partial for registering in connected/local modes with a username and password, connected app, or a token, in a Docker container or as a Linux service
 
 // tag::prerequisites-heading[]
@@ -197,7 +199,7 @@ flexctl register \
 my-gateway
 ----
 
-NOTE: Use `sudo` if you encounter file permission issues when running this command.
+Use `sudo` if you encounter file permission issues when running this command.
 
 NOTE: If you are in Europe you will need to add the `--anypoint-url=https://eu1.anypoint.mulesoft.com` flag
 to your command.
@@ -221,10 +223,9 @@ can no longer connect your Flex Gateway.
 // tag::k8s-after-reg[]
 
 // end::k8s-after-reg[]
-// tag::connected-after-reg[]
-In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation. Notice
-that your gateway's status is currently *Disconnected*.
-// end::connected-after-reg[]
+// tag::disconnected-after-reg[]
+In Runtime Manager, you can click *&#8592; Flex Gateway* in the left navigation to find your gateway in the UI. Notice that your gateway's status is *Disconnected*. Refresh the page, if necessary.
+// end::disconnected-after-reg[]
 // tag::start-command[]
 
 === Start Command
@@ -304,86 +305,131 @@ You should see a list of services. Flex Gateway is successfully running if each 
 ----
 
 // end::linux-start-commands[]
-// tag::k8s-install-helm-chart[]
+// tag::k8s-install-flex-helm-chart-title[]
 
 === Install Helm Chart into the Namespace
 
+// end::k8s-install-flex-helm-chart-title[]
+// tag::k8s-install-flex-helm-chart-intro-connected[]
+Use Helm to deploy Flex Gateway to a node in your cluster and connect it to Anypoint Platform. After deploying, use Runtime Manager to verify that the gateway is present and connected to Anypoint Platform.
+// end::k8s-install-flex-helm-chart-intro-connected[]
+// tag::k8s-install-flex-helm-chart-intro-local[]
+Use Helm to deploy Flex Gateway to a node in your cluster and connect it to Anypoint Platform. After deploying, use Runtime Manager to verify that the gateway is present and connected to Anypoint Platform.
+// end::k8s-install-flex-helm-chart-intro-local[]
+// tag::k8s-flex-helm-chart-prereqs[]
+include::_attributes-versions.adoc[]
+
 Before installing, ensure that the following prerequisites are in place:
 
-* A minimum {helm-min-version} version of https://helm.sh/docs/intro/install/[Helm^], a tool used to install:
+* A minimum {min-helm-version} version of https://helm.sh/docs/intro/install/[Helm^], a tool used to install:
 +
 ** Flex Gateway in a Kubernetes cluster
 ** Monitoring tools
 ** Applications
 +
-Refer to <<helm-chart-options>> for the default chart settings.
+Refer to <<helm-chart-options>> to review and modify the defaults. 
 
-. Add the Flex Gateway Helm repository:
+Add a Helm repository for the Flex Gateway chart:
+
+// end::k8s-flex-helm-chart-prereqs[]
+// tag::k8s-flex-helm-chart-add[]
+
+. Add a repository named `flex-gateway` for your chart: 
 +
-[source,kubernetes]
+[source,helm]
 ----
 helm repo add flex-gateway https://flex-packages.anypoint.mulesoft.com/helm
 ----
-
-. Update the Helm repository using the following command:
 +
-[source,kubernetes]
+The command either adds the repository or skips this process if a Helm repository with that name already exists on your machine:
++
+* If the repository is new, the command returns the following message:
++
 ----
-helm repo up
+"flex-gateway" has been added to your repositories
+----
++
+* If the repository already exists, the command returns the following message:
++
+----
+"flex-gateway" already exists with the same configuration, skipping
 ----
 
-. Deploy your gateway to a release (`ingress`) by installing the Helm chart for Flex Gateway into a namespace (`gateway`).
+. Run `helm repo up`.
 +
-[source,kubernetes]
+The command returns the following message:
++
 ----
-helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway \
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "flex-gateway" chart repository
+Update Complete. ⎈Happy Helming!⎈
+----
++
+If you have more than one Helm repository on your machine, the message in your terminal window lists all of the repositories.
+// end::k8s-flex-helm-chart-add[]
+// tag::k8s-flex-helm-chart-deploy[]
+. Run the Helm command for deploying your gateway and connecting it to Anypoint Platform:
++
+[source,helm]
+----
+helm -n gateway upgrade -i --create-namespace \
+--wait ingress flex-gateway/flex-gateway \ 
+--set gateway.mode=connected \
 --set-file registration.content=registration.yaml
 ----
 +
-The command returns something similar to the following: 
+This command creates the `gateway` namespace and a release named `ingress` if they do not exist. You can use names of your choice for your namespace and release. The command syntax for the Helm repository and chart names is `<helm-repo-name>/<helm-chart-name>`. 
 +
-[source,text]
+The command uses `--set gateway.mode=connected` because the default for the Helm chart is Local Mode.
++
+When successful, the command prints a message indicating an upgrade to your `ingress` release:
++
 ----
+Release "ingress" does not exist. Installing it now.
 NAME: ingress
-LAST DEPLOYED: Tue Oct 19 13:08:07 2021
+LAST DEPLOYED: Mon Mar 20 21:36:19 2023
 NAMESPACE: gateway
 STATUS: deployed
 REVISION: 1
 TEST SUITE: None
 ----
-
-// end::k8s-install-helm-chart[]
++
+The `REVISION` value increments the `ingress` release by `1` each time you run this command with the same namespace, repository, and chart names. For example, if you run the command a second time, you find a new revision number (`REVISION: 2`). The `LAST DEPLOYED` date reflects the date of that revision.
+//    do not add an empty new line here at end, please
+// end::k8s-flex-helm-chart-deploy[]
 // tag::gateway-connected[]
 
-In Runtime Manager, click **&#8592; Flex Gateway* in the left navigation. Notice that your gateway's status is *Connected*. Refresh the page, if necessary.
+In Runtime Manager, you can click *&#8592; Flex Gateway* in the left navigation to find your new gateway in the UI. Notice that your gateway's current status is *Connected*. Refresh the page, if necessary.
 
-If a Flex Replica
-in Connected Mode is stopped it will be removed from the UI in Runtime Manager after 30 days. Otherwise,
-it will appear in the Runtime Manager UI even if it is no longer running.
-
+NOTE::
+After 30 days, a stopped or deleted gateway is removed from the Runtime Manager UI. Otherwise, the UI continues to list the gateway even if it is no longer running or connected.
 // end::gateway-connected[]
 // tag::helm-chart-options[]
 
 [[helm-chart-options]]
 === Default Helm Chart Settings
 
-Before updating a Helm chart for a Flex Gateway deployment, it is useful to view the default Helm chart settings:
+Before modifying a Helm chart for a Flex Gateway deployment, review the default Helm chart settings:
 
 * Open the *flex-gateway* page in https://artifacthub.io/packages/helm/flex-gateway/flex-gateway[ArtifactHUB^]
-* Run `helm show values &lt;repository-name&gt;/&lt;chart-name&gt;` from a terminal window.
+* Run `helm show values <repository-name>/<chart-name>` from a terminal window.
 +
 .Example:
 [source,kubernetes]
 ----
 helm show values flex-gateway/flex-gateway
 ----
-
-To view the Helm chart `README`, run the following command from a terminal window:
 +
+The example returns _default_ values of a repository and chart with the same name. 
++
+To update the default Helm settings with new values, such as `resource` values for CPU and memory settings, see xref:flex-gateway-k8-change-helm-settings.adoc[].
+
+To view the Helm chart `README`, run `helm show readme <repository-name>/<chart-name>` from a terminal window.
+
+.Example:
 [source,kubernetes]
 ----
 helm show readme flex-gateway/flex-gateway
 ----
 
-To update the default Helm settings with new values, such as `resource` values for CPU and memory, see xref:flex-gateway-k8-change-helm-settings.adoc[].
 // end::helm-chart-options[]
