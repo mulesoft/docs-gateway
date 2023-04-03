@@ -302,16 +302,16 @@ The `proxy-wasm` ABI retrieves the header value of the incoming request and then
 . Enable compilation by adding `wasm32` as a target:
 +
 ----
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32-wasi
 ----
 
 . Compile your custom policy via the following command:
 +
 ----
-cargo build --target wasm32-unknown-unknown --release
+cargo build --target wasm32-wasi --release
 ----
 +
-Compilation outputs a binary `.wasm` file into the `./target/wasm32-unknown-unknown/release` directory.
+Compilation outputs a binary `.wasm` file into the `./target/wasm32-wasi/release` directory.
 +
 The size of the binary file can be large, even with few dependencies. Optimize file size using `wasm-gc`, a CLI that removes unneeded exports, imports, and functions. The optimized binary can be up to 90% lighter.
 
@@ -324,7 +324,7 @@ cargo install wasm-gc
 . Perform the optimization by executing `wasm-gc` against your binary:
 +
 ----
-wasm-gc target/wasm32-unknown-unknown/release/flex_custom_policy_example.wasm -o target/flex_custom_policy_example-final.wasm
+wasm-gc target/wasm32-wasi/release/flex_custom_policy_example.wasm -o target/flex_custom_policy_example-final.wasm
 ----
 +
 The optimized binary can now be found in the `./target` directory. Push this binary to Exchange when publishing the new policy implementation.
