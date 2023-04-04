@@ -4,57 +4,16 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-When installing and running Anypoint Flex Gateway on Linux, you might encounter issues with specific services. Review the list of Flex Gateway services:
-
-* <<review-services,Review Flex Gateway Services>>
-
 The following topics provide possible causes for service issues and describe how to troubleshoot:
 
-* <<flex-gateway-agent-service-failed-to-run,Flex Gateway Agent Service Failed to Run>>
+* <<flex-gateway-agent-service-failed-to-run,Flex Gateway Service Failed to Run>>
 * <<other-services-failed-to-run,Other Services Failed to Run>>
 
-[[review-services]]
-== Review Flex Gateway Services
 
-After installing and running Flex Gateway, you can determine which services are running with the following command:
+[[flex-gateway-service-failed-to-run]]
+== Flex Gateway Service Failed to Run
 
-[source,ssh]
-----
-systemctl list-units flex-gateway*
-----
-
-You should see a list of services. Each is described in the following example output.
-
-[source,ssh]
-----
-  UNIT                              LOAD   ACTIVE SUB     DESCRIPTION
-  flex-gateway-fluent-reloader.path loaded active waiting flex-gateway-fluent-reloader.path <1>
-  flex-gateway-agent.service        loaded active running flex-gateway-agent.service <2>
-  flex-gateway-envoy.service        loaded active running flex-gateway-envoy.service <3>
-  flex-gateway-fluent.service       loaded active running flex-gateway-fluent.service <4>
-  flex-gateway.service              loaded active exited  Application
-----
-
-<1> `flex-gateway-fluent-reloader.path`
-+
-Component that monitors the Fluentbit configuration and extends it for reloading capabilities.
-
-<2> `flex-gateway-agent.service`
-+
-Component that configures Envoy.
-
-<3> `flex-gateway-envoy.service`
-+
-The Envoy service that is used internally as a high performance proxy designed for single services and applications. Extended through WebAssembly filters.
-
-<4> `flex-gateway-fluent.service`
-+
-The Fluentbit service that is used internally to forward logs, meters, and metrics into Anypoint Platform. It is also used to forward third party tools configured by the user, and local log files.
-
-[[flex-gateway-agent-service-failed-to-run]]
-== Flex Gateway Agent Service Failed to Run
-
-The `flex-gateway-agent.service` status displays `failed` after running the `systemctl list-units flex-gateway*` command.
+The `flex-gateway.service` status displays `failed` after running the `systemctl list-units flex-gateway*` command.
 
 === Diagnose
 
@@ -62,26 +21,10 @@ To diagnose the service failure, run the following command:
 
 [source,ssh]
 ----
-journalctl -u flex-gateway-*
+journalctl -u flex-gateway
 ----
 
-====  Error 1: “Executable path is not absolute” 
-
-If the output of the `journalctl` command includes this line: 
-
-[source,ssh]
-----
-/lib/systemd/system/flex-gateway-fluent-reloader.service:9: Executable path is not absolute: sudo /usr/bin/systemctl restart flex-gateway-fluent.service
-----
-
-The problem can be resolved by running this command:
-
-[source,ssh]
-----
-sudo systemctl daemon-reload & sudo systemctl restart flex-gateway
-----
-
-====  Error 2: “Panic: could not read platform configuration” 
+====  Error 1: “Panic: could not read platform configuration” 
 
 If the output of the `journalctl` command includes this line: 
 
@@ -95,12 +38,10 @@ The problem can be resolved by running `chmod` on the files created during regis
 [[other-services-failed-to-run]]
 == Other Services Failed to Run
 
-If services other than `flex-gateway-agent.service` fail to run correctly, attempt to restart Flex Gateway:
+If you error does not appear above, attempt to restart Flex Gateway:
 
 [source,ssh]
 ----
 sudo ldconfig
 sudo systemctl restart flex-gateway
 ---- 
-
-
