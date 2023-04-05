@@ -1,35 +1,31 @@
 = Installing Flex Gateway
+//= Preparing Flex Gateway for Registration and Deployment
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
+Install Flex Gateway as a Linux service, or download the Flex Gateway image from the Docker registry. Downloading is a prerequisite to registering and running a gateway in a Docker container, a Kubernetes cluster, or an OpenShift cluster.
 
-You can install Flex Gateway as a Linux service, in a Docker container, or as a Kubernetes Ingress controller.
-
-* If you want to run your Flex Gateway inside a virtual machine (VM), install
-it as a Linux service. 
-* If you want try the product quickly or demonstrate some of the product's capabilities in a non-production
-scenario, install it in a Docker container.
-* If you want use Flex Gateway as a load balancer at the edge of a Kubernetes cluster,
-install it as a Kubernetes Ingress controller.
-* If you want use Flex Gateway as a load balancer at the edge of an OpenShift cluster,
-install it as an OpenShift Ingress controller.
+* To run Flex Gateway inside a virtual machine (VM), install it as a Linux service. 
+* To run Flex Gateway in a Docker container for trial purposes, download the Flex Gateway image. Running a gateway in a Docker container enables you to try Flex Gateway quickly or demonstrate some of the product's capabilities in a non-production scenario.
+* To run Flex Gateway in a Kubernetes cluster, download the Flex Gateway image. 
+* To run Flex Gateway in an OpenShift cluster, download the Flex Gateway image.
 
 [cols="1a,1a,1a,1a"]
 |===
-|image:install-linux-logo.png[20%,20%,xref="#install-linux"]
-|image:install-docker-logo.png[25%,25%,xref="#install-docker"]
-|image:install-kubernetes-logo.png[20%,20%,xref="#install-kubernetes"]
-|image:install-openshift-logo.png[20%,20%,xref="#install-openshift"]
+|image:install-linux-logo.png[20%,20%,xref="#linux"]
+|image:install-docker-logo.png[25%,25%,xref="#docker"]
+|image:install-kubernetes-logo.png[20%,20%,xref="#kubernetes"]
+|image:install-openshift-logo.png[20%,20%,xref="#openshift"]
 
-|<<install-linux,Linux>>
-|<<install-docker,Docker>>
-|<<install-kubernetes,Kubernetes>>
-|<<install-openshift,OpenShift>>
+|<<linux,Linux>>
+|<<docker,Docker>>
+|<<kubernetes,Kubernetes>>
+|<<openshift,OpenShift>>
 |===
 
-[[install-linux]]
+[[linux]]
 == Install as a Linux Service
 
 You can install Flex Gateway as a service in one of the following Linux environments:
@@ -191,53 +187,90 @@ sudo yum install -y flex-gateway
 
 include::partial$reference-install-next-steps.adoc[]
 
-[[install-docker]]
-== Install in a Docker Container 
+[[docker]]
+== Download Flex Gateway for Use in a Docker Container 
 
-To install Flex Gateway in a Docker container: 
+Download the Flex Gateway container image to prepare for registering and running a gateway in a Docker container: 
 
 . Download the Flex Gateway Docker image: 
 +
 [source,ssh,subs=attributes+]
 ----
-docker pull mulesoft/flex-gateway:{gateway-ver-var}
+docker pull {image-owner-lc}/flex-gateway:{gateway-ver-var}
 ----
 
-. Verify the installation was successful: 
+. Verify that the download succeeded: 
 +
-[source,ssh]
+[source,ssh,subs=attributes+]
 ----
-docker images
+docker images {image-owner-lc}/flex-gateway
 ----
 +
-You should see the Flex Gateway container image in the resulting list. 
+When successful, the command lists the Flex Gateway container image, for example: 
 +
 [source,text,subs=attributes+]
 ----
 REPOSITORY                   TAG
-mulesoft/flex-gateway        {gateway-ver-var}
+{image-owner-lc}/flex-gateway        {gateway-ver-var}
 ----
 
 include::partial$reference-install-next-steps.adoc[]
 
-[[install-kubernetes]]
-== Install as a Kubernetes Ingress Controller
+[[kubernetes]]
+== Download Flex Gateway for Use in a Kubernetes Cluster
 
-To install Flex Gateway as a Kubernetes Ingress controller download the Flex Gateway container image: 
+Download the Flex Gateway container image to prepare for registering and running a gateway in a Kubernetes cluster: 
 
+. Download the Flex Gateway Docker image: 
++
 [source,ssh,subs=attributes+]
 ----
-docker pull mulesoft/flex-gateway:{gateway-ver-var}
+docker pull {image-owner-lc}/flex-gateway:{gateway-ver-var}
+----
+
+. Verify that the download succeeded: 
++
+[source,ssh,subs=attributes+]
+----
+docker images {image-owner-lc}/flex-gateway
+----
++
+When successful, the command lists the Flex Gateway container image, for example: 
++
+[source,text,subs=attributes+]
+----
+REPOSITORY                   TAG
+{image-owner-lc}/flex-gateway        {gateway-ver-var}
 ----
 
 include::partial$reference-install-next-steps.adoc[]
 
-[[install-openshift]]
-== Install as an OpenShift Ingress Controller
 
+[[openshift]]
+== Download Flex Gateway for Use in an OpenShift Cluster
+
+Download the Flex Gateway container image to prepare for registering and running a gateway in an OpenShift cluster: 
+
+. Download the Flex Gateway Docker image: 
++
 [source,ssh,subs=attributes+]
 ----
-docker pull mulesoft/flex-gateway:{gateway-ver-var}
+docker pull {image-owner-lc}/flex-gateway:{gateway-ver-var}
+----
+
+. Verify that the download succeeded: 
++
+[source,ssh,subs=attributes+]
+----
+docker images {image-owner-lc}/flex-gateway
+----
++
+When successful, the command lists the Flex Gateway container image, for example: 
++
+[source,text,subs=attributes+]
+----
+REPOSITORY                   TAG
+{image-owner-lc}/flex-gateway        {gateway-ver-var}
 ----
 
 include::partial$reference-install-next-steps.adoc[]
