@@ -1,0 +1,127 @@
+= Schema Validation Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: oas3, schema validation, api gateway, flex gateway, gateway, policy
+// :page-aliases: policies::policies-included-schema-validation.adoc
+
+[width="100%", cols="5,15"]
+|===
+>s|Policy Name| Schema Validation Policy
+>s|Summary| Validates incoming traffic against a supplied API schema
+>s|Category| Security
+>s|First Flex Gateway version available | v1.4.0
+>s|Returned Status Codes| 400 - The request properties do not comply with the API specifications.
+|===
+
+== Summary
+
+NOTE: The Schema Validation Policy currently only supports OpenAPI Specification 3.0 (OAS3) schema validations.
+
+Applications processing REST API requests are susceptible to attacks such as header injection and payload injection. Additional vulnerabilities can lead to the access of sensitive information. The Schema Validation policy protects against such attacks and vulnerabilities by validating traffic against a supplied API specification.
+
+There are many ways to upload REST API specifications, but using Exchange is the easiest way. To upload an API specification to Exchange, see xref:exchange::to-create-an-asset.adoc[Create an Exchange Asset].
+
+Flex Gateway supports schemas defined in JSON or YAML, contained in a file or in an external URI. Additionally, when applying the policy in Flex Gateway Connected Mode, the platform automatically transforms RAML into OAS3. However, the platform might not transform perfectly.
+
+The Schema Validation policy validates request headers, queries, or path parameters.
+
+You configure the policy to perform one of the following actions:
+
+* Block the request, and then return the 400 error status code.
+* Allow the request, log the error, and then return the status code of the request.
+
+
+You can validate content against:
+
+* The presence of all required properties.
+* The presence or absence of additional properties.
+* The types of all properties.
++
+For example, if a schema specifies a property as an integer, the request must include an integer and not another type, such as a string.
+* The format of the properties.
++
+For example, if the `pattern` keyword is specified, the policy validates the property as a regular expression.
+
+== Configuring Policy Parameters
+
+=== Flex Gateway Local Mode
+
+In Local Mode, you apply the Schema Validation policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
+
+----
+- policyRef:
+    name: spec-validation-flex
+  config:
+    source: <string> // REQUIRED
+    spec: <string> // REQUIRED
+    apiBasePath: <string> // OPTIONAL
+    blockOperation: <boolean> // REQUIRED
+    strictParamsValidation: <boolean> // OPTIONAL
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+
+|Parameter | Required or Optional | Default Value | Description
+
+| `source`
+| Required
+| `context`
+| Determines if the schema is specified in this YAML resource, or if it's specified in the API Context from Exchange (Connected Mode only). Supported values: `inline` or `context`. You must specify `inline` when configuring the policy in Local Mode.
+
+| `spec`
+| Required
+| `""`
+| The actual inline specification. You must provide this when configuring the policy in Local Mode.
+
+| `apiBasePath`
+| Optional
+| `"/"`
+| The base path of the API. You must provide this value when configuring the policy in Local Mode.
+
+| `blockOperation`
+| Required
+| `true`
+| If `true`, the policy blocks an invalid spec validation. If `false`, the policy only logs an error.
+
+| `strictParamsValidation`
+| Optional
+| `false`
+| Determines whether to validate query parameters not defined in specification.
+
+|===
+
+==== Resource Configuration Example
+
+[source,yaml]
+----
+- policyRef:
+    name: spec-validation-flex
+  config:
+    source: "inline"
+    apiBasePath: "/"
+    blockOperation: true
+    strictParamsValidation: false
+    spec: |
+      {
+        "openapi": "3.0.2",
+        ...
+      }
+----
+
+=== Flex Gateway Connected Mode
+
+When you apply the Schema Validation policy to your API from the UI, the following parameters are displayed:
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+s|Field s|Description s|Default s|Required
+| Block request | Select to block an incoming request that does not conform to the API specification. Selecting not to block only logs the the request. Choosing to block invalid requests returns a 400 status when the request is invalid. | Block enabled | No
+| Strict query parameters validation | Restricts API calls from query parameters not defined in the API Specification | No | No
+| Advanced options | | | |
+| Policy version | Version of the applied policy | Latest | Yes
+| Rule of application | Configures the runtimes the policy is applied to. Schema Validation is currently only available for Flex Gateway. Applying the policy to all runtimes only applies the policy to Flex Gateway APIs. | All runtimes | Yes
+|===
+
