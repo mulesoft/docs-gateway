@@ -15,24 +15,20 @@ Pattern examples:
 * A mobile bank calls customer and account services to display the account overview screen to the end consumer
 
 === Pattern 1A: Organization Internal API Exposed to an Organization Internal Consumer that Uses the Same VPC or Network
-In this use case pattern, both services are available on the same infrastructure, such as the same public cloud VPC, datacenter, or Kubernetes cluster. You can deploy Flex Gateway as either a sidecar or a standalone gateway.
+In this use case pattern, both services are available on the same infrastructure, such as the same public cloud VPC, datacenter, or Kubernetes cluster. You can deploy Flex Gateway as either a sidecar or a standalone gateway. +
 +
-+
-image:ad-uc-1-p-1a.png["For both standalone and sidecar mode, Flex Gateway and the APIs are in the same internal network."]
-+
-+
-The following diagram shows the physical implementation of a standalone Flex Gateway running in Connected Mode. A network policy (Netpol) permits ingress access only from Flex Gateway. You can configure the consumer application in the same or different namespace from Flex Gateway and the provider services.
-+
-+
+image:ad-uc-1-p-1a.png["For both standalone and sidecar mode, Flex Gateway and the APIs are in the same internal network."] +
+The following diagram shows the physical implementation of a standalone Flex Gateway running in Connected Mode. A network policy (Netpol) permits ingress access only from Flex Gateway. You can configure the consumer application in the same or different namespace from Flex Gateway and the provider services. +
+
 image:ad-uc-1-p-1a-physical.png[A more detailed view of UC1 contains load balancers and Netpol protection]
 +
 +
 When the API provider is located in a different Kubernetes cluster from Flex Gateway and the consumer application, you can do either of the following:
 
 * Deploy a Flex Gateway runtime on each of the clusters, as in Pattern 1B.
-* Establish network restrictions in the secure channel between clusters and deploy Flex Gateway in only one of them, as shown in the following diagram. The second cluster only allows connections from a Flex Gateway that acts as an ingress controller.
+* Establish network restrictions in the secure channel between clusters and deploy Flex Gateway in only one of them, as shown in the following diagram. The second cluster only allows connections from a Flex Gateway that acts as an ingress controller. +
 
-+
+
 image:ad-uc-1-p-1b-separate-clusters.png["A detailed view of pattern 1A, which contains the necessary services to support Flex Gateway"] 
 
 === Pattern 1B: Organization Internal API Exposed to an Organization Internal Consumer that Uses a Different VPC or Network
