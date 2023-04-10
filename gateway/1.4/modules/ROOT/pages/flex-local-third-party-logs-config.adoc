@@ -1,32 +1,108 @@
-= Configuring Flex Gateway Logs for Third-Party Services
+= Configure Logs for Flex Gateway in Local Mode
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 :page-mode: local
 
-// intro and graphics for each option - linux, docker, k8s
-include::partial$task-config-logs-third-party.adoc[tags=intro1;intro2;icon-table;byb]
+:page-aliases: gateway::flex-local-view-manage-logs.adoc
 
-// configure log output for Flex Gateway as a Linux Service
-include::partial$task-config-logs-third-party.adoc[tags=linux;sample-config-all-intro]
-+
-include::partial$task-config-logs-third-party.adoc[tags=sample-config-all]
+include::partial$task-config-logs-third-party.adoc[tags=intro1;intro2-local]
 
-// configure log output for Flex Gateway in a Docker container
-include::partial$task-config-logs-third-party.adoc[tags=docker-intro]
+include::partial$task-config-logs-third-party.adoc[tags=icon-table]
+
+include::partial$task-config-logs-third-party.adoc[tags=byb]
+
+include::partial$task-config-logs-third-party.adoc[tags=runtime-access-logs]
+
+include::partial$task-config-logs-third-party.adoc[tags=file-example]
+
+include::partial$task-config-logs-third-party.adoc[tags=linux;view-logs-local;configure-message-logging-step]
+
+include::partial$task-config-logs-third-party.adoc[tags=docker]
 +
 include::partial$task-reg-run-flex-gateway.adoc[tags=start-command-local]
 +
-include::partial$task-config-logs-third-party.adoc[tags=sample-config-all-intro]
-+
-include::partial$task-config-logs-third-party.adoc[tags=sample-config-all]
+include::partial$task-config-logs-third-party.adoc[tags=docker2;view-logs-local;configure-message-logging-step]
 
-//configure log output for Flex Gateway as an K8s Ingress Controller
-include::partial$task-config-logs-third-party.adoc[tags=k8s;sample-config-all-intro]
+include::partial$task-config-logs-third-party.adoc[tags=k8s;view-logs-local;configure-message-logging-step]
 
-include::partial$task-config-logs-third-party.adoc[tags=sample-config-all]
+include::partial$task-config-logs-third-party.adoc[tags=file-configuration-example]
+
+include::partial$task-config-logs-third-party.adoc[tags=http-configuration-example]
+
+include::partial$task-config-logs-third-party.adoc[tags=splunk-configuration-example]
+
+
+[[configure-access-logs]]
+== Configure Access Logs
+To configure access logs in your log output, you must apply a Message Logging policy to the APIs whose request and response data you want to monitor. If you have previously applied a Message Logging policy to an API instance, you do not need to configure another. 
+
+Configuring a Message Logging policy makes access logs visible in both standard output logs and your third-party log services.
+
+For inline configurations, enable access logs by adding `message-logging-flex` to the `spec.policies` section of `ApiInstance`. The following is an inline configuration example:
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: jsonplaceholder-api
+spec:
+  address: http://0.0.0.0:8080
+  services:
+    jsonplaceholder:
+      address: https://jsonplaceholder.typicode.com:443/
+      routes:
+        - rules:
+            - path: /api(/users/.*)
+  policies:
+    - policyRef:
+        name: message-logging-flex
+      config:
+        loggingConfiguration:
+          - itemName: "Access Log Request"
+            itemData:
+              message: "#[attributes.version ++ ' ' ++ attributes.method ++ ' ' ++ attributes.requestUri]"
+              level: "INFO"
+              firstSection: true
+          - itemName: "Access Log Response"
+            itemData:
+              message: "#[attributes.statusCode ++ ' ' ++ (attributes.headers['content-length'] default '')]"
+              level: "INFO"
+              secondSection: true
+----
+
+For resource-based configurations, enable access logs by adding `message-logging-flex` to the `spec.policyRef` section of `PolicyBinding`. The following is a resource-based configuration example:
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: ingress-http-access-logs
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: ingress-http
+  policyRef:
+    kind: Extension
+    name: message-logging-flex
+  config:
+    loggingConfiguration:
+      - itemName: "Access Log Request"
+        itemData:
+          message: "#[attributes.version ++ ' ' ++ attributes.method ++ ' ' ++ attributes.requestUri]"
+          level: "INFO"
+          firstSection: true
+      - itemName: "Access Log Response"
+        itemData:
+          message: "#[attributes.statusCode ++ ' ' ++ (attributes.headers['content-length'] default '')]"
+          level: "INFO"
+          secondSection: true
+----
+
+For more information about message logging configuration, see xref:policies-included-message-logging.adoc[].
 
 == See Also
 
-* xref:flex-local-configuration-reference-guide.adoc#logging[Declarative Configuration Reference Guide]
+* xref:policies-included-message-logging.adoc[]
+* https://docs.fluentbit.io/manual/v/1.8/pipeline/outputs[Fluent Bit Outputs documentation ^]

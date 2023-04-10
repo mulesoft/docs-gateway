@@ -4,19 +4,22 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-You can uninstall Flex Gateway as a Linux service, in a Docker container, or as a Kubernetes Ingress controller.
+//TODO: IS THERE AN OPENSHIFT OPTION HERE?
+You can uninstall Flex Gateway as a Linux service, in a Docker container, or from a Kubernetes cluster.
 
+//TODO: IS THERE AN OPENSHIFT OPTION HERE?
 [cols="1a,1a,1a"]
 |===
-|image:install-linux-logo.png[20%,20%,xref="flex-gateway-uninstall.adoc#uninstall-as-a-linux-service"]
-|image:install-docker-logo.png[25%,25%,xref="flex-gateway-uninstall.adoc#uninstall-in-a-docker-container"]
-|image:install-kubernetes-logo.png[20%,20%,xref="flex-gateway-uninstall.adoc#uninstall-as-a-kubernetes-ingress-controller"]
+|image:install-linux-logo.png[20%,20%,xref="#linux"]
+|image:install-docker-logo.png[25%,25%,xref="#docker"]
+|image:install-kubernetes-logo.png[20%,20%,xref="#kubernetes"]
 
-|xref:flex-gateway-uninstall.adoc#uninstall-as-a-linux-service[Uninstall as a Linux Service]
-|xref:flex-gateway-uninstall.adoc#uninstall-in-a-docker-container[Uninstall in a Docker Container]
-|xref:flex-gateway-uninstall.adoc#uninstall-as-a-kubernetes-ingress-controller[Uninstall as a Kubernetes Ingress Controller]
+|<<linux>>
+|<<docker>>
+|<<kubernetes>>
 |===
 
+[[linux]]
 == Uninstall as a Linux Service
 
 Flex Gateway can be uninstalled as any other package:
@@ -26,6 +29,7 @@ Flex Gateway can be uninstalled as any other package:
 sudo apt remove -y flex-gateway
 ----
 
+[[docker]]
 == Uninstall in a Docker Container
 
 If you are finished with your Flex Gateway instance in a Docker Container, stop and remove the container.
@@ -51,9 +55,10 @@ docker rm <container id>
 docker rmi mulesoft/flex-gateway
 ----
 
-== Uninstall as a Kubernetes Ingress Controller
+[[kubernetes]]
+== Uninstall from a Kubernetes Cluster
 
-To uninstall Flex Gateway as a Kubernetes Controller:
+To uninstall Flex Gateway from a Kubernetes cluster:
 
 . Uninstall the Helm release. The following example removes a release called “my-release”:
 +
@@ -82,3 +87,5 @@ kubectl delete crds \
      policybindings.gateway.mulesoft.com \
      services.gateway.mulesoft.com
 ----
+
+//TODO: IS THERE AN OPENSHIFT OPTION HERE?
