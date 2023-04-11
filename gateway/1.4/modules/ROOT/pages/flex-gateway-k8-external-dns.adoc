@@ -98,24 +98,38 @@ kubectl create --filename <external-dns-yaml> --namespace <your-namespace>
 
 == Set DNS Names through Your Helm Chart for Flex Gateway
 
-Use the `extraAnnotations` parameter with `helm upgrade` to set the domain names. Provide an annotation that specifies an ExternalDNS key with your gateway domains:
+Use the `extraAnnotations` parameter with `helm upgrade` to set the domain names. 
 
+. Create a YAML configuration file to specify an ExternalDNS key and a comma-separated set of domain values.
++
+Replace the following placeholder values `<domain-0>,...,<domain-N>` with your domains:
++
 ----
---set extraAnnotations."external-dns\.alpha\.kubernetes\.io/hostname"=<domain-1>,<domain-2>...
+extraAnnotations:
+  external-dns.alpha.kubernetes.io/hostname: <domain-0>,...,<domain-N>
 ----
 
-The `helm upgrade` command options to use depend on whether your registered gateway is deployed to a cluster:
+. Use the `-f` option to pass your configuration file to the `helm upgrade` command.
++
+The command options to use depend on whether your registered gateway is deployed to a cluster:
 
-. If you are deploying Flex Gateway to the cluster for the first time, run the following command, replacing the placeholder values with the path to your gateway's registration YAML file (by default, `registration.yaml`) and your domain names: 
+.. If you are deploying Flex Gateway to the cluster for the first time, run the following command, replacing the placeholder values with the path to your gateway's registration YAML file (by default, `registration.yaml`) and your domain names: 
 +
 [source,helm]
 ----
-helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway --set-file registration.content=<path-to-registration> --set extraAnnotations."external-dns\.alpha\.kubernetes\.io/hostname"=<domain-1>,<domain-2>...
+helm -n gateway upgrade \
+-i --create-namespace \
+--wait ingress flex-gateway/flex-gateway \
+--set-file registration.content=<path-to-registration> \
+-f <your-YAML-config-file>
 ----
 
-. If you are updating a running gateway with the annotation, run the following command:
+.. If you are updating a running gateway with the annotation, run the following command:
 +
 [source,helm]
 ----
-helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway --reuse-values --set extraAnnotations."external-dns\.alpha\.kubernetes\.io/hostname"=<domain-1>,<domain-2>...
+helm -n gateway upgrade \
+--wait ingress flex-gateway/flex-gateway \
+--reuse-values \
+-f <your-YAML-config-file>
 ----
