@@ -14,6 +14,7 @@ Pattern examples:
 * A call center application calls the API exposed by the customer domain to retrieve customer information
 * A mobile bank calls customer and account services to display the account overview screen to the end consumer
 
+[[pattern-1a]]
 === Pattern 1A: Organization Internal API Exposed to an Organization Internal Consumer that Uses the Same VPC or Network
 In this use case pattern, both services are available on the same infrastructure, such as the same public cloud VPC, datacenter, or Kubernetes cluster. You can deploy Flex Gateway as either a sidecar or a standalone gateway.
 
@@ -30,6 +31,7 @@ When the API provider is located in a different Kubernetes cluster from Flex Gat
 
 image:ad-uc-1-p-1b-separate-clusters.png["A detailed view of pattern 1A, which contains the necessary services to support Flex Gateway"] 
 
+[[pattern-1b]]
 === Pattern 1B: Organization Internal API Exposed to an Organization Internal Consumer that Uses a Different VPC or Network
 In this pattern, the API provider is isolated from the API consumer. However, there is a secure communication channel available between the two networks.
 
@@ -43,6 +45,7 @@ The following diagram shows the physical implementation on Kubernetes.
 
 image:ad-uc-1-p-1b-physical.png["The previous networks are now Kubernetes clusters and there are load balancers that separate the APIs from Flex Gateway."] 
 
+[[pattern-2]]
 == Pattern 2: Organization Internal API exposed an Organization External Consumer
 In pattern two, the organization-owned API is isolated from the organization-owned API consumer; for example, in a package delivery tracking API that is accessed from a user interface. The consumer can access the exposed API only via the internet. In this use case, you deploy Flex Gateway as an ingress. 
 
@@ -54,6 +57,7 @@ The following diagram shows the physical implementation of a scenario in which a
 
 image:ad-uc-1-p-2-physical.png["The previous networks are now Kubernetes clusters, there are load balancers separating the APIs from Flex Gateway, and mTLS connections to external networks."]
 
+[[pattern-3]]
 == Pattern 3: Organization External API Exposed to an Organization Internal Consumer
 In pattern three, the API Consumer is in the same network as Flex Gateway. You can use Flex Gateway to monitor, control, and enrich the flows to external services. For example, Flex Gateway can provide rate limiting for the external access traffic, or metrics and analytics tracking for this external service connection.
 
@@ -70,6 +74,7 @@ The following diagram shows the physical implementation of a scenario in which a
 
 image:ad-uc-1-p-3-physical.png["The previous networks are now kubernetes clusters. There are load balancers that separate the APIs from Flex Gateway and mTLS connections to external networks."]
 
+[[pattern-4]]
 == Pattern 4: Organization External API Exposed to an Organization External Consumer
 In pattern four, Flex Gateway acts as an intermediary between two organizations' external entities, for example, when an organization’s WorkDay instance (SaaS service) accesses the organization’s ServiceNow instance (SaaS service). In this pattern, Flex Gateway runs as an ingress and egress that applies secured communication and policy enforcement.
 
