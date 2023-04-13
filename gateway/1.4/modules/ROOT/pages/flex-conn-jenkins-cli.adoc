@@ -63,8 +63,8 @@ Before you can create and deploy an API instance to your Flex Gateway, you must 
 
 . <<define-useful-functions, Define Useful Functions>>.
 . <<define-useful-parameters, Define Useful Parameters>>.
+. <<install-anypoint-cli-4.x, Install Anypoint CLI 4.x>>
 . <<register-and-run, Register and Run>>.
-. <<obtain-an-authorization-token-from-access-management, Obtain an Authorization Token from Access Management>>.
 
 After you implement these Pipeline stages, you can customize your Pipeline by making API Manager CLI requests to manage APIs.
 
@@ -203,50 +203,12 @@ stage('Run flex gateway') {
 }
 ----
 
-
-=== Obtain an Authorization Token from Access Management
-After registering and running your Flex Gateway, you must obtain a valid authorization token from Access Management in order to authenticate subsequent requests.
-
-To login in to Anypoint, add the `Anypoint login` stage to your Jenkinsfile:
-
-[source,Jenkinsfile]
-----
-stage("Anypoint login") {
-    steps {
-        script {
-            def cmd = """curl -s -w "%{http_code}" --location --request POST 'https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token' -o 'login-response' \
-                    --header 'Content-Type: application/json' \
-                    --data-raw '{"grant_type": "client_credentials", "client_id": "${params.CONNECTED_APP_CLIENT_ID}", "client_secret": "${params.CONNECTED_APP_CLIENT_SECRET}"}'
-                    """
-            def status_code = sh(returnStdout: true, script: cmd).trim().toInteger()
-            if (status_code > 399) {
-                error("Anypoint login failed")
-            }
-        }
-    }
-}
-----
-
-The authorization token returned in this step is saved for subsequent requests.
-
 == Create an API Instance
-Having an authorization token from Access Management enables you to create an API instance and deploy it to your Flex Gateway. 
+After installing registering and running your Flex Gateway, you to create an API instance and deploy it to your Flex Gateway. 
 
-You can repeat this step to add multiple API instances.
+You can repeat this step to add multiple API instances. For additional API configuration flags, see xref:4.x@anypoint-cli::api-mgr.adoc#api-mgr-api-manage[].
 
-For example, this stage creates an API instance that listens on port `8082` and `/httpbin` path and proxies to `+https://httpbin.org/+`.
-
-To create an API instance:
-
-. Collect the following information:
-* `<upstream-uri>`: URI upstream of your API
-* `<your-proxy-uri>`: Proxy URI for you API instance
-* `"isCloudHub"`: Cloud Hub status, for example `null` or `true`
-
-. Optionally, collect your `"endpointUri"` or remove the `"endpointUri"` field:
-* `<your-consumer-endpoint>`: Consumer endpoint of your API, for example, `+http://consumer-endpoint.com+`
-
-. After replacing the HTTP addresses, add the `Create API Instance` stage to you Jenkinsfile:
+Add the create API instance stage to your Jenkinsfile:
 
 [source,Jenkinsfile]
 ----
@@ -264,21 +226,22 @@ stage("Create API Instance") {
 }
 ----
 
+NOTE: For example, this stage creates an API instance that listens on port `8082` and `/httpbin` path and proxies to `+https://httpbin.org/443+`.
 
 == Apply a Basic Authentication Policy
 
 After you create an API instance, you can apply Connected Mode policies to the instance:
 
-
 . Collect the following information:
 * Policy GAV
-** `<policy-group-id>`: Policy group ID from Exchange
+** `<policy-group-id>`: Policy group ID from Exchange, for example `68ef9520-24e9-4cf2-b2f5-620025690913``
 ** `<policy-asset-id>`: Policy asset ID from Exchange, for example `http-basic-authentication`
-** `<policy-asset-version>`: Policy asset version from Exchange, for example `1.3.1`
-
+** `<policy-asset-version>`: Policy asset version from Exchange, for example `1.3.2`
 * `"configurationData"`: Policy configuration data
 + 
 The configuration data fields are dependent on the policy. The `"username"` and `"password"` parameters are only an example. To find the configuration data for your policy, see xref:policies-included-directory.adoc[Included Policies Directory].
+
+NOTE: For example, this stage uses the policy GAV and `"configurationData"` associated with the xref:policies-included-basic-auth-simple.adoc[].
 
 . After replacing the sample content, add the `Apply policy` stage to your Jenkins Pipeline:
 
