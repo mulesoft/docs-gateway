@@ -63,7 +63,7 @@ Before you can create and deploy an API instance to your Flex Gateway, you must 
 
 . <<define-useful-functions, Define Useful Functions>>.
 . <<define-useful-parameters, Define Useful Parameters>>.
-. <<install-anypoint-cli-4.x, Install Anypoint CLI 4.x>>
+. <<install-anypoint-cli-4-x, Install Anypoint CLI 4.x>>
 . <<register-and-run, Register and Run>>.
 
 After you implement these Pipeline stages, you can customize your Pipeline by making API Manager CLI requests to manage APIs.
@@ -204,9 +204,9 @@ stage('Run flex gateway') {
 ----
 
 == Create an API Instance
-After installing registering and running your Flex Gateway, you to create an API instance and deploy it to your Flex Gateway. 
+After installing Anypoint CLI 4.x, you can create an API instance and deploy it to your Flex Gateway. 
 
-You can repeat this step to add multiple API instances. For additional API configuration flags, see xref:4.x@anypoint-cli::api-mgr.adoc#api-mgr-api-manage[].
+You can repeat this step to add multiple API instances. For additional API configuration flags, see xref:4.x@anypoint-cli::api-mgr.adoc#api-mgr-api-manage[api-mgr:api:manage command].
 
 Add the create API instance stage to your Jenkinsfile:
 
@@ -241,8 +241,6 @@ After you create an API instance, you can apply Connected Mode policies to the i
 + 
 The configuration data fields are dependent on the policy. The `"username"` and `"password"` parameters are only an example. To find the configuration data for your policy, see xref:policies-included-directory.adoc[Included Policies Directory].
 
-NOTE: For example, this stage uses the policy GAV and `"configurationData"` associated with the xref:policies-included-basic-auth-simple.adoc[].
-
 . After replacing the sample content, add the `Apply policy` stage to your Jenkins Pipeline:
 
 [source,Jenkinsfile]
@@ -263,6 +261,7 @@ stage("Apply Basic Authentication Policy to API Instance") {
 }
 ----
 
+NOTE: For example, this stage uses the policy GAV and `"configurationData"` associated with the xref:policies-included-basic-auth-simple.adoc[].
 
 == Deploy an API Instance
 After you create an API instance, you can deploy the instance.
