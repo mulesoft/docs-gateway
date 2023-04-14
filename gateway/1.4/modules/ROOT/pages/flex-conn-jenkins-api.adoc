@@ -1,15 +1,18 @@
-= Configuring and Automating Flex Gateway with a Jenkins Pipeline
+= Automating Flex Gateway with a Jenkins Pipeline using the API Manager API
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 :page-mode: conn
+:page-aliases: gateway::flex-conn-manage-jenkins.adoc
 
 You can use a Jenkins Pipeline to automate the workflow for Flex Gateway in Connected Mode. With a Jenkins Pipeline, you can register and run a Flex Gateway and use features of the API Manager API, such as creating and deploying API instances.
 
 Automating your Flex Gateway in Connected Mode work flow shares many similarities with the xref:flex-conn-manage-public-api.adoc[Manage Flex Gateway Using the API Manager API] tutorial. You can use the Jenkins Pipeline to automate the calls made to the API Manager API. To add additional features from the  https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API^], use the <<create-an-api-instance, Create an API Instance>> and <<apply-an-api-policy, Apply an API Policy>> Pipeline stages as examples.
 
 This tutorial has different steps with different code blocks. As you work through the steps, add the code blocks to the same Jenkinsfile. 
+
+NOTE: To instead automate your Flex Gateway with the Anypoint CLI, see xref:flex-conn-jenkins-cli.adoc[].
 
 == Before You Begin
 Before you can deploy a Jenkins Pipeline, complete the following tasks:
@@ -71,7 +74,7 @@ After you implement these Pipeline stages, you can customize your Pipeline by ma
 
 To begin, define these useful functions in your Jenkinsfile:
 
-[source,ssh]
+[source,Jenkinsfile]
 ----
 def parseYamlFile(String file) {
    object = readYaml file: file
@@ -107,7 +110,7 @@ To define the parameters:
 
 . After replacing the sample content, add the parameter definitions to your Jenkinsfile to validate whether all parameters are present:
 +
-[source,ssh]
+[source,Jenkinsfile]
 ----
 parameters {
     string(name: 'ENV_ID', defaultValue: '<your-env-id>', description: 'Your environment id')
@@ -123,7 +126,7 @@ parameters {
 
 . Add the `Check parameters` stage to your Jenkinsfile:
 +
-[source,ssh]
+[source,Jenkinsfile]
 ----
 stage('Check parameters') {
     steps {
@@ -142,7 +145,7 @@ If this stage fails, specify the missing parameters and rerun the Pipeline.
 
 Add the register and run stages to your Jenkinsfile:
 
-[source,ssh]
+[source,Jenkinsfile]
 ----
 stage('Register flex gateway') {
     steps {
@@ -186,7 +189,7 @@ After registering and running your Flex Gateway, you must obtain a valid authori
 
 To login in to Anypoint, add the `Anypoint login` stage to your Jenkinsfile:
 
-[source,ssh]
+[source,Jenkinsfile]
 ----
 stage("Anypoint login") {
     steps {
@@ -225,7 +228,7 @@ To create an API instance:
 
 . After replacing the HTTP addresses, add the `Create API Instance` stage to you Jenkinsfile:
 
-[source,ssh]
+[source,Jenkinsfile]
 ----
 stage("Create API Instance") {
     steps {
@@ -279,7 +282,7 @@ The configuration data fields are dependent on the policy. The `"username"` and 
 
 . After replacing the sample content, add the `Apply policy` stage to your Jenkins Pipeline:
 
-[source,ssh]
+[source,Jenkinsfile]
 ----
 stage("Apply policy") {
    steps {
@@ -320,7 +323,7 @@ After you create an API instance, you can deploy the instance.
 
 To deploy the new instance, add the `Deploy API` stage to your Jenkinsfile:
 
-[source,ssh]
+[source,Jenkinsfile]
 ----
 stage("Deploy API") {
     steps {
@@ -356,7 +359,7 @@ stage("Deploy API") {
 After you deploy your API instance, validate whether the instance is deployed by adding the `Validate deployment` stage to your Jenkinsfile:
 
 
-[source,ssh]
+[source,Jenkinsfile]
 ----
 stage("Validate deployment") {
     steps {
@@ -380,11 +383,11 @@ stage("Validate deployment") {
 ----
 
 
-== Stop the Flex Gateway and output the registration file
+== Stop the Flex Gateway and archive the registration file
 
-Use the following code blocks to stop your Flex Gateway and output the registration file:
+Use the following code blocks to stop your Flex Gateway and archive the registration file:
 
-[source,ssh]
+[source,Jenkinsfile]
 ----
 post {
    success {
