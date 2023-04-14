@@ -72,15 +72,15 @@ After you implement these Pipeline stages, you can customize your Pipeline by ma
 
 To begin, define these useful functions in your Jenkinsfile:
 
-[source,ssh]
+[source,Jenkinsfile]
 ----
 def parseYamlFile(String file) {
-   object = readYaml file: file
-   return object
+    object = readYaml file: file
+    return object
 }
- 
+
 def getAPIInstanceID(String file) {
-   return readFile(file: file).split(' ').last().replace('\n', '').trim()
+    return readFile(file: file).split(' ').last().replace('\n', '').trim()
 }
 ----
 
@@ -120,15 +120,26 @@ parameters {
 }
 ----
 
-. Add the `Check parameters` stage to your Jenkinsfile:
+. Add the `Check brach` and `Check parameters` stage to your Jenkinsfile:
 +
 [source,Jenkinsfile]
 ----
+stage('Check branch') {
+    steps {
+        script {
+            echo env.BRANCH
+            if (!env.BRANCH) {
+                echo "no branch"
+            }
+        }
+    }
+}
+
 stage('Check parameters') {
     steps {
         script {
-            if (!params.ENV_ID || !params.ORG_ID || !params.FLEX_VERSION || !params.CONNECTED_APP_CLIENT_ID || !params.CONNECTED_APP_CLIENT_SECRET || !params.EXCHANGE_ASSET_ID || !params.EXCHANGE_ASSET_VERSION || !params.GATEWAY_NAME)  {
-            error("Not all parameters where specified")
+            if (!params.ENV_ID || !params.ORG_ID || !params.GATEWAY_NAME || !params.FLEX_VERSION || !params.CONNECTED_APP_CLIENT_ID || !params.CONNECTED_APP_CLIENT_SECRET || !params.EXCHANGE_ASSET_ID || !params.EXCHANGE_ASSET_VERSION)  {
+                error("Not all parameters where specified")
             }
         }
     }
@@ -140,24 +151,20 @@ If this stage fails, specify the missing parameters and rerun the Pipeline.
 
 == Install Anypoint CLI 4.x
 
-Add the install Anypoint CLI 4.x stage to your Jenkinsfile to download Anypoint CLI 4.x to your Jenkins node:
+Add the install Anypoint CLI 4.x stage to your Jenkinsfile to install Anypoint CLI 4.x to your Docker container:
 
 [source,Jenkinsfile]
 ----
 stage('Install anypoint-cli-v4') {
-    steps {
-        script {
-            sh """
-                sudo apt update -y
-                sudo apt install npm -y
-                sudo npm cache clean -f
-                sudo npm install -g n
-                sudo n 16.0.0
-                sudo npm install -g anypoint-cli-v4
-                sudo anypoint-cli-v4 plugins:install anypoint-cli-api-mgr-plugin
-            """
-        }
-    }
+   steps {
+       script {
+           sh """
+              docker run --name container-anypoint-cli-v4 -d node:16 \
+              sh -c " npm install -g anypoint-cli-v4 ; anypoint-cli-v4 plugins:install anypoint-cli-api-mgr-plugin; \
+              while :; do sleep 1; done"
+           """
+       }
+   }
 }
 ----
 
@@ -168,35 +175,37 @@ Add the register and run stages to your Jenkinsfile:
 [source,Jenkinsfile]
 ----
 stage('Register flex gateway') {
-    steps {
-        script {
-            sh """
-                docker run --entrypoint flexctl \
-                    -v "\$(pwd)":/registration -u 0 mulesoft/flex-gateway:${params.FLEX_VERSION} \
-                    register \
-                    --client-id=${params.CONNECTED_APP_CLIENT_ID} \
-                    --client-secret=${params.CONNECTED_APP_CLIENT_SECRET} \
-                    --environment=${params.ENV_ID} \
-                    --connected=true \
-                    --organization=${params.ORG_ID} \
-                    --output-directory=/registration \
-                    ${params.GATEWAY_NAME}
-                """
-                if (!fileExists('registration.yaml')) {
-                    error("Registration failed")
-                }
-        }
-    }
+   steps {
+       script {
+           sh """
+               docker run --entrypoint flexctl \
+                -v ${pwd()}:/registration -u 0 mulesoft/flex-gateway:${params.FLEX_VERSION} \
+                register \
+                --client-id=${params.CONNECTED_APP_CLIENT_ID} \
+                --client-secret=${params.CONNECTED_APP_CLIENT_SECRET} \
+                --environment=${params.ENV_ID} \
+                --connected=true \
+                --organization=${params.ORG_ID} \
+                --output-directory=/registration \
+                ${params.GATEWAY_NAME}
+           """
+
+           sh """
+               grep "name: registration" registration.yaml
+           """
+       }
+   }
 }
+
 
 stage('Run flex gateway') {
     steps {
         script {
             sh """
-                docker run -d \
-                -v "\$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
+                docker run --name flex-gw -d \
+                -v ${pwd()}:/usr/local/share/mulesoft/flex-gateway/conf.d \
                 -p 8082:8082 \
-                mulesoft/flex-gateway:${params.FLEX_VERSION} > containerId
+                mulesoft/flex-gateway:${params.FLEX_VERSION}
             """
         }
     }
@@ -216,7 +225,7 @@ stage("Create API Instance") {
     steps {
         script {
             sh """
-                sudo anypoint-cli-v4 api-mgr:api:manage ${params.EXCHANGE_ASSET_ID} ${params.EXCHANGE_ASSET_VERSION} \
+                docker exec container-anypoint-cli-v4 anypoint-cli-v4 api-mgr:api:manage ${params.EXCHANGE_ASSET_ID} ${params.EXCHANGE_ASSET_VERSION} \
                 --client_id=${params.CONNECTED_APP_CLIENT_ID} --client_secret=${params.CONNECTED_APP_CLIENT_SECRET} \
                 --isFlex --withProxy --deploymentType=hybrid --scheme=http --port=8082 \
                 --uri=https://httpbin.org:443 --path=/httpbin > api-response
@@ -230,7 +239,11 @@ NOTE: For example, this stage creates an API instance that listens on port `8082
 
 == Apply a Basic Authentication Policy
 
-After you create an API instance, you can apply Connected Mode policies to the instance:
+After you create an API instance, you can apply policies to the API instance.
+
+This stage applies the xref:policies-included-basic-auth-simple.adoc[] as an example, but you can apply any Connected Mode policy. To find additional policies, see xref:policies-included-directory.adoc[Included Policies Directory].
+
+To apply a policy:
 
 . Collect the following information:
 * Policy GAV
@@ -239,9 +252,9 @@ After you create an API instance, you can apply Connected Mode policies to the i
 ** `<policy-asset-version>`: Policy asset version from Exchange, for example `1.3.2`
 * `"configurationData"`: Policy configuration data
 + 
-The configuration data fields are dependent on the policy. The `"username"` and `"password"` parameters are only examples. To find the configuration data for your policy, see xref:policies-included-directory.adoc[Included Policies Directory].
+The configuration data fields are dependent on the policy. The Basic Authentication: Simple policy uses parameters `"username"` and `"password"`. 
 
-. After replacing the sample content, add the apply Basic Authentication policy stage to your Jenkins Pipeline:
+. After replacing the sample content, add the apply basic authentication policy stage to your Jenkins Pipeline:
 
 [source,Jenkinsfile]
 ----
@@ -249,9 +262,8 @@ stage("Apply Basic Authentication Policy to API Instance") {
     steps {
         script {
             def apiInstanceId = getAPIInstanceID('api-response')
-            
             sh """
-                sudo anypoint-cli-v4 api-mgr:policy:apply ${apiInstanceId} 'http-basic-authentication' \
+                docker exec container-anypoint-cli-v4 anypoint-cli-v4 api-mgr:policy:apply ${apiInstanceId} 'http-basic-authentication' \
                 --policyVersion='1.3.2' --groupId '68ef9520-24e9-4cf2-b2f5-620025690913' \
                 --client_id=${params.CONNECTED_APP_CLIENT_ID} --client_secret=${params.CONNECTED_APP_CLIENT_SECRET} \
                 -c '{"username": "user", "password": "test"}'
@@ -270,14 +282,13 @@ To deploy the new instance, add the `Deploy API` stage to your Jenkinsfile:
 
 [source,Jenkinsfile]
 ----
-stage("Deploy API") {
+stage("Deploy the API") {
     steps {
         script {
             def registration_file = parseYamlFile('registration.yaml')
             def apiInstanceId = getAPIInstanceID('api-response')
-            
             sh """
-                sudo anypoint-cli-v4 api-mgr:api:deploy ${apiInstanceId} \
+                docker exec container-anypoint-cli-v4 anypoint-cli-v4 api-mgr:api:deploy ${apiInstanceId} \
                 --client_id=${params.CONNECTED_APP_CLIENT_ID} --client_secret=${params.CONNECTED_APP_CLIENT_SECRET} \
                 --target=${registration_file.spec.platformConnection.agentId[0]} --gatewayVersion=${params.FLEX_VERSION}
             """
@@ -296,25 +307,23 @@ stage("Validate Deployment") {
     steps {
         script {
             sleep(time:10, unit:"SECONDS")
-
             def unauthorized_status_code = sh(script: "curl -s -w \"%{http_code}\" -o /dev/null http://localhost:8082/httpbin/headers -v", returnStdout: true).trim().toInteger()
             if (unauthorized_status_code != 401) {
                 error("401 status code expected but the status code obtained is ${unauthorized_status_code}")
             }
-            
             def authorized_status_code = sh(script: "curl -s -w \"%{http_code}\" -o /dev/null http://localhost:8082/httpbin/headers -v -u user:test", returnStdout: true).trim().toInteger()
             if (authorized_status_code != 200) {
                 error("200 status code expected but the status code obtained is ${unauthorized_status_code}")
             }
         }
     }
-} 
+}
 ----
 
 
 == Stop the Flex Gateway and Archive the Registration File
 
-Use the following code blocks to stop your Flex Gateway and archive the registration file:
+Use the following code blocks to archive the registration file and remove the Docker container running Flex Gateway:
 
 [source,Jenkinsfile]
 ----
@@ -327,9 +336,7 @@ post {
     }
     always {
         script {
-            if (fileExists('container-id')) {
-                sh(script: "docker rm -f ${readFile(file: 'container-id')}")
-            }
+            sh(script: "docker rm -f container-anypoint-cli-v4 flex-gw")
         }
     }
 }
