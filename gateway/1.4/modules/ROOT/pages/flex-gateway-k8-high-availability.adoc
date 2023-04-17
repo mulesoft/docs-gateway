@@ -7,7 +7,7 @@ endif::[]
 For high availability (HA) environments, horizontal scaling distributes load across multiple Flex Gateway instances. By default, the Helm chart for Flex Gateway is configured with one replica. To release more Flex Gateway replicas in a namespace, use `--set replicaCount` with `helm upgrade`. 
 
 //how to view helm chart defaults:
-include::partial$reference-k8.adoc[tags=flex-k8-helm-chart-info]
+include::partial$reference-k8-general.adoc[tags=flex-k8-helm-chart-info]
 
 == Before You Begin
 
@@ -21,16 +21,14 @@ For gateway registration and deployment processes, see xref:flex-gateway-set-up.
 
 == Update the Replica Count
 
-The update steps to follow depend on whether a Helm chart is installed. 
+Configure and verify the number of replicas that you require. The update steps to follow depend on whether a Helm chart is installed. 
 
-. Update your Flex Gateway chart to add replicas:
-
-* If a Helm chart for your namespace is installed, run the following command:
+. If a Helm chart for your namespace is installed, run the following command:
 +
 .Syntax:
 ----
 help -n <namespace> upgrade \
-<release-name> <helm-repo-name>/<helm-chart-name> \
+<release-name> <helm-repository-name>/<helm-chart-name> \
 --reuse-values \
 --set replicaCount=<number of replicas>
 ----
@@ -56,13 +54,13 @@ REVISION: 27
 TEST SUITE: None
 ----
 
-* If the Helm chart is not installed, run the following command:
+. If the Helm chart is not installed, run the following command:
 +
 .Syntax:
 ----
 helm -n <namespace> \
 upgrade -i --create-namespace \
-<release-name> <helm-repo-name>/<helm-chart-name> \
+<release-name> <helm-repository-name>/<helm-chart-name> \
 --set-file registration.content=<registration file> \
 --set replicaCount=<number of replicas>
 ----
@@ -77,7 +75,7 @@ ingress flex-gateway/flex-gateway \
 --set replicaCount=2
 ----
 +
-When successful, the command returns output similar to this: 
+When successful, the command prints output similar to this example: 
 +
 ----
 Release "ingress" does not exist. Installing it now.
@@ -101,10 +99,9 @@ kubectl get rs -n <namespace>
 kubectl get rs -n gateway
 ----
 +
-When successful, the command returns output similar to this example: 
+When successful, the command prints output similar to this example: 
 +
 ----
 NAME                  DESIRED   CURRENT   READY   AGE
 ingress-5b7474b8f6    2         2         2       70s
 ----
-
