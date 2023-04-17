@@ -1,59 +1,110 @@
-= Configure High Availability (HA) in Flex Gateway
+= Add Flex Gateway Replicas through a Helm Chart
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
+For high availability (HA) environments, horizontal scaling distributes load across multiple Flex Gateway instances. By default, the Helm chart for Flex Gateway is configured with one replica. To release more Flex Gateway replicas in a namespace, use `--set replicaCount` with `helm upgrade`. 
 
-//Original Google doc
-// https://docs.google.com/document/d/12Qdnfwft8VInBrM8X5dhK-_vxyhenXCJPoqQ3xW8Qek/edit#heading=h.wzan3hsp661g
+//how to view helm chart defaults:
+include::partial$reference-k8.adoc[tags=flex-k8-helm-chart-info]
 
-//copy of Google doc text from Israel (minus graphics)
+== Before You Begin
 
-Horizontal scaling:
-By default Flex helm chart is configured with 1 replica. You can change this configuration updating template to deploy more replicas.
-For this you have execute next command:
+Ensure that the following prerequisites are in place:
 
-If you have already installed the chart
+* A Flex Gateway deployment or a registered Flex Gateway instance (gateway)
++
+For gateway registration and deployment processes, see xref:flex-gateway-set-up.adoc[] or xref:flex-gateway-k8-getting-started.adoc[]. 
 
+* A Kubernetes cluster for your Flex Gateway deployment
+
+== Update the Replica Count
+
+The update steps to follow depend on whether a Helm chart is installed. 
+
+. Update your Flex Gateway chart to add replicas:
+
+* If a Helm chart for your namespace is installed, run the following command:
++
+.Syntax:
 ----
-help -n <namespace> upgrade <chart released name>/<chart name> -f <file> \
+help -n <namespace> upgrade \
+<release-name> <helm-repo-name>/<helm-chart-name> \
+--reuse-values \
 --set replicaCount=<number of replicas>
 ----
-
++
+.Example:
+[source,helm]
 ----
-helm -n gateway upgrade ingress flex-gateway/flex-gateway --set-file registration.content=registration.yaml \
+helm -n gateway upgrade \
+ingress flex-gateway/flex-gateway \
+--reuse-values \
 --set replicaCount=2
 ----
-
-//Google doc contained image showing Helm upgrade revision ("Happy Helming!" etc.)
-
-If you haven't installed chart uses
-
++
+When successful, the command returns output similar to this: 
++
 ----
-helm -n <namespace> upgrade -i --create-namespace \
-ingress <chart released name>/<chart name> \
---set-file registration.content=<registration file> --set replicaCount=<number of replicas>
-----
-
-----
-helm -n gateway upgrade -i --create-namespace ingress \
-flex-gateway/flex-gateway \
---set-file registration.content=registration.yaml --set replicaCount=2
+Release "ingress" has been upgraded. Happy Helming!
+NAME: ingress
+LAST DEPLOYED: Mon Apr 17 15:00:09 2023
+NAMESPACE: gateway
+STATUS: deployed
+REVISION: 27
+TEST SUITE: None
 ----
 
-//Google doc contained image showing Helm upgrade revision ("Happy Helming!" etc.)
-// image showed case was where ingress2 did not exist and was getting installed
-// helm -n gateway2 upgrade -i --create-namespace ingress2 --set-file registration.content=registration.yaml --set replicaCount=2
+* If the Helm chart is not installed, run the following command:
++
+.Syntax:
+----
+helm -n <namespace> \
+upgrade -i --create-namespace \
+<release-name> <helm-repo-name>/<helm-chart-name> \
+--set-file registration.content=<registration file> \
+--set replicaCount=<number of replicas>
+----
++
+.Example:
+[source,helm]
+----
+helm -n gateway \
+upgrade -i --create-namespace \
+ingress flex-gateway/flex-gateway \
+--set-file registration.content=registration.yaml \
+--set replicaCount=2
+----
++
+When successful, the command returns output similar to this: 
++
+----
+Release "ingress" does not exist. Installing it now.
+NAME: ingress2
+LAST DEPLOYED: Mon Apr 17 15:32:50 2023
+NAMESPACE: gateway
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+----
 
-To verify replicas created uses
-
+. Verify creation of the replicas by running the following command:
++
+.Syntax:
 ----
 kubectl get rs -n <namespace>
 ----
-
-//Google doc contained image showing Helm upgrade revision ("Happy Helming!" etc.)
-// example is
-// kubectl get rs -n gateway2
-// NAME (ingress2) DESIRED (2), CURRENT (2), READY (2), AGE (4m53s)
++
+.Example:
+----
+kubectl get rs -n gateway
+----
++
+When successful, the command returns output similar to this example: 
++
+----
+NAME                  DESIRED   CURRENT   READY   AGE
+ingress-5b7474b8f6    2         2         2       70s
+----
 
