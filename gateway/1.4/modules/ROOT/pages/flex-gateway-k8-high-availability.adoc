@@ -1,0 +1,59 @@
+= Configure High Availability (HA) in Flex Gateway
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+
+//Original Google doc
+// https://docs.google.com/document/d/12Qdnfwft8VInBrM8X5dhK-_vxyhenXCJPoqQ3xW8Qek/edit#heading=h.wzan3hsp661g
+
+//copy of Google doc text from Israel (minus graphics)
+
+Horizontal scaling:
+By default Flex helm chart is configured with 1 replica. You can change this configuration updating template to deploy more replicas.
+For this you have execute next command:
+
+If you have already installed the chart
+
+----
+help -n <namespace> upgrade <chart released name>/<chart name> -f <file> \
+--set replicaCount=<number of replicas>
+----
+
+----
+helm -n gateway upgrade ingress flex-gateway/flex-gateway --set-file registration.content=registration.yaml \
+--set replicaCount=2
+----
+
+//Google doc contained image showing Helm upgrade revision ("Happy Helming!" etc.)
+
+If you haven't installed chart uses
+
+----
+helm -n <namespace> upgrade -i --create-namespace \
+ingress <chart released name>/<chart name> \
+--set-file registration.content=<registration file> --set replicaCount=<number of replicas>
+----
+
+----
+helm -n gateway upgrade -i --create-namespace ingress \
+flex-gateway/flex-gateway \
+--set-file registration.content=registration.yaml --set replicaCount=2
+----
+
+//Google doc contained image showing Helm upgrade revision ("Happy Helming!" etc.)
+// image showed case was where ingress2 did not exist and was getting installed
+// helm -n gateway2 upgrade -i --create-namespace ingress2 --set-file registration.content=registration.yaml --set replicaCount=2
+
+To verify replicas created uses
+
+----
+kubectl get rs -n <namespace>
+----
+
+//Google doc contained image showing Helm upgrade revision ("Happy Helming!" etc.)
+// example is
+// kubectl get rs -n gateway2
+// NAME (ingress2) DESIRED (2), CURRENT (2), READY (2), AGE (4m53s)
+
