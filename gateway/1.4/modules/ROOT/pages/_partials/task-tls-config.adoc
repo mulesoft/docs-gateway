@@ -18,10 +18,10 @@ Flex Gateway supports the following:
 //end::intro3[]
 
 //tag::intro4[]
-Similar to policies, in Local Mode, you apply TLS context via an API instance YAML resource using the xref:gateway::flex-local-configuration-reference-guide.adoc#api-instance[Declarative Configuration Reference Guide]. For this tutorial you do not need to refer to the reference guide, but you must refer to the TLS inbound and TLS outbound policies to enable mTLS, define TLS direction, and select the API to which to apply TLS:
+Similar to policies, in Local Mode, you apply TLS context via an API instance YAML resource using the xref:flex-local-configuration-reference-guide.adoc#api-instance[Declarative Configuration Reference Guide]. For this tutorial you do not need to refer to the reference guide, but you must refer to the TLS inbound and TLS outbound policies to enable mTLS, define TLS direction, and select the API to which to apply TLS:
 
-* xref:policies::policies-included-tls.adoc[Transport Layer Security Policy - Inbound]
-* xref:policies::policies-included-tls-outbound.adoc[Transport Layer Security Policy - Outbound]
+* xref:policies-included-tls.adoc[Transport Layer Security Policy - Inbound]
+* xref:policies-included-tls-outbound.adoc[Transport Layer Security Policy - Outbound]
 
 //end::intro4[]
 
@@ -39,7 +39,7 @@ Unlike inbound TLS, it is not suggested to apply the same outbound TLS context t
 
 //tag::intro5[]
 You can configure the TLS context for a Flex Gateway running in a Docker container, as a Linux Service,
-or as a Kubernetes Ingress controller.
+or in a Kubernetes cluster.
 
 //end::intro5[]
 
@@ -47,13 +47,13 @@ or as a Kubernetes Ingress controller.
 
 [cols="1a,1a,1a"]
 |===
-|image:install-linux-logo.png[20%,20%,xref="flex-{page-mode}-tls-config.adoc#configure-tls-context-for-flex-gateway-as-a-linux-service"]
-|image:install-docker-logo.png[25%,25%,xref="flex-{page-mode}-tls-config.adoc#configure-tls-context-for-flex-gateway-in-a-docker-container"]
-|image:install-kubernetes-logo.png[20%,20%,xref="flex-{page-mode}-tls-config.adoc#configure-tls-context-for-flex-gateway-as-a-kubernetes-ingress-controller"]
+|image:install-linux-logo.png[20%,20%,xref="flex-{page-mode}-tls-config.adoc#linux"]
+|image:install-docker-logo.png[25%,25%,xref="flex-{page-mode}-tls-config.adoc#docker"]
+|image:install-kubernetes-logo.png[20%,20%,xref="flex-{page-mode}-tls-config.adoc#kubernetes"]
 
-|xref:flex-{page-mode}-tls-config.adoc#configure-tls-context-for-flex-gateway-as-a-linux-service[Configure TLS Context for Flex Gateway as a Linux Service]
-|xref:flex-{page-mode}-tls-config.adoc#configure-tls-context-for-flex-gateway-in-a-docker-container[Configure TLS Context for Flex Gateway in a Docker Container]
-|xref:flex-{page-mode}-tls-config.adoc#configure-tls-context-for-flex-gateway-as-a-kubernetes-ingress-controller[Configure TLS Context for Flex Gateway as a Kubernetes Ingress Controller]
+|xref:flex-{page-mode}-tls-config.adoc#linux[Configure TLS Context for Flex Gateway as a Linux Service]
+|xref:flex-{page-mode}-tls-config.adoc#docker[Configure TLS Context for Flex Gateway in a Docker Container]
+|xref:flex-{page-mode}-tls-config.adoc#kubernetes[Configure TLS Context for Flex Gateway in a Kubernetes Cluster]
 |===
 
 //end::icon-table[]
@@ -69,6 +69,7 @@ Before configuring the TLS context for a Flex Gateway, you must complete the fol
 //end::byb[]
 //tag::linux[]
 
+[[linux]]
 == Configure TLS Context for Flex Gateway as a Linux Service
 
 . Create a YAML configuration file in the Flex Gateway configuration directory:
@@ -87,12 +88,13 @@ sudo vi /usr/local/share/mulesoft/flex-gateway/conf.d/tls-config.yaml
 +
 The following configuration file only applies inbound TLS to one API instance. For all configuration file options, such as mTLS and outbound TLS, see:
 +
-* xref:policies::policies-included-tls.adoc[Transport Layer Security Policy - Inbound]
-* xref:policies::policies-included-tls-outbound.adoc[Transport Layer Security Policy - Outbound]
+* xref:policies-included-tls.adoc[Transport Layer Security Policy - Inbound]
+* xref:policies-included-tls-outbound.adoc[Transport Layer Security Policy - Outbound]
 +
 //end::linux[]
 //tag::docker-intro[]
 
+[[docker]]
 == Configure TLS Context for Flex Gateway in a Docker Container
 
 NOTE: If you have already added volume for a folder with your
@@ -108,21 +110,22 @@ Flex Gateway configuration files, go to the last step.
 +
 The following configuration file only applies inbound TLS to one API instance. For all configuration file options, such as mTLS and outbound TLS, see:
 +
-* xref:policies::policies-included-tls.adoc[Transport Layer Security Policy - Inbound]
-* xref:policies::policies-included-tls-outbound.adoc[Transport Layer Security Policy - Outbound]
+* xref:policies-included-tls.adoc[Transport Layer Security Policy - Inbound]
+* xref:policies-included-tls-outbound.adoc[Transport Layer Security Policy - Outbound]
 //end::docker-config-file-step[]
 
 //tag::k8s-intro[]
 
-== Configure TLS Context for Flex Gateway as a Kubernetes Ingress Controller
+[[kubernetes]]
+== Configure TLS Context for Flex Gateway in a Kubernetes Cluster
 
 To configure the TLS context for Flex Gateway, create a new resource using
 a YAML configuration file with your TLS context details.
 
 The following configuration file only applies inbound TLS to one API instance. For all configuration file options, such as mTLS and outbound TLS, see:
 
-* xref:policies::policies-included-tls.adoc[Transport Layer Security Policy - Inbound]
-* xref:policies::policies-included-tls-outbound.adoc[Transport Layer Security Policy - Outbound]
+* xref:policies-included-tls.adoc[Transport Layer Security Policy - Inbound]
+* xref:policies-included-tls-outbound.adoc[Transport Layer Security Policy - Outbound]
 
 //end::k8s-intro[]
 
@@ -384,7 +387,7 @@ curl: (35) error:1408F10B:SSL routines:ssl3_get_record:wrong version number
 //end::verify-config[]
 
 //tag::config-ref[]
-See xref:policies::policies-included-tls.adoc[] for more information about inbound TLS context configuration options. See xref:policies::policies-included-tls-outbound.adoc[] for more information about outbound TLS context configuration options.
+See xref:policies-included-tls.adoc[] for more information about inbound TLS context configuration options. See xref:policies-included-tls-outbound.adoc[] for more information about outbound TLS context configuration options.
 
 [NOTE]
 ====

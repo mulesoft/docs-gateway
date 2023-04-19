@@ -37,7 +37,9 @@ The gateway runtime is a customer-hosted distributed entity installed in any clo
 FluentBit implementation enables log output to local files, or to aggregators such as New Relic, Sumo Logic, and Splunk.
 
 == Replicas
-A runtime unit is called a `replica`. While a single runtime can support multiple backend APIs for high availability, MuleSoft recommends installing Flex Gateway as a cluster, which is a Kubernetes Ingress controller with multiple replicas running in parallel. Using clusters increases gateway performance and robustness, and is recommended for high-performance applications that must scale.
+A runtime unit is called a `replica`. While a single runtime can support multiple backend APIs for high availability, it is best to deploy Flex Gateway as a cluster with multiple replicas running in parallel. Using clusters increases gateway performance and robustness, and is recommended for high-performance applications that must scale.
+
+A single Flex Gateway can support multiple backend APIs. To support more backend APIs, you can deploy multiple replicas or additional Flex Gateways. Increase replica CPU and memory for higher throughput and increased performance.
 
 You can configure an optional external REDIS storage for features such as distributed rate limiting and distributed caching. Gateway replicas use the REDIS storage as a scratchpad to coordinate rate-limiting across multiple replicas, so customer SLAs are adhered to.
 
@@ -88,6 +90,8 @@ The following table summarizes the differences between Connected Mode and Local 
 
 |===
 
+See also, xref:flex-gateway-k8-overview.adoc[].
+
 == Installation Options
 
 You can install Flex Gateway in a variety of ways:
@@ -98,8 +102,9 @@ You can install Flex Gateway in a variety of ways:
 
 * A sidecar to a backend application in a Docker container, thereby protecting a single backend application
 
-* An Ingress controller in Kubernetes, for high-availability, high-performance use cases
+* A Kubernetes `Deployment` for high-availability, high-performance use cases
 
+//TODO: "ingress controller" ok?
 Use a standalone gateway when protecting a few APIs and the number of transactions is low, with a minimal impetus on high-availability or robustness. Otherwise, use an Ingress controller in Kubernetes.
 
 == Shared Responsibility
@@ -111,7 +116,7 @@ The successful operation of Flex Gateway is a responsibility shared between you 
 MuleSoft is responsible for:
 
 * Providing and supporting Flex Gateway (including the agent, Envoy package, and FluentBit package)
-* Providing and supporting a base Helm chart for the installation of Flex Gateway on a Kubernetes cluster
+* Providing and supporting a base Helm chart for the installation of Flex Gateway in a Kubernetes cluster
 * Providing and supporting an online Docker image registry
 * Providing and supporting an online package repository for installation on Linux
 
@@ -125,9 +130,9 @@ When running on any target, you are responsible for:
 When running in Kubernetes, you are responsible for:
 
 * Adapting the base Helm chart for your specific needs
-* Managing the Kubernetes cluster, including:
-** Ingress controller and external load balancing
-** Customizations to Ingress resources
+* Managing the Kubernetes `Deployment`, including:
+** External load balancing
+** Customizations to `Ingress` resources
 ** Log forwarding
 ** Monitoring
 ** Network ports, NAT gateways, and proxies
@@ -141,5 +146,4 @@ See xref:general::usage-reports.adoc[Viewing Usage Reports] for information abou
 
 == Next Steps
 
-* xref:gateway::flex-gateway-getting-started.adoc[]
-
+* xref:flex-gateway-getting-started.adoc[]
