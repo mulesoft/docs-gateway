@@ -152,7 +152,7 @@ After replacing the sample content, register your Flex Gateway by executing the 
 // end::reg-command-heading[]
 // tag::docker-create-directory-note[]
 
-IMPORTANT: Create a new directory and then run the registration command in this new directory. The command creates registration files in this location.
+IMPORTANT: Create a new directory called `flex-registration` (or similar) and then run the registration command in this new directory. The command creates registration files in this location.
 
 // end::docker-create-directory-note[]
 // tag::reg-command-1[]
@@ -229,14 +229,14 @@ In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find 
 
 === Start Command
 
-Before executing the start command below, update the absolute path to the directory where your Flex Gateway registration files reside.
+Run the following start command in the same directory where you ran the registration command:
 
 [source,ssh,subs=attributes+]
 ----
 docker run --rm \
--p 8080:8080 \
--v <absolute-path-to-directory-with-gateway-registration-files>/:/usr/local/share/mulesoft/flex-gateway/conf.d \
-mulesoft/flex-gateway
+  -v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
+  -p 8080:8080 \
+  mulesoft/flex-gateway
 ----
 NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
 // end::start-command[]
@@ -244,7 +244,7 @@ NOTE: Specify an optional name you want to assign to your Flex Replica by includ
 
 === Start Command
 
-Before executing the start command below, update the absolute path to the directory where your Flex Gateway configuration and registration files reside.
+Run the following start command in the same directory where you ran the registration command:
 
 // end::start-command-local-intro[]
 // tag::start-command-local[]
@@ -252,9 +252,9 @@ Before executing the start command below, update the absolute path to the direct
 [source,ssh,subs=attributes+]
 ----
 docker run --rm \
--v <absolute-path-to-directory-with-gateway-files>/:/usr/local/share/mulesoft/flex-gateway/conf.d \
--p 8080:8080 \
-mulesoft/flex-gateway
+  -v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
+  -p 8080:8080 \
+  mulesoft/flex-gateway
 ----
 NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
 
