@@ -256,3 +256,62 @@ spec:
 ----
 
 //end::splunk-configuration-example[]
+
+//tag::log-output-examples[]
+
+== Logging Event Examples
+The following log output examples demonstrate possible outputs that may occur for the following events:
+
+* <<graceful-shutdowns, Graceful shutdowns>>
+* <<service-disconnections, Service disconnections>>
+* <<envoy-crash, Envoy crash>>
+
+=== Graceful Shutdowns
+
+----
+[flex-gateway-agent][info] SignalHandler: Signal terminated received
+[flex-gateway-agent][info] FilesystemWatcher(/usr/local/share/mulesoft/flex-gateway/conf.d): Stopping with context done
+[flex-gateway-agent][info] XdsService: Stopping with context done
+[flex-gateway-agent][error] flex-gateway-envoy: Stopped with error context canceled
+[flex-gateway-agent][info] FilesystemWatcher(/etc/mulesoft/flex-gateway/conf.d): Stopping with context done
+[flex-gateway-agent][error] flex-gateway-fluent: Stopped with error context canceled
+[flex-gateway-agent][error] flex-gateway-fluent: Stopped with error context canceled
+[flex-gateway-agent][info] Server dropped connection
+[flex-gateway-agent][info] Agent communication closed
+----
+
+
+
+=== Service Disconnections
+
+----
+[flex-gateway-agent][error] WebSocket receiver got error: read tcp 172.17.0.2:60780->100.64.1.37:443: i/o timeout
+[flex-gateway-agent][info] Server dropped connection
+[flex-gateway-agent][warn] Dropped connection due to error read tcp 172.17.0.2:60780->100.64.1.37:443: i/o timeout
+[flex-gateway-agent][info] Reconnecting after connection was dropped
+[flex-gateway-agent][error] Error connecting to Websocket Server: dial tcp: lookup arm-mcm2-service.kstg.msap.io on 192.168.65.7:53: dial udp 192.168.65.7:53: connect: network is unreachable
+----
+
+=== Envoy Crash
+
+----
+[flex-gateway-envoy][critical] Caught Segmentation fault, suspect faulting address 0xffff87e8fb89485b
+[flex-gateway-envoy][critical] Backtrace (use tools/stack_decode.py to get line numbers):
+[flex-gateway-envoy][critical] Envoy version: 36cbae1aeedd8c3b4eb88cd28268d21fe0905ce5/1.23.0/Clean/RELEASE/BoringSSL
+[flex-gateway-envoy][critical] #0: __restore_rt [0x7ff79db2f140]
+[flex-gateway-envoy][critical] #1: [0x557dcfad249b]
+[flex-gateway-envoy][critical] #2: [0x557dcdf35237]
+[flex-gateway-envoy][critical] #3: [0x557dce16d49f]
+[flex-gateway-envoy][critical] #4: [0x557dce1a8ff5]
+[flex-gateway-envoy][critical] #5: [0x557dce1a8e47]
+[flex-gateway-envoy][critical] #6: ...
+[flex-gateway-agent][error] flex-gateway-envoy: Stopped with error flex-gateway-envoy: command error: signal: segmentation fault
+[flex-gateway-agent][error] flex-gateway-fluent: Stopped with error context canceled
+[flex-gateway-agent][error] flex-gateway-fluent: Stopped with error context canceled
+[flex-gateway-agent][info] FilesystemWatcher(/etc/mulesoft/flex-gateway/conf.d): Stopping with context done
+[flex-gateway-agent][info] FilesystemWatcher(/usr/local/share/mulesoft/flex-gateway/conf.d): Stopping with context done
+[flex-gateway-agent][info] XdsService: Stopping with context done
+[flex-gateway-agent][info] Server dropped connection
+[flex-gateway-agent][info] Agent communication closed
+----
+//end::log-output-examples[]
