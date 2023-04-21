@@ -1,6 +1,6 @@
 //tag::intro1[]
 
-Flex Gateway offers the following CLI command to test the health of a Flex Gateway:
+Flex Gateway includes the following CLI command to test gateway health. You can run this command manually on any Flex Gateway:
 
 [source,ssh]
 ----
@@ -12,18 +12,19 @@ This command returns either an exit code of `0` for a healthy Flex Gateway or `1
 //end::intro1[]
 
 //tag::intro2[]
-By using the liveness check command, you can either configure a Kubernetes liveness probe or a Docker health check command to restart a failed Flex Gateway.
+You can also configure this command to run automatically. By default, Flex Gateways deployed on Kubernetes have a liveness probe configured. The liveness probe periodically runs the liveness check command and automatically restarts the Flex Gateway pod after a specified number of failed liveness checks. 
 
-For Flex Gateways running on Linux, you can still run the liveness check command. However, there is not an easy to automate the Linux machine to restart when the command returns an unhealthy status.
+Flex Gateways deployed on Docker or Linux, Flex Gateway does not offer a default liveness probe. However, you can still use the the liveness check command. For both deployments, you can use liveness check in scripts that check liveness and restart containers. 
+
+An example of how you can use this command with Docker is by configuring `HEALTHCHECK` in your `docker run` command. For more information about `HEALTHCHECK`, see https://docs.docker.com/engine/reference/run/#healthcheck[Docker run HEALTHCHECK].
 
 //tag::intro2[]
 
 //tag::k8s-liveness-probe[]
 == Configure a Kubernetes Liveness Probe
+By default, Flex Gateways running on Kubernetes have a liveness probe configured in the Helm chart. The liveness probe automatically runs the liveness check command at a specified interval and restarts unhealthy pods after a specified number of unhealthy tests. 
 
-For Flex Gateways running on Kubernetes, you can configure a Kubernetes liveness probe to monitor and restart a Flex Gateway pod when unhealthy. To learn more about Kubernetes probes, see https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/[Configure Liveness, Readiness and Startup Probes^].
-
-To enable a liveness probe, update you Helm chart with the following configuration:
+The liveness probe is configured by default with the following values:
 
 [source,helm]
 ----
@@ -43,57 +44,22 @@ livenessProbe:
 |===
 | Parameter | Description
 
-| `exec.command` | The command to execute to test liveness
+| `exec.command` | The liveness check command
 | `initialDelaySeconds` | The time in seconds to wait after startup before executing the first liveness test
 | `periodSeconds` | The period in seconds between each liveness check
 | `failureThreshold` | The number of failed liveness tests before the Kubernetes pod is restarted
 | `timeoutSeconds` | The time in seconds before the test times out
 |===
 
-To learn more about updating a Helm chart, see xref:gateway::flex-gateway-k8-change-helm-settings.adoc[Update a Helm Chart].
+To modify the default liveness probe parameters, you must update your Helm chart. For more information about how to modify a Helm chart, see xref:flex-gateway-k8-change-helm-settings.adoc[]
 
 //end::k8s-liveness-probe[]
 
 
-
-//tag::docker-liveness-probe[]
-== Docker Liveness Probe
-
-For Flex Gateways running on Docker, you can configure a health check using flags in the `docker run` command.
-
-After adding the relative Flex Gateway registration information from xref:gateway::flex-{page-mode}-reg-run.adoc[], execute the `docker run` command with the following flags configured:
-
-
-[source,ssh]
-----
-docker run --health-retries=5 \
---health-interval=10s \
---health-start-period=10s \
---health-timeout=1s \
---health-cmd="flexctl probe --check=liveness" \
---entrypoint flexctl \
--v "$(pwd)":/registration -u $UID mulesoft/flex-gateway \
-register \
-#REPLACE WITH RELATIVE FLEX GATEWAY REGISTRATION
-my-gateway
-----
-
-[cols="1,2"]
-|===
-| Flag | Description
-
-| `--health-cmd` | The command to execute to test liveness
-| `--health-start-period` | The time in seconds to wait after startup before executing the first liveness test
-| `--health-interval` | The period in seconds between each liveness check
-| `--health-retries` | The number of failed liveness tests before the Kubernetes pod is restarted
-| `--health-timeout` | The time in seconds before the test times out
-|===
-
-//end::docker-liveness-probe[]
-
 //tag::see-also[]
 == See Also
 
-* xref:gateway::policies-included-health-check.adoc[]
+* https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/[Configure Liveness, Readiness and Startup Probes^].
+* xref:policies-included-health-check.adoc[]
 
 //end::see-also[]
