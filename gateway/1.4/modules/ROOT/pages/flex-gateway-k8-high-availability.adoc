@@ -275,7 +275,7 @@ kubectl get --raw /apis/metrics.k8s.io/v1beta1/namespaces/<namespace>/pods/<pod-
 | `autoscaling.behavior` | A setting that supports the `HorizontalPodAutoscaler` (HPA) object in Kubernetes. HPA settings control autoscaling behavior, such as the number of application resources based on the rate of change to the workload. 
 | `autoscaling.behavior.scaleUp`, `autoscaling.behavior.scaleDown` | Settings for autoscaling behavior when the HPA scaler increases (`scaleUp`) or decreases (`scaleDown`) the number of replicas. Define scaling behavior with nested parameters: 
 
-* `selectPolicy`: Setting that determines when to scale Pods when a metric of configured resources indicates that scaling is require, which can contain different numbers of replicas. Valid values are `Disabled`, `Min`, and `Max`. Defaults to `Max`. The `Min` and `Max` values indicate whether to scale Pods with the lowest (`Min`) or highest (`Max`) number of replicas.
+* `selectPolicy`: If a metric of configured resources indicates that scaling is require, this setting determines when to scale Pods. This setting is necessary because Pods can contain different numbers of replicas. Valid values are `Disabled`, `Min`, and `Max`. Defaults to `Max`. The `Min` and `Max` values indicate whether to scale Pods with the lowest (`Min`) or highest (`Max`) number of replicas.
 * `stabilizationWindowSeconds`: The minimum number of seconds to wait to rescale an application after a change to the workload. The goal is to prevent an overly aggressive or unstable response by HPA when scaling too frequently. 
 * `policies`: A list of policies that determine scaling behavior:
 ** `type`: The type of value for a given policy, 'Percent' or 'Pods'.
