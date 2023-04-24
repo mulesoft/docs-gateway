@@ -131,13 +131,6 @@ autoscaling:
   maxReplicas: 11
   targetCPUUtilizationPercentage: 50
   targetMemoryUtilizationPercentage: 50
-  extraMetrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 50
   behavior:
     scaleDown:
       selectPolicy: Min
@@ -253,25 +246,6 @@ To use autoscaling, enable Horizontal Pod Autoscaler (HPA), and configure other 
 | `autoscaling.maxReplicas` | The maximum number of replicas that the HPA scaler is allowed to create. Defaults to `11`.
 | `autoscaling.targetCPUUtilizationPercentage` | A resource metric that sets the average CPU usage percentage of all deployed Pods. Defaults to `50`.
 | `autoscaling.targetMemoryUtilizationPercentage` | A string representing the average memory usage percentage of all deployed Pods. Defaults to `nil`.
-| `autoscaling.extraMetrics` | A list of custom Pod configuration metrics. When a Pod runs with these settings, you can collect and monitor application-specific metric data. Defaults to `[]`. Define the metrics with nested parameters, for example:
-
-----
-extraMetrics:
-- type: Resource
-  resource:
-    name: cpu
-    target:
-      type: Utilization
-      averageUtilization: 50
-----
-
-You can retrieve metrics data with the following commands:
-
-----
-kubectl get --raw /apis/metrics.k8s.io/v1beta1/nodes/<node-name>
-
-kubectl get --raw /apis/metrics.k8s.io/v1beta1/namespaces/<namespace>/pods/<pod-name>
-----
 | `autoscaling.behavior` | A setting that supports the `HorizontalPodAutoscaler` (HPA) object in Kubernetes. HPA settings control autoscaling behavior, such as the number of application resources based on the rate of change to the workload. 
 | `autoscaling.behavior.scaleUp`, `autoscaling.behavior.scaleDown` | Settings for autoscaling behavior when the HPA scaler increases (`scaleUp`) or decreases (`scaleDown`) the number of replicas. Define scaling behavior with nested parameters: 
 
