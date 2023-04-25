@@ -1,4 +1,32 @@
-= Update Pod Settings for a Flex Gateway Deployment Through a Helm Chart
+= Configure Flex Gateway as an Ingress Controller in Local Mode
+
+For Kubernetes deployments in Local Mode, Flex Gateway typically acts as an ingress controller that manages external access to your Kubernetes cluster.
+
+As an ingress controller, Flex Gateway manages `Ingress` resources that are created manually or though a continuous integration/continuous development (CI/CD) pipeline.
+
+Ingress controllers are defined by using `IngressClass` resources. By default, in the Helm chart, the following parameters enable Flex Gateway as an ingress controller:
+
+[source,helm]
+----
+ingressClass.enabled: true
+ingressClass.name: "{releaseName}-{namespace}"
+ingressClass.setAsDefault: false
+----
+
+[cols="1,2,2"]
+|===
+| Parameter | Description | Possible values
+| `ingressClass.enabled` | If Flex Gateway is enabled as an ingress controller | `true` or `false`, `true` by default
+| `ingressClass.name` | The name of the ingress controller | Any string, by default, the name is the release name and the Kubernetes namespace separated by a dash.
+| `ingressClass.setAsDefault` | If this Flex Gateway is the default ingress controller | `true` or `false`, `false` by default
+|===
+
+To modify the default liveness probe parameters, you must update your Helm chart. This can be done at the initial installation of the Helm chart or after. For more information about how to modify a Helm chart, see xref:flex-gateway-k8-change-helm-settings.adoc[]
+
+
+By setting `ingressClass.setAsDefault: true`, you define the Flex Gateway instance as the default `ingressClass` resource for the cluster. When you create `Ingress` resources, the Flex Gateway set as the default `IngressClass` resource, is set as the default ingress controller of the new resource. If you create an `Ingress` resource and do not have an default `IngressClass` or do not want the default `IngressClass` defined as the resource's `IngressClass`, you must manually define the `IngressClassName` for that resource.
+
+
 
 Change requirements for a Pod that contains a Flex Gateway deployment. The example in this guide sets the following CPU and memory requirements in the Helm chart for a Flex Gateway deployment:
 
