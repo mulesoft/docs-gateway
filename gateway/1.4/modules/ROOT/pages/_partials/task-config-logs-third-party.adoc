@@ -6,13 +6,13 @@ The following configuration file examples demonstrate how to direct Flex Gateway
 //end::intro1[]
 
 //tag::intro2-conn[]
-As well as being able to configure additional Fluent Bit log output types, Flex Gateway sends logs to API Manager. Use the logs for quick log checks when an additional log output is not needed. To view the standard output logs, go to *Anypoint Platform > API Manager > Logs*. For access logs to be visible in *Logs*, you must additionally apply a Message Logging policy.
+As well as being able to configure additional Fluent Bit log output types, Flex Gateway sends runtime logs to runtime manager and access logs to API Manager. Use the logs for quick log checks when an additional log output is not needed. To view runtime logs, see xref:flex-view-logs-in-monitoring.adoc[], and to configure and view access logs, see xref:flex-conn-message-log.adoc[]. For access logs to be visible in *Logs*, you must additionally apply a Message Logging policy.
 
 //end::intro2-conn[]
 
 
 //tag::intro2-local[]
-As well as being able to configure additional Fluent Bit log output types, Flex Gateway maintains standard output logs. Use the standard output logs for quick checks when additional log output is not needed. To view the standard output logs, see xref:gateway::flex-local-view-logs.adoc[View Logs].
+As well as being able to configure additional Fluent Bit log output types, Flex Gateway maintains standard output logs. Use the standard output logs for quick checks when additional log output is not needed. To view the standard output logs, see xref:gateway::flex-local-view-logs.adoc[View Logs]. Both runtime and access logs appear in standard output logs. However, access logs are only present if you apply a Message Logging policy.
 
 //end::intro2-local[]
 
@@ -36,7 +36,7 @@ As well as being able to configure additional Fluent Bit log output types, Flex 
 
 Before configuring Flex Gateway log output for Splunk, complete the following tasks:
 
-* xref:flex-install.adoc[Install Flex Gateway]
+* xref:flex-install.adoc[Download Flex Gateway]
 * xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
 
 Additionally, depending on your output, ensure that the service where you are directing logs to is operational. For Splunk, you must configure:
@@ -58,12 +58,10 @@ Runtime logs include the following information:
 * Deployed APIs and policies
 * Possible misconfigurations of Flex Gateway or other errors
 
-You can configure the runtime log level.
-
 === Access Logs
 Access logs describe incoming interaction with Envoy over a period of time and incoming requests and responses for specific APIs. 
 
-To enable access logging, you must apply a Message Logging policy to the API instances you want to monitor. To apply a Message Logging policy, see <<configure-access-logs, Configuring Access Logs>>.
+To enable access logs, you must apply a Message Logging policy to the API instances you want to monitor. To apply a Message Logging policy, see <<configure-access-logs, Configuring Access Logs>>.
 
 //end::runtime-access-logs[]
 
@@ -106,7 +104,7 @@ sudo touch /usr/local/share/mulesoft/flex-gateway/conf.d/logs-config.yaml
 == Configure Log Output for Flex Gateway in a Docker Container
 
 NOTE: If you have already added a volume for a folder with your
-Flex Gateway configuration files, go to the last step.
+Flex Gateway configuration files, go to the create and save a YAML file step.
 
 . Press Ctrl+C to stop your Flex Gateway and any replicas.
 . Create a folder in the directory with your Flex Gateway configuration files and name it `app`.
@@ -137,15 +135,15 @@ To configure logging for Flex Gateway:
 //end::k8s[]
 
 //tag::view-logs-conn[]
-If no events appear in the logging output, check the Flex Gateway standard output logs for any configuration errors.
+If no events appear in the logging output, check the Flex Gateway runtime logs for any configuration errors.
 +
-To view standard output logs in API Manager, go to *Anypoint Platform > API Manager > Logs*.
+To view runtime logs, see xref:flex-view-logs-in-monitoring.adoc[],
 //end::view-logs-conn[]
 
 //tag::view-logs-local[]
 If no events appear in the logging output, check the Flex Gateway standard output logs for any configuration errors.
 +
-To view standard output logs, see xref:gateway::flex-local-view-logs.adoc[View Logs].
+To view standard output logs, see xref:flex-local-view-logs.adoc[View Logs].
 //end::view-logs-local[]
 
 //tag::configure-message-logging-step[]
@@ -160,8 +158,8 @@ To view standard output logs, see xref:gateway::flex-local-view-logs.adoc[View L
 
 Configure Flex Gateway to send formatted runtime and access logs to a file called `log.txt` (Fluent Bit `File` output), in the `/var/log` directory. As an example, the following definition specifies a `spec.logging.outputs.type` value of `file`:
 
-NOTE: For Docker, in `spec.logging.output.parameters.file`, replace `/var/log` with the absolute path to the mounted configuration directory.
 
+[source,yaml]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Configuration
@@ -176,7 +174,7 @@ spec:
         file: /var/log/log.txt # Docker: replace `/var/log` with the absolute path to the mounted configuration directory
         format: template
         template: |
-          [{logger}][{level}][{kind}] {message}
+          [{date}][{logger}][{level}][{kind}] {message}
     runtimeLogs:
       logLevel: info
       outputs:
@@ -186,6 +184,8 @@ spec:
       - default
 ----
 
+NOTE: For Docker, in `spec.logging.output.parameters.file`, replace `/var/log` with the absolute path to the mounted configuration directory.
+
 //end::file-configuration-example[]
 
 //tag::http-configuration-example[]
@@ -193,8 +193,9 @@ spec:
 [[http-configuration-example]]
 == HTTP Configuration Example
 
-To configuring logging for Fluent Bit `File` output, you can also configure for Fluent Bit `HTTP` output. As an example, the following definition specifies a `spec.logging.outputs.type` value of `HTTP`:
+You can configure Flex Gateway to send formatted runtime and access logs to a `HTTP` output. As an example, the following definition specifies a `spec.logging.outputs.type` value of `HTTP`:
 
+[source,yaml]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Configuration
@@ -255,3 +256,64 @@ spec:
 ----
 
 //end::splunk-configuration-example[]
+
+//tag::log-output-examples[]
+
+== Logging Event Examples
+The following log output examples demonstrate possible outputs that may occur for the following events:
+
+* <<graceful-shutdowns, Graceful shutdowns>>
+* <<service-disconnections, Service disconnections>>
+* <<envoy-crash, Envoy crash>>
+
+[[graceful-shutdowns]]
+=== Graceful Shutdowns
+
+----
+[flex-gateway-agent][info] SignalHandler: Signal terminated received
+[flex-gateway-agent][info] FilesystemWatcher(/usr/local/share/mulesoft/flex-gateway/conf.d): Stopping with context done
+[flex-gateway-agent][info] XdsService: Stopping with context done
+[flex-gateway-agent][error] flex-gateway-envoy: Stopped with error context canceled
+[flex-gateway-agent][info] FilesystemWatcher(/etc/mulesoft/flex-gateway/conf.d): Stopping with context done
+[flex-gateway-agent][error] flex-gateway-fluent: Stopped with error context canceled
+[flex-gateway-agent][error] flex-gateway-fluent: Stopped with error context canceled
+[flex-gateway-agent][info] Server dropped connection
+[flex-gateway-agent][info] Agent communication closed
+----
+
+
+[[service-disconnections]]
+=== Service Disconnections
+
+----
+[flex-gateway-agent][error] WebSocket receiver got error: read tcp 172.17.0.2:60780->100.64.1.37:443: i/o timeout
+[flex-gateway-agent][info] Server dropped connection
+[flex-gateway-agent][warn] Dropped connection due to error read tcp 172.17.0.2:60780->100.64.1.37:443: i/o timeout
+[flex-gateway-agent][info] Reconnecting after connection was dropped
+[flex-gateway-agent][error] Error connecting to Websocket Server: dial tcp: lookup arm-mcm2-service.kstg.msap.io on 192.168.65.7:53: dial udp 192.168.65.7:53: connect: network is unreachable
+----
+
+[[envoy-crash]]
+=== Envoy Crash
+
+----
+[flex-gateway-envoy][critical] Caught Segmentation fault, suspect faulting address 0xffff87e8fb89485b
+[flex-gateway-envoy][critical] Backtrace (use tools/stack_decode.py to get line numbers):
+[flex-gateway-envoy][critical] Envoy version: 36cbae1aeedd8c3b4eb88cd28268d21fe0905ce5/1.23.0/Clean/RELEASE/BoringSSL
+[flex-gateway-envoy][critical] #0: __restore_rt [0x7ff79db2f140]
+[flex-gateway-envoy][critical] #1: [0x557dcfad249b]
+[flex-gateway-envoy][critical] #2: [0x557dcdf35237]
+[flex-gateway-envoy][critical] #3: [0x557dce16d49f]
+[flex-gateway-envoy][critical] #4: [0x557dce1a8ff5]
+[flex-gateway-envoy][critical] #5: [0x557dce1a8e47]
+[flex-gateway-envoy][critical] #6: ...
+[flex-gateway-agent][error] flex-gateway-envoy: Stopped with error flex-gateway-envoy: command error: signal: segmentation fault
+[flex-gateway-agent][error] flex-gateway-fluent: Stopped with error context canceled
+[flex-gateway-agent][error] flex-gateway-fluent: Stopped with error context canceled
+[flex-gateway-agent][info] FilesystemWatcher(/etc/mulesoft/flex-gateway/conf.d): Stopping with context done
+[flex-gateway-agent][info] FilesystemWatcher(/usr/local/share/mulesoft/flex-gateway/conf.d): Stopping with context done
+[flex-gateway-agent][info] XdsService: Stopping with context done
+[flex-gateway-agent][info] Server dropped connection
+[flex-gateway-agent][info] Agent communication closed
+----
+//end::log-output-examples[]

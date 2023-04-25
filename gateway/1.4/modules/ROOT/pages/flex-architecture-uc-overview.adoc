@@ -39,50 +39,50 @@ The following tables:
 
 * Relate the previously mentioned use cases to use case patterns
 * Show the networks involved in the pattern
-* Indicate whether Flex Gateway acts as an ingress controller, egress controller, or both
+* Indicate whether Flex Gateway acts as an ingress, egress, or both
 
 
 
-== UC1: Organization-Owned API Exposed to an Organization-Owned API Consumer
-
-[%header%autowidth.spread,cols="a,a,a,a"]
-|===
-| Pattern | Provider Network | Consumer Network | Role of Flex Gateway
-| P1A: Organization internal API exposed to an organization internal consumer that uses the same VPC or network as the API | Organization internal | Organization internal | Ingress
-| P1B: Organization internal API exposed to an organization internal consumer that uses a different VPC or network from the API | Organization internal | Organization internal | Ingress
-| P2: Organization internal API exposed to an organization external consumer | Organization internal | Organization external | Ingress
-| P3: Organization external API exposed to an organization internal consumer | Organization external | Organization internal | Egress
-| P4: Organization external API exposed to an organization external consumer | Organization external | Organization external | Ingress and egress
-|===
-
-
-== UC2: Organization-Owned API Exposed to a Non-Organization-Owned API Consumer 
+== Use Case 1: Organization-Owned API Exposed to an Organization-Owned API Consumer
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
 | Pattern | Provider Network | Consumer Network | Role of Flex Gateway
-| P5: Organization internal API exposed to a non-organization external consumer | Organization internal | Non-organization external | Ingress
-| P6: Organization external API exposed to a non-organization external consumer | Organization external | Non-organization external | Ingress and egress
+| xref:flex-architecture-uc1.adoc#pattern-1a[Pattern 1A: Organization internal API exposed to an organization internal consumer that uses the same VPC or network as the API] | Organization internal | Organization internal | Ingress
+| xref:flex-architecture-uc1.adoc#pattern-1b[Pattern 1B: Organization internal API exposed to an organization internal consumer that uses a different VPC or network from the API] | Organization internal | Organization internal | Ingress
+| xref:flex-architecture-uc1.adoc#pattern-2[Pattern 2: Organization internal API exposed to an organization external consumer] | Organization internal | Organization external | Ingress
+| xref:flex-architecture-uc1.adoc#pattern-3[Pattern 3: Organization external API exposed to an organization internal consumer] | Organization external | Organization internal | Egress
+| xref:flex-architecture-uc1.adoc#pattern-4[Pattern 4: Organization external API exposed to an organization external consumer] | Organization external | Organization external | Ingress and egress
 |===
 
-== UC3: Non-Organization-Owned API Exposed to an Organization-Owned API Consumer 
+
+== Use Case 2: Organization-Owned API Exposed to a Non-Organization-Owned API Consumer 
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
 | Pattern | Provider Network | Consumer Network | Role of Flex Gateway
-| P7: Non-organization external API exposed to an organization internal consumer | Non-organization external | Organization internal | Egress
-| P8: Non-organization external API exposed to an organization external consumer | Non-organization external | Organization external | Ingress and egress
+| xref:flex-architecture-uc2.adoc#pattern-5[Pattern 5: Organization internal API exposed to a non-organization external consumer] | Organization internal | Non-organization external | Ingress
+| xref:flex-architecture-uc2.adoc#pattern-6[Pattern 6: Organization external API exposed to a non-organization external consumer] | Organization external | Non-organization external | Ingress and egress
 |===
 
-== UC4: Non-Organization-Owned API Exposed to an External Non-Organization-Owned API Consumer 
+== Use Case 3: Non-Organization-Owned API Exposed to an Organization-Owned API Consumer 
+
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
 | Pattern | Provider Network | Consumer Network | Role of Flex Gateway
-| P9: Non-organization external API exposed to a non-organization external consumer | Non-organization external | Non-organization external | Ingress and egress
+| xref:flex-architecture-uc3.adoc#pattern-7[Pattern 7: Non-organization external API exposed to an organization internal consumer] | Non-organization external | Organization internal | Egress
+| xref:flex-architecture-uc3.adoc#pattern-8[Pattern 8: Non-organization external API exposed to an organization external consumer] | Non-organization external | Organization external | Ingress and egress
+|===
+
+== Use Case 4: Non-Organization-Owned API Exposed to an External Non-Organization-Owned API Consumer 
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Pattern | Provider Network | Consumer Network | Role of Flex Gateway
+| xref:flex-architecture-uc4.adoc#pattern-9[Pattern 9: Non-organization external API exposed to a non-organization external consumer] | Non-organization external | Non-organization external | Ingress and egress
 |===
 
 == mTLS considerations for integration flows
-Flex Gateway supports Mutual Transport Layer Security (mTLS) for all Flex Gateway initiated or terminated connections. Mulesoft reconmends using mTLS on all communication flows. 
+Flex Gateway supports Mutual Transport Layer Security (mTLS) for all Flex Gateway-initiated and Flex Gateway-terminated connections. Mulesoft recommends using mTLS on all communication flows. 
 
 For inbound connections that cross a network security boundary, use a network application firewall as close to the boundary as possible. For inbound connections, configure the external mTLS connection to terminate at the firewall and configure a new mTLS context between the firewall and Flex Gateway.
 

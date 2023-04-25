@@ -1,0 +1,69 @@
+//tag::intro1[]
+
+Flex Gateway includes the following CLI command to test gateway health:
+
+[source,ssh]
+----
+flexctl probe --check=liveness
+----
+
+If the Flex Gateway instance is healthy, the command returns an exit code of `0`. Otherwise, it returns a `1`.
+
+//end::intro1[]
+
+//tag::intro2[]
+You can either run this command manually or configure the command to run automatically. By default, Flex Gateways deployed on Kubernetes have an automatic liveness probe configured. The liveness probe periodically runs the liveness check command and automatically restarts the Flex Gateway pod after a specified number of failed liveness checks. 
+
+For Docker or Linux deployments, there is no default liveness probe configured to check health or restart unhealthy Flex Gateways. However, you can still run the the liveness check command manually or configure it for automated use with third-party services. Besides the Kubernetes liveness probe, MuleSoft does not provide support for third-party liveness probes or health checks.
+
+One method of running the liveness check command with Docker is to configure `HEALTHCHECK` in your `docker run` command. For more information, see https://docs.docker.com/engine/reference/run/#healthcheck[Docker run HEALTHCHECK^].
+
+//end::intro2[]
+
+//tag::k8s-liveness-probe[]
+== Before You Begin
+
+Register a Flex Gateway instance and deploy this instance to a Kubernetes cluster. For guidance, see xref:flex-gateway-set-up.adoc[] or xref:flex-gateway-k8-getting-started.adoc[].
+
+== Configure a Kubernetes Liveness Probe
+By default, Flex Gateways running on Kubernetes include a liveness probe configured in the Helm chart. The liveness probe automatically runs `flexctl probe --check=liveness` at an interval of 10 seconds and restarts unhealthy pods after 5 failed tests. 
+
+The liveness probe is configured by default with the following values:
+
+[source,helm]
+----
+livenessProbe:
+ exec:
+   command:
+   - flexctl
+   - probe
+   - --check=liveness
+ initialDelaySeconds: 10
+ periodSeconds: 10
+ failureThreshold: 5
+ timeoutSeconds: 1
+----
+
+[cols="1,2"]
+|===
+| Parameter | Description
+
+| `exec.command` | The liveness check command
+| `initialDelaySeconds` | The time in seconds to wait after startup before executing the first liveness test
+| `periodSeconds` | The period in seconds between each liveness check
+| `failureThreshold` | The number of failed liveness tests before the Kubernetes pod is restarted
+| `timeoutSeconds` | The time in seconds before the test times out
+|===
+
+To modify the default liveness probe parameters, you must update your Helm chart. You can modify these parameters during or after the initial installation of the Helm chart. For more information about how to modify a Helm chart, see xref:flex-gateway-k8-change-helm-settings.adoc[]
+
+//end::k8s-liveness-probe[]
+
+
+//tag::see-also[]
+== See Also
+
+* https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/[Configure Liveness, Readiness and Startup Probes^].
+* xref:policies-included-health-check.adoc[]
+
+//end::see-also[]
