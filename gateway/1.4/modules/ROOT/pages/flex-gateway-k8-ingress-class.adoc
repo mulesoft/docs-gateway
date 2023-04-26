@@ -6,9 +6,9 @@ endif::[]
 
 For Kubernetes deployments in Local Mode, Flex Gateway typically acts as an ingress controller that manages external access to your Kubernetes cluster.
 
-To configure Flex Gateway as an ingress controller you must configure an `IngressClass` resource and an `Ingress` resource. The `IngressClass` resource configures Flex Gateway as an ingress controller, and the `Ingress` resources configures the services Flex Gateway Manages.
+To configure Flex Gateway as an ingress controller you must configure an `IngressClass` resource and an `Ingress` resource. The `IngressClass` resource configures Flex Gateway as an ingress controller, and the `Ingress` resources configures the services the controller manages.
 
-By default, a Flex Gateways deployed on Kubernetes in Local Mode are defined as `IngressClass` resources.
+By default, Flex Gateways deployed on Kubernetes in Local Mode are defined as `IngressClass` resources.
 
 For a detailed explanation of Kubernetes `IngressClass` resources and `Ingress` resources, see https://kubernetes.io/docs/concepts/services-networking/ingress/[Kubernetes Ingress^].
 
@@ -30,11 +30,11 @@ ingressClass.setAsDefault: false
 | `ingressClass.setAsDefault` | Sets Flex Gateway as the default `IngressClass` | `true` or `false`
 |===
 
-setting `ingressClass.setAsDefault: true` defines the Flex Gateway instance as the default `IngressClass` resource for the cluster. The default `IngressClass` is the default ingress controller for all `Ingress` resources created in the cluster. 
+setting `ingressClass.setAsDefault: true` defines the Flex Gateway instance as the default `IngressClass` resource for the cluster. The default `IngressClass` is the default ingress controller for all `Ingress` resources you create in the cluster. 
 
-If you do not have a default `IngressClass` defined or do not want the default `IngressClass` resource as the `IngressClass` for a specific resource, you must manually define the `IngressClassName` for that resource.
+If there is no default `IngressClass` or you do not want the default `IngressClass` resource as the controller for a specific resource, you must manually define the `IngressClassName` parameter in the `Ingress` resource.
 
-To modify the default `IngressClass` parameters, you must update your Helm chart. You can modify these parameters during or after the initial installation of the Helm chart. For more information about how to modify a Helm chart, see xref:flex-gateway-k8-change-helm-settings.adoc[]
+You can modify the default `IngressClass` parameters during or after the initial installation of the Helm chart. For more information about how to modify a Helm chart, see xref:flex-gateway-k8-change-helm-settings.adoc[]
 
 == Creating Ingress Resources
 
@@ -50,7 +50,7 @@ If your `IngressClass` resource is present, to create an ingress routing:
 . xref:flex-gateway-apis-local.adoc[Publish an API].
 . Define the new API as a Kubernetes Service. +
 For more information about Kubernetes Service definitions, see https://kubernetes.io/docs/concepts/services-networking/service/#defining-a-service[Defining a Service^].
-. Create an `Ingress` resource to define routing rules between the Flax Gateway `IngressClass` resource and the new Kubernetes Service. +
+. Create an `Ingress` resource to define routing rules between the `IngressClass` Flex Gateway  and the new Kubernetes Service. +
 For more information about `Ingress` resources, see https://kubernetes.io/docs/concepts/services-networking/ingress/[Kubernetes Ingress^].
 
 
