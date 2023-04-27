@@ -1,13 +1,115 @@
 //tag::intro1[]
-For use cases where Flex Gateway is deployed behind a load balancer or other external service, configure a Proxy Protocol to preserve client IP addresses across multiple layers of NAT or TCP proxies.
+For use cases where Flex Gateway is deployed behind a load balancer or other external service, configure Proxy Protocol to preserve client IP addresses across multiple layers of NAT or TCP proxies.
 
-In Proxy Protocol, the load balancer or other proxy service sends the Proxy Protocol header containing the client address information to Flex Gateway. To learn more about Proxy Protocol, see the https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt[HAProxy specification].
+In Proxy Protocol, the load balancer or other proxy service sends the Proxy Protocol header containing the client address and additional information to Flex Gateway. To learn more about Proxy Protocol, see the https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt[HAProxy specification].
 
-Your load balancer must support Proxy Protocol to transmit the Proxy Protocol header.
+Enabling Proxy Protocol only enables Flex Gateway to receive the Proxy Protocol header and block requests that do not contain the header. Your load balancer must support Proxy Protocol to transmit the Proxy Protocol header.
 
 When Proxy Protocol is enabled, the Proxy Protocol header is mandatory for incoming requests. If the header is not present Envoy closes the connection.
 
 //end::intro1[]
+
+//tag::icon-table[]
+
+[cols="1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="#linux"]
+|image:install-docker-logo.png[25%,25%,xref="#docker"]
+|image:install-kubernetes-logo.png[20%,20%,xref="#kubernetes"]
+
+|<<linux>>
+|<<docker>>
+|<<kubernetes>>
+|===
+
+//end::icon-table[]
+
+//tag::byb[]
+
+== Before You Begin
+
+Before enabling Proxy Protocol for Flex Gateway, complete the following tasks:
+
+* xref:flex-install.adoc[Download Flex Gateway]
+* xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
+
+//end::byb[]
+
+//tag::linux[]
+
+[[linux]]
+== Enable Proxy Protocol for Flex Gateway as a Linux Service
+
+. Create a YAML configuration file in the Flex Gateway configuration directory:
++
+[source,ssh]
+----
+sudo touch /usr/local/share/mulesoft/flex-gateway/conf.d/proxy-protocol-config.yaml
+----
+
+. Update the file with the Proxy Protocol configuration file: 
++
+//end::linux[]
+
+//tag::docker-intro[]
+
+[[docker]]
+== Enable Proxy Protocol for Flex Gateway in a Docker Container
+
+NOTE: If you have already added a volume for a folder with your
+Flex Gateway configuration files, go to the last step.
+
+. Stop your Flex Gateway and any replicas, using Ctrl+C.
+. Create a folder in the directory with your Flex Gateway configuration files and name it `app`.
+. Restart your Flex Gateway with an additional volume for the new `app` directory:
+//end::docker-intro[]
+
+//tag::docker-config-file-step[]
+. Create and save a YAML configuration file in your `app` folder with your Proxy Protocol configuration details.
++
+//end::docker-config-file-step[]
+
+
+
+//tag::k8s[]
+
+[[kubernetes]]
+== Enable Proxy Protocol for Flex Gateway in a Kubernetes Cluster
+
+To configure shared storage for Flex Gateway, create a new resource using
+a YAML configuration file with your storage details.
+
+//end::k8s[]
+//tag::sample-config[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: config
+spec:
+  proxyProtocol:
+    enabled: true
+----
+//end::sample-config-all[]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //tag::proxy-config[]
 == Enable Proxy Protocol
