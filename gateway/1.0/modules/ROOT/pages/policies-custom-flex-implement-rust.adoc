@@ -182,6 +182,10 @@ path="src/lib.rs"
 proxy-wasm = { git = "https://github.com/proxy-wasm/proxy-wasm-rust-sdk.git", tag = "v0.2.0" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+
+[profile.release]
+opt-level = "z"
+lto = "fat"
 ----
 
 === Develop the Custom Policy
@@ -313,22 +317,6 @@ cargo build --target wasm32-wasi --release
 ----
 +
 Compilation outputs a binary `.wasm` file into the `./target/wasm32-wasi/release` directory.
-+
-The size of the binary file can be large, even with few dependencies. Optimize file size using `wasm-gc`, a CLI that removes unneeded exports, imports, and functions. The optimized binary can be up to 90% lighter.
-
-. To enable optimization, install `wasm-gc` via the following command:
-+
-----
-cargo install wasm-gc
-----
-
-. Perform the optimization by executing `wasm-gc` against your binary:
-+
-----
-wasm-gc target/wasm32-wasi/release/flex_custom_policy_example.wasm -o target/flex_custom_policy_example-final.wasm
-----
-+
-The optimized binary can now be found in the `./target` directory. Push this binary to Exchange when publishing the new policy implementation.
 +
 For more information on pushing custom policies to Exchange, refer to xref:policies-custom-flex-getting-started.adoc[Publish a Flex Gateway or Mule 4 Custom Policy].
 
