@@ -9,14 +9,13 @@ flexctl probe --check=liveness
 
 If the Flex Gateway instance is healthy, the command returns an exit code of `0`. Otherwise, it returns a `1`.
 
+You can either run this command manually or configure the command to run automatically. By default, Flex Gateways deployed on Kubernetes have an automatic liveness probe configured. The liveness probe periodically runs the liveness check command and automatically restarts the Flex Gateway pod after a specified number of failed liveness checks. 
+
 //end::intro1[]
 
 //tag::intro2[]
-You can either run this command manually or configure the command to run automatically. By default, Flex Gateways deployed on Kubernetes have an automatic liveness probe configured. The liveness probe periodically runs the liveness check command and automatically restarts the Flex Gateway pod after a specified number of failed liveness checks. 
 
-For Docker or Linux deployments, there is no default liveness probe configured to check health or restart unhealthy Flex Gateways. However, you can still run the the liveness check command manually or configure it for automated use with third-party services. Besides the Kubernetes liveness probe, MuleSoft does not provide support for third-party liveness probes or health checks.
 
-One method of running the liveness check command with Docker is to configure `HEALTHCHECK` in your `docker run` command. For more information, see https://docs.docker.com/engine/reference/run/#healthcheck[Docker run HEALTHCHECK^].
 
 //end::intro2[]
 
@@ -59,6 +58,14 @@ To modify the default liveness probe parameters, you must update your Helm chart
 
 //end::k8s-liveness-probe[]
 
+//tag::docker-linux-deployments[]
+== Docker and Linux Liveness Probes
+
+For Docker or Linux deployments, there is no default liveness probe configured to check health or restart unhealthy Flex Gateways. However, you can still run the the liveness check command manually or configure it for automated use with third-party services. Besides the Kubernetes liveness probe, MuleSoft does not provide support for third-party liveness probes or health checks.
+
+One method of running the liveness check command with Docker is to configure `HEALTHCHECK` in your `docker run` command. For more information, see https://docs.docker.com/engine/reference/run/#healthcheck[Docker run HEALTHCHECK^].
+
+//end::docker-linux-deployments[]
 
 //tag::see-also[]
 == See Also
