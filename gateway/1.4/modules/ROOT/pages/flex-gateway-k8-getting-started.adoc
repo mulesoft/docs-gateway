@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :reg-mode: Connected
 
-Get started with Anypoint Flex Gateway in a Kubernetes cluster. Set up a Flex Gateway deployment that connects to Anypoint Platform, and use the deployment to route traffic to your API. This guide covers the following high-level tasks:
+Get started with Anypoint Flex Gateway in a Kubernetes cluster or an OpenShift cluster, which is based on Kubernetes. Set up a Flex Gateway deployment that connects to Anypoint Platform, and use the deployment to route traffic to your API. This guide covers the following high-level tasks:
 
 * Downloading, registering, and deploying Flex Gateway in xref:flex-conn-reg-run-token.adoc#k8-token[Connected Mode] with a token
 * Creating a simple API in Anypoint API Manager that runs on your gateway
@@ -15,6 +15,7 @@ The Flex Gateway deployment process requires a working Kubernetes cluster that y
 Setting up a Kubernetes cluster requires a level of skill and expertise that is _beyond the scope of this guide to provide_. Cluster configuration in Kubernetes differs significantly by service provider and platform. For cluster configuration questions, consult documentation from your Kubernetes service provider or use the https://kubernetes.io/docs/setup/[Kubernetes documentation^]. 
 
 If you lack a Kubernetes cluster but want to try out Flex Gateway quickly, without creating a cluster, see xref:flex-gateway-getting-started.adoc[Getting Started with Flex Gateway] (on Docker). That guide uses Docker exclusively and does not require you to perform any cluster configuration.
+
 
 == Before You Begin
 
@@ -51,6 +52,9 @@ Run `curl --version` from a terminal window to determine if this tool is install
 == Cluster Requirements
 
 The host for your Kubernetes cluster can be any xref:flex-review-prerequisites.adoc#software-requirements[supported Kubernetes provider], including common cloud-based services, such as Amazon Elastic Kubernetes Service (EKS), Azure Kubernetes Service (AKS), or Google Kubernetes Engine (GKE).
+
+// cluster-level access when rbac enabled, as for OpenShift
+include::partial$prerequisites.adoc[tag=rbac-permission-k8;rbac-role-openshift]
 
 To complete the procedures in this guide, you must create a Kubernetes cluster or use an existing one for your Flex Gateway deployment. In this guide, you use Helm to deploy Flex Gateway to a Kubernetes cluster and connect it to Anypoint Platform. 
 
