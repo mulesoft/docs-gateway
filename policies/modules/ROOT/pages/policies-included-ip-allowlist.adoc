@@ -34,7 +34,7 @@ In Local Mode, you apply the IP Allowlist policy to your API via declarative con
     name: ip-allowlist-flex
   config:
     ips: <array> // REQUIRED
-    ipExpression: <string> // OPTIONAL, default: "#[attributes.headers['x-forwarded-for']]"
+    ipExpression: <string> // OPTIONAL, default: "#[dw::core::Strings::substring(attributes.headers['x-forwarded-for'],((attributes.headers['x-forwarded-for'] lastIndexOf(" "))+1),255) default attributes.remoteAddress]"
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
