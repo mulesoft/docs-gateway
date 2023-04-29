@@ -85,6 +85,7 @@ to generate set of instructions that includes a command block with the registrat
 // end::token-openshift-heading[]
 
 // tag::note-openshift-k8[]
+
 From the command line, OpenShift procedures match Kubernetes procedures. 
 // end::note-openshift-k8[]
 
@@ -108,26 +109,49 @@ From the command line, OpenShift procedures match Kubernetes procedures.
 To register a Flex Gateway with Anypoint Platform, you must enter the registration command and then the start command. Each command includes information specific to your Anypoint Platform instance and *must be updated before* executing. See <<Before You Begin>> for more information on how to find the information you will need.
 // end::reg-command-intro[]
 //
+// tag::k8s-connected-heading[]
+
+=== Connected Mode in Kubernetes
+
+// end::k8s-connected-heading[]
+// tag::openshift-connected-heading[]
+
+=== Connected Mode in OpenShift
+
+// end::openshift-connected-heading[]
+//
+// tag::k8s-local-heading[]
+
+=== Local Mode in Kubernetes
+
+// end::k8s-local-heading[]
+// tag::openshift-local-heading[]
+
+=== Local Mode in OpenShift
+
+// end::openshift-local-heading[]
 // tag::k8s-connected-intro[]
 
-In Connected Mode, Flex Gateway typically serves as an ingress or a standalone gateway that is managed mostly through Anypoint Platform, where you can: 
+In Connected Mode, Flex Gateway typically serves as an ingress or Edge API gateway that receives traffic from outside of the cluster or as a standalone gateway for internal services. 
+
+Most management takes place within Anypoint Platform Anypoint Manager: 
 
 * Deploy APIs to your cluster.
 * Apply policies and other configurations.
-* Create resources (_with the exception_ of Configuration and Service resources). 
+* Create resources (_with the exception_ of Configuration and Service resources).
 
-In Connected Mode, resource creation through `kubectl apply` is possible but restricted to the following resource types:
+Resource creation through `kubectl apply` is possible but restricted to the following resource types:
 Configuration, Service, Extension, and PolicyBinding of types `tls`, `tls-inbound`, and `tls-outbound`. For more info about resources, see xref:flex-local-configuration-reference-guide.adoc[].
 
 // end::k8s-connected-intro[]
 //
 // tag::k8s-local-intro[]
 
-In Local Mode, Flex Gateway typically acts as an ingress controller that manages external access to your Kubernetes cluster. Flex Gateway can also act as a standalone gateway for internal traffic. 
+In Local Mode, Flex Gateway typically acts as an ingress controller that manages external access to your cluster. Flex Gateway can also act as a standalone gateway for internal (east-west) traffic. 
 
 When using this mode, you must know what resources to create and apply, and use `kubectl apply` to deploy Kubernetes targets and resources such as APIs, policies, or Flex Gateway-related resources to your gateway. 
 
-Local Mode also supports `Ingress` resources from Kubernetes, which are configured through a YAML file with properties, such as `apiVersion`, `kind`, `metadata`, and `spec` for configuring a load balancer or proxy server, and `rules` for directing HTTP and HTTPS traffic. For more information about how Flex Gateway manages `Ingress` resources, see xref:flex-gateway-k8-ingress-class.adoc[].
+Flex Gateway acts as an ingress controller when you apply an `Ingress` resource to configure gateway routing rules. You provide this configuration through a YAML file. The file supports other properties, such as `apiVersion`, `kind`, `metadata`, `spec` to configure a load balancer or proxy server, and `rules` for directing HTTP and HTTPS traffic. For more information about how Flex Gateway manages `Ingress` resources, see xref:flex-gateway-k8-ingress-class.adoc[].
 
 // end::k8s-local-intro[]
 
@@ -137,9 +161,9 @@ To register Flex Gateway with Anypoint Platform, run the Docker registration com
 
 // tag::sub-coll-info[]
 
-=== Substitute Collected Information
-
-Before executing the registration command, replace the following sample information with the information you collected:
+=== Gather Registration Data for Flex Gateway
+ 
+Before registering your Flex Gateway instance, collect information for the registration command options: 
 
 // end::sub-coll-info[] 
 // tag::user-replace-content[]
@@ -175,9 +199,9 @@ If `split` is set to `true`, registration information is split into two files: `
 // end::replace-content[]
 // tag::reg-command-heading[]
 
-=== Registration Command
+=== Register Flex Gateway
 
-After replacing the sample content, register your Flex Gateway by executing the following command: 
+Register your Flex Gatewway instance using the data that you gathered for the command options.
 
 // end::reg-command-heading[]
 // tag::docker-create-directory-note[]
@@ -336,10 +360,13 @@ If `flex-gateway.service` has a status of `active`, Flex Gateway is successfully
 
 // end::k8s-install-flex-helm-chart-title[]
 // tag::k8s-install-flex-helm-chart-intro-connected[]
-Use Helm to deploy Flex Gateway to a node in your cluster and connect to Anypoint Platform. After deploying, use Runtime Manager to verify that the gateway is present and connected to Anypoint Platform.
+
+Register Flex Gateway, and use Helm to deploy Flex Gateway to a node in your cluster and connect to Anypoint Platform. After deploying, use Runtime Manager to verify that the gateway is present and connected to Anypoint Platform.
+
 // end::k8s-install-flex-helm-chart-intro-connected[]
 // tag::k8s-install-flex-helm-chart-intro-local[]
-Use Helm to deploy Flex Gateway to a node in your cluster. 
+
+Register Flex Gateway, and use Helm to deploy Flex Gateway to a node in your cluster. 
 // end::k8s-install-flex-helm-chart-intro-local[]
 // PLS don't move k8s-mode-overview
 // tag::k8s-mode-overview[]
@@ -454,3 +481,20 @@ helm show readme flex-gateway/flex-gateway
 ----
 
 // end::helm-chart-options[]
+
+// tag::links-to-openshift-reg-steps[]
+Complete the following steps: 
+
+. <<options-openshift>>
+. <<reg-openshift>>
+. <<deploy-openshift>>
+// end::links-to-openshift-reg-steps[]
+//
+// tag::links-to-k8s-reg-steps[]
+
+Complete the following steps: 
+
+. <<options-k8s>>
+. <<reg-k8s>>
+. <<deploy-k8s>>
+// end::links-to-k8s-reg-steps[]
