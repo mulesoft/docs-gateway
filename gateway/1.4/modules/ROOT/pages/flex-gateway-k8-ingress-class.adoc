@@ -14,7 +14,8 @@ In the Helm chart, you can edit the `IngressClass` configuration or disable the 
 
 == Before You Begin
 
-Register a Flex Gateway instance in Local Mode and deploy this instance to a Kubernetes cluster. For guidance, see xref:flex-gateway-set-up.adoc[] or xref:flex-gateway-k8-getting-started.adoc[].
+. xref:flex-install.adoc#kubernetes[Download Flex Gateway for Use in a Kubernetes Cluster].
+. xref:flex-local-reg-run.adoc[Register and Run Flex Gateway in a Kubernetes Cluster in Local Mode].
 
 == Ingress Class Parameters
 The Helm chart includes the following default `IngressClass` parameters and values:
@@ -36,7 +37,7 @@ ingressClass.setAsDefault: false
 
 Setting `ingressClass.setAsDefault: true` defines the Flex Gateway instance as the default `IngressClass` resource for the cluster. The default `IngressClass` is the default ingress controller for all `Ingress` resources you create in the cluster. 
 
-If there is no default `IngressClass`, or if the default `IngressClass` resource shouldn't be the controller for a specific resource, you must manually define the `IngressClassName` parameter in the `Ingress` resource.
+If there is no default `IngressClass`, or if the default `IngressClass` resource shouldn't be the ingress controller for a specific resource, you must manually define the ingress controller in the `Ingress` resource.
 
 You can modify the default `IngressClass` parameters during or after the initial installation of the Helm chart. For more information about how to modify a Helm chart, see xref:flex-gateway-k8-change-helm-settings.adoc[]
 
@@ -51,7 +52,7 @@ kubectl get ingressclasses
 
 To create an ingress routing:
 
-. xref:flex-gateway-apis-local.adoc[Publish an API].
+. xref:flex-gateway-publish-apis-local.adoc[Publish an API in Local Mode].
 . Define the new API as a Kubernetes Service. +
 For more information about Kubernetes Service definitions, see https://kubernetes.io/docs/concepts/services-networking/service/#defining-a-service[Defining a Service^].
 . Create an `Ingress` resource to define routing rules between the `IngressClass` Flex Gateway and the new Kubernetes Service. +
