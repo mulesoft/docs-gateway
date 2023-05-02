@@ -66,27 +66,85 @@ to generate set of instructions that includes a command block with the registrat
 == Register and Run with a Token as a Linux Service
 // end::token-linux-heading[]
 // tag::app-k8s-heading[]
-== Register and Run with a Connected App as a Kubernetes Ingress Controller
+== Register and Run with a Connected App in a Kubernetes Cluster
 // end::app-k8s-heading[]
 // tag::user-k8s-heading[]
-== Register and Run with a Username and Password as a Kubernetes Ingress Controller
+== Register and Run with a Username and Password in a Kubernetes Cluster
 // end::user-k8s-heading[]
 // tag::token-k8s-heading[]
-== Register and Run with a Token as a Kubernetes Ingress Controller
+== Register and Run with a Token in a Kubernetes Cluster
 // end::token-k8s-heading[]
+// tag::app-openshift-heading[]
+== Register and Run with a Connected App in an OpenShift Cluster
+// end::app-openshift-heading[]
+// tag::user-openshift-heading[]
+== Register and Run with a Username and Password in an OpenShift Cluster
+// end::user-openshift-heading[]
+// tag::token-openshift-heading[]
+== Register and Run with a Token in an OpenShift Cluster
+// end::token-openshift-heading[]
+
+// tag::note-openshift-k8[]
+
+From the command line, OpenShift procedures match Kubernetes procedures. 
+// end::note-openshift-k8[]
+
+// logos and links to sections that _use anchors_ in install and reg/run pages
+// tag::table-logos-links[]
+[cols="1a,1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="#linux"]
+|image:install-docker-logo.png[25%,25%,xref="#docker]
+|image:install-kubernetes-logo.png[20%,20%,xref="#kubernetes"]
+|image:install-openshift-logo.png[20%,20%,xref="#openshift"]
+
+|<<linux>>
+|<<docker>>
+|<<kubernetes>>
+|<<openshift>>
+|===
+// end::table-logos-links[]
+
 // tag::reg-command-intro[]
 To register a Flex Gateway with Anypoint Platform, you must enter the registration command and then the start command. Each command includes information specific to your Anypoint Platform instance and *must be updated before* executing. See <<Before You Begin>> for more information on how to find the information you will need.
-//end::reg-command-intro[]
+// end::reg-command-intro[]
+//
+// tag::k8s-connected-intro[]
+
+In Connected Mode, Flex Gateway typically serves as an ingress or Edge API gateway that receives traffic from outside of the cluster. Flex Gateway can also act as a standalone gateway for internal (east-west) services. 
+
+Most management takes place within Anypoint Platform Anypoint Manager: 
+
+* Deploy APIs to your cluster.
+* Apply policies and other configurations.
+* Create resources (_with the exception_ of Configuration and Service resources). 
+
+In Connected Mode, resource creation through `kubectl apply` is possible but restricted to the following resource types:
+Configuration, Service, Extension, and PolicyBinding of types `tls`, `tls-inbound`, and `tls-outbound`. For more info about resources, see xref:flex-local-configuration-reference-guide.adoc[].
+
+// end::k8s-connected-intro[]
+//
+// tag::k8s-local-intro[]
+
+In Local Mode, Flex Gateway typically acts as an ingress controller that manages external access to your cluster. Flex Gateway can also act as a standalone gateway for internal (east-west) traffic. 
+
+When using this mode, you must know what resources to create and apply, and use `kubectl apply` to deploy Kubernetes targets and resources such as APIs, policies, or Flex Gateway-related resources to your gateway. 
+
+Flex Gateway acts as an ingress controller when you apply an `Ingress` resource to configure gateway routing rules. You provide this configuration through a YAML file. The file supports other properties, such as `apiVersion`, `kind`, `metadata`, `spec` to configure a load balancer or proxy server, and `rules` for directing HTTP and HTTPS traffic. For more information about how Flex Gateway manages `Ingress` resources, see xref:flex-gateway-k8-ingress-class.adoc[].
+
+// end::k8s-local-intro[]
+
 // tag::k8s-reg-command-intro[]
-To register a Flex Gateway with Anypoint Platform as a Kubernetes ingress controller, you must enter the registration command and then install the flex-gateway Helm chart. Each command includes information specific to your Anypoint Platform instance and *must be updated before* executing. See <<Before You Begin>> for more information on how to find the information you will need.
+To register Flex Gateway with Anypoint Platform, run the Docker registration command with required options. After registering, use a Helm command to install the Helm chart for the registered gateway, and deploy the gateway to a cluster. The deployment process requires an existing cluster. See <<Before You Begin>> for more prerequisites to these procedures.
 // end::k8s-reg-command-intro[] 
-//tag::sub-coll-info[]
 
-=== Substitute Collected Information
+// tag::sub-coll-info[]
 
-Before executing the registration command, replace the following sample information with the information you collected:
+=== Collect Your Registration Data
+ 
+Before registering your Flex Gateway instance, collect information for the following registration command options: 
 
-//end::sub-coll-info[] 
+// end::sub-coll-info[] 
 // tag::user-replace-content[]
 
 * `--username` = the username for an Anypoint Platform user with _Read Servers_ and _Manage Servers_ permissions for Runtime Manager
@@ -120,11 +178,16 @@ If `split` is set to `true`, registration information is split into two files: `
 // end::replace-content[]
 // tag::reg-command-heading[]
 
-=== Registration Command
+=== Register Flex Gateway
 
-After replacing the sample content, register your Flex Gateway by executing the following command: 
+Register your Flex Gateway instance using the data that you gathered for the command options.
 
 // end::reg-command-heading[]
+// tag::docker-create-directory-note[]
+
+IMPORTANT: Create a new directory called `flex-registration` (or similar) and then run the registration command in this new directory. The command creates registration files in this location.
+
+// end::docker-create-directory-note[]
 // tag::reg-command-1[]
 
 [source,ssh,subs=attributes+]
@@ -168,7 +231,7 @@ flexctl register \
 my-gateway
 ----
 
-NOTE: Use `sudo` if you encounter file permission issues when running this command.
+Use `sudo` if you encounter file permission issues when running this command.
 
 NOTE: If you are in Europe you will need to add the `--anypoint-url=https://eu1.anypoint.mulesoft.com` flag
 to your command.
@@ -183,31 +246,29 @@ In the output directory, you should see the following new registration file(s):
 IMPORTANT: These generated files are credentials for you to connect your Flex Gateway. If you lose them you
 can no longer connect your Flex Gateway.
 // end::after-reg[]
-//tag::after-reg-2[]
+// tag::after-reg-2[]
 
-//end::after-reg-2[]
-//tag::linux-after-reg[]
+// end::after-reg-2[]
+// tag::linux-after-reg[]
 
-//end::linux-after-reg[]
-//tag::k8s-after-reg[]
+// end::linux-after-reg[]
+// tag::k8s-after-reg[]
 
-//end::k8s-after-reg[]
-// tag::connected-after-reg[]
-
-You should also see your new Flex Gateway in Runtime Manager after clicking *Flex Gateway* in the left navigation. 
-The gateway's status is disconnected for now. You need to start the gateway to connect it.
-// end::connected-after-reg[]
+// end::k8s-after-reg[]
+// tag::disconnected-after-reg[]
+In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find your gateway in the UI. Notice that your gateway's status is *Disconnected*. Refresh the page, if necessary.
+// end::disconnected-after-reg[]
 // tag::start-command[]
 
 === Start Command
 
-Before executing the start command below, update the absolute path to the directory where your Flex Gateway registration files reside.
+Run the following start command in the same directory where you ran the registration command:
 
 [source,ssh,subs=attributes+]
 ----
 docker run --rm \
+-v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
 -p 8080:8080 \
--v <absolute-path-to-directory-with-gateway-registration-files>/:/usr/local/share/mulesoft/flex-gateway/conf.d \
 mulesoft/flex-gateway
 ----
 NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
@@ -216,22 +277,22 @@ NOTE: Specify an optional name you want to assign to your Flex Replica by includ
 
 === Start Command
 
-Before executing the start command below, update the absolute path to the directory where your Flex Gateway configuration and registration files reside.
+Run the following start command in the same directory where you ran the registration command:
 
-//end::start-command-local-intro[]
-//tag::start-command-local[]
+// end::start-command-local-intro[]
+// tag::start-command-local[]
 
 [source,ssh,subs=attributes+]
 ----
 docker run --rm \
--v <absolute-path-to-directory-with-gateway-files>/:/usr/local/share/mulesoft/flex-gateway/conf.d \
+-v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
 -p 8080:8080 \
 mulesoft/flex-gateway
 ----
 NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
 
-//end::start-command-local[]
-//tag::start-command-local-valid[]
+// end::start-command-local[]
+// tag::start-command-local-valid[]
 The Docker logs should include this line:
 
 [source,ssh]
@@ -263,90 +324,182 @@ Verify that the Flex Gateway service is running successfully:
 systemctl list-units flex-gateway*
 ----
 
-You should see a list of services. Flex Gateway is successfully running if each service has a status of `active`.
+If `flex-gateway.service` has a status of `active`, Flex Gateway is successfully running.
 
 [source,text]
 ----
   UNIT                              LOAD   ACTIVE SUB     DESCRIPTION
-  flex-gateway-fluent-reloader.path loaded active waiting flex-gateway-fluent-reloader.path
-  flex-gateway-agent.service        loaded active running flex-gateway-agent.service
-  flex-gateway-envoy.service        loaded active running flex-gateway-envoy.service
-  flex-gateway-fluent.service       loaded active running flex-gateway-fluent.service
-  flex-gateway.service              loaded active exited  Application
+  flex-gateway.service              loaded active running Application
 ----
 
 // end::linux-start-commands[]
-//tag::k8s-install-helm-chart[]
+// tag::k8s-install-flex-helm-chart-title[]
 
 === Install Helm Chart into the Namespace
 
-Before installing, ensure that you have:
+// end::k8s-install-flex-helm-chart-title[]
+// tag::k8s-install-flex-helm-chart-intro-connected[]
 
-* https://helm.sh/docs/intro/install/[Helm^], a tool used to install Flex Gateway, monitoring tools, and applications. A minimum Helm version of 3.0.0 is required. 
-+
-Refer to the <<helm-chart-options,Helm Chart Configuration Options>> for information about customizing the chart.
+Register Flex Gateway, and then use Helm to deploy Flex Gateway to a node in your cluster and connect to Anypoint Platform. After deploying, use Runtime Manager to verify that the gateway is present and connected to Anypoint Platform.
 
-. Add the Flex Gateway Helm repository:
+// end::k8s-install-flex-helm-chart-intro-connected[]
+// tag::k8s-install-flex-helm-chart-intro-local[]
+
+Register Flex Gateway, and then use Helm to deploy Flex Gateway to a node in your cluster. 
+// end::k8s-install-flex-helm-chart-intro-local[]
+// 
+// tag::k8s-flex-helm-chart[]
+A Helm chart installs Flex Gateway, monitoring tools, and applications.
+// end::k8s-flex-helm-chart[]
+// tag::k8s-flex-helm-chart-defaults[]
+Refer to <<helm-chart-options>> for configuration options. 
+// end::k8s-flex-helm-chart-defaults[]
+// tag::k8s-flex-helm-chart-add[]
+
+. Add a Helm repository named `flex-gateway` for your chart: 
 +
-[source,kubernetes]
+[source,helm]
 ----
 helm repo add flex-gateway https://flex-packages.anypoint.mulesoft.com/helm
 ----
-
-. Update the Helm repository using the following command:
 +
-[source,kubernetes]
+The command either adds the repository or skips this process if a Helm repository with that name already exists on your machine:
++
+* If the repository is new, the command returns the following message:
++
 ----
-helm repo up
+"flex-gateway" has been added to your repositories
+----
++
+* If the repository already exists, the command returns the following message:
++
+----
+"flex-gateway" already exists with the same configuration, skipping
 ----
 
-. Using Ingress, install the *flex-gateway* Helm chart into the *gateway* namespace.
+. Run `helm repo up`.
 +
-[source,kubernetes]
+The command returns the following message:
++
 ----
-helm -n gateway upgrade -i --create-namespace --wait ingress flex-gateway/flex-gateway \
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "flex-gateway" chart repository
+Update Complete. ⎈Happy Helming!⎈
+----
++
+If you have more than one Helm repository on your machine, the message in your terminal window lists all of the repositories.
+// end::k8s-flex-helm-chart-add[]
+// tag::k8s-flex-helm-chart-deploy[]
+//      PLEASE retain blank line before first step below
+
+. Run the Helm command for deploying your gateway in {reg-mode} Mode:
++
+[source,helm]
+----
+helm -n gateway upgrade -i --create-namespace \
+--wait ingress flex-gateway/flex-gateway \ 
+--set gateway.mode=connected \
 --set-file registration.content=registration.yaml
 ----
 +
-The command returns something similar to the following: 
+This command creates the `gateway` namespace and a release named `ingress` if they do not exist. You can use names of your choice for your namespace and release. The command syntax for the Helm repository and chart names is `<helm-repo-name>/<helm-chart-name>`. 
 +
-[source,text]
+The command uses `--set gateway.mode=connected` because the default for the Helm chart is Local Mode.
++
+When successful, the command prints a message indicating an upgrade to your `ingress` release:
++
 ----
+Release "ingress" does not exist. Installing it now.
 NAME: ingress
-LAST DEPLOYED: Tue Oct 19 13:08:07 2021
+LAST DEPLOYED: Mon Mar 20 21:36:19 2023
 NAMESPACE: gateway
 STATUS: deployed
 REVISION: 1
 TEST SUITE: None
 ----
++
+The `REVISION` value increments the `ingress` release by `1` each time you run this command with the same namespace, repository, and chart names. For example, if you run the command a second time, you find a new revision number (`REVISION: 2`). The `LAST DEPLOYED` date reflects the date of that revision.
+//    do not add an empty new line here at end, please
+// end::k8s-flex-helm-chart-deploy[]
+// tag::k8s-flex-helm-chart-deploy-local[]
+//      PLEASE retain blank line before first step below
 
-//end::k8s-install-helm-chart[]
-//tag::gateway-connected[]
+. Run the Helm command for deploying your gateway in {reg-mode} Mode:
++
+[source,helm]
+----
+helm -n gateway upgrade -i --create-namespace \
+--wait ingress flex-gateway/flex-gateway \ 
+--set-file registration.content=registration.yaml
+----
++
+This command creates the `gateway` namespace and a release named `ingress` if they do not exist. You can use names of your choice for your namespace and release. The command syntax for the Helm repository and chart names is `<helm-repo-name>/<helm-chart-name>`. 
++
+When successful, the command prints a message indicating an upgrade to your `ingress` release:
++
+----
+Release "ingress" does not exist. Installing it now.
+NAME: ingress
+LAST DEPLOYED: Mon Mar 20 21:36:19 2023
+NAMESPACE: gateway
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+----
++
+The `REVISION` value increments the `ingress` release by `1` each time you run this command with the same namespace, repository, and chart names. For example, if you run the command a second time, you find a new revision number (`REVISION: 2`). The `LAST DEPLOYED` date reflects the date of that revision.
+//    do not add an empty new line here at end, please
+// end::k8s-flex-helm-chart-deploy-local[]
+// tag::gateway-connected[]
 
-Now if you check in Runtime Manager after clicking *Flex Gateway* in the left navigation, your gateway's status is connected. You may need to refresh the page.
+In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find your new gateway in the UI. Notice that your gateway's current status is *Connected*. Refresh the page, if necessary.
 
-If a Flex Replica
-in Connected Mode is stopped it will be removed from the UI in Runtime Manager after 30 days. Otherwise,
-it will appear in the Runtime Manager UI even if it is no longer running.
-
-//end::gateway-connected[]
-//tag::helm-chart-options[]
+NOTE::
+After 30 days, a stopped or deleted gateway is removed from the Runtime Manager UI. Otherwise, the UI continues to list the gateway even if it is no longer running or connected.
+// end::gateway-connected[]
+// tag::helm-chart-options[]
 
 [[helm-chart-options]]
-=== Helm Chart Configuration Options
+=== Helm Chart Settings
 
-The following command describes the configurable options of the Flex Gateway Ingress Controller Helm chart:
+To modify the default Helm settings with new values, such as `resource` values for CPU and memory settings, see xref:flex-gateway-k8-change-helm-settings.adoc[]. For additional Helm chart configurations, see xref:flex-gateway-k8-management.adoc[].
 
+Before modifying a Helm chart for a Flex Gateway deployment, review the default Helm chart settings:
+
+* Open the *flex-gateway* page in https://artifacthub.io/packages/helm/flex-gateway/flex-gateway[ArtifactHUB^]
+* Run `helm show values <repository-name>/<chart-name>` from a terminal window.
++
+.Example:
 [source,kubernetes]
 ----
 helm show values flex-gateway/flex-gateway
 ----
++
+The example returns _default_ values of a repository and chart with the same name. 
 
-To view the Helm chart `README`, execute the following:
+To view the Helm chart `README`, run `helm show readme <repository-name>/<chart-name>` from a terminal window.
 
+.Example:
 [source,kubernetes]
 ----
 helm show readme flex-gateway/flex-gateway
 ----
 
-//end::helm-chart-options[]
+// end::helm-chart-options[]
+
+// tag::links-to-openshift-reg-steps[]
+Complete the following steps: 
+
+. <<options-openshift>>
+. <<reg-openshift>>
+. <<deploy-openshift>>
+// end::links-to-openshift-reg-steps[]
+//
+// tag::links-to-k8s-reg-steps[]
+
+Complete the following steps: 
+
+. <<options-k8s>>
+. <<reg-k8s>>
+. <<deploy-k8s>>
+// end::links-to-k8s-reg-steps[]
