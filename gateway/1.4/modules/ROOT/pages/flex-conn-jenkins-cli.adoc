@@ -64,7 +64,6 @@ Before you can create and deploy an API instance to your Flex Gateway, you must 
 . <<define-useful-functions, Define Useful Functions>>.
 . <<define-useful-parameters, Define Useful Parameters>>.
 . <<install-anypoint-cli-4-x, Install Anypoint CLI 4.x>>
-. <<validate-anypoint-cli-4-x-installation, Validate Anypoint CLI 4.x Installation>>
 . <<register-and-run, Register and Run>>.
 
 After you implement these Pipeline stages, you can customize your Pipeline by making API Manager CLI requests to manage APIs.
@@ -148,30 +147,15 @@ To install Anypoint CLI 4.x to your Docker container, add the install Anypoint C
 stage('Install anypoint-cli-v4') {
    steps {
        script {
-           sh """
-              docker run --name container-anypoint-cli-v4 -d node:16 \
-              sh -c " npm install -g anypoint-cli-v4 ; anypoint-cli-v4 plugins:install anypoint-cli-api-mgr-plugin; \
-              while :; do sleep 1; done"
-           """
-       }
-   }
-}
-----
-
-== Validate Anypoint CLI 4.x Installation
-
-Anypoint CLI 4.x can take a moment to install. To validate Anypoint CLI 4.x is installed, add the validate Anypoint CLI 4.x installation `stage` to the `stages` block in your Jenkinsfile. You can add this stage anywhere after the installation stage but it must come before you use any Anypoint CLI commands:
-
-[source,Jenkinsfile]
-----
-stage('Validate anypoint-cli-v4 installation') {
-   steps {
-       script {
-           sh """
-              docker run --name container-anypoint-cli-v4 -d node:16 \
-              sh -c " npm install -g anypoint-cli-v4 ; anypoint-cli-v4 plugins:install anypoint-cli-api-mgr-plugin; \
-              while :; do sleep 1; done"
-           """
+            sh """
+               docker run --name container-anypoint-cli-v4 -d node:16 \
+               sh -c " npm install -g anypoint-cli-v4 ; anypoint-cli-v4 plugins:install anypoint-cli-api-mgr-plugin; \
+               while :; do sleep 1; done"
+            """
+            sh """
+                docker exec container-anypoint-cli-v4 \
+                sh -c "while ! anypoint-cli-v4 plugins 2> /dev/null | grep -q "anypoint-cli-api-mgr-plugin"; do :; done"
+            """
        }
    }
 }
