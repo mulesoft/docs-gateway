@@ -421,6 +421,35 @@ TEST SUITE: None
 The `REVISION` value increments the `ingress` release by `1` each time you run this command with the same namespace, repository, and chart names. For example, if you run the command a second time, you find a new revision number (`REVISION: 2`). The `LAST DEPLOYED` date reflects the date of that revision.
 //    do not add an empty new line here at end, please
 // end::k8s-flex-helm-chart-deploy[]
+// tag::k8s-flex-helm-chart-deploy-local[]
+//      PLEASE retain blank line before first step below
+
+. Run the Helm command for deploying your gateway in {reg-mode} Mode:
++
+[source,helm]
+----
+helm -n gateway upgrade -i --create-namespace \
+--wait ingress flex-gateway/flex-gateway \ 
+--set-file registration.content=registration.yaml
+----
++
+This command creates the `gateway` namespace and a release named `ingress` if they do not exist. You can use names of your choice for your namespace and release. The command syntax for the Helm repository and chart names is `<helm-repo-name>/<helm-chart-name>`. 
++
+When successful, the command prints a message indicating an upgrade to your `ingress` release:
++
+----
+Release "ingress" does not exist. Installing it now.
+NAME: ingress
+LAST DEPLOYED: Mon Mar 20 21:36:19 2023
+NAMESPACE: gateway
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+----
++
+The `REVISION` value increments the `ingress` release by `1` each time you run this command with the same namespace, repository, and chart names. For example, if you run the command a second time, you find a new revision number (`REVISION: 2`). The `LAST DEPLOYED` date reflects the date of that revision.
+//    do not add an empty new line here at end, please
+// end::k8s-flex-helm-chart-deploy-local[]
 // tag::gateway-connected[]
 
 In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find your new gateway in the UI. Notice that your gateway's current status is *Connected*. Refresh the page, if necessary.
@@ -431,7 +460,9 @@ After 30 days, a stopped or deleted gateway is removed from the Runtime Manager 
 // tag::helm-chart-options[]
 
 [[helm-chart-options]]
-=== Default Helm Chart Settings
+=== Helm Chart Settings
+
+To modify the default Helm settings with new values, such as `resource` values for CPU and memory settings, see xref:flex-gateway-k8-change-helm-settings.adoc[]. For additional Helm chart configurations, see xref:flex-gateway-k8-management.adoc[].
 
 Before modifying a Helm chart for a Flex Gateway deployment, review the default Helm chart settings:
 
@@ -445,8 +476,6 @@ helm show values flex-gateway/flex-gateway
 ----
 +
 The example returns _default_ values of a repository and chart with the same name. 
-
-To update the default Helm settings with new values, such as `resource` values for CPU and memory settings, see xref:flex-gateway-k8-change-helm-settings.adoc[]. For additional Helm chart configurations, see xref:flex-gateway-k8-management.adoc[].
 
 To view the Helm chart `README`, run `helm show readme <repository-name>/<chart-name>` from a terminal window.
 
