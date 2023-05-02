@@ -10,7 +10,7 @@ You can use a Jenkins Pipeline to automate the workflow for Flex Gateway in Conn
 
 Automating your Flex Gateway in Connected Mode work flow shares many similarities with the xref:flex-conn-manage-public-api.adoc[Manage Flex Gateway Using the API Manager API] tutorial. You can use the Jenkins Pipeline to automate the calls made to the API Manager API. To add additional features from the  https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/[API Manager API^], use the <<create-an-api-instance, Create an API Instance>> and <<apply-an-api-policy, Apply an API Policy>> Pipeline stages as examples.
 
-This tutorial has different steps with different code blocks. As you work through the steps, add the code blocks to the same Jenkinsfile. 
+This tutorial has different steps with different code blocks. As you work through the steps, add the code blocks to the same Jenkinsfile. If you are unfamiliar with the syntax used in a Jenkins Pipeline, see the https://www.jenkins.io/doc/book/pipeline/[Jenkins Pipeline documentation^].
 
 NOTE: To instead automate your Flex Gateway with the Anypoint CLI, see xref:flex-conn-jenkins-cli.adoc[].
 
@@ -31,7 +31,7 @@ Before you can deploy a Jenkins Pipeline, complete the following tasks:
 .. Save the *Id* and *Secret* of the Connected app you configure.
 
 
-. Collect the group ID, asset ID, and asset version (GAV) of the Exchange asset you want to create or apply.
+. Collect the group ID, asset ID, and asset version (GAV) of the Exchange asset (API) you want to create or apply.
 +
 To collect your GAV from Exchange:
 +
@@ -72,7 +72,8 @@ After you implement these Pipeline stages, you can customize your Pipeline by ma
 
 === Define Useful Functions
 
-To begin, define these useful functions in your Jenkinsfile:
+To begin, define these useful functions in your Jenkinsfile. Define the functions before the `pipeline` block:
+
 
 [source,Jenkinsfile]
 ----
@@ -108,7 +109,7 @@ To define the parameters:
 ** `<asset-version>`: Asset version, obtained from Exchange, of the API  you want to create
 * `<gateway-name>`: Name of your Flex Gateway
 
-. After replacing the sample content, add the parameter definitions to your Jenkinsfile to validate whether all parameters are present:
+. After replacing the sample content, add the parameter definitions to your Jenkinsfile to validate whether all parameters are present. Define the parameters in the `pipeline` block before the `stages` block:
 +
 [source,Jenkinsfile]
 ----
@@ -124,7 +125,7 @@ parameters {
 }
 ----
 
-. Add the `Check parameters` stage to your Jenkinsfile:
+. Add the check parameters `stage` to the `stages` block in your Jenkinsfile:
 +
 [source,Jenkinsfile]
 ----
@@ -143,7 +144,7 @@ If this stage fails, specify the missing parameters and rerun the Pipeline.
 
 === Register and Run
 
-Add the register and run stages to your Jenkinsfile:
+Add the register and run stages to the `stages` block in your Jenkinsfile:
 
 [source,Jenkinsfile]
 ----
@@ -187,7 +188,7 @@ stage('Run flex gateway') {
 === Obtain an Authorization Token from Access Management
 After registering and running your Flex Gateway, you must obtain a valid authorization token from Access Management in order to authenticate subsequent requests.
 
-To login in to Anypoint, add the `Anypoint login` stage to your Jenkinsfile:
+To login in to Anypoint, add the Anypoint login `stage` the `stages` block in your Jenkinsfile:
 
 [source,Jenkinsfile]
 ----
@@ -226,11 +227,11 @@ To create an API instance:
 . Optionally, collect your `"endpointUri"` or remove the `"endpointUri"` field:
 * `<your-consumer-endpoint>`: Consumer endpoint of your API, for example, `+http://consumer-endpoint.com+`
 
-. After replacing the HTTP addresses, add the `Create API Instance` stage to you Jenkinsfile:
+. After replacing the HTTP addresses, add the create API instance `stage` to the `stages` block in your Jenkinsfile:
 
 [source,Jenkinsfile]
 ----
-stage("Create API Instance") {
+stage("Create API instance") {
     steps {
         script {
             def login_response = parseJsonFile('login-response')
@@ -280,7 +281,7 @@ After you create an API instance, you can apply Connected Mode policies to the i
 + 
 The configuration data fields are dependent on the policy. The `"username"` and `"password"` parameters are only an example. To find the configuration data for your policy, see xref:policies-included-directory.adoc[Included Policies Directory].
 
-. After replacing the sample content, add the `Apply policy` stage to your Jenkins Pipeline:
+. After replacing the sample content, add the apply policy `stage` to the `stages` block in your Jenkinsfile:
 
 [source,Jenkinsfile]
 ----
@@ -321,7 +322,7 @@ stage("Apply policy") {
 == Deploy an API Instance
 After you create an API instance, you can deploy the instance.
 
-To deploy the new instance, add the `Deploy API` stage to your Jenkinsfile:
+To deploy the new instance, add the deploy API `stage` to the `stages` block in your Jenkinsfile:
 
 [source,Jenkinsfile]
 ----
@@ -356,7 +357,7 @@ stage("Deploy API") {
 ----
 
 == Validate the API Instance is Deployed
-After you deploy your API instance, validate whether the instance is deployed by adding the `Validate deployment` stage to your Jenkinsfile:
+After you deploy your API instance, validate whether the instance is deployed by adding the validate deployment `stage` to the `stages` block in your Jenkinsfile
 
 
 [source,Jenkinsfile]
@@ -385,7 +386,7 @@ stage("Validate deployment") {
 
 == Stop the Flex Gateway and archive the registration file
 
-Use the following code blocks to stop your Flex Gateway and archive the registration file:
+Use the following code blocks to stop your Flex Gateway and archive the registration file. Add the `post` block in the `pipeline` block after the `stages` block:
 
 [source,Jenkinsfile]
 ----
