@@ -214,6 +214,10 @@ stage("Create API Instance") {
     steps {
         script {
             sh """
+                sleep 30
+            """
+
+            sh """
                 docker exec container-anypoint-cli-v4 anypoint-cli-v4 api-mgr:api:manage ${params.EXCHANGE_ASSET_ID} ${params.EXCHANGE_ASSET_VERSION} \
                 --client_id=${params.CONNECTED_APP_CLIENT_ID} --client_secret=${params.CONNECTED_APP_CLIENT_SECRET} \
                 --isFlex --withProxy --deploymentType=hybrid --scheme=http --port=8082 \
