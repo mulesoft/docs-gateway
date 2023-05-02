@@ -52,8 +52,8 @@ Run `curl --version` from a terminal window to determine if this tool is install
 
 The host for your Kubernetes cluster can be any xref:flex-review-prerequisites.adoc#software-requirements[supported Kubernetes provider], including common cloud-based services, such as Amazon Elastic Kubernetes Service (EKS), Azure Kubernetes Service (AKS), or Google Kubernetes Engine (GKE).
 
-// cluster-level access when rbac enabled, as for OpenShift
-include::partial$prerequisites.adoc[tag=rbac-permission-k8;rbac-role-openshift]
+//cluster-level access when rbac enabled, as for OpenShift
+include::partial$prerequisites.adoc[tags=rbac-permission-k8;rbac-role-openshift]
 
 To complete the procedures in this guide, you must create a Kubernetes cluster or use an existing one for your Flex Gateway deployment. In this guide, you use Helm to deploy Flex Gateway to a Kubernetes cluster and connect it to Anypoint Platform. 
 
@@ -576,6 +576,20 @@ kubectl -n gateway describe deployment
 [source,kubectl]
 ----
 kubectl -n gateway describe service
+----
+
+//cluster-level access when rbac enabled, as for OpenShift
+* {empty}
++
+include::partial$prerequisites.adoc[tags=rbac-permission-k8;rbac-role-openshift]
++
+Without the required access, you receive an error similar to the following one:
++
+----
+Error: failed to install CRD crds/apiinstance.yaml:
+customresourcedefinitions.apiextensions.k8s.io is forbidden: 
+User "user1" cannot create resource "customresourcedefinitions" 
+in API group "apiextensions.k8s.io" at the cluster scope
 ----
 
 [[check-cluster]]
