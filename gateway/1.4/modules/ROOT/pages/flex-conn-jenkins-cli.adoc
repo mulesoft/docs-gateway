@@ -145,15 +145,19 @@ To install Anypoint CLI 4.x to your Docker container, add the install Anypoint C
 [source,Jenkinsfile]
 ----
 stage('Install anypoint-cli-v4') {
-   steps {
-       script {
-           sh """
-              docker run --name container-anypoint-cli-v4 -d node:16 \
-              sh -c " npm install -g anypoint-cli-v4 ; anypoint-cli-v4 plugins:install anypoint-cli-api-mgr-plugin; \
-              while :; do sleep 1; done"
-           """
-       }
-   }
+    steps {
+        script {
+            sh """
+                docker run --name container-anypoint-cli-v4 -d node:16 \
+                sh -c " npm install -g anypoint-cli-v4 ; anypoint-cli-v4 plugins:install anypoint-cli-api-mgr-plugin; \
+                while :; do sleep 1; done"
+            """
+            sh """
+                docker exec container-anypoint-cli-v4 \
+                sh -c "while ! anypoint-cli-v4 plugins 2> /dev/null | grep -q "anypoint-cli-api-mgr-plugin"; do :; done"
+            """
+        }
+    }
 }
 ----
 
@@ -278,8 +282,10 @@ To deploy the new instance, add the deploy API `stage` to the `stages` block in 
 stage("Deploy API") {
     steps {
         script {
+            sleep(time:15, unit:"SECONDS")
             def registration_file = parseYamlFile('registration.yaml')
             def apiInstanceId = getAPIInstanceID('api-response')
+
             sh """
                 docker exec container-anypoint-cli-v4 anypoint-cli-v4 api-mgr:api:deploy ${apiInstanceId} \
                 --client_id=${params.CONNECTED_APP_CLIENT_ID} --client_secret=${params.CONNECTED_APP_CLIENT_SECRET} \
@@ -300,10 +306,12 @@ stage("Validate Deployment") {
     steps {
         script {
             sleep(time:10, unit:"SECONDS")
+
             def unauthorized_status_code = sh(script: "curl -s -w \"%{http_code}\" -o /dev/null http://localhost:8082/httpbin/headers -v", returnStdout: true).trim().toInteger()
             if (unauthorized_status_code != 401) {
                 error("401 status code expected but the status code obtained is ${unauthorized_status_code}")
             }
+
             def authorized_status_code = sh(script: "curl -s -w \"%{http_code}\" -o /dev/null http://localhost:8082/httpbin/headers -v -u user:test", returnStdout: true).trim().toInteger()
             if (authorized_status_code != 200) {
                 error("200 status code expected but the status code obtained is ${unauthorized_status_code}")
