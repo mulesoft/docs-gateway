@@ -303,6 +303,12 @@ impl HttpContext for CustomAuthHttpContext {
 ----
 +
 The `proxy-wasm` ABI retrieves the header value of the incoming request and then compares the value against `secret-value`. If `secret-value` matches the header, the implementation returns an `Action::Continue`. Otherwise, it returns `Action::Pause`, and the filter itself emits a response to the calling client using `send_http_response`.
++
+Note: `get_http_request_header` has a known issue in Rust SDK when reading non UTF-8 values. If running into that issue, switch to `get_http_request_headers_bytes` methods and read the bytes using the `from_utf8` method (https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8). For example:
++
+----
+let header = self.get_http_request_header_bytes("x-custom-auth").map(String::from_utf8).and_then(Result::ok);
+----
 
 . Enable compilation by adding `wasm32` as a target:
 +
