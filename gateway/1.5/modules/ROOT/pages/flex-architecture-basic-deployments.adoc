@@ -1,0 +1,36 @@
+= Flex Gateway Deployment Models
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Flex Gateway supports two basic deployment models, which apply to both Connected Mode and Local Mode:
+
+* <<standalone-deployment, Standalone deployment>>
+* <<sidecar-deployment, Sidecar deployment>>
+
+You can extend the deployment models in this overview to all technological stacks that have the appropriate network controls applied.
+
+== Standalone Deployment
+
+In a standalone deployment, Flex Gateway acts as a standalone service that protects one or more integration API flows by managing internal traffic.
+
+As the following diagram shows, all external traffic in a standalone deployment passes through Flex Gateway before reaching the consumer APIs. The consumer application can belong to the same network as Flex Gateway, and the APIs Flex Gateway supports can belong to networks external to Flex Gateway.
+
+image:ad-standalone-deployment.png["In a standalone deployment, Flex Gateway and the consumer applications are in different Kubernetes namespaces."]
+
+
+
+== Sidecar Deployment
+In a sidecar deployment, each Flex Gateway deployment exclusively protects the APIs exposed by its protected service. A new Flex Gateway replica is added with each new protected service:
+
+As the following diagram shows, external traffic in a sidecar deployment passes through Flex Gateway to the respective consumer API. The consumer application can belong to the same network as Flex Gateway.
+
+image:ad-sidecar-deployment.png["In a sidecar deployment, Flex Gateway and the consumer application are in the same Kubernetes pod."]
+
+
+
+== See Also
+
+* xref:flex-architecture-uc-overview.adoc[]
+* xref:flex-architecture-shared-storage.adoc[]
