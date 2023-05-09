@@ -248,7 +248,7 @@ TEST SUITE: None
 +
 The `REVISION` value increments the `ingress` release by `1` each time you run this command with the same namespace, repository, and chart names. For example, if you run the command a second time, you find a new revision number (`REVISION: 2`). The `LAST DEPLOYED` date reflects the date of that revision.
 +
-If you receive an `UPGRADE FAILED` response, see <<upgrade-failed,troubleshooting>> information about this issue. 
+If you receive an `UPGRADE FAILED` response, see <<troubleshoot-helm-upgrade-failed,troubleshooting>> information about this issue. 
 
 . If you want to check the status of the Pod that runs your gateway, execute the following `kubectl` command:
 +
@@ -276,7 +276,7 @@ You can use the search field in the page to narrow the list of gateways.
 
 .. Make sure that the status of your gateway is *Connected*. 
 +
-If the status is *Disconnected*, it is likely that the cluster configuration is incorrect or a network issue occurred. Check <<troubleshooting>> for more information.
+If the status is *Disconnected*, it is likely that the cluster configuration is incorrect or a network issue occurred. Check <<troubleshooting-k8>> for more information.
 //TODO: COVER BOTH TYPES OF ISSUES; MAKE SURE MOST COMMON ARE COVERED
 //      don't have network-related troubleshooting yet; 
 //      so have some config troubleshooting
@@ -456,7 +456,7 @@ The page for editing the credentials looks similar to this one:
 image::gateway-quickstart-k8-config-basic-auth-edit.png["Screenshot of 'Configure Basic Authentication - Simple policy' configuration page",width=90%]
 
 
-[[troubleshooting]]
+[[troubleshooting-k8]]
 == Troubleshooting
 //iterative troubleshooting info to add as needed:
 
@@ -467,130 +467,51 @@ If you encounter an error when running a command, check for troubleshooting info
 [[docker-troubleshooting]]
 === Docker Command Issues
 
-Troubleshoot errors returned by a `docker` command:
+//intro
+include::partial$troubleshoot.adoc[tags=troubleshoot-docker-intro]
 
 [[daemon-bad-response]]
-* If Docker is not started, a `docker` command returns an error message similar to the following ones:
-+
-----
-Error response from daemon: Bad response from Docker engine
-----
-+
-----
-ERROR: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. 
-       Is the docker daemon running?
-----
-+
-If you get this error, start Docker.
+==== Docker Daemon Error
 
+//error
+include::partial$troubleshoot.adoc[tags=troubleshoot-docker-daemon-bad-response]
 
 [[bad-request]]
-* The following error can occur when you use `docker run` to register your gateway:
-+
-----
-[flexctl][error] reg facade call returned error response:
-HTTP/1.1 400 Bad Request
-----
-+
-The reason for this error is available within the error message. Common causes include: 
-+
-[[name-already-exists]]
-** `an active target with the same name already exists in this organization and environment`
-+
-To avoid this issue, provide a _unique name_ for your gateway when running the <<reg-command, registration command>>. Note that you _cannot reuse the same name_ even if a previous registration with that name was successful. When this error occurs, the command generates an _empty_ `registration.yaml`, which prevents re-registration _and_ produces an error when you try to use the file when deploying the gateway to your cluster. 
-+
-[[no-token]]
-** `no valid registration token was found`
-+
-To avoid this issue, generate a new token for the command by refreshing the *Add a Flex Gateway* page for Kubernetes and rerun the <<reg-command, registration command>>.
+==== Reg Facade Error (400 Bad Request)
 
+//error
+include::partial$troubleshoot.adoc[tags=troubleshoot-docker-bad-request]
 
 [[helm-troubleshooting]]
 === Helm Command Issues
 
-Troubleshoot errors returned by a `helm` command:
+[[troubleshoot-helm-intro]]
+//intro
+include::partial$troubleshoot.adoc[tags=troubleshoot-helm-intro]
 
-[[yaml-empty]]
-* If the `registration.yaml` file is invalid when you pass it to the Helm command during deployment of Flex Gateway, the following error results:
-+
-----
-Error: UPGRADE FAILED: execution error at (flex-gateway/templates/deployment.yaml:4:10):
-registerSecretName, registration.content or registration.secretName is required!
-----
-+
-When this error occurs, make sure that the `registration.yaml` file is not empty. If the file is empty, reregister your gateway with a new, unique name to generate a new `registration.yaml` (see <<register-flex>>) and rerun the procedures that follow the registration step. 
+[[troubleshoot-helm-yaml-empty]]
+==== Upgrade Failed: Execution Error
+//error: 
+include::partial$troubleshoot.adoc[tags=troubleshoot-helm-yaml-empty]
 
-[[cluster_unreachable]]
-* If your Kubernetes cluster is not running when you attempt to deploy Flex Gateway using `helm`, the following error might occur:
-+
-----
-Error: Kubernetes cluster unreachable: 
-the server could not find the requested resource
-----
-+
-Start the service that runs your cluster. 
-+
-Check that your Kubernetes cluster host is running your cluster, for example:
-+
-[source,kubectl]
-----
-kubectl cluster-info
-----
-+
-If the cluster is running, the command returns a result similar to this one:
-+
-----
-Kubernetes control plane is running at https://34.30.50.119
-GLBCDefaultBackend is running at https://34.30.50.119/api/v1/namespaces/kube-system/services/default-http-backend:http/proxy
-KubeDNS is running at https://34.30.50.119/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
-Metrics-server is running at https://34.30.50.119/api/v1/namespaces/kube-system/services/https:metrics-server:/proxy
-----
-+
-If the cluster is not up, the command can return a result similar to this one:
-+
-----
-To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
-error: the server doesn't have a resource type "services"
-----
-+
-For additional information, see <<check-cluster>>.
+[[troubleshoot-helm-upgrade-failed]]
+==== Upgrade Failed: Timed Out
+//error: 
+include::partial$troubleshoot.adoc[tags=troubleshoot-helm-upgrade-failed]
 
-[[upgrade-failed]]
-* Some issues can cause the Helm upgrade command to hang for up to 5 minutes (due to the `--wait` flag in the command) before producing the following timeout error:
-+
-----
-Error: UPGRADE FAILED: timed out waiting for the condition
-----
-+
-This error typically means that your cluster configuration is incorrect or that your cluster configuration tool does not support this process. See <<kubernetes-cluster-reqs>>. One potential cause is the failure to generate a `Service` resource of the `LoadBalancer` type. You can troubleshoot further by running the following commands:
+[[troubleshoot-helm-cluster-unreachable]]
+==== Kubernetes Cluster Unreachable
+//error: 
+include::partial$troubleshoot.adoc[tags=troubleshoot-helm-cluster-unreachable]
 
-** {empty}
-+
-[source,kubectl]
-----
-kubectl -n gateway describe deployment
-----
+See <<kubernetes-cluster-reqs>> for additional information.
 
-** {empty}
-+
-[source,kubectl]
-----
-kubectl -n gateway describe service
-----
+[[troubleshoot-helm-openshift-rbac]]
+==== Failed to Install CRD
+//error: 
+include::partial$troubleshoot.adoc[tags=troubleshoot-helm-openshift-rbac]
 
-//cluster-level access when rbac enabled, as for OpenShift
-* {empty}
-+
-include::partial$prerequisites.adoc[tags=rbac-permission-k8;rbac-role-openshift]
-+
-Without the required access, you receive an error similar to the following one:
-+
-----
-Error: failed to install CRD crds/apiinstance.yaml:
-customresourcedefinitions.apiextensions.k8s.io is forbidden: 
-User "user1" cannot create resource "customresourcedefinitions" 
-in API group "apiextensions.k8s.io" at the cluster scope
-----
+See <<kubernetes-cluster-reqs>> for additional information.
 
 [[check-cluster]]
 == Check Your Cluster
