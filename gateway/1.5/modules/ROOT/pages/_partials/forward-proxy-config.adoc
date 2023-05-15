@@ -125,8 +125,8 @@ spec:
 sudo touch /usr/local/share/mulesoft/flex-gateway/conf.d/forward-config.yaml
 ----
 
-. Update the file with your desired forward proxy configuration details, for example:
-+
+. Update the file with your desired forward proxy configuration details.
+. See <<proxy-registration, Forward Proxy Flex Gateway Registration>> if your Flex Gateway does not have direct internet access.
 //end::linux[]
 
 //tag::docker[]
@@ -135,7 +135,7 @@ sudo touch /usr/local/share/mulesoft/flex-gateway/conf.d/forward-config.yaml
 == Configure Log Output for Flex Gateway in a Docker Container
 
 NOTE: If you have already added a volume for a folder with your
-Flex Gateway configuration files, skip to the last step.
+Flex Gateway configuration files, skip to the create and save a YAML file step.
 
 . Press Ctrl+C to stop your Flex Gateway and any replicas.
 . Create a folder named `app` in the directory with your Flex Gateway configuration files.
@@ -143,8 +143,8 @@ Flex Gateway configuration files, skip to the last step.
 //end::docker[]
 
 //tag::docker2[]
-. Create and save a YAML file with your desired forward proxy configuration details, for example:
-+
+. Create and save a YAML file with your desired forward proxy configuration details.
+. See <<proxy-registration, Forward Proxy Flex Gateway Registration>> if your Flex Gateway does not have direct internet access.
 //end::docker2[]
 
 //tag::k8s[]
@@ -157,40 +157,19 @@ a YAML configuration file with your storage details.
 
 //end::k8s[]
 
-//tag::sample-config-all[]
-[source,yaml]
-----
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: Configuration
-metadata:
-  name: forward-proxy
-spec:
-  forwardProxy:
-    https:
-      address: http://proxy:8888
-      basicAuth: // OPTIONAL
-        username: username
-        password: password
-    noProxy: // OPTIONAL
-      - fluentd
-      - .svc.cluster.local
+//tag::proxy-registration[]
 
-----
-//end::sample-config-all[]
-
-//tag::noproxy-registration[]
+[[proxy-registration]]
 == Forward Proxy Flex Gateway Registration
 
-If registering your Flex Gateway forward proxy in an internal network without internet, you must add the `--https-proxy` flag when xref:flex-{page-mode}-reg-run.adoc[registering a Flex Gateway].
+If your Flex Gateway with a forward proxy configured is in an internal network where all internet connections pass through the forward proxy, you must add the `--https-proxy` flag when xref:flex-{page-mode}-reg-run.adoc[registering a Flex Gateway].
 
 Add the `--https-proxy` flag with your proxy `address` parameter:
-[source,ssh]
 ----
 --https-proxy=http://proxy:8888
 ----
 
 Provide your `username` and `password` parameters if you enable `basicAuth`:
-[source,ssh]
 ----
 --https-proxy=http://<username>:<password>@proxy:8888
 ----
@@ -205,8 +184,9 @@ flexctl register \
 --organization=<your-org-id> \
 --output-directory=/usr/local/share/mulesoft/flex-gateway/conf.d \
 --https-proxy=http://<username>:<password>@proxy:8888 \ 
---no-proxy=.svc.cluster.local \
 my-gateway
 ----
 
-//end::noproxy-registration[]
+NOTE: Use the relevant registration command for your Flex Gateway deployment.
+
+//end::proxy-registration[]
