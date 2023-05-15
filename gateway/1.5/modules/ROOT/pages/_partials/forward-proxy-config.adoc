@@ -1,4 +1,4 @@
-//tag::configuration[]
+//tag::intro[]
 A forward proxy, such as Squid, enables you to route external HTTP Flex Gateway connections through a proxy connection.  
 
 For both Connected Mode and Local Mode, you configure a forward proxy using YAML configuration files.
@@ -11,6 +11,23 @@ As in the diagram, when using a forward proxy, HTTP communication out of your in
 
 In this example, all HTTP API upstream communication must also pass through the forward proxy. For more information about how to enable some connections to communicate directly without the forward proxy, see <<noproxy-parameter, noProxy Parameter>>.
 
+//end::intro[]
+
+//tag::icon-table[]
+[cols="1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="#linux"]
+|image:install-docker-logo.png[25%,25%,xref="#docker"]
+|image:install-kubernetes-logo.png[20%,20%,xref="#kubernetes"]
+
+|<<linux>>
+|<<docker>>
+|<<kubernetes>>
+|===
+
+//end::icon-table[]
+
+//tag::connections[]
 == Forward Proxy Connections
 Only HTTP connections route through the forward proxy.
 
@@ -29,6 +46,9 @@ Configuring a forward proxy does not alter these connections:
 * Lightweight Directory Access Protocol (LDAP) connections
 * Non-HTTP log connections
 
+//end::connections[]
+
+//tag::noproxy[]
 == noProxy Parameter
 
 Adding the `noProxy` parameter enables HTTP services you trust to communicate without using the forward proxy.
@@ -43,8 +63,9 @@ image:no-proxy-diagram.png[This is an image demonstrating the differences in int
 
 In the diagram, when you do not enable `noProxy`, Flex Gateway communicates with the internal API endpoint using the forward proxy. When you enable `noProxy` and list the API Upstream domain, Flex Gateway communicates directly with the internal API endpoint.
 
+//end::noproxy[]
 
-
+//tag::forward-proxy-parameters[]
 == Configuring Forward Proxy Parameters
 
 [source,yaml]
@@ -90,14 +111,53 @@ spec:
 | Array containing domain names to communicate to without using the forward proxy
 |===
 
+//end::forward-proxy-parameters[]
 
-== File Configuration
+//tag::linux[]
 
-. Create a configuration file with a `.yaml` file extension:
-.. Give the file a custom name, such as `forward-proxy`.
-.. Save the file in the Flex Gateway configuration directory `/etc/mulesoft/flex-gateway/conf.d/forward-proxy.yaml`. This directory can contain multiple configuration files.
-. Copy and paste the following YAML snippet into the file, substituting your values:
+[[linux]]
+== Configure Log Output for Flex Gateway as a Linux Service
+
+. Create a YAML configuration file in the Flex Gateway configuration directory:
 +
+[source,ssh]
+----
+sudo touch /usr/local/share/mulesoft/flex-gateway/conf.d/forward-config.yaml
+----
+
+. Update the file with your desired forward proxy configuration details, for example:
++
+//end::linux[]
+
+//tag::docker[]
+
+[[docker]]
+== Configure Log Output for Flex Gateway in a Docker Container
+
+NOTE: If you have already added a volume for a folder with your
+Flex Gateway configuration files, skip to the last step.
+
+. Press Ctrl+C to stop your Flex Gateway and any replicas.
+. Create a folder named `app` in the directory with your Flex Gateway configuration files.
+. Restart your Flex Gateway with an additional volume for the new `app` directory:
+//end::docker[]
+
+//tag::docker2[]
+. Create and save a YAML file with your desired forward proxy configuration details, for example:
++
+//end::docker2[]
+
+//tag::k8s[]
+
+[[kubernetes]]
+== Configure Shared Storage for Flex Gateway in a Kubernetes Cluster
+
+To configure shared storage for Flex Gateway, create a new resource using
+a YAML configuration file with your storage details.
+
+//end::k8s[]
+
+//tag::sample-config-all[]
 [source,yaml]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -116,25 +176,13 @@ spec:
       - .svc.cluster.local
 
 ----
+//end::sample-config-all[]
 
-//end::configuration[]
-
-//tag::registrationTitle[]
+//tag::noproxy-registration[]
 == Forward Proxy Flex Gateway Registration
 
-//end::registrationTitle[]
+If registering your Flex Gateway forward proxy in an internal network without internet, you must add the `--https-proxy` flag when xref:flex-{page-mode}-reg-run.adoc[registering a Flex Gateway].
 
-//tag::localRegistration[]
-If registering your Flex Gateway forward proxy in an internal network without internet, you must add the `--https-proxy` flag when xref:flex-local-reg-run.adoc[registering a Flex Gateway in Local Mode].
-
-//end::localRegistration[]
-
-//tag::connRegistration[]
-If registering your Flex Gateway forward proxy in an internal network without internet, you must add the `--https-proxy` flag when xref:flex-conn-reg-run.adoc[registering a Flex Gateway in Connected Mode].
-
-//end::connRegistration[]
-
-//tag::registration[]
 Add the `--https-proxy` flag with your proxy `address` parameter:
 [source,ssh]
 ----
@@ -161,4 +209,4 @@ flexctl register \
 my-gateway
 ----
 
-//end::registration[]
+//end::noproxy-registration[]
