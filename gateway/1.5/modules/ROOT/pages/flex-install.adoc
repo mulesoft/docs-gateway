@@ -4,12 +4,13 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Download and install Flex Gateway as a Linux service, or download the Flex Gateway image from the Docker registry. Downloading is a prerequisite to registering and running a gateway as a Linux service or in a Docker container, Kubernetes cluster, or OpenShift cluster.
+Download and install Flex Gateway as a Linux service, or download the Flex Gateway image from the container registry. Downloading is a prerequisite to registering and running a gateway as a Linux service or in a container, Kubernetes cluster, or OpenShift cluster.
 
  * To run Flex Gateway inside a virtual machine (VM), download and install it as a Linux service.
  * To run Flex Gateway in a Docker container, download the Flex Gateway image.
  * To run Flex Gateway in a Kubernetes cluster, download the Flex Gateway image.
  * To run Flex Gateway in an OpenShift cluster, download the Flex Gateway image.
+ * To run Flex Gateway in a Podman container, download the Flex Gateway image.
 
 //table with tech logos and links (linux, docker, k8, openshift)
 include::partial$task-reg-run-flex-gateway.adoc[tags=table-logos-links]
@@ -326,7 +327,37 @@ REPOSITORY                   TAG
 //TODO: points to Flex Gateway Deployments in Kubernetes
 //      https://dev-docs-internal.kqa.msap.io/beta-flex-gateway-get-well/gateway/1.4/flex-gateway-k8-overview
 //Q: is this ok? 
-include::partial$reference-install-next-steps.adoc[tags=flex-k8-download-install] 
+include::partial$reference-install-next-steps.adoc[tags=flex-k8-download-install]
+
+
+[[podman]]
+== Download Flex Gateway for Use in a Podman Container
+
+Download the Flex Gateway container image to prepare for registering and running a gateway in a Podman container:
+
+. Download the Flex Gateway container image:
++
+[source,ssh,subs=attributes+]
+----
+podman pull {image-owner-lc}/flex-gateway:{gateway-ver-var}
+----
+
+. Verify that the download succeeded:
++
+[source,ssh,subs=attributes+]
+----
+podman images {image-owner-lc}/flex-gateway
+----
++
+When successful, the command lists the Flex Gateway container image, for example:
++
+[source,text,subs=attributes+]
+----
+REPOSITORY                   TAG
+{image-owner-lc}/flex-gateway        {gateway-ver-var}
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-download-install;flex-connected-vs-local]
 
 == See Also
 
