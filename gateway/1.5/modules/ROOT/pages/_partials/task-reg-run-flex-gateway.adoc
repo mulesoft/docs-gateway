@@ -323,8 +323,20 @@ mulesoft/flex-gateway
 NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
 
 // end::start-command-local[]
+// tag::podman-start-command-local[]
+
+[source,ssh,subs=attributes+]
+----
+podman run --rm \
+-v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
+-p 8080:8080 \
+mulesoft/flex-gateway
+----
+NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
+
+// end::podman-start-command-local[]
 // tag::start-command-local-valid[]
-The Docker logs should include this line:
+The output logs should include this line:
 
 [source,ssh]
 ----
