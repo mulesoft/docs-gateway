@@ -83,6 +83,15 @@ to generate set of instructions that includes a command block with the registrat
 // tag::token-openshift-heading[]
 == Register and Run with a Token in an OpenShift Cluster
 // end::token-openshift-heading[]
+// tag::app-podman-heading[]
+== Register and Run with a Connected App in a Podman Container
+// end::app-podman-heading[]
+// tag::user-podman-heading[]
+== Register and Run with a Username and Password in a Podman Container
+// end::user-podman-heading[]
+// tag::token-podman-heading[]
+== Register and Run with a Token in a Podman Container
+// end::token-podman-heading[]
 
 // tag::note-openshift-k8[]
 
@@ -91,17 +100,19 @@ From the command line, OpenShift procedures match Kubernetes procedures.
 
 // logos and links to sections that _use anchors_ in install and reg/run pages
 // tag::table-logos-links[]
-[cols="1a,1a,1a,1a"]
+[cols="1a,1a,1a,1a,1a"]
 |===
 |image:install-linux-logo.png[20%,20%,xref="#linux"]
 |image:install-docker-logo.png[25%,25%,xref="#docker]
 |image:install-kubernetes-logo.png[20%,20%,xref="#kubernetes"]
 |image:install-openshift-logo.png[20%,20%,xref="#openshift"]
+|image:install-podman-logo.png[25%,25%,xref="#podman"]
 
-|<<linux>>
-|<<docker>>
-|<<kubernetes>>
-|<<openshift>>
+|<<linux, Linux>>
+|<<docker, Docker>>
+|<<kubernetes, Kubernetes>>
+|<<openshift, OpenShift>>
+|<<podman, Podman>>
 |===
 // end::table-logos-links[]
 
@@ -198,6 +209,11 @@ docker run --entrypoint flexctl \
 -v "$(pwd)":/registration -u $UID mulesoft/flex-gateway \
 register \
 # end::docker-reg-command[]
+# tag::podman-reg-command[]
+podman run --entrypoint flexctl \
+-v "$(pwd)":/registration -u $UID mulesoft/flex-gateway \
+register \
+# end::podman-reg-command[]
 # tag::linux-reg-command[]
 flexctl register \
 # end::linux-reg-command[]
@@ -273,6 +289,21 @@ mulesoft/flex-gateway
 ----
 NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
 // end::start-command[]
+// tag::podman-start-command[]
+
+=== Start Command
+
+Run the following start command in the same directory where you ran the registration command:
+
+[source,ssh,subs=attributes+]
+----
+podman run --rm \
+-v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
+-p 8080:8080 \
+mulesoft/flex-gateway
+----
+NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
+// end::podman-start-command[]
 // tag::start-command-local-intro[]
 
 === Start Command
