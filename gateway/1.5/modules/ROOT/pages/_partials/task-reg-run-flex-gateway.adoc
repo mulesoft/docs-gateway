@@ -47,15 +47,33 @@ to generate set of instructions that includes a command block with the registrat
 ** The *Username* and *Password* of a user with _Read Servers_ and _Manage Servers_ permissions for Runtime Manager
 
 // end::user-prerequisites[]
+// tag::app-container-heading[]
+== Register and Run with a Connected App in a Container
+// end::app-container-heading[]
+// tag::user-container-heading[]
+== Register and Run with a Username and Password in a Container
+// end::user-container-heading[]
+// tag::token-container-heading[]
+== Register and Run with a Token in a Container
+// end::token-container-heading[]
 // tag::app-docker-heading[]
-== Register and Run with a Connected App in a Docker Container
+=== Register and Run with a Connected App in a Docker Container
 // end::app-docker-heading[]
 // tag::user-docker-heading[]
-== Register and Run with a Username and Password in a Docker Container
+=== Register and Run with a Username and Password in a Docker Container
 // end::user-docker-heading[]
 // tag::token-docker-heading[]
-== Register and Run with a Token in a Docker Container
+=== Register and Run with a Token in a Docker Container
 // end::token-docker-heading[]
+// tag::app-podman-heading[]
+=== Register and Run with a Connected App in a Podman Container
+// end::app-podman-heading[]
+// tag::user-podman-heading[]
+=== Register and Run with a Username and Password in a Podman Container
+// end::user-podman-heading[]
+// tag::token-podman-heading[]
+=== Register and Run with a Token in a Podman Container
+// end::token-podman-heading[]
 // tag::app-linux-heading[]
 == Register and Run with a Connected App as a Linux Service
 // end::app-linux-heading[]
@@ -83,15 +101,6 @@ to generate set of instructions that includes a command block with the registrat
 // tag::token-openshift-heading[]
 == Register and Run with a Token in an OpenShift Cluster
 // end::token-openshift-heading[]
-// tag::app-podman-heading[]
-== Register and Run with a Connected App in a Podman Container
-// end::app-podman-heading[]
-// tag::user-podman-heading[]
-== Register and Run with a Username and Password in a Podman Container
-// end::user-podman-heading[]
-// tag::token-podman-heading[]
-== Register and Run with a Token in a Podman Container
-// end::token-podman-heading[]
 
 // tag::note-openshift-k8[]
 
@@ -113,6 +122,21 @@ From the command line, OpenShift procedures match Kubernetes procedures.
 |<<openshift,OpenShift>>
 |===
 // end::table-logos-links[]
+
+// tag::table-containers-logos-heading[]
+You can register and run Flex Gateway for use in one of the following containers:
+// end::table-containers-logos-heading[]
+
+// tag::table-containers-logos-links[]
+[cols="1a,1a"]
+|===
+|image:install-docker-logo.png[15%,15%,xref="#docker"]
+|image:install-podman-logo.png[12%,12%,xref="#podman"]
+
+|<<docker,Docker>>
+|<<podman,Podman>>
+|===
+// end::table-containers-logos-links[]
 
 // tag::reg-command-intro[]
 To register a Flex Gateway with Anypoint Platform, you must enter the registration command and then the start command. Each command includes information specific to your Anypoint Platform instance and *must be updated before* executing. See <<Before You Begin>> for more information on how to find the information you will need.
@@ -153,7 +177,14 @@ To register Flex Gateway with Anypoint Platform, run the Docker registration com
  
 Before registering your Flex Gateway instance, collect information for the following registration command options: 
 
-// end::sub-coll-info[] 
+// end::sub-coll-info[]
+// tag::sub-coll-info-container[]
+
+==== Collect Your Registration Data
+
+Before registering your Flex Gateway instance, collect information for the following registration command options:
+
+// end::sub-coll-info-container[]
 // tag::user-replace-content[]
 
 * `--username` = the username for an Anypoint Platform user with _Read Servers_ and _Manage Servers_ permissions for Runtime Manager
@@ -192,6 +223,13 @@ If `split` is set to `true`, registration information is split into two files: `
 Register your Flex Gateway instance using the data that you gathered for the command options.
 
 // end::reg-command-heading[]
+// tag::reg-command-heading-container[]
+
+==== Register Flex Gateway
+
+Register your Flex Gateway instance using the data that you gathered for the command options.
+
+// end::reg-command-heading-container[]
 // tag::docker-create-directory-note[]
 
 IMPORTANT: Create a new directory called `flex-registration` (or similar) and then run the registration command in this new directory. The command creates registration files in this location.
@@ -287,9 +325,24 @@ mulesoft/flex-gateway
 ----
 NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
 // end::start-command[]
+// tag::start-command-container[]
+
+==== Start Command
+
+Run the following start command in the same directory where you ran the registration command:
+
+[source,ssh,subs=attributes+]
+----
+docker run --rm \
+-v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
+-p 8080:8080 \
+mulesoft/flex-gateway
+----
+NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
+// end::start-command-container[]
 // tag::podman-start-command[]
 
-=== Start Command
+==== Start Command
 
 Run the following start command in the same directory where you ran the registration command:
 
@@ -304,7 +357,7 @@ NOTE: Specify an optional name you want to assign to your Flex Replica by includ
 // end::podman-start-command[]
 // tag::start-command-local-intro[]
 
-=== Start Command
+==== Start Command
 
 Run the following start command in the same directory where you ran the registration command:
 
