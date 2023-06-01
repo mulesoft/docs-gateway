@@ -6,11 +6,13 @@ endif::[]
 
 Download and install Flex Gateway as a Linux service, or download the Flex Gateway image from the container registry. Downloading is a prerequisite to registering and running a gateway as a Linux service or in a container, Kubernetes cluster, or OpenShift cluster.
 
- * To run Flex Gateway inside a virtual machine (VM), download and install it as a Linux service.
- * To run Flex Gateway in a Docker container, download the Flex Gateway image.
- * To run Flex Gateway in a Kubernetes cluster, download the Flex Gateway image.
- * To run Flex Gateway in an OpenShift cluster, download the Flex Gateway image.
- * To run Flex Gateway in a Podman container, download the Flex Gateway image.
+To run Flex Gateway inside a virtual machine (VM), download and install it as a Linux service. To run Flex Gateway in a container, Kubernetes cluster, or OpenShift cluster, download the Flex Gateway image.
+
+//  * To run Flex Gateway inside a virtual machine (VM), download and install it as a Linux service.
+//  * To run Flex Gateway in a Docker container, download the Flex Gateway image.
+//  * To run Flex Gateway in a Kubernetes cluster, download the Flex Gateway image.
+//  * To run Flex Gateway in an OpenShift cluster, download the Flex Gateway image.
+//  * To run Flex Gateway in a Podman container, download the Flex Gateway image.
 
 //table with tech logos and links (linux, docker, k8, openshift)
 include::partial$task-reg-run-flex-gateway.adoc[tags=table-logos-links]
@@ -239,26 +241,68 @@ sudo sed -i -e "s|mirrorlist=|#mirrorlist=|g" -e "s|#baseurl=http://mirror.cento
 
 include::partial$reference-install-next-steps.adoc[tags=flex-download-install;flex-connected-vs-local]
 
-[[docker]]
-== Download Flex Gateway for Use in a Docker Container 
+[[container]]
+== Download Flex Gateway for Use in a Container
+You can download and install Flex Gateway in one of the following containers:
+[cols="1a,1a"]
+|===
+|image:install-docker-logo.png[15%,15%,xref="#install-docker"]
+|image:install-podman-logo.png[12%,12%,xref="#install-podman"]
 
-Download the Flex Gateway container image to prepare for registering and running a gateway in a Docker container: 
+|<<install-docker,Docker>>
+|<<install-podman,Podman>>
+|===
 
-. Download the Flex Gateway Docker image: 
+[[install-docker]]
+=== Docker
+==== Download Flex Gateway for Use in a Docker Container
+
+Download the Flex Gateway container image to prepare for registering and running a gateway in a Docker container:
+
+. Download the Flex Gateway Docker image:
 +
 [source,ssh,subs=attributes+]
 ----
 docker pull {image-owner-lc}/flex-gateway:{gateway-ver-var}
 ----
 
-. Verify that the download succeeded: 
+. Verify that the download succeeded:
 +
 [source,ssh,subs=attributes+]
 ----
 docker images {image-owner-lc}/flex-gateway
 ----
 +
-When successful, the command lists the Flex Gateway container image, for example: 
+When successful, the command lists the Flex Gateway container image, for example:
++
+[source,text,subs=attributes+]
+----
+REPOSITORY                   TAG
+{image-owner-lc}/flex-gateway        {gateway-ver-var}
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-download-install;flex-connected-vs-local]
+
+[[install-podman]]
+==== Download Flex Gateway for Use in a Podman Container
+
+Download the Flex Gateway container image to prepare for registering and running a gateway in a Podman container:
+
+. Download the Flex Gateway container image:
++
+[source,ssh,subs=attributes+]
+----
+podman pull docker.io/{image-owner-lc}/flex-gateway:{gateway-ver-var}
+----
+
+. Verify that the download succeeded:
++
+[source,ssh,subs=attributes+]
+----
+podman images docker.io/{image-owner-lc}/flex-gateway
+----
++
+When successful, the command lists the Flex Gateway container image, for example:
 +
 [source,text,subs=attributes+]
 ----
@@ -271,9 +315,14 @@ include::partial$reference-install-next-steps.adoc[tags=flex-download-install;fl
 [[kubernetes]]
 == Download Flex Gateway for Use in a Kubernetes Cluster
 
-Download the Flex Gateway container image to prepare for registering and running a gateway in a Kubernetes cluster: 
+Download the Flex Gateway container image to prepare for registering and running a gateway in a Kubernetes cluster. You can use the following container runtimes:
 
-. Download the Flex Gateway Docker image: 
+* <<install-k8s-docker,Docker>>
+* <<install-k8s-podman,Podman>>
+
+[[install-k8s-docker]]
+=== Docker
+. Download the Flex Gateway container image:
 +
 [source,ssh,subs=attributes+]
 ----
@@ -288,6 +337,32 @@ docker images {image-owner-lc}/flex-gateway
 ----
 +
 When successful, the command lists the Flex Gateway container image, for example: 
++
+[source,text,subs=attributes+]
+----
+REPOSITORY                   TAG
+{image-owner-lc}/flex-gateway        {gateway-ver-var}
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-k8-download-install]
+
+[[install-k8s-podman]]
+=== Podman
+. Download the Flex Gateway container image:
++
+[source,ssh,subs=attributes+]
+----
+podman pull docker.io/{image-owner-lc}/flex-gateway:{gateway-ver-var}
+----
+
+. Verify that the download succeeded:
++
+[source,ssh,subs=attributes+]
+----
+podman images docker.io/{image-owner-lc}/flex-gateway
+----
++
+When successful, the command lists the Flex Gateway container image, for example:
 +
 [source,text,subs=attributes+]
 ----
@@ -300,9 +375,15 @@ include::partial$reference-install-next-steps.adoc[tags=flex-k8-download-install
 [[openshift]]
 == Download Flex Gateway for Use in an OpenShift Cluster
 
-Download the Flex Gateway container image to prepare for registering and running a gateway in an OpenShift cluster: 
+Download the Flex Gateway container image to prepare for registering and running a gateway in an OpenShift cluster. You can use the following container runtimes:
 
-. Download the Flex Gateway Docker image: 
+* <<install-openshift-docker,Docker>>
+* <<install-openshift-podman,Podman>>
+
+[[install-openshift-docker]]
+=== Docker
+
+. Download the Flex Gateway container image:
 +
 [source,ssh,subs=attributes+]
 ----
@@ -324,29 +405,20 @@ REPOSITORY                   TAG
 {image-owner-lc}/flex-gateway        {gateway-ver-var}
 ----
 
-//TODO: points to Flex Gateway Deployments in Kubernetes
-//      https://dev-docs-internal.kqa.msap.io/beta-flex-gateway-get-well/gateway/1.4/flex-gateway-k8-overview
-//Q: is this ok? 
-include::partial$reference-install-next-steps.adoc[tags=flex-k8-download-install]
-
-
-[[podman]]
-== Download Flex Gateway for Use in a Podman Container
-
-Download the Flex Gateway container image to prepare for registering and running a gateway in a Podman container:
-
+[[install-openshift-podman]]
+=== Podman
 . Download the Flex Gateway container image:
 +
 [source,ssh,subs=attributes+]
 ----
-podman pull {image-owner-lc}/flex-gateway:{gateway-ver-var}
+podman pull docker.io/{image-owner-lc}/flex-gateway:{gateway-ver-var}
 ----
 
 . Verify that the download succeeded:
 +
 [source,ssh,subs=attributes+]
 ----
-podman images {image-owner-lc}/flex-gateway
+podman images docker.io/{image-owner-lc}/flex-gateway
 ----
 +
 When successful, the command lists the Flex Gateway container image, for example:
@@ -357,7 +429,10 @@ REPOSITORY                   TAG
 {image-owner-lc}/flex-gateway        {gateway-ver-var}
 ----
 
-include::partial$reference-install-next-steps.adoc[tags=flex-download-install;flex-connected-vs-local]
+//TODO: points to Flex Gateway Deployments in Kubernetes
+//      https://dev-docs-internal.kqa.msap.io/beta-flex-gateway-get-well/gateway/1.4/flex-gateway-k8-overview
+//Q: is this ok? 
+include::partial$reference-install-next-steps.adoc[tags=flex-k8-download-install]
 
 == See Also
 

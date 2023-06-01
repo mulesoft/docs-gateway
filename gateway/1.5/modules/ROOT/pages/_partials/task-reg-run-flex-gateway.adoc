@@ -100,19 +100,17 @@ From the command line, OpenShift procedures match Kubernetes procedures.
 
 // logos and links to sections that _use anchors_ in install and reg/run pages
 // tag::table-logos-links[]
-[cols="1a,1a,1a,1a,1a"]
+[cols="1a,1a,1a,1a"]
 |===
 |image:install-linux-logo.png[20%,20%,xref="#linux"]
-|image:install-docker-logo.png[25%,25%,xref="#docker]
+|image:install-container-logo.png[25%,25%,xref="#container"]
 |image:install-kubernetes-logo.png[20%,20%,xref="#kubernetes"]
 |image:install-openshift-logo.png[20%,20%,xref="#openshift"]
-|image:install-podman-logo.png[25%,25%,xref="#podman"]
 
-|<<linux, Linux>>
-|<<docker, Docker>>
-|<<kubernetes, Kubernetes>>
-|<<openshift, OpenShift>>
-|<<podman, Podman>>
+|<<linux,Linux>>
+|<<container,Container>>
+|<<kubernetes,Kubernetes>>
+|<<openshift,OpenShift>>
 |===
 // end::table-logos-links[]
 
@@ -211,7 +209,7 @@ register \
 # end::docker-reg-command[]
 # tag::podman-reg-command[]
 podman run --entrypoint flexctl \
--v "$(pwd)":/registration -u $UID mulesoft/flex-gateway \
+-v "$(pwd)":/registration -u $UID docker.io/mulesoft/flex-gateway \
 register \
 # end::podman-reg-command[]
 # tag::linux-reg-command[]
@@ -300,7 +298,7 @@ Run the following start command in the same directory where you ran the registra
 podman run --rm \
 -v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
 -p 8080:8080 \
-mulesoft/flex-gateway
+docker.io/mulesoft/flex-gateway
 ----
 NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
 // end::podman-start-command[]
@@ -330,7 +328,7 @@ NOTE: Specify an optional name you want to assign to your Flex Replica by includ
 podman run --rm \
 -v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
 -p 8080:8080 \
-mulesoft/flex-gateway
+docker.io/mulesoft/flex-gateway
 ----
 NOTE: Specify an optional name you want to assign to your Flex Replica by including the following: `-e FLEX_NAME=<name-for-flex-replica> \`.
 
