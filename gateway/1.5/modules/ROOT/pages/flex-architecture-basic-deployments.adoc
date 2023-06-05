@@ -4,9 +4,10 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Flex Gateway supports two basic deployment models, which apply to both Connected Mode and Local Mode:
+Flex Gateway supports multiple deployment models, which apply to both Connected Mode and Local Mode:
 
 * <<standalone-deployment, Standalone deployment>>
+* <<ingress-deployment, Ingress deployment>>
 * <<sidecar-deployment, Sidecar deployment>>
 
 You can extend the deployment models in this overview to all technological stacks that have the appropriate network controls applied.
@@ -19,7 +20,13 @@ As the following diagram shows, all external traffic in a standalone deployment 
 
 image:ad-standalone-deployment.png["In a standalone deployment, Flex Gateway and the consumer applications are in different Kubernetes namespaces."]
 
+== Ingress Deployment
 
+Similar to standalone deployment, in an Ingress Deployment, Flex Gateway acts as a standalone service that protects one or more integration API flows by managing external traffic.
+
+In an ingress deployment, all external traffic passes through Flex Gateway before reaching the consumer APIs. Flex Gateway is typically deployed behind a load balancer.
+
+As the following diagram shows, the consumer application does not belong to the same network as Flex Gateway, and the APIs Flex Gateway supports can belong to networks external to Flex Gateway.
 
 == Sidecar Deployment
 In a sidecar deployment, each Flex Gateway deployment exclusively protects the APIs exposed by its protected service. A new Flex Gateway replica is added with each new protected service:
