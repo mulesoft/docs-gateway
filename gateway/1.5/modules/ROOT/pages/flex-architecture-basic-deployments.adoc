@@ -47,15 +47,15 @@ image:ad-egress-deployment.png[]
 == Sidecar Deployment
 In a sidecar deployment, each Flex Gateway deployment exclusively protects the APIs exposed by its protected service. A new Flex Gateway replica is added with each new protected service.
 
-As the following diagram shows, external traffic in a sidecar deployment passes through Flex Gateway to the respective consumer API. The consumer application can belong to the same network as Flex Gateway.
+As the following diagram shows, traffic in a sidecar deployment passes through Flex Gateway to the respective consumer API. The consumer application can belong to the same network as Flex Gateway or an external network.
 
 image:ad-sidecar-deployment.png["In a sidecar deployment, Flex Gateway and the consumer application are in the same Kubernetes pod."]
 
 == Routing Configuration Methods
 
-There are different routing configuration methods dependent on what mode or what technological stack your Flex Gateway is deployed on.
+There are different routing configuration methods dependent on what mode Flex Gateway is running in or what technological stack Flex Gateway is deployed on.
 
-How connections between Flex Gateway and services are configured is independent of the deployment models.
+How connections between Flex Gateway and services are configured is independent of the deployment model.
 
 === Control Plane
 
@@ -72,6 +72,8 @@ In Flex Gateway CRDs define connections in Local Mode but are also necessary for
 === Kubernetes Ingress Resource
 
 Flex Gateways running in Local Mode and deployed on Kubernetes can use Kubernetes `Ingress` resources to define connection routing. When routing is defined via `Ingress` resources, Flex Gateway acts an Ingress Controller. `Ingress` resources are only avaliable in Kubernetes Local Mode.
+
+You can use `Ingress` resources and CRDs simultaneously. 
 
 For more information about how to configure Flex Gateway as an Ingress Controller, see xref:flex-gateway-k8-ingress-class.adoc[].
 
