@@ -10,12 +10,36 @@ image:multiple-upstreams.png[]
 
 == Routes
 
-Each API instance supports up to 10 routes. Each route supports up to 10 upstreams. Using multiple routes you can route requests to a single endpoint to different types of upstream services. For example, a single consumer endpoint can accept requests  
+Each API instance supports up to 10 routes. Each route supports up to 10 upstreams. Using multiple routes you can route requests from a single consumer endpoint to different types of upstream services. For example, Flex Gateway can manage requests to a sales datacenter as well as a customer service application.
+
+You can direct direct traffic to different routes using route rules. Flex Gateway supports traffic routing based on the following criteria:
+
+[a,a]
+|===
+| Field Name | Description | Notes
+| *Method* | The request methods supported by this route | 
+| *Path* | Also known as “URI Template Regex”, path is a regular expression to match the request path. | 
+| *Host* | The host path the request is made to |
+| *Headers* | The headers to route to this | To add an additional header, click *Add header (optional)*. 
+|===
 
 
 == Multiple Upstream
 
-Each API instance route can support up to 10 upstreams. You can use multiple upstreams
+Each API instance route can support up to 10 upstreams. You can use multiple upstreams to route requests to similar services. For example, if you want to test the performance of a new upstream service without routing all traffic to the new service, you can route half of the traffic to the older upstream service and half to the new upstream service. At least one upstream is required for each route.
+
+To add additional upstreams, click *Add Upstream (optional)*.
+
+To delete upstream, click the *Trash Can* icon (image:trashcan-icon.png[]).
+
+[%header%autowidth.spread,cols="15%,35%,15%,35%"]
+|===
+| Field Name | Description | Required | Notes
+| *Upstream URL* | The URL to access for the proxy or the API. It must end with a /. | Yes |  For example, you can use the URL of your API asset in Exchange.
+| *Upstream Label* | Specifies a label for the upstream | No | If you have multiple upstream service instances, add a label to differentiate each instance from the others.
+| *TLS* | Specifies the TLS Context used for the outbound traffic | No | xref:gateway::flex-conn-tls-config.adoc[Configure a TLS Context for Flex Gateway] before adding a TLS Context to your API.
+| *Weight* | The percentage of requests to send to that upstream service | Yes | This value is only configurable if you have multiple upstreams. The sum of all upstream weights must equal 100%.
+|===
 
 
 == Multiple Routes
