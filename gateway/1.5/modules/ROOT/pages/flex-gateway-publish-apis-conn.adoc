@@ -6,15 +6,30 @@ endif::[]
 
 Flex Gateway running in Connected Mode supports API instances with multiple routes and multiple upstreams enabling you to expose multiple backend services through a single consumer endpoint.
 
+When managing traffic for Flex Gateway, it is important to understand the difference between a route and an upstream. Routes direct traffic to different sets of upstream services, where as upstreams are different instances of the upstream services.
+
+For example, when a request is made, Flex Gateway first decides what route the request belongs to using route rules. Then Flex Gateway sends the request to on of the upstream services defined in the route. 
+
+In the following diagram, different routes manage requests to flight information databases and to a customer service application. Route one has two upstream services defined directing 70% of requests to a stable database and 30% of requests to a beta database.  
+
 image:multiple-upstreams.png[]
 
 == Routes
 
-Each API instance supports up to 10 routes. Each route supports up to 10 upstreams. Using multiple routes you can route requests from a single consumer endpoint to different types of upstream services. For example, Flex Gateway can manage requests to a sales datacenter as well as a customer service application.
+Each API instance supports up to 10 routes. Each route supports up to 10 upstreams. Using multiple routes, you can route requests from a single consumer endpoint to different types of upstream services. For example, Flex Gateway can manage requests to a sales datacenter as well as a customer service application.
 
-You can direct direct traffic to different routes using route rules. Flex Gateway supports traffic routing based on the following criteria:
+To add additional routes, click *Add Route (optional)*.
 
-[a,a]
+To delete a route, click the *Trash Can* icon (image:trashcan-icon.png[4%,4%]).
+
+
+=== Route Rules
+
+You can direct requests to different routes using route rules. Only requests that meet all route rule criteria are directed to that route.
+
+Flex Gateway supports traffic routing based on the following criteria:
+
+[a,a,a]
 |===
 | Field Name | Description | Notes
 | *Method* | The request methods supported by this route | 
@@ -23,6 +38,7 @@ You can direct direct traffic to different routes using route rules. Flex Gatewa
 | *Headers* | The headers to route to this | To add an additional header, click *Add header (optional)*. 
 |===
 
+To view and edit route rules, click *Route Rules*.
 
 == Multiple Upstream
 
@@ -30,7 +46,7 @@ Each API instance route can support up to 10 upstreams. You can use multiple ups
 
 To add additional upstreams, click *Add Upstream (optional)*.
 
-To delete upstream, click the *Trash Can* icon (image:trashcan-icon.png[4%,4%]).
+To delete an upstream, click the *Trash Can* icon (image:trashcan-icon.png[4%,4%]).
 
 [%header%autowidth.spread,cols="15%,35%,15%,35%"]
 |===
