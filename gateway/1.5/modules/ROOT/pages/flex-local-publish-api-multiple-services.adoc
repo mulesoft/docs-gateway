@@ -4,25 +4,156 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
+include::partial$task-traffic-management.adoc[tags=intro]
+
+== Configuring Traffic Management Parameters
+
+Traffic management in Local Mode is configured as a `PolicyBinding` YAML configuration resource. Each `route-weighted` resource defines a single a route. To add additional routes, you can add multiple `route-weighted` resources.
+
+
+
+
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: <value>
+spec:
+  targetRef:
+    name: <value>
+  policyRef:
+    name: route-weighted
+  config:
+    routes:
+    - weight: <numerical-value> # max_value=100, min_value=1
+      destinationPath: /posts/
+      destinationRef:
+        name: jsonplaceholder-v1
+    - weight: 50 # this is not a % value, It would have the same behaviour if both weights are configured with same weights. Ej: 5 and 5, total weight = 10, means each one has 50% of the total weight
+      destinationPath: /todos/
+      destinationRef:
+        name: jsonplaceholder-v2
+  rules:
+   - path: (.*)
+     methods: GET|POST
+     headers:
+       x-test: true
+     host: test.com
+----
+
+|===
+|Parameter | Required or Optional | Description
+
+| `spec.targetRef.name`
+| Required
+| The API instance identifier to which the policy is bound to.
+
+| `spec.policyRef.name`
+| Required
+| Policy name,
+
+| `spec.config`
+| Required
+| Traffic management configuration values.
+
+| `spec.config.routes`
+| Minimun 1 Route +
+Maximum 10 Routes
+| Route configuration values
+
+| `spec.config.routes.weight`
+| Required
+
+
+Minimun 1 Route +
+Maximum 10 Routes
+| Route configuration values
+
+- weight: 50 # max_value=100, min_value=1
+      destinationPath: /posts/
+      destinationRef:
+        name: jsonplaceholder-v1
+
+
+
+| `basicAuth.username`
+| Required when `basicAuth` configured
+| Authentication username
+
+| `basicAuth.Password`
+| Required when `basicAuth` configured
+| Authentication password
+
+| `noProxy`
+| Optional
+| Array containing domain names to communicate to without using the forward proxy
+|===
+
+
+
 Publish an API running behind Flex Gateway in Local Mode, modifying YAML configuration data by the following method:
 
 * Linux and Docker: `.yaml` files
 
 The following procedures demonstrate applying a simple YAML configuration for an unsecured API with multiple upstream services.
 
-[cols="1,1"]
+[cols="1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="#linux"]
+|image:install-docker-logo.png[25%,25%,xref="docker"]
+|image:install-kubernetes-logo.png[20%,20%,xref="kubernetes"]
+
+|<<linux>>
+|<<docker>>
+|<<kubernetes>>
 |===
 
-|image:install-linux-logo.png[20%,20%,xref="flex-local-publish-api-multiple-services.adoc#publish-an-api-running-behind-flex-gateway-on-linux"]
+== Configuring Forward Proxy Parameters
 
-|image:install-docker-logo.png[25%,25%,xref="flex-local-publish-api-multiple-services.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container"]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: forward-proxy
+spec:
+  forwardProxy: 
+    https: 
+      address: http://proxy:8888 
+      basicAuth: 
+        username: <string> 
+        password: <string> 
+    noProxy: 
+       - fluentd
+       - .svc.cluster.local
 
-|xref:flex-local-publish-api-multiple-services.adoc#publish-an-api-running-behind-flex-gateway-on-linux[Publish an API Running Behind Flex Gateway on Linux]
-
-|xref:flex-local-publish-api-multiple-services.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container[Publish an API Running Behind Flex Gateway in a Docker Container]
+----
 
 |===
+|Parameter | Required or Optional | Description
 
+| `https.address`
+| required
+| Proxy adddress
+
+| `basicAuth`
+| Optional
+| Supplies the authentication username and password
+
+| `basicAuth.username`
+| Required when `basicAuth` configured
+| Authentication username
+
+| `basicAuth.Password`
+| Required when `basicAuth` configured
+| Authentication password
+
+| `noProxy`
+| Optional
+| Array containing domain names to communicate to without using the forward proxy
+|===
 == Publish an API Running Behind Flex Gateway on Linux 
 
 === Before You Begin
@@ -38,9 +169,46 @@ Before getting started, ensure that you have:
 .. Give the file a custom name.
 .. Save the file in the Flex Gateway configuration directory `/etc/mulesoft/flex-gateway/conf.d/custom`. This directory can contain multiple configuration files.
 
-. Copy and paste the following YAML snippet into the file, substituting your values where indicated:
+. Copy and paste the following `API Instance` and `PolicyBiding` resources into the file, substituting your values where indicated:
 +
 ----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: json-http
+spec:
+  address: http://0.0.0.0:8080/json
+​
+---
+​
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: weight-routing-test
+spec:
+  targetRef:
+    name: json-http
+  policyRef:
+    name: route-weighted
+  config:
+    routes:
+    - weight: 50
+      destinationPath: /posts/
+      destinationRef:
+        name: products-api
+    - weight: 50
+      destinationPath: /todos/
+      destinationRef:
+        name: users-api
+  rules:
+   - path: (.*)
+     methods: GET|POST
+     headers:
+       x-test: true
+     host: test.com
+
+
+
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: ApiInstance
 metadata:

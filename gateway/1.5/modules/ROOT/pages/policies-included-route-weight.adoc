@@ -1,0 +1,143 @@
+= Traffic Management Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: route weight, traffic management
+:page-aliases: policies::policies-included-tls.adoc
+
+[%autowidth.spread,cols="a,a"]
+|===
+>s| Policy Name | Traffic Management
+>s|Summary      | Manages API traffic to multiple uspstream
+>s|Category | Security
+>s| First Flex Gateway version available | v1.4.0
+.4+>.^s| Returned Status Codes | No return codes exist for this policy.
+[%autowidth.spread,cols="a,a"]
+|
+|===
+
+[NOTE]
+====
+The following document applies only to Flex Gateway running in Local Mode. To configure multiple upstream in Connected Mode, see xref:flex-conn-tls-config.adoc[].
+====
+
+== Summary
+
+Flex Gateway running in Local Mode supports API instances that expose multiple upstream services through a single consumer endpoint.
+
+This is done by using multiple routes and multiple upstreams. A route defines a set of similar upstream services and a upstream defines a path to upstream service instances.
+
+Traffic management in Local Mode is configured as a `PolicyBinding` YAML configuration resource. Each `route-weighted` resource defines a single a route. To add additional routes, you can add multiple `route-weighted`.
+
+== Configuring Policy Parameters
+
+Traffic management in Local Mode is configured as a `PolicyBinding` YAML configuration resource. Each `route-weighted` resource defines a single a route. To add additional routes, you can add multiple `route-weighted` resources and order the policies.
+
+----
+policyRef:
+    name: route-weighted
+  config:
+    routes:
+    - weight: <numerical-value> # max_value=100, min_value=1
+      destinationPath: /posts/
+      destinationRef:
+        name: jsonplaceholder-v1
+  rules:
+   - path: (.*)
+     methods: GET|POST
+     headers:
+       x-test: true
+     host: test.com
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Parameter | Required or Optional | Default Value | Description
+
+| `routes`
+| Required
+| Empty
+| An array of API upstream services
+
+| `routes.weight`
+| Required
+| N/A
+| The weight of total requests sent to this upstream. The percentage of traffic sent to that upstream is the upstream's weight divided by total weight of all upstream. For example, if there are two upstream with weight `1`, each upstream receives 50% of the traffic to that route.
+
+| `routes.destinationPath`
+| Required
+| N/A
+| Base path of the upstream service
+
+| `routes.destinationRef.name`
+| Required
+| N/A
+| Name of the upstream service as defined in the `Service` configuration resource
+
+| `rules`
+| Optional
+| Empty
+| An array of criteria to four requests sent to this route
+
+| `rules.path`
+| Optional
+| Empty
+| Also known as “URI Template Regex”, `path` is a regular expression to match the request path.
+
+| `rules.methods`
+| Optional
+| Empty
+| An array of the methods sent to this route +
+Only requests that are one of the specified methods are sent to the route.
+
+| `rules.headers`
+| Optional
+| Empty
+| An array of request headers and a `true` or `false` value specifying if the header is present+
+Only requests that meet all header criteria are sent to this route.
+
+| `rules.host`
+| Optional
+| Empty
+| The host path the request is made to +
+Only requests that are one of the specified methods are sent to the route.
+
+|===
+
+== How This Policy Works
+
+The Traffic Management policy works by directing traffic to different sets of upstream services. 
+
+For example, in the following diagram, different routes manage requests to flight information databases and to a customer service application. Route one has two upstream services defined directing 70% of requests to a stable database and 30% of requests to a beta database.
+
+image:multiple-upstreams.png[]
+
+To achieve this configuration, you must bind two `route-weighted` resources to the exposed API instance. One `route-weighted` resource directs traffic to the flight information database, and the other `route-weighted` resource directs traffic to the customer service application.
+
+=== Upstreams
+
+The upstreams defined in each `route-weighted` resource must accept the same requests.   
+
+
+
+
+=== Route Rules
+
+You can direct requests to different routes using route rules. Only requests that meet the route rule criteria are directed to that route.
+
+=== Route Order
+
+In addition to route rules, you can direct requests to different routes using policy ordering. 
+
+To order policies, see xref:policies-reorder.adoc[]
+
+Setting the policy order sets the order in which traffic is directed to the routes. Requests are sent to the first route where they meet the route rule criteria.
+
+Route ordering is very important when a request may meet the route rule criteria of multiple routes. Generally, the routes with more specific rules come first. For example, in a configuration where route one has the GET method applied as a rule and route two has no route rules applied, all GET requests are sent to route one and all other requests are sent to route two. If the route order was reversed, and the route with no route rules was first, Flex Gateway would send all requests to the first route.   
+
+
+== See Also
+* xref:flex-conn-tls-config.adoc[]
+* xref:flex-local-tls-config.adoc[]
+* xref:policies-included-tls-outbound.adoc[]
