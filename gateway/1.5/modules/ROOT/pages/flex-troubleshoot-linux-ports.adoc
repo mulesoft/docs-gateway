@@ -1,0 +1,64 @@
+= Troubleshooting Linux Ports
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+
+By default, the Flex Gateway process running on Linux does not have permissions to open ports lower than port 1024. The following describes changing the Envoy user to enable these permissions.
+
+== Change Envoy User to Run Flex Gateway as Root
+
+. Create the configuration used to run Flex Gateway as `root`:
++
+[source,ssh]
+----
+sudo mkdir -p /etc/systemd/system/flex-gateway-envoy.service.d/ && \
+cat <<- EOF | sudo tee /etc/systemd/system/flex-gateway-envoy.service.d/override.conf
+[Service]
+User=root
+EOF
+----
+
+. Reload the `systemd` configuration:
++
+[source,ssh]
+----
+sudo systemctl daemon-reload
+----
+
+. Restart the Flex Gateway service:
++
+[source,ssh]
+----
+sudo systemctl restart flex-gateway
+----
+
+== Reset Envoy User to Default
+
+. To set the Envoy user back to default, remove the configuration used to run Flex Gateway as `root`:
++
+[source,ssh]
+----
+sudo rm /etc/systemd/system/flex-gateway-envoy.service.d/override.conf
+----
+
+. Reload the `systemd` configuration:
++
+[source,ssh]
+----
+sudo systemctl daemon-reload
+----
+
+. Remove unneeded files:
++
+[source,ssh]
+----
+sudo rm /dev/shm/envoy_shared_memory_0 /tmp/flex-gw-admin.sock
+----
+
+. Restart the Flex Gateway service:
++
+[source,ssh]
+----
+sudo systemctl restart flex-gateway
+----
+
