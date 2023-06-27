@@ -109,7 +109,7 @@ You can only define one host URL for each ruleset. Only requests made from the d
 
 == How This Policy Works
 
-The Traffic Management policy works by directing traffic to different sets of upstream services. 
+The Traffic Management policy works by directing traffic to different sets of upstream services by using different routes with defined rulesets and route order. 
 
 For example, in the following diagram, different routes manage requests to flight information databases and to a customer service application. Route one has two upstream services defined directing 70% of requests to a stable database and 30% of requests to a beta database.
 
@@ -121,18 +121,18 @@ To achieve this configuration, you must bind two `route-weighted` resources to t
 
 You can use multiple upstream services in a single route to direct requests to similar services. For example, if you want to test the performance of a new beta upstream service without sending all traffic to the new service, you can direct half of the traffic to a stable upstream service and half to the new upstream service. 
 
-What upstream service within the route each request is sent to is random and independent of any previous request. The `routes.weight` value defines the chance of a request being sent to a particular upstream service. The percentage of traffic sent to that upstream service is the upstream's `routes.weight` divided by total weight of all upstream services. For example, if there are two upstream services with weight `1`, each receives 50% of the traffic to that route. This is same as if both had a weight of `2`.
+What upstream service within the route each request is sent to is random and independent of any previous request. The `routes.weight` value defines the chance of a request being sent to a particular upstream service. The percentage of traffic sent to that upstream service is the upstream's `routes.weight` divided by total weight of all upstream services. For example, if there are two upstream services with weight `1`, each receives 50% of the traffic to that route. If the weight values were `1` and `3`, one route would receive 25% of traffic and the other 75%.
 
 Since any upstream within a route could service any request, all upstream services within the same route must adhere to the same API contract.
 
 
 === Route Rules
 
-You can direct requests to different routes using route rules. Only requests that meet the rule criteria for one of the rulesets are directed to that route. 
+You can direct requests to different routes using route rules. Requests must only meet the rule criteria for one of the rulesets. 
 
 Rulesets refer to any combination of the four rules: `path`, `method`, `headers`, `host`. You can use multiple rulesets to support different combinations of rules.
 
-All rules are optional. Not defining a value for a rule means that aspect of the request not considered. For example, not specifying a host means that the route can service any host given the request meets the other rules in the rule set. Not defining any rules means that the route can service every request.
+All rules are optional. Not defining a value for a ruleset means that aspect of the request not considered. For example, not specifying a host means that the route can service any host given the request meets the other rules in the ruleset. Not defining any rules means that the route can service every request.
 
 === Route Order
 
@@ -140,7 +140,7 @@ In addition to route rules, you can direct requests to different routes using po
 
 To order policies, see xref:policies-reorder.adoc[]
 
-Setting the policy order sets the order in which traffic is directed to the routes. Requests are sent to the first route where they meet the route rule criteria for one of the rulesets. Therefore, route ordering is very important when a request may meet the route rules of multiple routes. 
+Setting the policy order sets the order in which traffic is directed to the routes. Requests are sent to the first route where they meet the rule criteria for one of the rulesets. Therefore, route ordering is very important when a request may meet the route rules of multiple routes. 
 
 For example, in a configuration where route one has the `GET` method defined as a rule and route two has no route rules defined, all `GET` requests are sent to route one and all other requests are sent to route two. If the route order was reversed and route one had no route rules, Flex Gateway would direct all requests to route one before any `GET` requests could reach route two.  
 
