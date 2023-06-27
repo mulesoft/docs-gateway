@@ -1,7 +1,7 @@
 //tag::intro1[]
 Anypoint Flex Gateway enables you to configure shared storage for distributed caching and rate limiting policies.
 
-Production workflows should use https://redis.io/[Redis^], though defining it is optional. If Redis is not defined, shared storage services at port 4000 are still available but will use an in-memory implementation.
+Production workflows should use https://redis.io/[Redis^], though defining it is optional. If Redis is not defined, shared storage services at port 4000 are still available but use an in-memory implementation.
 
 //end::intro1[]
 //tag::intro2[]
@@ -69,7 +69,7 @@ sudo vi /etc/mulesoft/flex-gateway/conf.d/custom/shared-storage-config.yaml
 NOTE: If you have already added a volume for a folder with your
 Flex Gateway configuration files, skip to the last step.
 
-. Press Ctrl+C to stop your Flex Gateway and any replicas.
+. Stop your Flex Gateway and any replicas.
 . Create a folder named `app` in the directory with your Flex Gateway configuration files.
 . Restart your Flex Gateway with an additional volume for the new `app` directory:
 //end::docker-intro[]
@@ -112,7 +112,9 @@ spec:
 
 You can use Redis with TLS to ensure data integrity between Flex Gateway and the Redis instance. Configuring TLS enables you to protect sensitive data, prevent unauthorized access, and maintain the reliability of your services. Additionally, configuring TLS helps organizations meet compliance requirements and build trust with users.
 
-Configure TLS for Redis-based shared storage using the steps described in the previous sections, but instead creating a YAML configuration file with the following TLS-specific information:
+Configure TLS for Redis-based shared storage using the steps described in the previous sections.
+
+Sample configuration for adding Redis-based shared storage with TLS:
 //end::tls-intro[]
 
 //tag::tls-sample-config[]
@@ -172,3 +174,7 @@ spec:
 
 ----
 //end::tls-sample-config[]
+
+//tag::tls-more-information[]
+For information about configuration parameters, see the xref:flex-local-configuration-reference-guide.adoc#shared-storage[Declarative Configuration Reference (Shared Storage)].
+//end::tls-more-information[]
