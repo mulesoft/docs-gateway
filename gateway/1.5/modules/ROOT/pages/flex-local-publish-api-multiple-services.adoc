@@ -4,100 +4,13 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-include::partial$task-traffic-management.adoc[tags=intro]
+Flex Gateway running in Local Mode supports API instances that expose multiple upstream services through a single consumer endpoint.
 
-== Configuring Traffic Management Parameters
+Flex Gateway manages traffic by using different routes with defined rulesets and route order to direct traffic to different sets of upstream services. Each API instance supports multiple routes that can each direct traffic to multiple upstream services.
 
-Traffic management in Local Mode is configured as a `PolicyBinding` YAML configuration resource. Each `route-weighted` resource defines a single a route. To add additional routes, you can add multiple `route-weighted` resources.
+API instance with multiple upstream services in Local Mode are configured by using `PolicyBinding` YAML configuration resources. Each `route-weighted` resource defines a single a route. To add additional routes, you can add multiple `route-weighted` resources.
 
-
-
-
-
-[source,yaml]
-----
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: PolicyBinding
-metadata:
-  name: <value>
-spec:
-  targetRef:
-    name: <value>
-  policyRef:
-    name: route-weighted
-  config:
-    routes:
-    - weight: <numerical-value> # max_value=100, min_value=1
-      destinationPath: /posts/
-      destinationRef:
-        name: jsonplaceholder-v1
-    - weight: 50 # this is not a % value, It would have the same behaviour if both weights are configured with same weights. Ej: 5 and 5, total weight = 10, means each one has 50% of the total weight
-      destinationPath: /todos/
-      destinationRef:
-        name: jsonplaceholder-v2
-  rules:
-   - path: (.*)
-     methods: GET|POST
-     headers:
-       x-test: true
-     host: test.com
-----
-
-|===
-|Parameter | Required or Optional | Description
-
-| `spec.targetRef.name`
-| Required
-| The API instance identifier to which the policy is bound to.
-
-| `spec.policyRef.name`
-| Required
-| Policy name,
-
-| `spec.config`
-| Required
-| Traffic management configuration values.
-
-| `spec.config.routes`
-| Minimun 1 Route +
-Maximum 10 Routes
-| Route configuration values
-
-| `spec.config.routes.weight`
-| Required
-
-
-Minimun 1 Route +
-Maximum 10 Routes
-| Route configuration values
-
-- weight: 50 # max_value=100, min_value=1
-      destinationPath: /posts/
-      destinationRef:
-        name: jsonplaceholder-v1
-
-
-
-| `basicAuth.username`
-| Required when `basicAuth` configured
-| Authentication username
-
-| `basicAuth.Password`
-| Required when `basicAuth` configured
-| Authentication password
-
-| `noProxy`
-| Optional
-| Array containing domain names to communicate to without using the forward proxy
-|===
-
-
-
-Publish an API running behind Flex Gateway in Local Mode, modifying YAML configuration data by the following method:
-
-* Linux and Docker: `.yaml` files
-
-The following procedures demonstrate applying a simple YAML configuration for an unsecured API with multiple upstream services.
+This page only serves has a tutorial for how to publish an API with the policy applied. For reference about how the policy work and the individual configuration values, see xref:policies-included-traffic-management.adoc[].
 
 [cols="1a,1a,1a"]
 |===
@@ -110,58 +23,15 @@ The following procedures demonstrate applying a simple YAML configuration for an
 |<<kubernetes>>
 |===
 
-== Configuring Forward Proxy Parameters
-
-[source,yaml]
-----
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: Configuration
-metadata:
-  name: forward-proxy
-spec:
-  forwardProxy: 
-    https: 
-      address: http://proxy:8888 
-      basicAuth: 
-        username: <string> 
-        password: <string> 
-    noProxy: 
-       - fluentd
-       - .svc.cluster.local
-
-----
-
-|===
-|Parameter | Required or Optional | Description
-
-| `https.address`
-| required
-| Proxy adddress
-
-| `basicAuth`
-| Optional
-| Supplies the authentication username and password
-
-| `basicAuth.username`
-| Required when `basicAuth` configured
-| Authentication username
-
-| `basicAuth.Password`
-| Required when `basicAuth` configured
-| Authentication password
-
-| `noProxy`
-| Optional
-| Array containing domain names to communicate to without using the forward proxy
-|===
 == Publish an API Running Behind Flex Gateway on Linux 
 
 === Before You Begin
 
 Before getting started, ensure that you have:
 
-* Flex Gateway installed and running in local mode. See xref:flex-install.adoc[] for more information about installing and running the gateway. 
-* Your upstream service URLs. The following example refers to fictional `products-api` and `users-api` services, but you can specify your own API name in `metadata.name` and your service details in `spec.services`.
+* Flex Gateway downloaded. See xref:flex-install.adoc[] for more information. 
+* Flex Gateway registered and running in Local Mode. See xref:flex-local-reg-run.adoc[Register and Run in Local Mode] for more information. 
+* Your upstream service URLs. The following example refers to fictional `products-api` and `products-api-beta` services, but you can specify your own API name in `metadata.name` and your service details in `spec.services`.
 
 === Publish an API
 
@@ -169,7 +39,7 @@ Before getting started, ensure that you have:
 .. Give the file a custom name.
 .. Save the file in the Flex Gateway configuration directory `/etc/mulesoft/flex-gateway/conf.d/custom`. This directory can contain multiple configuration files.
 
-. Copy and paste the following `API Instance` and `PolicyBiding` resources into the file, substituting your values where indicated:
+. Copy and paste the following YAML snippet into the file, substituting with your values:
 +
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -192,43 +62,25 @@ spec:
     name: route-weighted
   config:
     routes:
-    - weight: 50
+    - weight: 75 # max_value=100, min_value=1
       destinationPath: /posts/
       destinationRef:
         name: products-api
-    - weight: 50
-      destinationPath: /todos/
+    - weight: 25 
+      destinationPath: /posts/
       destinationRef:
-        name: users-api
+        name: products-api-beta
   rules:
    - path: (.*)
-     methods: GET|POST
+     methods: POST
      headers:
        x-test: true
      host: test.com
-
-
-
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: ApiInstance
-metadata:
-  name: products-users-api
-spec:
-  address: http://0.0.0.0:8080
-  services:
-    products:
-      address: https://<your products URL>:<your port>/
-      routes:
-        - rules:
-            - path: /products(/.*)
-            - path: /products-featured(/.*)
-          config:
-            destinationPath: /api            
-    users:
-      address: https://<your users URL>:<your port>/
-      routes:
-        - rules:
-            - path: /api/users(/.*)
+   - methods: GET
+     headers:
+      x-test: true
+       y-test: false
+     host: test.com
 ----
 
 . Save the file. The gateway automatically refreshes the configuration.
@@ -266,7 +118,7 @@ An API with multiple upstream services is now running behind Flex Gateway.
 
 * Flex Gateway downloaded. See xref:flex-install.adoc[] for more information. 
 * Flex Gateway registered and running in Local Mode. See xref:flex-local-reg-run.adoc[Register and Run in Local Mode] for more information. 
-* Your upstream service URLs. The following example refers to fictional `products-api` and `users-api` services, but you can specify your own API name in `metadata.name` and your service details in `spec.services`.
+* Your upstream service URLs. The following example refers to fictional `products-api` and `products-api-beta` services, but you can specify your own API name in `metadata.name` and your service details in `spec.services`.
 
 === Publish an API
 
@@ -276,29 +128,48 @@ An API with multiple upstream services is now running behind Flex Gateway.
 .. Give the file a custom name.
 .. Save the file.
 
-. Copy and paste the following YAML snippet into the file, substituting your values where indicated: 
+. Copy and paste the following YAML snippet into the file, substituting with your values: 
 +
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: ApiInstance
 metadata:
-  name: products-users-api
+  name: json-http
 spec:
-  address: http://0.0.0.0:8080
-  services:
-    products:
-      address: https://<your products URL>:<your port>/
-      routes:
-        - rules:
-            - path: /api/products(/.*)
-            - path: /api/products-featured(/.*)
-          config:
-            destinationPath: /api            
-    users:
-      address: https://<your users URL>:<your port>/
-      routes:
-        - rules:
-            - path: /api/users(/.*)
+  address: http://0.0.0.0:8080/json
+​
+---
+​
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: weight-routing-test
+spec:
+  targetRef:
+    name: json-http
+  policyRef:
+    name: route-weighted
+  config:
+    routes:
+    - weight: 75 # max_value=100, min_value=1
+      destinationPath: /posts/
+      destinationRef:
+        name: products-api
+    - weight: 25 
+      destinationPath: /posts/
+      destinationRef:
+        name: products-api-beta
+  rules:
+   - path: (.*)
+     methods: POST
+     headers:
+       x-test: true
+     host: test.com
+   - methods: GET
+     headers:
+      x-test: true
+       y-test: false
+     host: test.com
 ----
 
 . Save the file. The gateway automatically refreshes the configuration.
@@ -323,3 +194,13 @@ spec:
 ----
 
 An API with multiple upstream services is now running behind Flex Gateway.
+
+== Publish an API Running Behind Flex Gateway in a Kubernetes
+
+=== Before You Begin
+
+* Flex Gateway downloaded. See xref:flex-install.adoc[] for more information. 
+* Flex Gateway registered and running in Local Mode. See xref:flex-local-reg-run.adoc[Register and Run in Local Mode] for more information. 
+* Your upstream service URLs. The following example refers to fictional `products-api` and `users-api` services, but you can specify your own API name in `metadata.name` and your service details in `spec.services`.
+
+=== Publish an API
