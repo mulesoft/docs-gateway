@@ -27,7 +27,7 @@ Flex Gateway running in Local Mode supports API instances that expose multiple u
 
 Flex Gateway manages traffic by using different routes with defined rulesets and route order to direct traffic to different sets of upstream services. Each API instance supports multiple routes that can each direct traffic to multiple upstream services.
 
-Traffic management in Local Mode is configured as a `PolicyBinding` YAML configuration resource. Each `route-weighted` resource defines a single a route. To add additional routes, you can add multiple `route-weighted`.
+Traffic management in Local Mode is configured as a `PolicyBinding` YAML configuration resource. Each `route-weighted` resource defines a single a route. To add additional routes, you can add multiple `route-weighted` resources.
 
 == Configuring Policy Parameters
 
@@ -63,7 +63,8 @@ At least one upstream is required.
 | `routes.weight`
 | Required
 | N/A
-| The weight of total requests sent to this upstream. The percentage of traffic sent to that upstream is the upstream's weight divided by total weight of all upstream. For example, if there are two upstream with weight `1`, each upstream receives 50% of the traffic to that route.
+| The weight of total requests sent to this upstream +
+ The percentage of traffic sent to that upstream is the upstream's weight divided by total weight of all upstream. For example, if there are two upstream with weight `1`, each upstream receives 50% of the traffic to that route.
 
 | `routes.destinationPath`
 | Required
@@ -84,7 +85,7 @@ Each route can support multiple rulesets.
 | `rules.path`
 | Optional
 | Empty
-| Defines the request path the route can service +
+| The request path the route can service +
 You can only define one “URI Template Regex" path for each ruleset. Only requests with the defined path are sent to this route.
 
 | `rules.methods`
@@ -102,7 +103,7 @@ Only requests that meet all the specified header requirements are sent to this r
 | `rules.host`
 | Optional
 | Empty
-| Defines the request host URL the route can service +
+| The request host URL the route can service +
 You can only define one host URL for each ruleset. Only requests made from the defined host are sent to this route.
 
 |===
