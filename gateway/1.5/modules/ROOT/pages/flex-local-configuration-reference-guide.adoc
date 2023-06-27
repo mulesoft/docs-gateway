@@ -610,61 +610,7 @@ spec:
 ====
 The Redis storage service is an implementation of a REST API object store that functions as a bridge between the object store interface and a Redis backend. Optionally, you can use Redis with TLS to protect data and ensure secure communication.
 
-[source, yaml]
-----
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: Configuration
-metadata:
-  name: shared-storage-redis
-spec:
-  sharedStorage:
-    redis:
-      address: internal.redis.com:6379
-      tls:
-        skipValidation: false
-        minVersion: "1.1"
-        maxVersion: "1.3"
-        alpn:
-          - h2
-          - http/1.1
-        ciphers:
-          - TLS_AES_128_GCM_SHA256
-          - TLS_AES_256_GCM_SHA384
-          - TLS_CHACHA20_POLY1305_SHA256
-          - TLS_RSA_WITH_3DES_EDE_CBC_SHA
-          - TLS_RSA_WITH_AES_128_CBC_SHA
-          - TLS_RSA_WITH_AES_256_CBC_SHA
-          - TLS_RSA_WITH_AES_128_CBC_SHA256
-          - TLS_RSA_WITH_AES_128_GCM_SHA256
-          - TLS_RSA_WITH_AES_256_GCM_SHA384
-          - TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
-          - TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
-          - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
-          - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
-          - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-          - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
-          - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-          - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
-          - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
-          - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
-        trustedCA: |
-          -----BEGIN CERTIFICATE-----
-          ...
-          -----END CERTIFICATE-----
-
-        certificate:
-          keyPassphrase: "****"
-          key: |
-            -----BEGIN RSA PRIVATE KEY-----
-            ...
-            -----END RSA PRIVATE KEY-----
-
-          crt: |
-            -----BEGIN CERTIFICATE-----
-            ...
-            -----END CERTIFICATE-----
-
-----
+include::partial$task-shared-storage-config.adoc[tags=tls-sample-config]
 ====
 
 .*Local Shared Storage Example*
