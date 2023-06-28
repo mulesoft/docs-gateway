@@ -480,8 +480,8 @@ spec:
      password: <string> // OPTIONAL
      db: <string> // OPTIONAL
      tls: // OPTIONAL
-       trustedCA: <string> // REQUIRED
-       certificate: // REQUIRED
+       trustedCA: <string> // OPTIONAL
+       certificate: // OPTIONAL
          keyPassphrase <string> // OPTIONAL
          key: <string> // REQUIRED
          crt: <string> // REQUIRED
@@ -522,19 +522,19 @@ spec:
 |The Redis TLS configuration
 
 | `sharedStorage.redis.tls.trustedCA`
-| Required
+| Optional
 | N/A
-| The client certificate used in TLS
+| Root certificate authority to use when verifying server certificates
 
 | `sharedStorage.redis.tls.certificate`
-| Required
+| Optional
 | N/A
-| A TLS certificate key pair
+| Client certificate to present to the server
 
 | `sharedStorage.redis.tls.keyPassphrase`
 | Optional
 | `none`
-| The certificate key passphrase. If specified, use the private key format that includes a DEK-Info header. If unspecified, the private key is not encrypted.
+| The certificate key passphrase. If specified, use the private key format that includes a DEK-Info header. If unspecified, the private key must not be encrypted.
 
 | `sharedStorage.redis.tls.certificate.key`
 | Required
@@ -549,7 +549,7 @@ spec:
 |`sharedStorage.redis.tls.skipValidation`
 | Optional
 | `false`
-|
+| If true, any certificate presented by the server is accepted.
 
 | `sharedStorage.redis.tls.minversion`
 | Optional
@@ -563,7 +563,7 @@ spec:
 
 | `sharedStorage.redis.tls.alpn`
 | Optional
-| `h2` and `http/1.1`
+| Empty list
 | A prioritized list of supported application level protocols; for example, h2, http/1.1
 
 | `sharedStorage.redis.tls.ciphers`
@@ -608,7 +608,7 @@ spec:
 .*Redis with TLS Shared Storage Example*
 [%collapsible]
 ====
-The Redis storage service is an implementation of a REST API object store that functions as a bridge between the object store interface and a Redis backend. Optionally, you can use Redis with TLS to protect data and ensure secure communication.
+Optionally, you can use Redis with TLS to protect data and ensure secure communication.
 
 include::partial$task-shared-storage-config.adoc[tags=tls-sample-config]
 ====
