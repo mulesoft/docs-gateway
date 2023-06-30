@@ -210,11 +210,7 @@ Before getting started, ensure that you have:
 
 === Publish an API
 
-. Using the `kubectl apply` command, install a Docker image named "orders-api" from a given repository. 
-+
-The following YAML snippet defines two configuration resources: `Service`, and `Deployment`. The `Service` resource declares the `orders-api` service. The `Deployment` resource declares the desired deployment state by specifying information such as the number of replicas to create, and the Docker image to sideload.
-
-
+. Using the `kubectl apply` command to apply the following `.yaml` configuration file:
 +
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -256,4 +252,9 @@ spec:
       x-test: true
        y-test: false
      host: test.com
+----
+
+. Enter the following command to view the pods logs and ensure the API was created successfully: +
+----
+kubectl logs -f <pod-name>
 ----
