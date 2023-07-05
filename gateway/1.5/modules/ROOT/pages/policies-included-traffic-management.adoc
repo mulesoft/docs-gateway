@@ -17,7 +17,7 @@ endif::[]
 
 [NOTE]
 ====
-The following document applies only to Flex Gateway running in Local Mode. To configure multiple upstream services for Flex Gateway running in Connected Mode, see xref:api-manager::create-instance-task-flex.adoc#traffic-management[Multiple Upstream Services for Flex Gateway Running in Connected Mode].
+The following information applies only to Flex Gateway running in Local Mode. To configure multiple upstream services for Flex Gateway running in Connected Mode, see xref:api-manager::create-instance-task-flex.adoc#traffic-management[Multiple Upstream Services for Flex Gateway Running in Connected Mode].
 ====
 
 == Summary
@@ -26,7 +26,7 @@ Flex Gateway running in Local Mode supports API instances that expose multiple u
 
 Flex Gateway manages request traffic by using different routes that can each direct traffic to multiple upstream services. Flex Gateway directs traffic to the routes by using the route order and the individual route's rules. 
 
-API instances with multiple upstream services in Local Mode are configured by using `PolicyBinding` YAML configuration resources. Each `route-weighted` resource defines a single a route. To add additional routes, you can add multiple `route-weighted` resources.
+API instances with multiple upstream services in Local Mode are configured by using `PolicyBinding` YAML configuration resources. Each `route-weighted` resource defines a single route. To add additional routes, add multiple `route-weighted` resources.
 
 For a tutorial about how to publish an API instance with this policy applied, see xref:flex-local-publish-api-multiple-services.adoc[].
 
@@ -60,7 +60,7 @@ policyRef:
 | `routes`
 | Required
 | Empty
-| An array of API upstream services +
+| Array of API upstream services. +
 At least one upstream is required.
 
 | `routes.weight`
@@ -88,25 +88,25 @@ Each route can support multiple rulesets.
 | `rules.path`
 | Optional
 | Empty
-| The request path the route can service +
+| The request path that the route can service +
 You can define only one “URI Template Regex" path for each ruleset. Only requests with the defined path are sent to this route.
 
 | `rules.methods`
 | Optional
 | Empty
-| An array defining the types of request methods the route can service +
-You can select multiple methods for each ruleset. Only requests that are one of the defined methods are sent to this route. Supported values are `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`, `HEAD`, `TRACE`, `CONNECT`.
+| An array that defines the types of request methods that the route can service +
+You can select multiple methods for each ruleset. Only requests that are one of the defined methods are sent to this route. Supported values are `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`, `HEAD`, `TRACE`, and `CONNECT`.
 
 | `rules.headers`
 | Optional
 | Empty
-| An array defining what headers and regular expression value must be present for this route to service the request +
-Only requests that meet all the specified header requirements are sent to this route. Additional headers present in the request that are not specifically defined in the rules are ignored.
+| An array that defines what headers and regular expression value must be present for this route to service the request +
+Only requests that meet all of the specified header requirements are sent to this route. Additional headers present in the request that are not specifically defined in the rules are ignored.
 
 | `rules.host`
 | Optional
 | Empty
-| The request host URL the route can service +
+| The request host URL that the route can service +
 You can define only one host URL for each ruleset. Only requests made from the defined host are sent to this route.
 
 |===
@@ -119,13 +119,13 @@ In the following diagram, different routes manage requests to flight information
 
 image:multiple-upstreams.png[Flex Gateway manages the traffic to multiple upstream]
 
-To achieve this configuration, you must bind two `route-weighted` resources to the exposed API instance. One `route-weighted` resource directs traffic to the flight information database, and the other `route-weighted` resource directs traffic to the customer service application.
+To achieve this configuration, bind two `route-weighted` resources to the exposed API instance. One `route-weighted` resource directs traffic to the flight information database, and the other `route-weighted` resource directs traffic to the customer service application.
 
 === Upstream Services
 
 You can use multiple upstream services in a single route to direct requests to similar services. For example, to test the performance of a new beta upstream service without sending all traffic to the new service, you can direct half of the traffic to a stable upstream service and half to the new upstream service. 
 
-What upstream service within the route each request is sent to is random and independent of any previous request. The `routes.weight` value defines the chance of a request being sent to a particular upstream service. The percentage of traffic sent to that upstream service is the upstream's `routes.weight` divided by total weight of all upstream services. For example, if there are two upstream services with weight `1`, each receives 50% of the traffic to that route. If the weight values were `1` and `3`, one route would receive 25% of traffic and the other 75%.
+What upstream service within the route each request is sent to is random and independent of any previous request. The `routes.weight` value defines the chance of a request being sent to a particular upstream service. The percentage of traffic sent to that upstream service is the upstream's `routes.weight` divided by the total weight of all upstream services. For example, if there are two upstream services with weight `1`, each receives 50% of the traffic to that route. If the weight values are `1` and `3`, one route would receive 25% of traffic and the other 75%.
 
 Because any upstream service within a route can receive any request, all upstream services within the same route must adhere to the same API contract.
 
@@ -134,17 +134,17 @@ Because any upstream service within a route can receive any request, all upstrea
 
 You can direct requests to different routes by using route rules. Requests must only meet the rules for one of the rulesets in the route. 
 
-Rulesets refer to any combination of the four rules: `path`, `method`, `headers`, `host`. You can use multiple rulesets to support different combinations of rules.
+Rulesets refer to any combination of the four rules: `path`, `method`, `headers`, and `host`. You can use multiple rulesets to support different combinations of rules.
 
 All rules are optional. If a rule is not included in a ruleset, that rule is ignored. For example, not specifying a host means that the route can service any host if the request meets the other route rules. Not defining any rule means that the route can service every request.
 
 === Route Order
 
-In addition to route rules, you can direct requests to different routes by using policy ordering. 
+In addition to using route rules, you can direct requests to different routes by using policy ordering. 
 
 To order policies, see xref:policies-reorder.adoc[]
 
-Setting the policy order sets the order in which traffic is directed to the routes. Flex Gateway directs requests to the first route where the request meets one of the route rulesets. Therefore, route ordering is very important when a request may meet the route rules of multiple routes. 
+Setting the policy order sets the order in which traffic is directed to the routes. Flex Gateway directs requests to the first route if the request meets one of the route rulesets. Therefore, route ordering is very important when a request can meet the route rules of multiple routes. 
 
 For example, in a configuration in which route one has the `GET` method defined as a rule and route two has no route rules defined, all `GET` requests are sent to route one and all other requests are sent to route two. If the route order was reversed and route one had no route rules, Flex Gateway would direct all requests to route one before any `GET` requests could reach route two.  
 
