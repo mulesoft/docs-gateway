@@ -66,8 +66,8 @@ At least one upstream is required.
 | `routes.weight`
 | Required
 | N/A
-| The weight of total requests sent to this upstream service. +
- The percentage of traffic sent to that upstream service is the upstream service's weight divided by total weight of all upstream services. For example, if there are two upstream services with weight `1`, each upstream service receives 50% of the traffic to that route.
+| Weight of total requests sent to this upstream service. +
+ The percentage of traffic sent to that upstream service is the upstream service's weight divided by total weight of all upstream services.
 
 | `routes.destinationPath`
 | Required
@@ -88,7 +88,7 @@ Each route can support multiple rulesets.
 | `rules.path`
 | Optional
 | Empty
-| The request path that the route can service. +
+| Request path that the route can service. +
 You can define only one “URI Template Regex" path for each ruleset. Only requests with the defined path are sent to this route.
 
 | `rules.methods`
@@ -106,7 +106,7 @@ Only requests that meet all of the specified header requirements are sent to thi
 | `rules.host`
 | Optional
 | Empty
-| The request host URL that the route can service. +
+| Request host URL that the route can service. +
 You can define only one host URL for each ruleset. Only requests made from the defined host are sent to this route.
 
 |===
@@ -115,7 +115,7 @@ You can define only one host URL for each ruleset. Only requests made from the d
 
 The Traffic Management policy directs traffic to different sets of upstream services by using different routes with defined rulesets and route order. 
 
-In the following diagram, different routes manage requests to flight information databases and to a customer service application. Route one has two upstream services defined, which direct 70% of requests to a stable database and 30% of requests to a beta database.
+In the following diagram, different routes manage requests to flight information databases and to a customer service application. Route one has two upstream services defined, which directs 70% of requests to a stable database and 30% of requests to a beta database.
 
 image:multiple-upstreams.png[Flex Gateway manages the traffic to multiple upstream services.]
 
@@ -125,7 +125,7 @@ To achieve this configuration, bind two `route-weighted` resources to the expose
 
 You can use multiple upstream services in a single route to direct requests to similar services. For example, to test the performance of a new beta upstream service without sending all traffic to the new service, you can direct half of the traffic to a stable upstream service and half to the new upstream service. 
 
-What upstream service within the route each request is sent to is random and independent of any previous request. The `routes.weight` value defines the chance of a request being sent to a particular upstream service. The percentage of traffic sent to that upstream service is the upstream's `routes.weight` divided by the total weight of all upstream services. For example, if there are two upstream services with weight `1`, each receives 50% of the traffic to that route. If the weight values are `1` and `3`, one route would receive 25% of traffic and the other 75%.
+The upstream service within the route that each request is sent to is random and independent of any previous request. The `routes.weight` value defines the chance of a request being sent to a particular upstream service. The percentage of traffic sent to that upstream service is the upstream's `routes.weight` divided by the total weight of all upstream services. For example, if there are two upstream services with weight `1`, each receives 50% of the traffic to that route. If the weight values are `1` and `3`, one route would receive 25% of traffic and the other 75%.
 
 Because any upstream service within a route can receive any request, all upstream services within the same route must adhere to the same API contract.
 
