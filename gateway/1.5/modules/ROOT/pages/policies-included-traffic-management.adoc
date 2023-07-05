@@ -66,8 +66,8 @@ At least one upstream is required.
 | `routes.weight`
 | Required
 | N/A
-| The weight of total requests sent to this upstream +
- The percentage of traffic sent to that upstream is the upstream's weight divided by total weight of all upstream. For example, if there are two upstream with weight `1`, each upstream receives 50% of the traffic to that route.
+| The weight of total requests sent to this upstream service. +
+ The percentage of traffic sent to that upstream service is the upstream service's weight divided by total weight of all upstream services. For example, if there are two upstream services with weight `1`, each upstream service receives 50% of the traffic to that route.
 
 | `routes.destinationPath`
 | Required
@@ -113,11 +113,11 @@ You can define only one host URL for each ruleset. Only requests made from the d
 
 == How This Policy Works
 
-The Traffic Management policy works by directing traffic to different sets of upstream services by using different routes with defined rulesets and route order. 
+The Traffic Management policy directs traffic to different sets of upstream services by using different routes with defined rulesets and route order. 
 
 In the following diagram, different routes manage requests to flight information databases and to a customer service application. Route one has two upstream services defined, which direct 70% of requests to a stable database and 30% of requests to a beta database.
 
-image:multiple-upstreams.png[Flex Gateway manages the traffic to multiple upstream]
+image:multiple-upstreams.png[Flex Gateway manages the traffic to multiple upstream services.]
 
 To achieve this configuration, bind two `route-weighted` resources to the exposed API instance. One `route-weighted` resource directs traffic to the flight information database, and the other `route-weighted` resource directs traffic to the customer service application.
 
@@ -132,7 +132,7 @@ Because any upstream service within a route can receive any request, all upstrea
 
 === Route Rules
 
-You can direct requests to different routes by using route rules. Requests must only meet the rules for one of the rulesets in the route. 
+You can direct requests to different routes by using route rules. Requests must meet the rules for only one of the rulesets in the route. 
 
 Rulesets refer to any combination of the four rules: `path`, `method`, `headers`, and `host`. You can use multiple rulesets to support different combinations of rules.
 
