@@ -4,33 +4,35 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Publish an API running behind Flex Gateway in Local Mode, modifying YAML configuration data by the following method:
+Flex Gateway running in Local Mode supports API instances that expose multiple upstream services through a single consumer endpoint.
 
-* Linux and Docker: `.yaml` files
+Flex Gateway manages traffic by using multiple routes with a defined route order and individual rulesets to direct traffic to different sets of upstream services. Each API instance supports multiple routes that can each direct traffic to multiple upstream services.
 
-The following procedures demonstrate applying a simple YAML configuration for an unsecured API with multiple upstream services.
+For Flex Gateways running in Local Mode, API instances with multiple upstream services are configured by using the `ApiInstance` and the `PolicyBinding` YAML configuration resources. The `ApiInstance` resource defines an API instance, and the `route-weighted` policy resource defines a single route to one or multiple upstream services. To add additional routes, add multiple `route-weighted` resources.
 
-[cols="1,1"]
+The following tutorials use a preconfigured `route-weighted` policy resource. For information about how to configure the resource, see xref:policies-included-traffic-management.adoc[].
+
+[cols="1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="#linux"]
+|image:install-docker-logo.png[25%,25%,xref="docker"]
+|image:install-kubernetes-logo.png[20%,20%,xref="kubernetes"]
+
+|<<linux>>
+|<<docker>>
+|<<kubernetes>>
 |===
 
-|image:install-linux-logo.png[20%,20%,xref="flex-local-publish-api-multiple-services.adoc#publish-an-api-running-behind-flex-gateway-on-linux"]
-
-|image:install-docker-logo.png[25%,25%,xref="flex-local-publish-api-multiple-services.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container"]
-
-|xref:flex-local-publish-api-multiple-services.adoc#publish-an-api-running-behind-flex-gateway-on-linux[Publish an API Running Behind Flex Gateway on Linux]
-
-|xref:flex-local-publish-api-multiple-services.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container[Publish an API Running Behind Flex Gateway in a Docker Container]
-
-|===
-
+[[linux]]
 == Publish an API Running Behind Flex Gateway on Linux 
 
 === Before You Begin
 
 Before getting started, ensure that you have:
 
-* Flex Gateway installed and running in local mode. See xref:flex-install.adoc[] for more information about installing and running the gateway. 
-* Your upstream service URLs. The following example refers to fictional `products-api` and `users-api` services, but you can specify your own API name in `metadata.name` and your service details in `spec.services`.
+* Downloaded Flex Gateway. For more information, see xref:flex-install.adoc[]. 
+* Registered Flex Gateway and are running it in Local Mode. For more information, see xref:flex-local-reg-run.adoc[Register and Run in Local Mode]. 
+* Your upstream service URLs.
 
 === Publish an API
 
@@ -38,29 +40,50 @@ Before getting started, ensure that you have:
 .. Give the file a custom name.
 .. Save the file in the Flex Gateway configuration directory `/etc/mulesoft/flex-gateway/conf.d/custom`. This directory can contain multiple configuration files.
 
-. Copy and paste the following YAML snippet into the file, substituting your values where indicated:
+. Copy and paste the following YAML snippet into the file, substituting the configuration field values with your values.
++
+The snippit refers to the fictional `products-api` and `products-api-beta` services and a fictional `json-http` API instance. Specify your own API name and your own service details:
 +
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: ApiInstance
 metadata:
-  name: products-users-api
+  name: json-http
 spec:
-  address: http://0.0.0.0:8080
-  services:
-    products:
-      address: https://<your products URL>:<your port>/
-      routes:
-        - rules:
-            - path: /products(/.*)
-            - path: /products-featured(/.*)
-          config:
-            destinationPath: /api            
-    users:
-      address: https://<your users URL>:<your port>/
-      routes:
-        - rules:
-            - path: /api/users(/.*)
+  address: http://0.0.0.0:8080/json
+​
+---
+​
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: weight-routing-test
+spec:
+  targetRef:
+    name: json-http
+  policyRef:
+    name: route-weighted
+  config:
+    routes:
+    - weight: 75 # max_value=100, min_value=1
+      destinationPath: /posts/
+      destinationRef:
+        name: products-api
+    - weight: 25 
+      destinationPath: /posts/
+      destinationRef:
+        name: products-api-beta
+  rules:
+   - path: (.*)
+     methods: POST
+     headers:
+       x-test: true
+     host: test.com
+   - methods: GET
+     headers:
+      x-test: true
+       y-test: false
+     host: test.com
 ----
 
 . Save the file. The gateway automatically refreshes the configuration.
@@ -90,15 +113,18 @@ The response looks something like this:
 [envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
 ----
 
-An API with multiple upstream services is now running behind Flex Gateway.
+An API with multiple upstream services now runs behind Flex Gateway.
 
+[[docker]]
 == Publish an API Running Behind Flex Gateway in a Docker Container 
 
 === Before You Begin
 
-* Flex Gateway downloaded. See xref:flex-install.adoc[] for more information. 
-* Flex Gateway registered and running in Local Mode. See xref:flex-local-reg-run.adoc[Register and Run in Local Mode] for more information. 
-* Your upstream service URLs. The following example refers to fictional `products-api` and `users-api` services, but you can specify your own API name in `metadata.name` and your service details in `spec.services`.
+Before getting started, ensure that you have:
+
+* Downloaded Flex Gateway. For more information, see xref:flex-install.adoc[]. 
+* Registered Flex Gateway and are running it in Local Mode. For more information, see xref:flex-local-reg-run.adoc[Register and Run in Local Mode]. 
+* Your upstream service URLs.
 
 === Publish an API
 
@@ -108,29 +134,50 @@ An API with multiple upstream services is now running behind Flex Gateway.
 .. Give the file a custom name.
 .. Save the file.
 
-. Copy and paste the following YAML snippet into the file, substituting your values where indicated: 
+. Copy and paste the following YAML snippet into the file, substituting configuration fields with your values. 
++
+The snippit refers to the fictional `products-api` and `products-api-beta` services and a fictional `json-http` API instance. Specify your own API name and your own service details:
 +
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: ApiInstance
 metadata:
-  name: products-users-api
+  name: json-http
 spec:
-  address: http://0.0.0.0:8080
-  services:
-    products:
-      address: https://<your products URL>:<your port>/
-      routes:
-        - rules:
-            - path: /api/products(/.*)
-            - path: /api/products-featured(/.*)
-          config:
-            destinationPath: /api            
-    users:
-      address: https://<your users URL>:<your port>/
-      routes:
-        - rules:
-            - path: /api/users(/.*)
+  address: http://0.0.0.0:8080/json
+​
+---
+​
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: weight-routing-test
+spec:
+  targetRef:
+    name: json-http
+  policyRef:
+    name: route-weighted
+  config:
+    routes:
+    - weight: 75 # max_value=100, min_value=1
+      destinationPath: /posts/
+      destinationRef:
+        name: products-api
+    - weight: 25 
+      destinationPath: /posts/
+      destinationRef:
+        name: products-api-beta
+  rules:
+   - path: (.*)
+     methods: POST
+     headers:
+       x-test: true
+     host: test.com
+   - methods: GET
+     headers:
+      x-test: true
+       y-test: false
+     host: test.com
 ----
 
 . Save the file. The gateway automatically refreshes the configuration.
@@ -155,3 +202,68 @@ spec:
 ----
 
 An API with multiple upstream services is now running behind Flex Gateway.
+
+[[kubernetes]]
+== Publish an API Running Behind Flex Gateway in a Kubernetes Cluster 
+
+=== Before You Begin
+
+Before getting started, ensure that you have:
+
+* Downloaded Flex Gateway. For more information, see xref:flex-install.adoc[]. 
+* Registered Flex Gateway and are running it in Local Mode. For more information, see xref:flex-local-reg-run.adoc[Register and Run in Local Mode]. 
+* Your upstream service URLs.
+
+=== Publish an API
+
+. Use the `kubectl apply` command to apply the following `.yaml` configuration file, substituting the configuration field values with your values.
++
+The snippit refers to the fictional `products-api` and `products-api-beta` services and a fictional `json-http` API instance. Specify your own API name and your own service details:
++
++
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: json-http
+spec:
+  address: http://0.0.0.0:8080/json
+​
+---
+​
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: weight-routing-test
+spec:
+  targetRef:
+    name: json-http
+  policyRef:
+    name: route-weighted
+  config:
+    routes:
+    - weight: 75 # max_value=100, min_value=1
+      destinationPath: /posts/
+      destinationRef:
+        name: products-api
+    - weight: 25 
+      destinationPath: /posts/
+      destinationRef:
+        name: products-api-beta
+  rules:
+   - path: (.*)
+     methods: POST
+     headers:
+       x-test: true
+     host: test.com
+   - methods: GET
+     headers:
+      x-test: true
+       y-test: false
+     host: test.com
+----
+
+. Enter the following command to view the pods logs and ensure that the API was created successfully: +
+----
+kubectl logs -f <pod-name>
+----
