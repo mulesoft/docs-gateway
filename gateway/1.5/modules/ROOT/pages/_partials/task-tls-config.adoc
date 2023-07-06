@@ -1,18 +1,18 @@
 //tag::intro1[]
-Using encryption, Transport Layer Security (TLS) policies protect communication between clients, API Instances, and upstream services. To use TLS when creating an API Instance using Flex Gateway in Local Mode as your runtime, you must configure the TLS context in a YAML configuration file.
+Using encryption, Transport Layer Security (TLS) policies protect communication between clients, API instances, and upstream services. To use TLS when creating an API instance using Flex Gateway in Local Mode as your runtime, you must configure the TLS context in a YAML configuration file.
 
 //end::intro1[]
 //tag::intro2[]
-You can format the YAML file to configure TLS either for a specific API Instance
-or or for all API Instances running on your Flex Gateway.
+You can format the YAML file to configure TLS either for a specific API instance
+or or for all API instances running on your Flex Gateway.
 
 //end::intro2[]
 
 //tag::intro3[]
 Flex Gateway supports the following:
 
-* Regular TLS between a client and the API Instance (HTTPS), referred to as inbound TLS
-* Regular TLS between an API Instance and an upstream service, referred to as outbound TLS
+* Regular TLS between a client and the API instance (HTTPS), referred to as inbound TLS
+* Regular TLS between an API instance and an upstream service, referred to as outbound TLS
 * Mutual authentication TLS (mTLS) in both the inbound and outbound direction
 
 //end::intro3[]
@@ -27,13 +27,17 @@ Similar to policies, in Local Mode, you apply TLS context via an API instance YA
 
 //tag::port-sharing[]
 
-Flex Gateway implements port-level TLS, meaning if you apply TLS to an API instance that shares a port with other instances, the same TLS context is applied to all instances sharing the port. Flex Gateway supports multiple TLS certificates on a single gateway, but you must apply the certificates to unique ports.
-If you apply TLS to one API instance, you do not need to apply the same TLS context to instances that share that port. Consequently, you cannot apply different TLS contexts to API instances that share the same port.
+Flex Gateway implements port-level inbound TLS, meaning if you apply an inbound TLS to an API instance that shares a port with other instances, the same inbound TLS context is applied to all instances sharing the port. Flex Gateway supports multiple TLS certificates on a single gateway, but you must apply the certificates to unique ports.
+If you apply inbound TLS to one API instance, you do not need to apply the same inbound TLS context to instances that share that port. Consequently, you cannot apply different inbound TLS contexts to API instances that share the same port.
  
+Port sharing is not a concern for outbound TLS. You can apply an outbound TLS context for each individual upstream service. 
+
 //end::port-sharing[]
 
 //tag::outboundAllInstances[]
-Unlike inbound TLS, it is not suggested to apply the same outbound TLS context to all API Instances in your Flex Gateway because your API upstream services might come from different providers. Therefore, no configuration example for outbound TLS on all instances is provided.
+Unlike inbound TLS, it is not suggested to apply the same outbound TLS context to all API instances in your Flex Gateway because your API upstream services might come from different providers. Therefore, no configuration example for outbound TLS on all instances is provided.
+
+Port sharing is not a concern for outbound TLS. You can apply an outbound TLS context for each individual upstream service. 
 
 //end::outboundAllInstances[]
 
@@ -264,7 +268,7 @@ This example uses the default values for `alpn`, `minversion`, `maxversion`, and
 
 
 //tag::sample-config-outbound-instance-intro[]
-*Sample configuration for adding outbound TLS context for a specific API Instance:*
+*Sample configuration for adding outbound TLS context for a specific Upstream Service:*
 //end::sample-config-outbound-instance-intro[]
 //tag::sample-config-outbound-instance[]
 [source,yaml]
@@ -295,7 +299,7 @@ This example uses the default values for `alpn`, `minversion`, `maxversion`, and
 //end::sample-config-outbound-instance[]
 
 //tag::sample-config-mtls-outbound-intro[]
-*Sample configuration for adding outbound mTLS context for a specific API Instance::*
+*Sample configuration for adding outbound mTLS context for a specific Upstream Service::*
 //end::sample-config-mtls-outbound-intro[]
 //tag::sample-config-mtls-outbound[]
 [source,yaml]
