@@ -81,6 +81,16 @@ In Local Mode, you apply the Message Logging policy to your API via declarative 
 | Defines the level of message to log: `INFO`, `WARN`, `ERROR`, or `DEBUG` + 
 For more information, see <<severity-levels>>.
 
+| `loggingConfiguration.itemData.firstSection`
+| Optional
+| `false`
+| Boolean that indicates if messages are logged before the API endpoint is called, taking into account the order in which this policy is applied
+
+| `loggingConfiguration.itemData.secondSection`
+| Optional
+| `false`
+| Boolean that indicates if messages are logged after the API endpoint is called, taking into account the order in which this policy is applied
+
 |===
 
 ==== Resource Configuration Example
@@ -92,16 +102,16 @@ For more information, see <<severity-levels>>.
     loggingConfiguration:
       - itemName: "Config 1"
         itemData:
-          - message: "#[payload]"
-            conditional: "#[attributes.queryParams['QueryParam']=='someValue']"
-            level: "ERROR"
-            firstSection: true
+          message: "#[payload]"
+          conditional: "#[attributes.queryParams['QueryParam']=='someValue']"
+          level: "ERROR"
+          firstSection: true
       - itemName: "Config 2"
         itemData:
-          - message: "#['literal string']"
-            level: "WARN"
-            secondSection: true
-            firstSection: true
+          message: "#['literal string']"
+          level: "WARN"
+          secondSection: true
+          firstSection: true
 ----
 
 === Flex Gateway Connected Mode
