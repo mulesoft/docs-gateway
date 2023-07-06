@@ -272,8 +272,8 @@ docker run --entrypoint flexctl \
 register \
 # end::docker-reg-command[]
 # tag::podman-reg-command[]
-podman run --entrypoint flexctl \
--v "$(pwd)":/registration -u $UID docker.io/mulesoft/flex-gateway \
+podman run --entrypoint flexctl --userns=keep-id \
+-v "$(pwd)":/registration:Z -u $UID docker.io/mulesoft/flex-gateway \
 register \
 # end::podman-reg-command[]
 # tag::linux-reg-command[]
