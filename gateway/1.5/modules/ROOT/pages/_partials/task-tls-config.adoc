@@ -1,10 +1,9 @@
 //tag::intro1[]
-Using encryption, Transport Layer Security (TLS) policies protect communication between clients, API instances, and upstream services. To use TLS when creating an API instance using Flex Gateway in Local Mode as your runtime, you must configure the TLS context in a YAML configuration file.
+Using encryption, Transport Layer Security (TLS) policies protect communication between clients, API instances, and upstream services. To use TLS when creating an API instance using Flex Gateway in Local Mode as your runtime, you must configure the TLS context in a `PolicyBinding` YAML configuration file.
 
 //end::intro1[]
 //tag::intro2[]
-You can format the YAML file to configure TLS either for a specific API instance
-or or for all API instances running on your Flex Gateway.
+For inbound TLS, bind the `PolicyBinding` YAML resource to the `ApiInstance` resource needing the inbound TLS context, and for outbound TLS, bind the `PolicyBinding` YAML resource to the `Service` resource needing the outbound TLS context.
 
 //end::intro2[]
 
@@ -18,21 +17,25 @@ Flex Gateway supports the following:
 //end::intro3[]
 
 //tag::intro4[]
-Similar to policies, in Local Mode, you apply TLS context via an API instance YAML resource using the xref:flex-local-configuration-reference-guide.adoc#api-instance[Declarative Configuration Reference Guide]. For this tutorial you do not need to refer to the reference guide, but you must refer to the TLS inbound and TLS outbound policies to enable mTLS, define TLS direction, and select the API to which to apply TLS:
+For how to configure the `PolicyBinding` YAML configuration file, refer to policy configurations:
 
 * xref:policies-included-tls.adoc[Transport Layer Security Policy - Inbound]
 * xref:policies-included-tls-outbound.adoc[Transport Layer Security Policy - Outbound]
 
+
 //end::intro4[]
 
-//tag::port-sharing[]
-
+//tag::port-sharing-inbound[]
 Flex Gateway implements port-level inbound TLS, meaning if you apply an inbound TLS to an API instance that shares a port with other instances, the same inbound TLS context is applied to all instances sharing the port. Flex Gateway supports multiple TLS certificates on a single gateway, but you must apply the certificates to unique ports.
 If you apply inbound TLS to one API instance, you do not need to apply the same inbound TLS context to instances that share that port. Consequently, you cannot apply different inbound TLS contexts to API instances that share the same port.
  
-Port sharing is not a concern for outbound TLS. You can apply an outbound TLS context for each individual upstream service. 
 
-//end::port-sharing[]
+//end::port-sharing-inbound[]
+
+//tag::port-sharing-outbound[]
+Port sharing is not a concern for outbound TLS. You can apply an outbound TLS context for each individual upstream service.
+
+//tag::port-sharing-outbound[]
 
 //tag::outboundAllInstances[]
 Unlike inbound TLS, it is not suggested to apply the same outbound TLS context to all API instances in your Flex Gateway because your API upstream services might come from different providers. Therefore, no configuration example for outbound TLS on all instances is provided.
