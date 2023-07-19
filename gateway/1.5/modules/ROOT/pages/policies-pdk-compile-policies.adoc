@@ -4,15 +4,14 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-If you have completed all the steps in xref:policies-pdk-create-project.adoc[], you can compile the custom policy project. 
+If you have completed all the steps in xref:policies-pdk-create-project.adoc[], you can compile the custom policy project.
 
-You must
+You must compile the custom policy project before you xref:policies-pdk-debug-local.adoc[debug the custom policy locally] or xref:policies-pdk-deploy-policies[deploy a custom policy].
 
 
 == Before You Begin
 
 Ensure you have completed all the steps in xref:policies-pdk-create-project.adoc[].
-
 
 == Build Command
 
@@ -23,4 +22,12 @@ To compile the policy, run the build command:
 make build
 ----
 
+The build command preforms the following actions:
+
+. Runs the `build-asset-files` goal to ensure all the changes made in the `gcl.yaml` file are reflected in all the policy asset files and to update the policy configuration exposed in the `config.rs` file.
+. Runs the `cargo build` command to compile the policy to a WebAssembly binary file.
+. Generates the configuration files required to execute the policy. 
+
 The output of the build, is stored in the `target` directory.
+
+You can execute this command as many times as necessary to generate compiled artifacts that reflect the latest changes made in the source code and configuration files.
