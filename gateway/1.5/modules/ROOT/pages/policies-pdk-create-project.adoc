@@ -3,3 +3,66 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
+
+To begin developing a new custom policy with the Policy Development Kit (PDK), generate a new policy project.
+
+== Before You Begin
+
+Before you can create a new policy project, ensure that you have installed all xref:policies-pdk-prequisites.adoc[PDK prequisites].
+
+== Create a New Policy Project
+
+To create a new policy project, run the PDK CLI `create` command, replacing `<policy-name>` with the name of your new policy:
+
+[source,ssh]
+----
+anypoint-cli-v4 pdk policy-project create --name <policy-name>
+----
+
+Running the `create` command creates a new policy project with the specified name.
+
+The `assetID` of the new policy is the policy's name in lower case with the spaces amended together with a `-`. For example, a policy with the name `My Header Injection Policy` asstID is `my-header-injection-policy`. 
+
+The `groupID` of the new policy is `groupID` of the organization configured in Anypoint CLI.
+
+Additionally, the `create` command supports the following flags:
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Flag | Default Value | Required | Description
+| `--name=<value>` or `-n` | N/A | Yes | Name of the new policy
+| `--description=<value>` or `-d` | N/A | No | Description of the new policy
+| `--output-dir=<value>` of `-o` | `assetID` | No | Directory the new policy is created in. +
+If the directory does not exist, it is created. If no directory is specified, the directory name is the policy `assetID`.
+| `--version=<value>` | `1.0.0` | No | Version of the new policy. +
+The version format is `<major-release>.<minor-release>.<patch-release>`.
+|===
+
+== Setup the New Policy Project
+
+After you create a new policy project, you must run the setup command:
+
+[source,ssh]
+----
+anypoint-cli-v4 pdk policy-project create --name <policy-name>
+----
+
+The setup command installs the PDK project's dependencies.
+
+If prompted, provide your Anypoint Platform credentials. 
+
+== Project Structure
+
+After running the setup command, the policy's directory contains the following directories and files shown in the directory tree: 
+
+----
+├─ definition/  # Contains the files that describe the Policy Definition
+│  ├── target/  # Contains the build definition asset files
+│  └── gcl.yaml # GCL file managed by the developer that describes the Policy Definition
+├─ target/      # Contains the implementation asset files and the output of the policy build
+├─ src/         # Contains the implementation source code
+├─ test/        # Contains the artifacts required for running the policy locally
+├─ Makefile     # Provides all the callable actions required during the policy development lifecycle
+├─ Cargo.toml   # Rust language standard file that contains the metadata required to build the policy
+└─.project.yaml # Project manifest used by PDK
+----
