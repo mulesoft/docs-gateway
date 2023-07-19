@@ -1,5 +1,65 @@
-= Publishing Custom Policies to Exchange
+= Upload Custom Policies to Exchange
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
+
+During and after developing your custom policy, you can upload it to Exchange to distribute your policy and manage its version. For more information about Exchange, see xref:exchange::index.adoc[].
+
+When uploading your policy to Exchange you can choose to do either of the following:
+
+* <<publish, Publish a Custom Policy>> +
+Publish a policy if the policy version is still in development. This enables you to test and revise the new version.
+* <<release, Release a Custom Policy>> +
+Release the policy to create a definitive version of the policy. After releasing the policy, you must create a new policy version to edit the policy.
+
+After you upload your policy to Exchange, use the following tutorials to apply your policy to a Flex Gateway instance:
+
+* xref:policies-pdk-local-deploy.adoc[]
+* xref:policies-pdk-conn-deploy.adoc[]
+
+[[publish]]
+== Publish a Custom Policy
+
+To publish a custom policy, run the publish command:
+
+[source,ssh]
+----
+make publish
+----
+
+After publishing the asset, a new asset appears in Exchange. The asset's group ID, asset ID, and asset version (GAV) appears similar to the following:
+
+* *groupID*: `<organizationId>`
+* *assetID*: `my-custom-policy-dev`
+* *version*: `1.0.0-20230618115723`
+
+Rerunning the release command updates the timestamp appended to the version number.
+
+[[release]]
+== Release a Custom Policy
+
+To release a custom policy, run the release command:
+
+[source,ssh]
+----
+make release
+----
+
+After releasing the asset in Exchange, the asset's GAV appears similar to the following:
+
+* *groupID*: `<organizationId>`
+* *assetID*: `my-custom-policy`
+* *version*: `1.0.0`
+
+After releaseing the asset, rerunning the publish or release command results in a conflict error.
+
+To begin working on the next version of the policy, update the version number in the `Cargo.toml` file.
+
+For example, if the latests version is `1.0.0`, update the Cargo.toml` file as follows to begin working on a minor release:
+
+[source,toml]
+----
+name = "my-custom-policy"
+version = "1.1.0"
+----
