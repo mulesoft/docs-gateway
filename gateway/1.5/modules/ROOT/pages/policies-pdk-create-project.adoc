@@ -67,6 +67,12 @@ After running the setup command, the policy's directory contains the following d
 └─.project.yaml # Project manifest used by PDK
 ----
 
+=== target/ and definition/target/
+
+There are two separate `target` directories. 
+
+Both `target` directories and their content are included in the `.gitignore` file. You must compile the targets on each individual devices. For example, if you are developing a policy as part of a team, your team can publish the policy and it's source code to a remote repository, but each team member must build the target on their device for local testing.
+
 === definition/
 
 The `definition` directory contains the `gcl.yaml` file that defines the policy's metadata and the configuration properties.
@@ -98,6 +104,10 @@ You ran this command in <<setup-a-new-policy-project>>.
 * `make build`: Compiles the WebAssembly binary of the policy before deploying the policy to a Flex Gateway. +
 For more information about compiling a policy, see xref:policies-pdk-compile-policies.adoc[]. 
 * `make run`: Provides a simple way to execute the current build of the policy in Docker containerized environment. +
-For more information about testing your policy, see xref:policies-pdk-
-* `make publish`:
-* `make release`:
+For more information about testing your policy, see xref:policies-pdk-debug-local.adoc[].
+* `make publish`: Publishes the policy asset in Exchange. +
+For more information about publishing policies in Exchange, see xref:policies-pdk-publish-policies.adoc[].
+* `make release`: Releases the policy asset in Exchange. +
+For more information about releasing policies in Exchange, see xref:policies-pdk-publish-policies.adoc[].
+
+Execute all `make` commands at the root level of you root directory.
