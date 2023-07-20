@@ -1,5 +1,40 @@
-= Debugging Custom Policies Locallys
+= Debugging Custom Policies on a Local Flex Instance
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
+
+After you successfully xref:policies-pdk-compile-policies.adoc[compile your custom policy project], you can use the run command to begin testing your custom policy locally with the Policy Development Kit (PDK).
+
+
+== Before You Begin
+
+Ensure that you have:
+
+* xref:policies-pdk-compile-policies.adoc[Compiled you custom policy]
+* https://www.docker.com/[Installed Docker ^]
+
+== Register a Flex Gateway Instance in Local Mode
+
+To begin using the run command to debug your custom policy, you must register a Flex Gateway in Local Mode.
+
+For the run command to work, the `registration.yaml` file must be in `<my-custom-policy>/test/config` directory. A easy way to do this is to run the registration command in the directory, or you can move the `registration.yaml` file of a previously registered Flex gateway to the directory.
+
+The run command only supports Flex Gateways running in Local Mode in a Docker Container. To register a Flex Gateway, see the relevant tutorial for your preferred credentail type:
+
+* xref:local-reg-run-up.adoc#docker[]
+* xref:local-reg-run-app.adoc#docker[]
+* xref:local-reg-run-token.adoc#docker[]
+
+IMPORTANT: You only need to to run the registration step, do no run the Docker start command. The PDK run command completes this step.
+
+This setup must be done just once per working station running the project locally.
+
+
+
+The registration files is ignored for storage in remote repositories, for that reason, their filenames are listed in the generated .gitignore file located at the root of the project directory.
+
+
+== Configure the Policy
+
+Depending on the configurations listed in the `gcl.yaml` file you configured in xref:policies-pdk-create-schema-definition.adoc[], you may have to configure some parameters before running the policy locally.
