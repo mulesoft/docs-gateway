@@ -1,0 +1,405 @@
+//tag::intro1[]
+Using encryption, Transport Layer Security (TLS) policies protect communication between clients, API instances, and upstream services. To use TLS when creating an API instance using Flex Gateway in Local Mode as your runtime, you must configure the TLS context in a `PolicyBinding` YAML configuration file.
+
+When you add a TLS context, you can also select the ciphers to use with the TLS context and configure different inbound and outbound validation settings.
+
+//end::intro1[]
+
+//tag::intro2[]
+Flex Gateway supports the following:
+
+* Regular TLS between a client and the API instance (HTTPS), referred to as inbound TLS
+* Regular TLS between an API instance and an upstream service, referred to as outbound TLS
+* Mutual authentication TLS (mTLS) in both the inbound and outbound direction
+
+//end::intro2[]
+
+//tag::intro3[]
+The following tutorials demonstrate how to apply a configured `PolicyBinding` resource. For how to configure the resource, see the policy configuration pages:
+
+* xref:policies-included-tls.adoc[Transport Layer Security Policy - Inbound]
+* xref:policies-included-tls-outbound.adoc[Transport Layer Security Policy - Outbound]
+
+//end::intro3[]
+
+//tag::resources[]
+For inbound TLS, you bind the policy resource to the API instance. For outbound TLS, you bind the policy resource to the upstream service.
+
+//end::resources[]
+
+//tag::port-sharing-inbound[]
+Flex Gateway implements port-level inbound TLS, meaning if you apply an inbound TLS to an API instance that shares a port with other instances, the same inbound TLS context is applied to all instances sharing the port. Flex Gateway supports multiple TLS certificates on a single gateway, but you must apply the certificates to unique ports. If you apply inbound TLS to one API instance, you do not need to apply the same inbound TLS context to instances that share that port. Consequently, you cannot apply different inbound TLS contexts to API instances that share the same port.
+
+Port sharing is not a concern for outbound TLS. You can apply an outbound TLS context for each individual upstream service.
+
+//end::port-sharing-inbound[]
+
+//tag::outboundAllInstances[]
+Unlike inbound TLS, it is not suggested to apply the same outbound TLS context to all API instances in your Flex Gateway because your API upstream services might come from different providers. Therefore, no configuration example for outbound TLS on all instances is provided.
+
+Port sharing is not a concern for outbound TLS. You can apply an outbound TLS context for each individual upstream service. 
+
+//end::outboundAllInstances[]
+
+//tag::intro4[]
+You can configure the TLS context for a Flex Gateway running in a Docker container, as a Linux Service,
+or in a Kubernetes cluster.
+
+//end::intro4[]
+
+//tag::icon-table[]
+
+[cols="1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="flex-{page-mode}-tls-config.adoc#linux"]
+|image:install-docker-logo.png[25%,25%,xref="flex-{page-mode}-tls-config.adoc#docker"]
+|image:install-kubernetes-logo.png[20%,20%,xref="flex-{page-mode}-tls-config.adoc#kubernetes"]
+
+|xref:flex-{page-mode}-tls-config.adoc#linux[Configure TLS Context for Flex Gateway as a Linux Service]
+|xref:flex-{page-mode}-tls-config.adoc#docker[Configure TLS Context for Flex Gateway in a Docker Container]
+|xref:flex-{page-mode}-tls-config.adoc#kubernetes[Configure TLS Context for Flex Gateway in a Kubernetes Cluster]
+|===
+
+//end::icon-table[]
+//tag::byb[]
+
+== Before You Begin
+
+Before configuring the TLS context for a Flex Gateway, you must complete the following tasks:
+
+* xref:flex-install.adoc[Download Flex Gateway]
+* xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
+
+//end::byb[]
+//tag::linux[]
+
+[[linux]]
+== Configure TLS Context for Flex Gateway as a Linux Service
+
+. Create a YAML configuration file in the Flex Gateway configuration directory:
++
+[source,ssh]
+----
+sudo touch /usr/local/share/mulesoft/flex-gateway/conf.d/tls-config.yaml
+----
+
+. Update the file with your TLS context configuration details. For example:
++
+[source,ssh]
+----
+sudo vi /usr/local/share/mulesoft/flex-gateway/conf.d/tls-config.yaml
+----
++
+The following configuration file only applies inbound TLS to one API instance. For all configuration file options, such as mTLS and outbound TLS, see:
++
+* xref:policies-included-tls.adoc[Transport Layer Security Policy - Inbound]
+* xref:policies-included-tls-outbound.adoc[Transport Layer Security Policy - Outbound]
++
+//end::linux[]
+//tag::docker-intro[]
+
+[[docker]]
+== Configure TLS Context for Flex Gateway in a Docker Container
+
+NOTE: If you have already added volume for a folder with your
+Flex Gateway configuration files, skip to the last step.
+
+. Press Ctrl+C to stop your Flex Gateway and any replicas.
+. Create a folder named `app` in the directory with your Flex Gateway configuration files.
+. Restart your Flex Gateway with an additional volume for the new `app` directory:
+//end::docker-intro[]
+
+//tag::docker-config-file-step[]
+. Create and save a YAML configuration file in your `app` folder with your TLS context details.
++
+The following configuration file only applies inbound TLS to one API instance. For all configuration file options, such as mTLS and outbound TLS, see:
++
+* xref:policies-included-tls.adoc[Transport Layer Security Policy - Inbound]
+* xref:policies-included-tls-outbound.adoc[Transport Layer Security Policy - Outbound]
+//end::docker-config-file-step[]
+
+//tag::k8s-intro[]
+
+[[kubernetes]]
+== Configure TLS Context for Flex Gateway in a Kubernetes Cluster
+
+To configure the TLS context for Flex Gateway, create a new resource using
+a YAML configuration file with your TLS context details.
+
+The following configuration file only applies inbound TLS to one API instance. For all configuration file options, such as mTLS and outbound TLS, see:
+
+* xref:policies-included-tls.adoc[Transport Layer Security Policy - Inbound]
+* xref:policies-included-tls-outbound.adoc[Transport Layer Security Policy - Outbound]
+
+//end::k8s-intro[]
+
+//tag::sample-config-all-intro[]
+*Sample configuration for adding inbound TLS context for all API instances running on this Flex Gateway:*
+//end::sample-config-all-intro[]
+//tag::sample-config-all[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: ingress-https-tls
+spec:
+  targetRef:
+    kind: Selector 
+    selector:
+      kind: ApiInstance
+  policyRef:
+    name: tls
+  config:
+    certificate:
+      key: |
+        # -----BEGIN PRIVATE KEY-----
+        # insert certificate key
+        # -----END PRIVATE KEY-----
+      crt: |
+        # -----BEGIN CERTIFICATE-----
+        # insert certificate
+        # -----END CERTIFICATE-----
+    alpn:
+      - http/1.1
+      - h2
+    minversion: "1.1"
+    maxversion: "1.3"
+    ciphers:
+      - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+      - TLS_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+      - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+      - TLS_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_RSA_WITH_AES_128_CBC_SHA
+      - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+      - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+      - TLS_RSA_WITH_AES_256_GCM_SHA384
+      - TLS_RSA_WITH_AES_256_CBC_SHA
+----
+//end::sample-config-all[]
+//tag::sample-config-instance-intro[]
+*Sample configuration for adding inbound TLS context for a specific API instance:*
+//end::sample-config-instance-intro[]
+//tag::sample-config-instance[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: ingress-https-tls
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: ingress-https
+  policyRef:
+    name: tls
+  config:
+    certificate:
+      key: |
+        # -----BEGIN PRIVATE KEY-----
+        # insert certificate key
+        # -----END PRIVATE KEY-----
+      crt: |
+        # -----BEGIN CERTIFICATE-----
+        # insert certificate
+        # -----END CERTIFICATE-----
+    alpn:
+      - http/1.1
+      - h2
+    minversion: "1.1"
+    maxversion: "1.3"
+    ciphers:
+      - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+      - TLS_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+      - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+      - TLS_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_RSA_WITH_AES_128_CBC_SHA
+      - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+      - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+      - TLS_RSA_WITH_AES_256_GCM_SHA384
+      - TLS_RSA_WITH_AES_256_CBC_SHA
+----
+//end::sample-config-instance[]
+
+//tag::sample-config-mtls-intro[]
+*Sample configuration for adding an inbound mTLS context for a specific API instance:*
+//end::sample-config-mtls-intro[]
+//tag::sample-config-mtls[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: mtls
+spec:
+  targetRef:
+    name: ingress-https
+  policyRef:
+    name: tls
+  config:
+    requireClientCertificate: true
+    trustedCA: |
+      # -----BEGIN CERTIFICATE-----
+      # insert certificate
+      # -----END CERTIFICATE-----
+    certificate:
+      key: |
+        # -----BEGIN RSA PRIVATE KEY-----
+        # insert private key
+        # -----END RSA PRIVATE KEY-----
+      crt: |
+        # -----BEGIN CERTIFICATE-----
+        # insert certificate
+        # -----END CERTIFICATE-----
+----
+
+This example uses the default values for `alpn`, `minversion`, `maxversion`, and `ciphers`.
+//end::sample-config-mtls[]
+
+
+//tag::sample-config-outbound-instance-intro[]
+*Sample configuration for adding outbound TLS context for a specific upstream service:*
+//end::sample-config-outbound-instance-intro[]
+//tag::sample-config-outbound-instance[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: tls-outbound
+spec:
+  targetRef:
+    name: ingress-test-outbound-upstream
+  policyRef:
+    name: tls-outbound
+  config:
+    skipValidation: true
+    certificate:
+      key: |
+        # -----BEGIN PRIVATE KEY-----
+        # insert certificate key
+        # -----END PRIVATE KEY-----
+      crt: |
+        # -----BEGIN CERTIFICATE-----
+        # insert certificate
+        # -----END CERTIFICATE-----
+----
+
+This example uses the default values for `alpn`, `minversion`, `maxversion`, and `ciphers`.
+//end::sample-config-outbound-instance[]
+
+//tag::sample-config-mtls-outbound-intro[]
+*Sample configuration for adding outbound mTLS context for a specific upstream service:*
+//end::sample-config-mtls-outbound-intro[]
+//tag::sample-config-mtls-outbound[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: mtls-outbound
+spec:
+  targetRef:
+    name: ingress-test-outbound-upstream
+  policyRef:
+    name: tls-outbound
+  config:
+    skipValidation: false
+    trustedCA: |
+      # -----BEGIN CERTIFICATE-----
+      # insert certificate
+      # -----END CERTIFICATE-----
+    certificate:
+      key: |
+        # -----BEGIN PRIVATE KEY-----
+        # insert certificate key
+        # -----END PRIVATE KEY-----
+      crt: |
+        # -----BEGIN CERTIFICATE-----
+        # insert certificate
+        # -----END CERTIFICATE-----
+    alpn:
+      - http/1.1
+      - h2
+    minversion: "1.1"
+    maxversion: "1.3"
+    ciphers:
+      - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+----
+//end::sample-config-mtls-outbound[]
+
+//tag::verify-config[]
+. Verify that the policy was correctly applied.
++
+The following example `curl` command tests an HTTPS endpoint with a certificate that matches the certificate specified in the policy binding configuration resource.
++
+[source,ssh]
+----
+curl https://<SERVER_DOMAIN>:<SERVER_PORT>/get --cacert <SERVER_CERT_FILE> -v
+----
++
+The command should return information on the TLS handshake, as well as an HTTP status of `200` for the endpoint:
++
+----
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+* TLSv1.2 (IN), TLS handshake, Certificate (11):
+* TLSv1.2 (IN), TLS handshake, Server key exchange (12):
+* TLSv1.2 (IN), TLS handshake, Server finished (14):
+* TLSv1.2 (OUT), TLS handshake, Client key exchange (16):
+* TLSv1.2 (OUT), TLS change cipher, Client hello (1):
+* TLSv1.2 (OUT), TLS handshake, Finished (20):
+* SSL connection using TLSv1.2 / ECDHE-RSA-CHACHA20-POLY1305
+* ALPN, server did not agree to a protocol
+...
+> HTTP/1.1 200 OK
+----
++
+For inbound mTLS, the following example `curl` command requests an API proxy whose basepath is `/`.
++
+[source,ssh]
+----
+curl https://<SERVER_DOMAIN>:<SERVER_PORT>/get \
+--cert <CLIENTAPP_CERT_FILE> \
+--key <CLIENTAPP_KEY_FILE> \
+--cacert <SERVER_CERT_FILE> \
+--resolve <SERVER_DOMAIN>:<SERVER_PORT>:127.0.0.1 -v
+----
++
+[NOTE]
+====
+The configuration `key` and `crt` values must be correctly indented, otherwise `curl` returns the following error when attempting to test the endpoint:
+----
+curl: (35) error:1408F10B:SSL routines:ssl3_get_record:wrong version number
+----
+====
+//end::verify-config[]
+
+//tag::config-ref[]
+See xref:policies-included-tls.adoc[] for more information about inbound TLS context configuration options. See xref:policies-included-tls-outbound.adoc[] for more information about outbound TLS context configuration options.
+
+[NOTE]
+====
+Flex Gateway supports multiple TLS certificates on a single gateway, but the certificates need to be applied on unique ports.
+====
+
+[NOTE]
+====
+Policy ordering cannot be applied to the Transport Layer Security policies.
+====
+//end::config-ref[]
