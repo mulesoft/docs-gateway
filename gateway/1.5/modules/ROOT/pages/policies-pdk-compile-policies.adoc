@@ -6,7 +6,12 @@ endif::[]
 
 If you have completed all the steps in xref:policies-pdk-create-project.adoc[], you can compile the custom policy project.
 
-Compile the custom policy before you xref:policies-pdk-debug-local.adoc[debug the custom policy locally] or xref:policies-pdk-deploy-policies[deploy a custom policy]. You must compile the custom policy for your source code edits to be present.
+You must compile the custom policy for your source code and configuration edits to be present in the `target` directories.
+
+After you compile, test your policy with the following tutorials:
+
+* xref:policies-pdk-debug-local.adoc[]
+* xref:policies-pdk-deploy-policies[]
 
 == Before You Begin
 
@@ -14,14 +19,14 @@ Ensure you have completed all the steps in xref:policies-pdk-create-project.adoc
 
 == Build Command
 
-To compile the policy, run the build command from the policy's root folder:
+To compile the policy, run the `build `command from the policy's root folder:
 
 [source,ssh]
 ----
 make build
 ----
 
-The build command preforms the following actions:
+The `build` command preforms the following actions:
 
 . Runs the `build-asset-files` goal to ensure all the changes made in the `gcl.yaml` file are reflected in all the policy asset files and to update the policy configuration exposed in the `config.rs` file.
 . Runs the `cargo build` command to compile the policy to a WebAssembly binary file.
@@ -29,9 +34,4 @@ The build command preforms the following actions:
 
 The output of the build, is stored in the `target` directory.
 
-You can execute this command as many times as necessary to generate compiled artifacts that reflect the latest changes made in the source code and configuration files. You must compile the custom policy for your source code edits to be present in the compiled artifacts.
-
-After a successful build, test your policy with the following tutorials:
-
-* xref:policies-pdk-debug-local.adoc[]
-* xref:policies-pdk-deploy-policies[]
+You can execute the `build` command as many times as necessary to generate compiled artifacts. You must compile the custom policy for your source code and configuration edits to be present in the compiled artifacts.
