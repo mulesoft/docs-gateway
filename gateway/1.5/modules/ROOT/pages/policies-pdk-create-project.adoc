@@ -40,7 +40,7 @@ The version format is `<major-release>.<minor-release>.<patch-release>`.
 
 == Setup a New Policy Project
 
-After you create a custom policy project and if you haven't run this command for a prior project, you must run the setup command:
+If you haven't run the `setup` command for a prior project, you must run the setup command from the policy's root directory after you create a custom policy project:
 
 [source,ssh]
 ----
@@ -53,7 +53,7 @@ If prompted, provide your Anypoint Platform credentials.
 
 == Project Structure
 
-After running the setup command, the policy's directory contains the following directories and files shown in the directory tree: 
+After running the setup command, the policy's root directory contains the following directories and files shown in the directory tree: 
 
 ----
 ├─ definition/  # Contains the files that describe the Policy Definition
@@ -97,17 +97,23 @@ The `src` directory contains the policy's source code:
 
 This file contains all the callable actions, `make` commands, required for the policy development lifecycle:
 
-* `make setup`: Installs the PDK internal dependencies for the rest of the Makefile goals. +
+* `make setup`: Installs the PDK internal dependencies for the rest of the Makefile goals. 
++
 You ran this command in <<setup-a-new-policy-project>>.
-* `make build-asset-files`: Generates all the policy asset files required to build, execute, and publish the policy. This command also updates the `config.rs` source code file with the latest configurations defined in the `gcl.yaml` file. +
- For more information about compiling a policy, see xref:policies-pdk-create-schema-definition.adoc[].
-* `make build`: Compiles the WebAssembly binary of the policy before deploying the policy to a Flex Gateway. +
+* `make build-asset-files`: Generates all the policy asset files required to build, execute, and publish the policy. This command also updates the `config.rs` source code file with the latest configurations defined in the `gcl.yaml` file. 
++
+For more information about compiling a policy, see xref:policies-pdk-create-schema-definition.ado[].
+* `make build`: Runs the `make build-asset-files` command and compiles the WebAssembly binary of the policy. 
++
 For more information about compiling a policy, see xref:policies-pdk-compile-policies.adoc[]. 
-* `make run`: Provides a simple way to execute the current build of the policy in Docker containerized environment. +
+* `make run`: Provides a simple way to execute the current build of the policy in Docker containerized environment. 
++
 For more information about testing your policy, see xref:policies-pdk-debug-local.adoc[].
-* `make publish`: Publishes the policy asset in Exchange. +
+* `make publish`: Publishes the policy asset in Exchange. 
++
 For more information about publishing policies in Exchange, see xref:policies-pdk-publish-policies.adoc[].
-* `make release`: Releases the policy asset in Exchange. +
+* `make release`: Releases the policy asset in Exchange. 
++
 For more information about releasing policies in Exchange, see xref:policies-pdk-publish-policies.adoc[].
 
 Execute all `make` commands at the root level of you root directory.
