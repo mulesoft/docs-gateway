@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-During the custom policy development cycle, you can upload your policy to Exchange to distribute it and manage its version. For more information about Exchange, see xref:exchange::index.adoc[].
+During the custom policy development cycle, you can upload your policy to Exchange to manage its version and distribute it to other users. For more information about Exchange, see xref:exchange::index.adoc[].
 
 When uploading your policy to Exchange, you can choose to either:
 
@@ -21,7 +21,7 @@ After you upload your policy to Exchange, use the following tutorials to apply y
 [[publish]]
 == Publish a Custom Policy
 
-To publish a custom policy, run the publish command from the policy's root folder:
+To publish a custom policy, run the `publish` command from the policy's root folder:
 
 [source,ssh]
 ----
@@ -31,9 +31,11 @@ make publish
 After publishing the asset, a new asset appears in Exchange. The asset's group ID, asset ID, and asset version (GAV) appear, similar to the following:
 
 * *groupID*: `<organizationId>`
-* *assetID*: `my-custom-policy-dev` +
+* *assetID*: `my-custom-policy-dev` 
++
 When publishing a policy, `-dev` appears appended to the *assetID*.
-* *version*: `1.0.0-20230618115723` +
+* *version*: `1.0.0-20230618115723` 
++
 When publishing a policy, a timestamp appears appended to the *version*.
 
 Rerunning the publish command creates a new version of the policy asset with an updated timestamp. Previously published policy versions are still available.
@@ -42,7 +44,7 @@ Rerunning the publish command creates a new version of the policy asset with an 
 [[release]]
 == Release a Custom Policy
 
-To release a custom policy, run the release command from the policy's root folder:
+To release a custom policy, run the `release` command from the policy's root folder:
 
 [source,ssh]
 ----
@@ -55,7 +57,7 @@ After releasing the asset in Exchange, the asset's GAV appears, similar to the f
 * *assetID*: `my-custom-policy`
 * *version*: `1.0.0`
 
-After releaseing the asset, rerunning the publish command results in a conflict error.
+After releaseing the asset, rerunning the `publish` command results in a conflict error.
 
 To begin working on the next version of your policy, update the version number in the `Cargo.toml` file.
 
