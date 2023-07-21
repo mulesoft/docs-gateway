@@ -3,3 +3,76 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
+
+After installing all the xref:policies-pdk-prerequisites.adoc[], you can begin developing custom policies.
+
+. xref:policies-pdk-create-project.adoc[Create a New Project] 
++
+[source,ssh]
+----
+anypoint-cli-v4 pdk policy-project create --name <my-custom-policy>
+----
+
+
+. xref:policies-pdk-create-schema-definition.adoc[Define Policy Configuration Parameters]
++
+Modify the `definition/gcl.yaml` file to define metadat and configuration parameters for your custom policy.
++
+Run the `build-asset-files` throughout the development process to update the `src/config.rs` file with you new configuration parameters:
++
+[source,ssh]
+----
+make build-asset-files
+----
+
+. xref:policies-pdk-configure-features.adoc[Configure Custom Policy Features]
++
+Implement your custom logic in the `src/lib.rs` file.
+
+. xref:policies-pdk-compile-policies.adoc[Compile Custom a Custom Policy]
++
+Compiling your policy creates the `WebAssembly` binary file and configuration files necessary to upload your policy to Exchange and to deploy it to a Flex Gateway.
++
+Run the `build` command to compile your policy:
++
+[source,ssh]
+----
+make build
+----
+
+. xref:policies-pdk-debug-local.adoc[Debug Your Policy Locally]
++
+Use the provided Flex Gateway configuration files to debug your policy locally before distributing it on Exchange.
++
+After you complete the steps in the tutorial, run the `run` command to begin testing locally:
++
+[source,ssh]
+----
+make run
+----
+
+. xref:policies-pdk-publish-policies.adoc#publish[Publish Your Policy on Exchange]
++
+After testing your policy locally, publish your policy on Exchange to distribute and test your policy with your Flex Gateway configuration.
++
+Run the `publish` command to publish your policy:
++
+[source,ssh]
+----
+make publish
+----
+
+. xref:policies-pdk-publish-policies.adoc#release[Release Your Policy on Exchange]
++
+After testing is complete, release your policy on Exchange to distribute and test your policy.
++
+Run the `release` command to release your policy:
++
+[source,ssh]
+----
+make release
+----
+
+. xref:policies-pdk-deploy-policies.adoc[Deploy Your Custom Policy]
++
+After you publish or release your policy to Exchange. Deploy your policy to a Flex Gateway.
