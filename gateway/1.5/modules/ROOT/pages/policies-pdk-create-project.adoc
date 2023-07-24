@@ -46,20 +46,33 @@ If the directory does not exist, it is created. If no directory is specified, th
 The version format is `<major-release>.<minor-release>.<patch-release>`.
 |===
 
-== Setup a New Policy Project
+== Setup the PDK Build Environment
 
-If you haven't run the `setup` command for a prior project, you must run the `setup` command from the policy's root directory after you create a custom policy project:
+If you haven't previously setup your PDK build environment, you must run the `setup` command to install the PDK project's dependencies.
 
-Run the setup command:
+To setup your PDK environment:
 
+. Execute the following `curl` command to retrive your connected app bearer token. Replace your connected app values:
++
+[source,ssh]
+----
+curl --location --request POST https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token \
+--data-urlencode 'client_id=<client_id>' \
+--data-urlencode 'client_secret=<client_secret>' \
+--data-urlencode 'grant_type=client_credentials'
+----
+
+. Save the returned `access_token`.
+
+. Run the `setup` command:
++
 [source,ssh]
 ----
 make setup
 ----
 
-The setup command installs the PDK project's dependencies. It is only necessary to run this command if this is the first time you are creating a project on this device.
-
-If prompted, provide your Anypoint Platform credentials. 
+. Enter an `username` value.
+. Enter the saved `access_token` when prompted for a `password`.
 
 == Project Structure
 
