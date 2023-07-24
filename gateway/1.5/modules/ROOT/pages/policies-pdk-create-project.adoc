@@ -21,9 +21,9 @@ anypoint-cli-v4 pdk policy-project create --name <my-custom-policy>
 
 Running the `create` command creates a custom policy project with the specified name. The project appears in a new directory or a directory specified using the `--output-dir` flag. The following tutorials refer to this as your project's root directory.
 
-The `assetID` of the new policy is the policy's name in lower case with the spaces amended together with a `-`. For example, a policy with the name `My Header Injection Policy` asstID is `my-header-injection-policy`. 
+The `assetID` of the new policy is the policy's name in lower case with the spaces amended together with a `-`. For example, a policy with the name `My Header Injection Policy` has the `asstID` of `my-header-injection-policy`. 
 
-The `groupID` of the new policy is `groupID` of the organization configured in Anypoint CLI.
+The `groupID` of the new policy is ID of the organization configured in Anypoint CLI.
 
 Additionally, the `create` command supports the following flags:
 
@@ -88,7 +88,7 @@ To configure the `gcl.yaml` file, see xref:policies-pdk-create-schema-definition
 
 Custom policies for Flex Gateway are developed in the Rust Programming language and compiled to a WebAssembly binary. 
 
-The `Cargo.toml` is Rust project manifest. Its `[package]` section contains the basic information of the policy implementation. The version specified in `Cargo.toml` matches the policy asset version. You can manage the policy version by editing the version number in `Cargo.toml`. The version follows the Semantic Versionsing (SemVer) format: `<major-version>.<minor-version>.<patch-version>`.
+The `Cargo.toml` is Rust project manifest. Its `[package]` section contains the basic information of the policy implementation. The version specified in `Cargo.toml` matches the policy asset version. You can manage the policy version by editing the version number in `Cargo.toml`. The version follows the format `<major-version>.<minor-version>.<patch-version>`.
 
 === src/
 
@@ -100,14 +100,15 @@ The `src` directory contains the policy's source code:
 
 === Makefile
 
-This file contains all the callable actions, `make` commands, required for the policy development lifecycle:
+This file contains all the callable actions, `make` commands, required for the policy development lifecycle. Execute all `make` commands at the root level of you root directory:
 
 * `make setup`: Installs the PDK internal dependencies for the rest of the Makefile goals. 
 +
 You ran this command in <<setup-a-new-policy-project>>.
 * `make build-asset-files`: Generates all the policy asset files required to build, execute, and publish the policy. This command also updates the `config.rs` source code file with the latest configurations defined in the `gcl.yaml` file. 
 +
-For more information about compiling a policy, see xref:policies-pdk-create-schema-definition.ado[].
+For more information about compiling a policy, see xref:policies-pdk-compile-policies.adoc[].
++
 * `make build`: Runs the `make build-asset-files` command and compiles the WebAssembly binary of the policy. 
 +
 For more information about compiling a policy, see xref:policies-pdk-compile-policies.adoc[]. 
@@ -120,5 +121,3 @@ For more information about publishing policies in Exchange, see xref:policies-pd
 * `make release`: Releases the policy asset in Exchange. 
 +
 For more information about releasing policies in Exchange, see xref:policies-pdk-publish-policies.adoc[].
-
-Execute all `make` commands at the root level of you root directory.
