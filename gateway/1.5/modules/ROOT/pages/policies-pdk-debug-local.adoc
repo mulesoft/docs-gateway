@@ -32,7 +32,7 @@ To begin using the `run` command to debug your custom policy, you must register 
 
 For the `run` command to work, a Flex Gateway `registration.yaml` file must be in `<root-directory>/test/config` directory. An easy way to do this is to run the registration command in the directory, or you can move a `registration.yaml` file of a previously registered Flex gateway to the directory.
 
-The `run` command only supports Flex Gateways running in Local Mode in a Docker Container. To register a Flex Gateway, see the relevant tutorial for your preferred credentail type:
+The `run` command only supports Flex Gateways running in Local Mode in a Docker Container. To register a Flex Gateway, see the relevant tutorial for your preferred credential type:
 
 * xref:local-reg-run-up.adoc#docker[]
 * xref:local-reg-run-app.adoc#docker[]
@@ -68,9 +68,12 @@ spec:
       default: user1
     password:
       type: string
+    description:
+      type: string
   required:
-    - someConfiguration
-
+    - user
+    - password
+  
 ----
 
 Update the `/test/config/api.yaml` file with your configuration value:
@@ -97,7 +100,7 @@ spec:
 
 ---- 
 
-In this example, the `user` is set to the default value `user1`, and `password` is set to `12345678`.
+In this example, the `user` is set to the default value `user1`, the `password` is set to `12345678`, and no description is provided.
 
 == Add Additional Policies
 
@@ -127,7 +130,7 @@ After you complete the previous steps, run the `run` command from the policy's r
 make run
 ----
 
-This command start the two Docker containers in the `<root-directory>/test/config/docker-compose.yaml` file:
+This command start the two Docker containers in the `<root-directory>/test/docker-compose.yaml` file:
 
 * `Local-flex`: The Flex Gateway instance Docker container that executes the custom policy. This Flex Gateway listens for requests made to the `localhost:8081`.
 * `Backend`: The Docker Container that runs thebackend service for the Flex Gateway instance. This backend service echoes any request it receives.
