@@ -340,16 +340,12 @@ pub struct Config {
 |===
 
 
-You can use the values in `struct Config`
+For example, you can access the values in `struct Config` with the following `.operators` in the `entrypoint` function: 
 
 [source, rust]
 ----
 #[entrypoint]
-async fn configure(
-    launcher: Launcher,
-    Configuration(configuration): Configuration,
-) -> Result<(), LaunchError> {
-    
+async fn configure(launcher: Launcher, Configuration(configuration): Configuration,) -> Result<(), LaunchError> { 
     let config: Config = serde_json::from_slice(&configuration)?; 
     match config.reject_missing_tokens {
 ...
