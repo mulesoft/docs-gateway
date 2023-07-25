@@ -324,7 +324,7 @@ properties:
     - tokenExtractor
 ----
 
-
+|
 [source, rust]
 ----
 pub struct Config {
@@ -335,7 +335,6 @@ pub struct Config {
     #[serde(alias = "tokenExtractor")]
     pub token_extractor: pdk::api::expression::Expression,
 }
-
 ----
 |===
 
@@ -348,5 +347,4 @@ For example, you can access the values in `struct Config` with the following `.o
 async fn configure(launcher: Launcher, Configuration(configuration): Configuration,) -> Result<(), LaunchError> { 
     let config: Config = serde_json::from_slice(&configuration)?; 
     match config.reject_missing_tokens {
-...
 ----
