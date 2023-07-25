@@ -1,5 +1,295 @@
-= Creating a Schema Definition
+= Defining a Schema Definition
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
+
+Similar to the policies listed in the xref:policies-included-directory.adoc[], custom policies also have configuration paramaters. Configuration parameters enable you to improve the usability of you custom policy and support a wider range of API configurations.
+
+You define your own custom configuration parameters by editing the `definition/gcl.yaml` file. The `gcl.yaml` file is written in Gateway Configuration Language (GCL). However, you do not need prior GCL knowledge to use this tutorial.
+
+The configuration parameters you define in the `gcl.yaml` appear as variables in the `src/generated/config.rs` file after you run the `build-asset-file` command.
+
+Additionally, the configuration parameters appear in the API Manager UI when applying a policy to Flex Gateway in Connected Mode. When applying the policy to Flex Gateway running in Local Mode, it is your responsibility to distribute a configuration `yaml` file for your policy.
+
+The default `gcl.yaml` file appears as the following:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com.v1alpha1
+kind: Extension
+metadata:
+    labels:
+        title: my-custom-policy
+        category: Security 
+spec:
+    extends:
+        - name: extension-definition
+    properties: 
+        stringProperty: 
+        type: string
+----
+
+The `gcl.yaml` file contains two sections:
+
+* `metadate`: Defines information about the policy
+* `properties`: Defines the configuration parameters
+
+== Define Metadata
+
+By adding labels in the metadata section, you can enrich the data shown in the UI when applying the policy.
+
+To define the metadata, edit the `metadata` in the `gcl.yaml` file.
+
+The supported labels are:
+
+* `name`: The policy name that appears in the UI
+* `description`: A brief explanation of the policy's behavior
+* `category`: The category the policy appears under. Supported values are: `security`, `compliance`, `transformation`, `quality of service`, and `troubleshooting`. 
+
+For example:
+
+[source,yaml]
+----
+metadata:
+    labels:
+        title: Json Threat Protection
+        description: Protects against malicious JSON in API requests.
+        category: Security
+----
+
+`labels` are suggested but not required.
+
+== Define Parameters
+
+To add parameters, edit `spec.properties` section  in the `gcl.yaml` file.
+
+For example:
+
+[source,yaml]
+----
+properties:
+    username:
+        type: string
+    password:
+        type: string
+----
+
+After defining your properties, you can:
+
+* <<define-required-properties-and-default-values>>
+* <<define-supported-types>>
+
+=== Define Required Properties and Default Values
+
+For each property in the `gcl.yaml` file, you can define the property as `required` and set a `default` value.
+
+You define properities as required by listing them in the `spec.required` object. For example, the following policy requires a `password` but not `username`:
+
+[source,yaml]
+----
+properties:
+    username:
+        type: string
+    password:
+        type: string
+Required:
+    - password
+----
+
+In this configuration example, configuring a policy without a password results in a failed configuration.
+
+You can also define a default value for a property. For Example:
+
+[source,yaml]
+----
+properties:
+    username:
+        type: string
+        default: user1
+    password:
+        type: string
+        default: 12345678
+Required:
+    - password
+----
+
+Defining a default value for a required property means that if the field is left blank when configuring the policy, the parameter is set to the default value. Defining a default value for a parameter that isn't required, means that the default value appears as a suggested value in the UI. If a non-required parameter with a default value is left blank during configuration, there is no configured value for the parameters. In the following configuration table, if the policy was applied in API Manager, `user1` would appear as a suggested value for `username` but does not affect if the value is configured:
+
+[a,a,a]
+|===
+| Policy Configuration | Effective Configuration | Configuration Status
+| `{}` | `{"password": "12345678"}` | Success
+| `{"username": "user2"}` | `{"password": "12345678", +
+"username": "user2"}` | Success
+| `{"password": "password"}` | `{"password": "password"}` | Success
+| `{"password": "password", +
+ "username": "user2"}` | `{"password": "password", +
+"username": "user2"}` | Success
+|===
+
+=== Define Supported Types
+
+You can define a supported data type for each policy parameter to ensure the policy receives the correct data.
+
+The supported types are:
+
+String::
++
+The string type specifies that the data is text.
++
+[source,yaml]
+----
+properties:
+    password:
+        type: string
+----
++
+The `string` type also supports enables you to configure a `format` type. 
++
+The supported formating types are:
++
+* `uri`: Specifies the expected text is a URI
+* `ip-range`: Specifies the expected text is a range or IPs
+* `dataweave`: specifies the expected text is a dataweave variable
++
+Defining a string as the `uri` or `ip-range` provides additional validations, but defining a string as `dataweave` notifies Flex Gateway that the input must be transformed. For more information about supported Dataweave transformations, see xref:policies-flex-dataweave-support.adoc[].
++
+The following yaml snippit demonstrates all string formats:
++
+[source,yaml]
+----
+properties:
+    loginUrl:
+        type: string
+        format: uri
+        default: "https://anypoint.mulesoft.com/login"
+    blockedIps:
+        type: string
+        format: ip-range
+        default: "192.168.3.1/30"
+    token:
+	type: string
+        format: dataweave
+        default: "#[splitBy(attributes.headers['Authorization'], ' ')[1]]"
+----
++
+Number::
++
+The `number` type specifies data as a floating point value.
++
+For example:
++
+[source,yaml]
+----
+properties:
+    squareRoot:
+        type: number
+        default: 1.414213562
+    seconds:
+        type: number
+        default: 10
+----
++
+Integer::
++
+The `integer` type specifies data as an integer value.
++
+For example:
++
+[source,yaml]
+----
+properties:
+    maxHeaders:
+        type: integer
+        default: 10
+----
++
+Boolean::
++
+The `boolean` type specifies data as a boolean value. Supported values are `true` or `false`.
+For example:
++
+[source,yaml]
+----
+properties:
+    skipValidation:
+        type: boolean
+        default: false
+    requireCredentials:
+        type: boolean
+        default: true
+----
++
+Array::
++
+The `array` type specifies the data as a list of ordered elements. For the `array` type, you must also specify `items.type` to specify the data type of the items in the array.
++
+For example:
++
+[source,yaml]
+----
+properties:
+    scopes:
+        type: array
+        items:
+            type: string
+        default: ["READ", "WRITE"]
+----
++
+Object::
++
+The `object` type specifies the data as a list of ordered elements with multiple properties. For the `object` type, you must also specify `properties.type` for each element in the object.
++
+For example:
++
+[source,yaml]
+----
+properties:
+    user:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - name
+      default: {"id": "1", "name": "John Doe"}
+----
+
+== Using Custom Parameters
+
+After you modify the `gcl.yaml` file you can propagate the changes to the `src/generated/config.rs` rust file and the json schema for the UI by running the `build-asset-files` command:
+
+[source,cmd]
+----
+make build-asset-files
+----
+
+Additionally compiling the the project with the `build` command also propagates the changes:
+
+[source,cmd]
+----
+make build
+----
+
+For more information about compiling the policy, see xref:policies-pdk-compile-policies.adoc[].
+
+Properties define in the `gcl.yaml` files are mapped to the `config.rs` as follows:
+
+[a,a]
+|===
+| gcl.yaml | config.rs
+
+| `string` | `String`
+| `uri` string | `String`
+| `ip-range` string | `String`
+| `dataveave` string | `pdk::api::expression::Expression`
+| `number` | `f64`
+| `integer` | `i64`
+| `boolean` | `bool`
+| `array` | `vec` containing the specified item type
+| `object` | `struct` containing the specified property types
+|===
