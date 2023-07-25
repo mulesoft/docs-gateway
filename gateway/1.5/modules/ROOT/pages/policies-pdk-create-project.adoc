@@ -33,13 +33,13 @@ The `assetID` of the new policy is the policy's name in lower case with the spac
 
 The `groupID` of the new policy is the ID of the organization configured in Anypoint CLI.
 
-Additionally, the `create` command supports the following flags:
+The `create` command supports the following flags:
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
 | Flag | Default Value | Required | Description
-| `--name=<value>` or `-n` | N/A | Yes | Name of the new policy
-| `--description=<value>` or `-d` | N/A | No | Description of the new policy
+| `--name=<value>` or `-n` | N/A | Yes | Name of the new policy.
+| `--description=<value>` or `-d` | N/A | No | Description of the new policy.
 | `--output-dir=<value>` of `-o` | `assetID` | No | Directory the new policy is created in. +
 If the directory does not exist, it is created. If no directory is specified, the directory name is the policy `assetID`.
 | `--version=<value>` | `1.0.0` | No | Version of the new policy. +
@@ -48,11 +48,11 @@ The version format is `<major-release>.<minor-release>.<patch-release>`.
 
 == Setup the PDK Build Environment
 
-If you haven't previously setup your PDK build environment, you must run the `setup` command to install the PDK project's dependencies.
+If you haven't set up your PDK build environment, run the `setup` command to install the PDK project's dependencies.
 
-To setup your PDK environment:
+To set up your PDK environment:
 
-. Execute the following `curl` command to retrive your connected app bearer token. Replace your connected app values:
+. Execute the following `curl` command to retrieve your Connected App bearer token. Replace your Connected App values:
 +
 [source,ssh]
 ----
@@ -71,7 +71,7 @@ curl --location --request POST https://anypoint.mulesoft.com/accounts/api/v2/oau
 make setup
 ----
 
-. Enter an `username` value.
+. Enter a `username` value.
 . Enter the saved `access_token` when prompted for a `password`.
 
 == Project Structure
@@ -94,8 +94,8 @@ After running the setup command, the policy's root directory contains the follow
 
 There are two separate `target` directories:
 
-* `definition/target/`: contains the policy asset definition published to exchange
-* `target/`: Contains the files for the Policy asset implementation and the output of the Rust compilation process
+* `definition/target/`: Contains the policy asset definition published to Exchange.
+* `target/`: Contains the files for the Policy asset implementation and the output of the Rust compilation process.
 
 Both `target` directories and their content are included in the `.gitignore` file. You must compile the targets on each individual devices. For example, if you are developing a policy as part of a team, your team can publish the policy and it's source code to a remote repository, but each team member must build the target on their device for local testing.
 
@@ -117,11 +117,11 @@ The `src` directory contains the policy's source code:
 
 * `lib.rs`: Contains a set of methods that implement the behavior of the policy. These methods are the API our development kit offers to implement custom policies behavior. 
 
-* `generated/config.rs` and `generated/mod.rs`: Are auto generated modules that make the policy configuration, as defined in the `gcl.yaml`, available for use in the lib.rs and any of the policy source files.
+* `generated/config.rs` and `generated/mod.rs`: Auto-generated modules that make the policy configuration, as defined in the `gcl.yaml`, available for use in the `lib.rs` and any of the policy source files.
 
 === Makefile
 
-This file contains all the callable actions, `make` commands, required for the policy development lifecycle. Execute all `make` commands at the root level of you root directory:
+This file contains all the callable actions, `make` commands, required for the policy development lifecycle. Execute all `make` commands at the root level of your root directory:
 
 * `make setup`: Installs the PDK internal dependencies for the rest of the Makefile goals. 
 +
@@ -133,7 +133,7 @@ For more information about compiling a policy, see xref:policies-pdk-compile-pol
 * `make build`: Runs the `make build-asset-files` command and compiles the WebAssembly binary of the policy. 
 +
 For more information about compiling a policy, see xref:policies-pdk-compile-policies.adoc[]. 
-* `make run`: Provides a simple way to execute the current build of the policy in Docker containerized environment. 
+* `make run`: Provides a simple way to execute the current build of the policy in a Docker containerized environment. 
 +
 For more information about testing your policy, see xref:policies-pdk-debug-local.adoc[].
 * `make publish`: Publishes the policy asset in Exchange. 
