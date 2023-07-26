@@ -6,6 +6,20 @@ endif::[]
 
 To begin using the Policy Development Kit (PDK), start by ensuring you have the following prequisites installed:
 
+
+== Flex Gateway
+
+The Policy Development Kit (PDK) only supports Flex Gateway Policies. 
+
+The PDK tutorials assume that you have xref:flex-gateway.adoc[Downloaded Flex Gateway] and have some prior knowledge of the product.
+
+
+== Software Requirements
+
+. Git
++
+To download and install, see the https://git-scm.com/book/en/v2/Getting-Started-Installing-Git[Installing Git].
+
 . Rust programming language 
 +
 To install or update Rust, run the following command:
@@ -13,15 +27,6 @@ To install or update Rust, run the following command:
 [source,ssh]
 ----
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-----
-
-. Rust nightly
-+
-To install Rust nightly, run the following command:
-+
-[source,ssh]
-----
-rustup toolchain install nightly
 ----
 
 . Rust WebAssembly System Interface (WASI) Crate
@@ -42,19 +47,30 @@ To install or update Cargo Generate, run the following command:
 cargo install cargo-generate
 ----
 
-. Node.js and npm
-+
-To download and install, see the https://nodejs.org/en/download/[NodeJS download page].
 
-. Anypoint CLI 4.x
-+
-To install Anypoint CLI 4.x, see xref:anypoint-cli::install.adoc[].
+== Anypoint CLI 
 
-. Anypoint CLI PDK Plugin
+To configure the Anypoint CLI for PDK:
+
+. xref:anypoint-cli::install.adoc[Install Anypoint CLI 4.x].
+. xref:anypoint-cli::auth.doc[Authenticate to the Anypoint Platform CLI] using a xref:access-management::connected-apps-overview.adoc[Connected App].
 +
-To install the Anypoint CLI PDK Plugin, run the following command:
+Authenticate with a Connected App by providing the app's client ID and client secret.
++
+[NOTE]
+----
+No extra permissions are required to download the Anypoint CLI PDK Plugin. However, to complete xref:policies-pdk-publish-policies.adoc[], the Connected App must have the `Exchange Contributor` scope.
+----
+
+. Run the following command to install the Anypoint CLI PDK Plugin:
 +
 [source,ssh]
 ----
 anypoint-cli-v4 plugins:install @mulesoft/anypoint-cli-pdk-plugin
 ----
+
+== Docker 
+
+Docker is only required to use the xref:policies-pdk-debug-local.adoc[local testing environment] provided with PDK. You can use all other PDK features without docker.
+
+To install Docker, see https://docs.docker.com/engine/install/[Install Docker Engine].
