@@ -4,6 +4,8 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
+The following sections provide Rust code templates to complete various tasks. Before adding additional features, review <<policy-template>> to learn more about the provided source code.
+
 == Policy Template
 
 PDK provides the initial `src/lib.rs` file in the policy project as a template to begin impletmenting your policy:
@@ -44,11 +46,12 @@ This is complete by the following elements:
 * `use pdk::api::hl::*;`: Imports all the necessary components of the PDK into the `lib.rs` source code.
 * `#[entrypoint]` function: This function executes when the policy is applied and calls the `request_filter` function`. Variables defined inside this function are avaliable while the policy is applied.
 +
-This `#[entrypoint]` function receives the following Parameters and passes them to the `request_filter` function`:
+This `#[entrypoint]` function receives the following parameters and passes them to the `request_filter` function`:
++
 ** `Launcher`: Provides information about incoming request, such as headers and request type.
 ** `Configuration`: Provides the configuration parameters defined in xref:policies-pdk-create-schema-definition.adoc[]. 
 
-* `request_filter`: This function executes once per request to the API instance to which the policy is applied. This request is the implementation of the filterinf performed by the policy. Variables defined inside this function available for the duration of the request
+* `request_filter`: This function executes once per request to the API instance to which the policy is applied. This request is the implementation of the filtering performed by the policy. Variables defined inside this function available for the duration of the request.
 +
 This function is registered in the `#[entrypoint]` function in the following code:
 +
@@ -99,7 +102,11 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-== Logging
+The `on_response` or `on_request` wrapper defines when the request is executed. 
+
+Additionally, you can define functions other than the provided `requests_filter` and `response_filter` and call them from the `#[entrypoint]` function. The `requests_filter` and `response_filter`` are used only as examples.
+
+== Configure Policy Logging
 
 The PDK provides a logger mechanism that generates a log message enriched with the API Instance ID, policy ID, and a request ID.
 
@@ -111,6 +118,7 @@ You can insert custom logs with the following macros in the `logger::` package:
 * `logger::error!`
 
 These macros behave the same as the https://doc.rust-lang.org/std/macro.format.html[Rust std::format! macro].  The first parameter must be a format string literal. Use `{}` in the literal to pass parameters, for example:
+
 [source,Rust]
 ----
 let value = "there!";
@@ -120,7 +128,15 @@ logger::warn!("Hello {value}");
 logger::error!("Hello {}", "there!");    into_headers_state().await
 ----
 
-== Reading and Writing Headers
+All examples appear in the Flex Gateway logs, similar to the following:
+
+----
+[flex-gateway-envoy][<log-level>] wasm log <policy-name>.<api-instance-name> main: [policy: <policy-name>][api: <api-instance-name>][req: <request-id> ] Hello there!
+----
+
+For more information about viewing Flex Gateway logs, see xref:flex-gateway-monitor.adoc[].
+
+== Read and Write Headers
 
 To access the headers in both the request and the response, first you need to transform the `RequestState` or `ResponseState` to a header state by calling the method `into_headers_state` and await it. After calling the method, you can access and manipulate the headers by calling the functions of the `HeadersHandler` trait.
 
@@ -176,27 +192,27 @@ pub trait ResponseHeadersHandler: HeadersHandler {
 }
 ----
 
-== Parameter Injection
+== Inject Parameters
 
-The filter functions, enveloped with the `on_request` and `on_response ` wrappers, have the capability to inject the predefined parameters:
+The functions have the capability to inject the predefined parameters:
 
-* For the `#[entrypoint]` configuration function:
+* `#[entrypoint]` configuration function:
 ** `Configuration`
 ** `HttpClient`
 ** `CacheBuilder`
 
-* For `on_request` wrapped filters:
+* `on_request` wrapped functions:
 ** `RequestState`
 ** `HttpClient`
 
-* For `on_response` wrapped filters:
+* `on_response` wrapped functions:
 ** `ResponseState`
 ** `HttpClient`
 ** `RequestData`
 
-NOTE: For more info on HttpClient, CacheBuilder and RequestData check the ‘perform an http call’, ‘Sharing Data between workers’ and ‘sharing data between request and response sections’ respectively.
+NOTE: For more information about `HttpClient`, `CacheBuilder`, and `RequestData`, see <<perform-an-http-request>>, <<share-data-between-workers-and-caching>>, and <<share-data-between-requests-and-responses>>.
 
-The filter functions may require other parameters, such as the configuration parameters, that are defined in the `#[entrypoint]` annotated function. To pass the parameters you need to explicitly define the lambda and send a reference of the variable, for example:
+The filter functions (wrapped functions) may require other parameters, such as the configuration parameters, that are defined in the `#[entrypoint]` annotated function. To pass the parameters you need to explicitly define the lambda and send a reference of the variable, for example:
 
 [source,Rust]
 ----
@@ -219,7 +235,7 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-If your filters only receives these parameters you can omit the lambda in the wrapper. For example, if the signature of the filters is:
+If your filters only receives the parameters and does not modify them, you can omit the lambda in the wrapper. For example, if the signature of the filters is:
 
 [source,Rust]
 ----
@@ -243,7 +259,7 @@ let filter = on_request(request_filter)
         .on_response(response_filter);
 ----
 
-== Performing an HTTP Call
+== Perform an HTTP Call
 
 If your policy must interact with external services, the only way to achieve this is through HTTP calls. You can preform HTTP calls in the request and response filters and in the  function. To perform a the HTTP call you need to inject the `HttpClient` as follows:
 
@@ -285,29 +301,29 @@ You can make calls in `lib.rs` with the following:
 [source,Rust]
 ----
 let response = client.request("custom-policy.login.svc", "https://login.com")
-        .path("/login")
-        .headers(vec![("Content-Type", "application/json")])
-        .body(r#"{"client_id": "client", "client_secret": "secret"}"#.as_bytes())
-        .post().await?;
+    .path("/login")
+    .headers(vec![("Content-Type", "application/json")])
+    .body(r#"{"client_id": "client", "client_secret": "secret"}"#.as_bytes())
+    .post().await?;
 ----
 
 NOTE: In this example the upstream service and URL are hardcoded. For reusability, when making calls to an upstream service in your policy, add the necessary information to the xref:policies-pdk-create-schema-definition.adoc[configuration parameters].
 
 
-== DataWeave Expressions
+== Use DataWeave Expressions
 
 If you define a `string` type configuration parameter with the `dataweave` format in your xref:policies-pdk-create-schema-definition.adoc[], the parameter maps to a Rust `Expression` type parameter.
  
-To solve the expression, you await the header state and pass it as a parameter to the expression. After the expression is solved, and the potential errors are properly handled, you can obtain the result value. Because the value can be of different types, you have to cast it using the provided functions:
+To solve the expression, you await the header state and pass it as a parameter to the expression. After the expression is solved, and the potential errors are handled, you can obtain the result value. Because the value can be of different types, you have to cast it using the provided functions:
 
 [source,Rust]
 ----
 fn is_null(&self) -> bool;
-    fn as_bool(&self) -> Option<bool>;
-    fn as_f64(&self) -> Option<f64>;
-    fn as_str(&self) -> Option<&str>;
-    fn as_slice(&self) -> Option<&[Value]>;
-    fn as_object(&self) -> Option<&Object>;
+fn as_bool(&self) -> Option<bool>;
+fn as_f64(&self) -> Option<f64>;
+fn as_str(&self) -> Option<&str>;
+fn as_slice(&self) -> Option<&[Value]>;
+fn as_object(&self) -> Option<&Object>;
 ----
 
 The functions return an `Option` containing the value if it was properly casted or `None` if the value didn't belong to the casted type. For example, the following code snippet, tests what type the value resolves as:
@@ -345,7 +361,7 @@ async fn response_filter(response_state: ResponseState, config: &Config) {
 }
 ----
 
-== Reading the Request Body
+== Read the Request Body
 
 To access the body in both the request and the response, you need to transform the `RequestState` or `ResponseState` to a body state by calling the method `into_body_state` and awaiting it. If the original state was already transformed into a header state, you can transform the state into a body state by calling the same function.
 
@@ -358,7 +374,7 @@ pub trait BodyHandler {
 }
 ----
 
-Envoy uses the same buffer to share data from the headers and the body to the policy. So, at a given moment,  you can only access the headers or the body. If you need to read both of them:
+Envoy uses the same buffer to share data from the headers and the body to the policy. So, at a given moment, you can only access the headers or the body. If you need to read both of them:
 
 . Read the headers and save the necessary values in a variable
 . Read the body
@@ -382,7 +398,7 @@ async fn request_filter(request_state: RequestState) {
 }
 ----
 
-== Stopping Request Execution
+== Block Request Execution
 
 During request processing, you can abort the request and send a response.
 
@@ -397,17 +413,14 @@ async fn request_filter(_request_state: RequestState) -> Response {
 }
 ----
 
-This filter is not very useful as it intercepts the requests no matter what. 
-
-If want certain request to pass on certain occasions and block them on other ones our filter needs to return a Flow instead. You can block or allow requests to reach the upstream service using a `Flow`
-`Flow` in an `enum` value with two possible values:
+This filter is not very useful as it intercepts the requests no matter what. You can block or allow requests to reach the upstream service using a `Flow`. A `Flow` in an `enum` value with two possible values:
 
 * `Continue`: Lets the request pass. 
 +
 This element enables you to define an object that is forwarded to the response.
 * `Break`: Aborts the request and returns the provided response.
 
-You can create a flow as follows:
+You can create a `Flow` as follows:
 
 [source,Rust]
 ----
@@ -425,7 +438,7 @@ async fn request_filter(request_state: RequestState) -> Flow<()> {
 
 NOTE: Due to the streaming nature of `proxy wasm`, if the early response is sent after awaiting the body, the request may reach partially or completely to the backend. 
 
-== Sharing Data Between Requests and Responses
+== Share Data Between Requests and Responses
 
 If you want to share some status between the request and the response filters, the request filter must return a `RequestData` object for the request filter to receive, for example:
 
@@ -473,7 +486,7 @@ async fn response_filter(state: ResponseState, RequestData(path): RequestData<St
 }
 ----
 
-== Sharing Data Between Workers and Caching
+== Share Data Between Workers and Caching
 
 To increase the capability of handling requests, envoy spawns many workers for the policy. A single worker handles all the stages of a specific request including outgoing connections and the response flow. Due to this, for a specific request, you can track an internal status and create sequential execution flow even though the underlying implementation is event driven. 
 
@@ -510,7 +523,7 @@ pub trait Cache {
 
 IMPORTANT: Because another work may write to the cache concurrently, there is no guarantee that the value overwritten when saving the cache is the same as when it was retrieved.
 
-== Work With Third-Party Libraries
+== Use Third-Party Libraries
  
 Proxy Wasm defines a low level binary application interface (abi), that limits the system calls a library can make. All third-party libraries included in your policy  must be compatible with the `wasm32-wasi` Rust compilation target.
 
