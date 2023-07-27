@@ -196,7 +196,7 @@ The filter functions, enveloped with the `on_request` and `on_response ` wrapper
 
 NOTE: For more info on HttpClient, CacheBuilder and RequestData check the ‘perform an http call’, ‘Sharing Data between workers’ and ‘sharing data between request and response sections’ respectively.
 
-The filter functions may require other parameters, such as the configuration parameters, that are defined in the `#[entrypoint]`annotated function. To pass the parameters you need to explicitly define the lambda and send a reference of the variable, for example:
+The filter functions may require other parameters, such as the configuration parameters, that are defined in the `#[entrypoint]` annotated function. To pass the parameters you need to explicitly define the lambda and send a reference of the variable, for example:
 
 [source,Rust]
 ----
@@ -242,6 +242,233 @@ You can use the following filter definition:
 let filter = on_request(request_filter)
         .on_response(response_filter);
 ----
+
 == Performing an HTTP Call
 
+If your policy must interact with external services, the only way to achieve this is through HTTP calls. You can preform HTTP calls in the request and response filters and in the  function. To perform a the HTTP call you need to inject the `HttpClient` as follows:
+
+* Injection on filter functions:
++
+[source,Rust]
+----
+​​async fn request_filter(state: RequestState, conf: &Config, client: HttpClient) {
+ ...
+}
+----
+
+* Injection on `[entrypoint]` function:
++
+[source,Rust]
+----
+​​async fn request_filter(state: RequestState, conf: &Config, client: HttpClient) {
+ ...
+}
+----
+
+You can only make HTTP calls to services defined in the Flex Gateway configuration files. For more information about defining services, see xref:flex-local-configuration-reference-guide.adoc#service[Services].
+
+For example, given the `Service` resource:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Service
+metadata:
+  name: login
+  namespace: custom-policy
+spec:
+  address: https://login.com
+----
+
+You can make calls in `lib.rs` with the following:
++
+[source,Rust]
+----
+let response = client.request("custom-policy.login.svc", "https://login.com")
+        .path("/login")
+        .headers(vec![("Content-Type", "application/json")])
+        .body(r#"{"client_id": "client", "client_secret": "secret"}"#.as_bytes())
+        .post().await?;
+----
+
+NOTE: In this example the upstream service and URL are hardcoded. For reusability, when making calls to an upstream service in your policy, add the necessary information to the xref:policies-pdk-create-schema-definition.adoc[configuration parameters].
+
+
 == DataWeave Expressions
+
+If you define a `string` type configuration parameter with the `dataweave` format in your xref:policies-pdk-create-schema-definition.adoc[], the parameter maps to a Rust `Expression` type parameter.
+ 
+To solve the expression, you await the header state and pass it as a parameter to the expression. After the expression is solved, and the potential errors are properly handled, you can obtain the result value. Because the value can be of different types, you have to cast it using the provided functions:
+
+[source,Rust]
+----
+fn is_null(&self) -> bool;
+    fn as_bool(&self) -> Option<bool>;
+    fn as_f64(&self) -> Option<f64>;
+    fn as_str(&self) -> Option<&str>;
+    fn as_slice(&self) -> Option<&[Value]>;
+    fn as_object(&self) -> Option<&Object>;
+----
+
+The functions return an `Option` containing the value if it was properly casted or `None` if the value didn't belong to the casted type. For example, the following code snippet, tests what type the value resolves as:
+
+[source,Rust]
+----
+async fn response_filter(response_state: ResponseState, config: &Config) {
+    let headers_state = response_state.into_headers_state().await;
+    
+    match config.dw_property.resolve_on_headers(&headers_state) {
+        Ok(value) => {
+            if value.is_null() {
+                logger::info!("Datewave expression resolved to null!");
+            }
+            else if let Some(val) = value.as_bool() {
+                logger::info!("Datewave expression resolved to boolean: {val}!");
+            }
+            else if let Some(val) = value.as_f64() {
+                logger::info!("Datewave expression resolved to f64: {val}!");
+            }
+            else if let Some(val) = value.as_str() {
+                logger::info!("Datewave expression resolved to str: {val}!");
+            }
+            else if let Some(val) = value.as_slice() {
+                logger::info!("Datewave expression resolved to slice: {val:?}!");
+            }
+            else if let Some(val) = value.as_object() {
+                logger::info!("Datewave expression resolved to object: {val:?}!");
+            }
+        },
+        Err(err) => {
+            logger::warn!("Failed to resolve the dataweave expression: {err}!")
+        }
+    }
+}
+----
+
+== Reading the Request Body
+
+To access the body in both the request and the response, you need to transform the `RequestState` or `ResponseState` to a body state by calling the method `into_body_state` and awaiting it. If the original state was already transformed into a header state, you can transform the state into a body state by calling the same function.
+
+After, you can access and manipulate the headers by calling the functions of the `BodyHandler` trait.
+
+[source,Rust]
+----
+pub trait BodyHandler {
+    fn body(&self) -> Vec<u8>;
+}
+----
+
+Envoy uses the same buffer to share data from the headers and the body to the policy. So, at a given moment,  you can only access the headers or the body. If you need to read both of them:
+
+. Read the headers and save the necessary values in a variable
+. Read the body
+
+You can not modify headers after reading the body. Complete all header modification before reading the body.
+
+For example:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState) {
+    let headers_state = request_state.into_headers_state().await;
+
+    let agent = headers_state.header("User-Agent").unwrap_or_else(|| "Undefined".to_string());
+
+    let body_state = headers_state.into_body_state().await;
+    
+    let body = body_state.body();
+
+    logger::info!("User: {agent} sent: {}", String::from_utf8_lossy(body.as_slice()));
+}
+----
+
+== Stopping Request Execution
+
+During request processing, you can abort the request and send a response.
+
+You can do this by returning a `Response` object on your request filter:
+
+[source,Rust]
+----
+async fn request_filter(_request_state: RequestState) -> Response {
+    Response::new(401)
+        .with_headers(vec![("WWW-Authenticate".to_string(), "Bearer realm=\"oauth2\"".to_string())])
+        .with_body(r#"{ "error": "token was not present"}"#)
+}
+----
+
+This filter is not very useful as it intercepts the requests no matter what. 
+
+If want certain request to pass on certain occasions and block them on other ones our filter needs to return a Flow instead. You can block or allow requests to reach the upstream service using a `Flow`
+`Flow` in an `enum` value with two possible values:
+
+* `Continue`: Lets the request pass. 
++
+This element enables you to define an object that is forwarded to the response.
+* `Break`: Aborts the request and returns the provided response.
+
+You can create a flow as follows:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState) -> Flow<()> {
+    let header_state = request_state.into_headers_state().await;
+    if header_state.header("authorization").is_some() {
+        Flow::Continue(())
+    } else {
+        Flow::Break(Response::new(401)
+        .with_headers(vec![("WWW-Authenticate".to_string(), "Bearer realm=\"oauth2\"".to_string())])
+        .with_body(r#"{ "error": "token was not present"}"#))
+    }
+}
+----
+
+NOTE: Due to the streaming nature of `proxy wasm`, if the early response is sent after awaiting the body, the request may reach partially or completely to the backend. 
+
+== Sharing Data Between Requests and Responses
+
+If you want to share some status between the request and the response filters, the request filter must return a `RequestData` object for the request filter to receive, for example:
+
+[source,Rust]
+----
+async fn request_filter(state: RequestState) -> RequestData<String> {
+    let state = state.into_headers_state().await;
+    RequestData(state.path())
+}
+
+async fn response_filter(state: ResponseState, RequestData(path): RequestData<String>) {
+    let state = state.into_headers_state().await;
+    logger::info!("Path: {path}, Status: {}", state.status_code());
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher) -> Result<()> {
+    let filter = on_request(request_filter)
+        .on_response(response_filter);
+
+    launcher
+        .launch(filter)
+        .await
+}
+----
+
+Returning a RequestData makes it impossible to execute an early response. This is why the `Flow::Continue` enum has a template parameter. Let’s merge the previous example and the one from the ‘early responses’ section:
+
+[source,Rust]
+----
+async fn request_filter(state: RequestState) -> Flow<String> {
+    let state = state.into_headers_state().await;
+    if state.header("authorization").is_some() {
+        Flow::Continue(state.path())
+    } else {
+        Flow::Break(Response::new(401)
+            .with_headers(vec![("WWW-Authenticate".to_string(), "Bearer realm=\"oauth2\"".to_string())])
+            .with_body(r#"{ "error": "token was not present"}"#))
+    }
+}
+
+async fn response_filter(state: ResponseState, RequestData(path): RequestData<String>) {
+    let state = state.into_headers_state().await;
+    logger::info!("Path: {path}, Status: {}", state.status_code());
+}
+----
