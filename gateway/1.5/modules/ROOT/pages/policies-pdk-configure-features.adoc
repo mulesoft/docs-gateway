@@ -472,3 +472,56 @@ async fn response_filter(state: ResponseState, RequestData(path): RequestData<St
     logger::info!("Path: {path}, Status: {}", state.status_code());
 }
 ----
+
+== Sharing Data Between Workers and Caching
+
+To increase the capability of handling requests, envoy spawns many workers for the policy. A single worker handles all the stages of a specific request including outgoing connections and the response flow. Due to this, for a specific request, you can track an internal status and create sequential execution flow even though the underlying implementation is event driven. 
+
+Each worker processes a single request at a given time. If you need to share a global state in a specific worker you can use a `RefCell` without any risk of concurrent modification.
+
+Communicating a shared globabl state to all workers is more complex. The only way to achieve this is by using the provided `Cache` mechanism.
+
+After injecting the cache builder, you must provide an ID for the cache and the maximum number of elements the cache can support. 
+
+For example a cache with id “calculator” can hold ten elements:
+
+[source,Rust]
+----
+#[entrypoint]
+async fn configure(
+    launcher: Launcher,
+    cache_builder: CacheBuilder,
+) -> Result<()> {
+    let cache = cache_builder.build(String::from("calculator"), 10);
+    ...
+----
+
+The cache has the following interface:
+
+[source,Rust]
+----
+pub trait Cache {
+    fn save(&self, key: &str, value: Vec<u8>) -> Result<(), CacheError>;
+    fn get(&self, key: &str) -> Option<Vec<u8>>;
+    fn delete(&self, key: &str) -> Option<Vec<u8>>;
+    fn purge(&self);
+}
+----
+
+IMPORTANT: Because another work may write to the cache concurrently, there is no guarantee that the value overwritten when saving the cache is the same as when it was retrieved.
+
+== Work With Third-Party Libraries
+ 
+Proxy Wasm defines a low level binary application interface (abi), that limits the system calls a library can make. All third-party libraries included in your policy  must be compatible with the `wasm32-wasi` Rust compilation target.
+
+In general, if a library interacts with an external service, for example a database, or performs a system call, like reading a file, it is probable that it isn't compatible with the `wasm32-wasi` target. 
+
+If your policy to must interact with external services, the only way to achieve this is using Flex Gateway's exposed HttpClient. For more information about performing an HTTP call, see <<performing-an-http-call>>.
+
+Even though some libraries may compile properly to the wasm32-wasi target, they still might not work properly when deployed to Flex Gateway. Example errors of this are:
+
+* `Failed to load Wasm module due to a missing import: ...`
+* `Wasm VM failed Failed to initialize Wasm code`
+* `Plugin configured to fail closed failed to load`
+
+In this case, you should contact the owners of the third-party library or use a different library.
