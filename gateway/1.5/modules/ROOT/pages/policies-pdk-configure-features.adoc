@@ -3,3 +3,245 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
+
+== Policy Template
+
+PDK provides the initial `src/lib.rs` file in the policy project as a template to begin impletmenting your policy:
+
+[source,Rust]
+----
+// Copyright 2023 Salesforce, Inc. All rights reserved.
+mod generated;
+
+use anyhow::Result;
+
+use pdk::api::hl::*;
+
+use crate::generated::config::Config;
+
+// This filter shows how to log a specific request header.
+// You can extend the function and use the configurations exposed in config.rs file
+async fn request_filter(request_state: RequestState, _config: &Config) {
+    let headers_state = request_state.into_headers_state().await;
+    let token = headers_state.handler().header("Token").unwrap_or_default();
+    // Log the header value
+    logger::info!("Header value: {token}");
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
+    let config = serde_json::from_slice(&bytes)?;
+    let filter = on_request(|rs| request_filter(rs, &config));
+    launcher.launch(filter).await?;
+    Ok(())
+}
+----
+
+Currently, the policy performs some simple logging. For each incoming request, the policy logs the header `token` at the `info` log level.
+
+This is complete by the following elements:
+
+* `use pdk::api::hl::*;`: Imports all the necessary components of the PDK into the `lib.rs` source code.
+* `#[entrypoint]` function: This function executes when the policy is applied and calls the `request_filter` function`. Variables defined inside this function are avaliable while the policy is applied.
++
+This `#[entrypoint]` function receives the following Parameters and passes them to the `request_filter` function`:
+** `Launcher`: Provides information about incoming request, such as headers and request type.
+** `Configuration`: Provides the configuration parameters defined in xref:policies-pdk-create-schema-definition.adoc[]. 
+
+* `request_filter`: This function executes once per request to the API instance to which the policy is applied. This request is the implementation of the filterinf performed by the policy. Variables defined inside this function available for the duration of the request
++
+This function is registered in the `#[entrypoint]` function in the following code:
++
+[source,Rust]
+----
+let filter = on_request(|rs| request_filter(rs, &config));
+launcher.launch(filter).await?;
+----
+
+Instead of filtering an incoming request, you can define a function that processes the response of the requests. You can process requests upon response `on_response` wrapper instead of the `on_request` wrapper:
+
+[source,Rust]
+----
+async fn response_filter(response_state: ResponseState, _config: &Config) {
+    ...
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
+    let config = serde_json::from_slice(&bytes)?;
+    let filter = on_response(|rs| response_filter(rs, &config));
+    launcher.launch(filter).await?;
+    Ok(())
+}
+----
+
+NOTE: The `request_filter` function is now the `response_filter` function.
+
+To filter both requests and response, you can use bother wrappers:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState, _config: &Config) {
+   ...
+}
+
+async fn response_filter(response_state: ResponseState, _config: &Config) {
+    ...
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
+    let config = serde_json::from_slice(&bytes)?;
+    let filter = on_request(|rs| request_filter(rs, &config))
+        .on_response(|rs| response_filter(rs, &config));
+    launcher.launch(filter).await?;
+    Ok(())
+}
+----
+
+== Logging
+
+The PDK provides a logger mechanism that generates a log message enriched with the API Instance ID, policy ID, and a request ID.
+
+You can insert custom logs with the following macros in the `logger::` package:
+
+* `logger::debug!`
+* `logger::info!`
+* `logger::warn!`
+* `logger::error!`
+
+These macros behave the same as the https://doc.rust-lang.org/std/macro.format.html[Rust std::format! macro].  The first parameter must be a format string literal. Use `{}` in the literal to pass parameters, for example:
+[source,Rust]
+----
+let value = "there!";
+logger::debug!("Hello there!");
+logger::info!("Hello {}", value);
+logger::warn!("Hello {value}");
+logger::error!("Hello {}", "there!");    into_headers_state().await
+----
+
+== Reading and Writing Headers
+
+To access the headers in both the request and the response, first you need to transform the `RequestState` or `ResponseState` to a header state by calling the method `into_headers_state` and await it. After calling the method, you can access and manipulate the headers by calling the functions of the `HeadersHandler` trait.
+
+[source,Rust]
+----
+pub trait HeadersHandler {
+    fn headers(&self) -> Vec<(String, String)>;
+    fn header(&self, name: &str) -> Option<String>;
+    fn add_header(&self, name: &str, value: &str);
+    fn set_header(&self, name: &str, value: &str);
+    fn set_headers(&self, headers: Vec<(&str, &str)>);
+    fn remove_header(&self, name: &str);
+}
+----
+
+How to access headers in a `filter` function:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState, _config: &Config) {
+    let headers_state = request_state.into_headers_state().await;
+    let old_value = headers_state.header("request-header").unwrap_or_default();
+
+    let new_value = "--replaced--";
+    logger::info!("Old request header value: {old_value}, New value: {new_value}");
+    headers_state.set_header("request-header", new_value);
+}
+
+async fn response_filter(response_state: ResponseState, _config: &Config) {
+    let headers_state = response_state.into_headers_state().await;
+    let old_headers = headers_state.header("request-header").unwrap_or_default();
+
+    let new_value = vec![("response-header1", "--replaced--"), ("response-header2", "--replaced--")];
+    logger::info!("Old request header value: {old_headers:?}, New value: {new_value:?}");
+    headers_state.set_headers(new_value);
+}
+
+----
+
+Envoy handles the method, scheme, path, authority, and status codes as headers. You can modify the headers by accessing the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status`. Additionally PDK provides the `RequestHeadersHandler` and `ResponseHeadersHandler` traits for ease of access.
+
+[source,Rust]
+----
+pub trait RequestHeadersHandler: HeadersHandler {
+    fn method(&self) -> String;
+    fn scheme(&self) -> String;
+    fn authority(&self) -> String;
+    fn path(&self) -> String;
+}
+
+pub trait ResponseHeadersHandler: HeadersHandler {
+    fn status_code(&self) -> u32;
+}
+----
+
+== Parameter Injection
+
+The filter functions, enveloped with the `on_request` and `on_response ` wrappers, have the capability to inject the predefined parameters:
+
+* For the `#[entrypoint]` configuration function:
+** `Configuration`
+** `HttpClient`
+** `CacheBuilder`
+
+* For `on_request` wrapped filters:
+** `RequestState`
+** `HttpClient`
+
+* For `on_response` wrapped filters:
+** `ResponseState`
+** `HttpClient`
+** `RequestData`
+
+NOTE: For more info on HttpClient, CacheBuilder and RequestData check the ‘perform an http call’, ‘Sharing Data between workers’ and ‘sharing data between request and response sections’ respectively.
+
+The filter functions may require other parameters, such as the configuration parameters, that are defined in the `#[entrypoint]`annotated function. To pass the parameters you need to explicitly define the lambda and send a reference of the variable, for example:
+
+[source,Rust]
+----
+async fn request_filter(state: RequestState, conf: &Config, tuple: &(u32, u32)) {
+...
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
+    let config = serde_json::from_slice(&bytes)?;
+    let tuple: (u32, u32) = (10, 10);
+
+    let filter = on_request(|request_state| request_filter(request_state, &config, &tuple));
+
+    launcher
+        .launch(filter)
+        .await?;
+
+    Ok(())
+}
+----
+
+If your filters only receive these parameters you can omit the lambda in the wrapper. For example, if the signature of the filters is:
+
+[source,Rust]
+----
+async fn request_filter(state: RequestState) -> RequestData<String>;
+async fn response_filter(state: ResponseState, RequestData(path): RequestData<String>);
+----
+
+Instead of a filter definition of:
+
+[source,Rust]
+----
+let filter = on_request(|request_state| request_filter(request_state))
+    .on_response(|response_state, request_data| response_filter(response_state, request_data));
+----
+
+You can use the following filter definition:
+
+[source,Rust]
+----
+let filter = on_request(request_filter)
+        .on_response(response_filter);
+----
+== Performing an HTTP Call
+
+== DataWeave Expressions
