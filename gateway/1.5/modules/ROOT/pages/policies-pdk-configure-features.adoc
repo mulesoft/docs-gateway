@@ -59,11 +59,11 @@ Currently, the policy performs some simple logging. For each incoming request, t
 This is complete by the following elements:
 
 * `use pdk::api::hl::*;`: Imports all the necessary components of the PDK into the `lib.rs` source code.
-* `#[entrypoint]` function: This function executes when the policy is applied and calls the `request_filter` function`. Variables defined inside this function are avaliable while the policy is applied.
+* `#[entrypoint]` function: This function executes when the policy is applied and calls the `request_filter` function. Variables defined inside this function are avaliable while the policy is applied.
 +
-This `#[entrypoint]` function receives the following parameters and passes them to the `request_filter` function`:
+This `#[entrypoint]` function receives the following parameters:
 +
-** `Launcher`: Provides information about incoming request, such as headers and request type.
+** `Launcher`: Sets the filter functions.
 ** `Configuration`: Provides the configuration parameters defined in xref:policies-pdk-create-schema-definition.adoc[]. 
 
 * `request_filter`: This function executes once per request to the API instance to which the policy is applied. This request is the implementation of the filtering performed by the policy. Variables defined inside this function available for the duration of the request.
@@ -76,7 +76,7 @@ let filter = on_request(|rs| request_filter(rs, &config));
 launcher.launch(filter).await?;
 ----
 
-Instead of filtering an incoming request, you can define a function that processes the response of the requests. You can process requests upon response `on_response` wrapper instead of the `on_request` wrapper:
+Instead of filtering an incoming request, you can define a function that processes the outgoing response by using the `on_response` wrapper instead of the `on_request` wrapper:
 
 [source,Rust]
 ----
@@ -119,7 +119,7 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 
 The `on_response` or `on_request` wrapper defines when the request is executed. 
 
-Additionally, you can define functions other than the provided `requests_filter` and `response_filter` and call them from the `#[entrypoint]` function. The `requests_filter` and `response_filter`` are used only as examples.
+You can define functions other than the provided `requests_filter` and `response_filter` and define them from the `#[entrypoint]` function. The `requests_filter` and `response_filter`` are only as examples.
 
 == Configure Policy Logging
 
@@ -167,7 +167,7 @@ pub trait HeadersHandler {
 }
 ----
 
-How to access headers in a `filter` function:
+How to access headers in `on_request` or `on_response` wrapped functions:
 
 [source,Rust]
 ----
@@ -227,7 +227,7 @@ The default functions receive the predefined parameters:
 
 NOTE: For more information about `HttpClient`, `CacheBuilder`, and `RequestData`, see <<perform-an-http-request>>, <<share-data-between-workers-and-caching>>, and <<share-data-between-requests-and-responses>>.
 
-The filter functions (wrapped functions) may require other parameters, such as the configuration parameters that are defined in the `#[entrypoint]` annotated function. To pass the parameters you need to explicitly define the lambda and send a reference of the variable, for example:
+The `on_request` or `on_response` wrapped functions may require other parameters, such as the configuration parameters that are defined in the `#[entrypoint]` annotated function. To pass the parameters you need to explicitly define the lambda and send a reference of the variable, for example:
 
 [source,Rust]
 ----
@@ -250,7 +250,7 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-If your filters only receives the predefined parameters, it is not necessary to include the lambda in the wrapper. For example, if the signature of the filters is:
+If your `on_request` or `on_response` wrapped functions only receives the predefined parameters, it is not necessary to include the lambda in the wrapper. For example, if the signature of the function is:
 
 [source,Rust]
 ----
@@ -258,7 +258,7 @@ async fn request_filter(state: RequestState) -> RequestData<String>;
 async fn response_filter(state: ResponseState, RequestData(path): RequestData<String>);
 ----
 
-Instead of a filter definition of:
+Instead of a function definition of:
 
 [source,Rust]
 ----
@@ -266,7 +266,7 @@ let filter = on_request(|request_state| request_filter(request_state))
     .on_response(|response_state, request_data| response_filter(response_state, request_data));
 ----
 
-You can use the following filter definition:
+You can use the following functions definition:
 
 [source,Rust]
 ----
@@ -278,7 +278,7 @@ let filter = on_request(request_filter)
 
 If your policy must interact with external services, the only way to achieve this is through HTTP calls. You can preform HTTP calls in the request and response filters and in the  function. To perform a the HTTP call, inject the `HttpClient` as follows:
 
-* Injection on filter functions:
+* Injection for `on_request` or `on_response` wrapped functions functions:
 +
 [source,Rust]
 ----
@@ -287,7 +287,7 @@ If your policy must interact with external services, the only way to achieve thi
 }
 ----
 
-* Injection on `[entrypoint]` function:
+* Injection for `[entrypoint]` function:
 +
 [source,Rust]
 ----
@@ -426,7 +426,7 @@ async fn request_filter(request_state: RequestState) {
 
 During request processing, you can abort the request and send a response.
 
-You can do this by returning a `Response` object on your request filter:
+You can do this by returning a `Response` object from your `on_request` wrapped functions:
 
 [source,Rust]
 ----
@@ -437,7 +437,7 @@ async fn request_filter(_request_state: RequestState) -> Response {
 }
 ----
 
-This filter is not very useful as it intercepts the requests no matter what. You can block or allow requests to reach the upstream service using a `Flow`. A `Flow` in an `enum` value with two possible values:
+This function is not very useful as it intercepts the requests no matter what. You can block or allow requests to reach the upstream service using a `Flow`. A `Flow` in an `enum` value with two possible values:
 
 * `Continue`: Lets the request pass. 
 +
@@ -470,7 +470,7 @@ To avoid early responses reaching the client, see <<share-data-between-requests-
 [[share-data-between-requests-and-responses]]
 == Share Data Between Requests and Responses
 
-If you want to share some status between the request and the response filters, the request filter must return a `RequestData` object for the request filter to receive, for example:
+If you want to share some status between the request and the response functions, the request function must return a `RequestData` object for the request function to receive, for example:
 
 [source,Rust]
 ----
