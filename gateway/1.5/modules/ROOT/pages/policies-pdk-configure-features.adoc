@@ -421,6 +421,7 @@ async fn request_filter(request_state: RequestState) {
 }
 ----
 
+[[stop-request-execution]]
 == Stop Request Execution
 
 During request processing, you can abort the request and send a response.
@@ -459,8 +460,14 @@ async fn request_filter(request_state: RequestState) -> Flow<()> {
 }
 ----
 
-IMPORTANT: Due to the streaming nature of `proxy wasm`, it is possible for an early response to be sent while awaiting the `headers_state.into_body_state().await` function, the request may reach partially or completely to the backend. Avoid this by not awaiting the body.
+[IMPORTANT]
+====
+Due to the streaming nature of `proxy wasm`, it is possible for an early request to partially reach the upstream service while awaiting the `headers_state.into_body_state().await` function. The only way to avoid this by not awaiting the body. However, that is not possible for all policies. You should configure your upstream to ignore partial requests.
 
+To avoid early responses reaching the client, see <<share-data-between-requests-and-responses>>.
+====
+
+[[share-data-between-requests-and-responses]]
 == Share Data Between Requests and Responses
 
 If you want to share some status between the request and the response filters, the request filter must return a `RequestData` object for the request filter to receive, for example:
@@ -488,7 +495,7 @@ async fn configure(launcher: Launcher) -> Result<()> {
 }
 ----
 
-Returning a `RequestData` makes it impossible to execute an early response. This is why the `Flow::Continue` enum has a template parameter. Let’s merge the previous example and the one from the ‘early responses’ section:
+Returning a `RequestData` makes it impossible for a response to reach a client early. This is why the `Flow::Continue` enum has a template parameter. You can implement this by adding a `on_response` wrapped function to the `Flow` example used in <<stop-request-execution>>:
 
 [source,Rust]
 ----
