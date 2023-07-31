@@ -54,7 +54,9 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-The policy performs some simple logging. For each incoming request, the policy logs the header `token` at the `info` log level by using the following elements:
+The policy performs some simple logging. For each incoming request, the policy logs the header `token` at the `info` log level. 
+
+The following elements configure the policy:
 
 * `use pdk::api::hl::*;`: Imports all the necessary components of the PDK into the `lib.rs` source code.
 * `#[entrypoint]` function: Executes when the policy is applied and calls the `request_filter` function. Variables defined inside this function are avaliable while the policy is applied.
@@ -95,7 +97,7 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 
 NOTE: The `request_filter` function is now the `response_filter` function.
 
-To filter both requests and response, you can use bother wrappers:
+To filter both requests and response, use bother wrappers:
 
 [source,Rust]
 ----
@@ -166,7 +168,7 @@ pub trait HeadersHandler {
 }
 ----
 
-You can access headers in `on_request` or `on_response` wrapped functions by:
+You can access headers in `on_request` or `on_response` wrapped functions by implementing the following code:
 
 [source,Rust]
 ----
@@ -190,7 +192,7 @@ async fn response_filter(response_state: ResponseState, _config: &Config) {
 
 ----
 
-Envoy handles the method, scheme, path, authority, and status codes as headers. Modify the headers by accessing the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status`. Additionally PDK provides the `RequestHeadersHandler` and `ResponseHeadersHandler` traits for ease of access.
+Envoy handles the method, scheme, path, authority, and status codes as headers. Modify the headers by accessing the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status`. Additionally PDK provides the `RequestHeadersHandler` and `ResponseHeadersHandler` traits for ease of access:
 
 [source,Rust]
 ----
@@ -230,7 +232,9 @@ Envoy uses the same buffer to share data from the headers and the body to the po
 . Read the headers and save the necessary values in a variable
 . Read the body
 
-You can not modify headers after reading the body. Complete all header modification before reading the body.
+You can read the headers and then the body in both the response and request.
+
+You cannot modify headers after reading the body. Complete all header modification before reading the body.
 
 For example:
 
