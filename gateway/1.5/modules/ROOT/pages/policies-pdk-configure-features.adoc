@@ -17,9 +17,9 @@ The code examples assume you have some prior knowledge of the Rust Programming L
 * xref:policies-pdk-create-project.adoc[Create a New Project]
 * xref:policies-create-schema-definition.adoc[Define a Schema Definition]
 +
-NOTE: As you implement policy, you may need to redefine your configuration parameters.
+NOTE: You may need to add or redefine configuration parameters while implementing your policy. 
 
-* Review <<policy-template>> before adding additional features/
+* Review <<policy-template>> before adding additional features.
 
 == Policy Template
 
@@ -54,21 +54,21 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-Currently, the policy performs some simple logging. For each incoming request, the policy logs the header `token` at the `info` log level.
-
-This is complete by the following elements:
+The policy performs some simple logging. For each incoming request, the policy logs the header `token` at the `info` log level by using the following elements:
 
 * `use pdk::api::hl::*;`: Imports all the necessary components of the PDK into the `lib.rs` source code.
-* `#[entrypoint]` function: This function executes when the policy is applied and calls the `request_filter` function. Variables defined inside this function are avaliable while the policy is applied.
+* `#[entrypoint]` function: Executes when the policy is applied and calls the `request_filter` function. Variables defined inside this function are avaliable while the policy is applied.
 +
-This `#[entrypoint]` function receives the following parameters:
+The `#[entrypoint]` function receives the following parameters:
 +
 ** `Launcher`: Sets the filter functions.
 ** `Configuration`: Provides the configuration parameters defined in xref:policies-pdk-create-schema-definition.adoc[]. 
 
-* `request_filter`: This function executes once per request to the API instance to which the policy is applied. This request is the implementation of the filtering performed by the policy. Variables defined inside this function available for the duration of the request.
+* `request_filter`: Executes once per every request sent to the API instance to which the policy is applied. This function is the implementation of the filtering performed by the policy. Variables defined inside this function available for the duration of the request.
 +
-This function is registered in the `#[entrypoint]` function in the following code:
+The `request_filter` is an example of a wrapped function
++
+The `#[entrypoint]` function executes wrapped functions:
 +
 [source,Rust]
 ----
@@ -119,20 +119,20 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 
 The `on_response` or `on_request` wrapper defines when the request is executed. 
 
-You can define functions other than the provided `requests_filter` and `response_filter` and define them from the `#[entrypoint]` function. The `requests_filter` and `response_filter`` are only as examples.
+You can define functions other than the provided `requests_filter` and `response_filter` and define them from the `#[entrypoint]` function. The `requests_filter` and `response_filter`` are only examples.
 
 == Configure Policy Logging
 
-The PDK provides a logger mechanism that generates a log message enriched with the API Instance ID, policy ID, and a request ID.
+PDK provides a logging mechanism that generates a log message enriched with the API instance ID, policy ID, and request ID.
 
-You can insert custom logs with the following macros in the `logger::` package:
+Insert custom logs with the following macros by using the `logger::` package:
 
 * `logger::debug!`
 * `logger::info!`
 * `logger::warn!`
 * `logger::error!`
 
-These macros behave the same as the https://doc.rust-lang.org/std/macro.format.html[Rust std::format! macro].  The first parameter must be a format string literal. Use `{}` in the literal to pass parameters, for example:
+The macros behave the same as the https://doc.rust-lang.org/std/macro.format.html[Rust std::format! macro].  The first parameter must be a format string literal. Use `{}` in the literal to pass parameters, for example:
 
 [source,Rust]
 ----
@@ -143,8 +143,7 @@ logger::warn!("Hello {value}");
 logger::error!("Hello {}", "there!");    into_headers_state().await
 ----
 
-All examples appear in the Flex Gateway logs, similar to the following:
-
+All examples appear in the Flex Gateway logs in the following format:
 ----
 [flex-gateway-envoy][<log-level>] wasm log <policy-name>.<api-instance-name> main: [policy: <policy-name>][api: <api-instance-name>][req: <request-id> ] Hello there!
 ----
@@ -153,7 +152,7 @@ For more information about viewing Flex Gateway logs, see xref:flex-gateway-moni
 
 == Read and Write Headers
 
-To access the headers in both the request and the response, first you need to transform the `RequestState` or `ResponseState` to a header state by calling the method `into_headers_state` and await it. After calling the method, you can access and manipulate the headers by calling the functions of the `HeadersHandler` trait.
+To access the headers in both the request and the response, transform the `RequestState` or `ResponseState` to a header state by calling the method `into_headers_state` and awaiting it. After calling either method, access and manipulate the headers by calling the functions of the `HeadersHandler` trait.
 
 [source,Rust]
 ----
@@ -167,7 +166,7 @@ pub trait HeadersHandler {
 }
 ----
 
-How to access headers in `on_request` or `on_response` wrapped functions:
+You can access headers in `on_request` or `on_response` wrapped functions by:
 
 [source,Rust]
 ----
@@ -191,7 +190,7 @@ async fn response_filter(response_state: ResponseState, _config: &Config) {
 
 ----
 
-Envoy handles the method, scheme, path, authority, and status codes as headers. You can modify the headers by accessing the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status`. Additionally PDK provides the `RequestHeadersHandler` and `ResponseHeadersHandler` traits for ease of access.
+Envoy handles the method, scheme, path, authority, and status codes as headers. Modify the headers by accessing the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status`. Additionally PDK provides the `RequestHeadersHandler` and `ResponseHeadersHandler` traits for ease of access.
 
 [source,Rust]
 ----
@@ -204,6 +203,49 @@ pub trait RequestHeadersHandler: HeadersHandler {
 
 pub trait ResponseHeadersHandler: HeadersHandler {
     fn status_code(&self) -> u32;
+}
+----
+
+== Read the Request Body
+
+To access the body in both the request and the response, transform the `RequestState` or `ResponseState` to a body state by calling the method `into_body_state` and awaiting it. If the original state was already transformed into a header state, transform the state into a body state by calling the same function, for example:
+
+[source,Rust]
+----
+let headers_state = request_state.into_headers_state().await;
+let body_state = headers_state.into_body_state().await;
+----
+
+After calling `into_body_state`, access and manipulate the headers by calling the functions of the `BodyHandler` trait.
+
+[source,Rust]
+----
+pub trait BodyHandler {
+    fn body(&self) -> Vec<u8>;
+}
+----
+
+Envoy uses the same buffer to share data from the headers and the body to the policy. So, at a given moment, the policy can only access the headers or the body. If the policy must read both:
+
+. Read the headers and save the necessary values in a variable
+. Read the body
+
+You can not modify headers after reading the body. Complete all header modification before reading the body.
+
+For example:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState) {
+    let headers_state = request_state.into_headers_state().await;
+
+    let agent = headers_state.header("User-Agent").unwrap_or_else(|| "Undefined".to_string());
+
+    let body_state = headers_state.into_body_state().await;
+    
+    let body = body_state.body();
+
+    logger::info!("User: {agent} sent: {}", String::from_utf8_lossy(body.as_slice()));
 }
 ----
 
@@ -227,7 +269,7 @@ The default functions receive the predefined parameters:
 
 NOTE: For more information about `HttpClient`, `CacheBuilder`, and `RequestData`, see <<perform-an-http-request>>, <<share-data-between-workers-and-caching>>, and <<share-data-between-requests-and-responses>>.
 
-The `on_request` or `on_response` wrapped functions may require other parameters, such as the configuration parameters that are defined in the `#[entrypoint]` annotated function. To pass the parameters you need to explicitly define the lambda and send a reference of the variable, for example:
+The `on_request` or `on_response` wrapped functions may require other parameters, such as the configuration parameters defined in the `#[entrypoint]` function. To pass the parameters, define the lambda and send a variable reference, for example:
 
 [source,Rust]
 ----
@@ -276,7 +318,7 @@ let filter = on_request(request_filter)
 
 == Perform an HTTP Call
 
-If your policy must interact with external services, the only way to achieve this is through HTTP calls. You can preform HTTP calls in the request and response filters and in the  function. To perform a the HTTP call, inject the `HttpClient` as follows:
+If your policy must interact with external services, the policy must use HTTP calls. You can preform HTTP calls in the request and response filters and in the function. To perform a the HTTP call, inject the `HttpClient` as follows:
 
 * Injection for `on_request` or `on_response` wrapped functions functions:
 +
@@ -298,7 +340,7 @@ If your policy must interact with external services, the only way to achieve thi
 
 You can only make HTTP calls to services defined in the Flex Gateway configuration files. For more information about defining services, see xref:flex-local-configuration-reference-guide.adoc#service[Services].
 
-You can only define services using `Service` resource. If the service is not defined when the policy is applied, the API request fails.
+For both Connected and Local mode, define services using `Service` resource. If the service is not defined when the request is made, the API request fails.
 
 For an example of how to make HTTP calls from the policy, given the `Service` resource:
 
@@ -313,8 +355,8 @@ spec:
   address: https://login.com
 ----
 
-You can make calls in `lib.rs` with the following:
-+
+Make calls in `lib.rs` with the following:
+
 [source,Rust]
 ----
 let response = client.request("custom-policy.login.svc", "https://login.com")
@@ -324,14 +366,14 @@ let response = client.request("custom-policy.login.svc", "https://login.com")
     .post().await?;
 ----
 
-NOTE: In this example the upstream service and URL are hardcoded. For reusability when making calls to an upstream service in your policy, add the necessary information to the xref:policies-pdk-create-schema-definition.adoc[configuration parameters].
+NOTE: In this example, the upstream service and URL are hardcoded. For reusability when making calls to an upstream service in your policy, add the necessary information to the xref:policies-pdk-create-schema-definition.adoc[configuration parameters].
 
 
 == Use DataWeave Expressions
 
 If you define a `string` type configuration parameter with the `dataweave` format in your xref:policies-pdk-create-schema-definition.adoc[], the parameter maps to a Rust `Expression` type parameter.
  
-To solve the expression, you await the header state and pass it as a parameter to the expression. After the expression is solved, and the potential errors are handled, you can obtain the result value. Because the value can be of different types, you have to cast it using the provided functions:
+To solve the expression, await the header state and pass it as a parameter to the expression. After the expression is solved, and the potential errors are handled, you can obtain the result value. Because the value can be of different types, cast the value using the provided functions:
 
 [source,Rust]
 ----
@@ -378,55 +420,12 @@ async fn response_filter(response_state: ResponseState, config: &Config) {
 }
 ----
 
-== Read the Request Body
-
-To access the body in both the request and the response, you need to transform the `RequestState` or `ResponseState` to a body state by calling the method `into_body_state` and awaiting it. If the original state was already transformed into a header state, you can transform the state into a body state by calling the same function, for example:
-
-[source,Rust]
-----
-let headers_state = request_state.into_headers_state().await;
-let body_state = headers_state.into_body_state().await;
-----
-
-After, you can access and manipulate the headers by calling the functions of the `BodyHandler` trait.
-
-[source,Rust]
-----
-pub trait BodyHandler {
-    fn body(&self) -> Vec<u8>;
-}
-----
-
-Envoy uses the same buffer to share data from the headers and the body to the policy. So, at a given moment, you can only access the headers or the body. If you need to read both of them:
-
-. Read the headers and save the necessary values in a variable
-. Read the body
-
-You can not modify headers after reading the body. Complete all header modification before reading the body.
-
-For example:
-
-[source,Rust]
-----
-async fn request_filter(request_state: RequestState) {
-    let headers_state = request_state.into_headers_state().await;
-
-    let agent = headers_state.header("User-Agent").unwrap_or_else(|| "Undefined".to_string());
-
-    let body_state = headers_state.into_body_state().await;
-    
-    let body = body_state.body();
-
-    logger::info!("User: {agent} sent: {}", String::from_utf8_lossy(body.as_slice()));
-}
-----
-
 [[stop-request-execution]]
 == Stop Request Execution
 
 During request processing, you can abort the request and send a response.
 
-You can do this by returning a `Response` object from your `on_request` wrapped functions:
+Do this by returning a `Response` object from your `on_request` wrapped functions:
 
 [source,Rust]
 ----
@@ -441,10 +440,10 @@ This function is not very useful as it intercepts the requests no matter what. Y
 
 * `Continue`: Lets the request pass. 
 +
-This element enables you to define an object that is forwarded to the response.
+This element defines an object that is forwarded to the response.
 * `Break`: Aborts the request and returns the provided response.
 
-You can create a `Flow` as follows:
+Create a `Flow` as follows:
 
 [source,Rust]
 ----
@@ -462,7 +461,7 @@ async fn request_filter(request_state: RequestState) -> Flow<()> {
 
 [IMPORTANT]
 ====
-Due to the streaming nature of `proxy wasm`, it is possible for an early request to partially reach the upstream service while awaiting the `headers_state.into_body_state().await` function. The only way to avoid this by not awaiting the body. However, that is not possible for all policies. You should configure your upstream to ignore partial requests.
+Due to the streaming nature of `proxy wasm`, it is possible for an early request to partially reach the upstream service while awaiting the `headers_state.into_body_state` function. The only way to avoid this by not awaiting the body. However, that is not possible for all policies. You should configure your upstream to ignore partial requests if the policy must read the body.
 
 To avoid early responses reaching the client, see <<share-data-between-requests-and-responses>>.
 ====
@@ -470,7 +469,7 @@ To avoid early responses reaching the client, see <<share-data-between-requests-
 [[share-data-between-requests-and-responses]]
 == Share Data Between Requests and Responses
 
-If you want to share some status between the request and the response functions, the request function must return a `RequestData` object for the request function to receive, for example:
+To share a status between the request and the response functions, the request function must return a `RequestData` object for the request function to receive, for example:
 
 [source,Rust]
 ----
@@ -495,7 +494,7 @@ async fn configure(launcher: Launcher) -> Result<()> {
 }
 ----
 
-Returning a `RequestData` makes it impossible for a response to reach a client early. This is why the `Flow::Continue` enum has a template parameter. You can implement this by adding a `on_response` wrapped function to the `Flow` example used in <<stop-request-execution>>:
+Returning a `RequestData` makes it impossible for a response to reach a client early. This is why the `Flow::Continue` enum has a template parameter. Implement this by adding a `on_response` wrapped function to the `Flow` example used in <<stop-request-execution>>:
 
 [source,Rust]
 ----
@@ -518,13 +517,13 @@ async fn response_filter(state: ResponseState, RequestData(path): RequestData<St
 
 == Share Data Between Workers and Caching
 
-To increase the capability of handling requests, envoy spawns many workers for the policy. A single worker handles all the stages of a specific request including outgoing connections and the response flow. Due to this, for a specific request, you can track an internal status and create sequential execution flow even though the underlying implementation is event driven. 
+To increase the capability of handling requests, envoy spawns many workers for the policy. A single worker handles all the stages of a specific request including outgoing connections and the response flow. Due to this, you can track an internal status for a specific request and create sequential execution flow even though the underlying implementation is event driven. 
 
-Each worker processes a single request at a given time. If you need to share a global state in a specific worker you can use a `RefCell` without any risk of concurrent modification.
+Each worker processes a single request at a given time. To share a global state in a specific worker, use a `RefCell` without any risk of concurrent modification.
 
-Communicating a shared globabl state to all workers is more complex. The only way to achieve this is by using the provided `Cache` mechanism.
+Communicating a shared global state to all workers is more complex. Achieve this is by using the provided `Cache` mechanism.
 
-After injecting the cache builder, you must provide an ID for the cache and the maximum number of elements the cache can support. 
+After injecting the cache builder, provide an ID for the cache and the maximum number of elements the cache can support. 
 
 For example a cache with id “calculator” can hold ten elements:
 
@@ -555,7 +554,7 @@ IMPORTANT: Because another work may write to the cache concurrently, there is no
 
 == Use Third-Party Libraries
  
-Proxy Wasm defines a low level binary application interface (abi), that limits the system calls a library can make. All third-party libraries included in your policy  must be compatible with the `wasm32-wasi` Rust compilation target.
+Proxy Wasm defines a low level binary application interface (abi), that limits the system calls a library can make. All third-party libraries included in your policy must be compatible with the `wasm32-wasi` Rust compilation target.
 
 To define a library, such as `serde_urlencoded` has already been, add it to the depenpedency list in `cargo.toml`:
 
@@ -575,7 +574,7 @@ serde_urlencoded::to_string([("token", "myToken")])
 
 In general, if a library interacts with an external service, for example a database, or performs a system call, like reading a file, it is probable that it isn't compatible with the `wasm32-wasi` target. 
 
-If your policy to must interact with external services, the only way to achieve this is using Flex Gateway's exposed HttpClient. For more information about performing an HTTP call, see <<performing-an-http-call>>.
+If your policy to must interact with external services, achieve this is using Flex Gateway's exposed HttpClient. For more information about performing an HTTP call, see <<performing-an-http-call>>.
 
 Even though some libraries may compile properly to the wasm32-wasi target, they still might not work properly when deployed to Flex Gateway. Example errors of this are:
 
@@ -583,4 +582,4 @@ Even though some libraries may compile properly to the wasm32-wasi target, they 
 * `Wasm VM failed Failed to initialize Wasm code`
 * `Plugin configured to fail closed failed to load`
 
-In this case, you should contact the owners of the third-party library or use a different library.
+In this case, contact the owners of the third-party library or use a different library.
