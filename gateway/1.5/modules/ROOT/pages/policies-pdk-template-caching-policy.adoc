@@ -12,11 +12,11 @@ Use the data caching policy template as an example of how to xref:policies-pdk-c
 
 == Policy Use Case
 
-An antique store that buys and sells items needs to track the stock of each item in its collection and who buys it. To track the inventory movement, the company uses an API. 
+An antique store that buys and sells items needs to track the stock of each item in its collection and who buys it. To track the inventory movement, the company uses an API where each unique path represents a different item.. 
 
 During business hours, the catalog changes constantly and caching the available items isn't very useful. Outside of business hours, the stock is frozen, and the catalog can be cached without any concern. Given this, the manager of the antique store's server decides to implement a caching policy that caches the stock during the non-business hours. 
 
-The policy first checks the time of each incoming request. Then, if the request is outside of business hours, the policy caches the response.
+The policy first checks the time of each incoming request. Then, if the request is outside of business hours and if a response for the path has not been previously cached, the policy caches the response. The policy returns the cached response for all following requests to the path outside of business hours.
 
 To reuse the policy, the amount of cached requests and the non-business hours are configurable. 
 
@@ -63,7 +63,7 @@ spec:
 +
 The `yaml` snippet defines the following configuration parameters:
 +
-* `max_cached_values`: The maximum number of response to cache
+* `max_cached_values`: The maximum number of responses to cache
 * `start_hour`: The start of non-business hours
 * `end_hour`: The end of non-business hours
 
@@ -403,13 +403,22 @@ make run
 +
 NOTE: The `run` command starts a Flex Gateway instance inside a Docker container. By default, Docker containers use UTC as the local time. 
 
-. Send requests to Flex Gateway by using the following command as example:
+. Send a request to Flex Gateway:
 +
 [source,ssh]
 ----
 curl http://127.0.0.1:8081/catalog/1 -H "cache_check: cache_value"
 ----
 +
-If the request is sent during the configured non-business hours, the response contains the original header. If the request is sent during the configured business hours, the response is empty.
+NOTE: The upstream service used in the debugging environment included with PDK responds with an echo of the request.
 
-. Adjust the configured non-business hours to view both responses.
+. Send another request to Flex Gateway changing the included header:
++
+[source,ssh]
+----
+curl http://127.0.0.1:8081/catalog/1 -H "cache_check: cache_value1"
+----
++
+If the requests were made outside of business hours, the header `cache_check: cache_value` is included in the response body instead of `cache_check: cache_value1`. If the requests were made inside of business hours, the header `cache_check: cache_value1` is included in the response body.
+
+. Adjust the configured non-business hours and the request path to view different responses.
