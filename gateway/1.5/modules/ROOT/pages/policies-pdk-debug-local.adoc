@@ -117,8 +117,7 @@ However, your custom policy under development must be the first policy specified
         password: 12345678
     - policyRef:
         name: additional-policy
-      config:
-        
+      config: 
 ----
 
 == Deploy the Policy with PDK
@@ -146,3 +145,17 @@ curl --location --request POST 'http://0.0.0.0:8081/some/route' \
 ----
 
 The backend service returns an echo response including the requests’s route, body, and headers sent with any modification performed by the custom policy or additional policies. Any logs included in the custom policy's source code are visible in the terminal running the containers.
+
+== Loglevel
+
+By default, the PDK debug environment enables debug logs.
+
+To change the loglevel, edit the `logging.runtimeLogs.logLevel` value in `test/config/logging.yaml`.
+
+To learn more about editing a Flex Gateway logging configuration file, see xref:flex-local-third-party-logs-config.adoc[].
+
+== Use the Rust Debugger
+
+Visual Studio includes a Rust debugger that can run unit tests. You cannot use the Visual Studio Debugger while the policy is deployed on a Flex Gateway. Meaning that to create the API mocking, you must have unit tests for the specific logic you need to debug.
+
+To debug Rust code in Visual Studio, you must install the https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb[CodeLLDB Debugger Extension ^] or a different Visual Studio extension with the same functionality. To learn more about debugging in Visual Studio, see https://code.visualstudio.com/docs/editor/debugging[Visual Studio Debugging ^].
