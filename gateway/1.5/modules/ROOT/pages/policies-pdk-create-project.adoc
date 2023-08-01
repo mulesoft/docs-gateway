@@ -3,3 +3,141 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
+
+To begin developing a new custom policy with the Policy Development Kit (PDK), generate a new custom policy project.
+
+To create a new project, complete the following tasks:
+
+. <<before-you-begin>>
+. <<create-a-new-policy-project>>
+. <<setup-a-new-policy-project>>
+. Review <<project-structure>>
+
+== Before You Begin
+
+Before you can create a custom policy project, ensure that you have installed all xref:policies-pdk-prerequisites.adoc[PDK prerequisites].
+
+== Create a New Policy Project
+
+To create a custom policy project, run the PDK CLI `create` command, replacing `<my-custom-policy>` with the name of your new policy:
+
+[source,ssh]
+----
+anypoint-cli-v4 pdk policy-project create --name <my-custom-policy>
+----
+
+Running the `create` command creates a custom policy project with the specified name. The project appears in a new directory or a directory specified using the `--output-dir` flag. The following tutorials refer to this as your project's root directory.
+
+The `assetID` of the new policy is the policy's name in lower case with the spaces amended together with a `-`. For example, a policy with the name `My Header Injection Policy` has the `assetID` of `my-header-injection-policy`. 
+
+The `groupID` of the new policy is the ID of the organization configured in Anypoint CLI.
+
+The `create` command supports the following flags:
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Flag | Default Value | Required | Description
+| `--name=<value>` or `-n` | N/A | Yes | Name of the new policy.
+| `--description=<value>` or `-d` | N/A | No | Description of the new policy.
+| `--output-dir=<value>` of `-o` | `assetID` | No | Directory the new policy is created in. +
+If the directory does not exist, it is created. If no directory is specified, the directory name is the policy `assetID`.
+| `--version=<value>` | `1.0.0` | No | Version of the new policy. +
+The version format is `<major-release>.<minor-release>.<patch-release>`.
+|===
+
+== Setup the PDK Build Environment
+
+If you haven't set up your PDK build environment, run the `setup` command to install the PDK project's dependencies.
+
+To set up your PDK environment:
+
+. Execute the following `curl` command to retrieve your Connected App bearer token. Replace your Connected App values:
++
+[source,ssh]
+----
+curl --location --request POST https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token \
+--data-urlencode 'client_id=<client_id>' \
+--data-urlencode 'client_secret=<client_secret>' \
+--data-urlencode 'grant_type=client_credentials'
+----
+
+. Save the returned `access_token`.
+
+. Run the `setup` command:
++
+[source,ssh]
+----
+make setup
+----
+
+. Enter a `username` value.
+. Enter the saved `access_token` when prompted for a `password`.
+
+== Project Structure
+
+After running the setup command, the policy's root directory contains the following directories and files shown in the directory tree: 
+
+----
+├─ definition/  # Contains the files that describe the Policy Definition
+│  ├── target/  # Contains the build definition asset files
+│  └── gcl.yaml # GCL file managed by the developer that describes the Policy Definition
+├─ target/      # Contains the implementation asset files and the output of the policy build
+├─ src/         # Contains the implementation source code
+├─ test/        # Contains the artifacts required for running the policy locally
+├─ Makefile     # Provides all the callable actions required during the policy development lifecycle
+├─ Cargo.toml   # Rust language standard file that contains the metadata required to build the policy
+└─.project.yaml # Project manifest used by PDK
+----
+
+=== target/ and definition/target/
+
+There are two separate `target` directories:
+
+* `definition/target/`: Contains the policy asset definition published to Exchange.
+* `target/`: Contains the files for the Policy asset implementation and the output of the Rust compilation process.
+
+Both `target` directories and their content are included in the `.gitignore` file. You must compile the targets on each individual devices. For example, if you are developing a policy as part of a team, your team can publish the policy and it's source code to a remote repository, but each team member must build the target on their device for local testing.
+
+=== definition/
+
+The `definition` directory contains the `gcl.yaml` file that defines the policy's metadata and the configuration properties.
+
+To configure the `gcl.yaml` file, see xref:policies-pdk-create-schema-definition.adoc[].
+
+=== Cargo.toml
+
+Custom policies for Flex Gateway are developed in the Rust Programming language and compiled to a WebAssembly binary. 
+
+The `Cargo.toml` is the Rust project manifest. Its `[package]` section contains the basic information about the policy implementation. The version specified in `Cargo.toml` matches the policy asset version. You can manage the policy version by editing the version number in `Cargo.toml`. The version follows the format `<major-version>.<minor-version>.<patch-version>`.
+
+=== src/
+
+The `src` directory contains the policy's source code:
+
+* `lib.rs`: Contains a set of methods that implement the behavior of the policy. These methods are the API our development kit offers to implement custom policies behavior. 
+
+* `generated/config.rs` and `generated/mod.rs`: Auto-generated modules that make the policy configuration, as defined in the `gcl.yaml`, available for use in the `lib.rs` and any of the policy source files.
+
+=== Makefile
+
+This file contains all the callable actions, `make` commands, required for the policy development lifecycle. Execute all `make` commands at the root level of your root directory:
+
+* `make setup`: Installs the PDK internal dependencies for the rest of the Makefile goals. 
++
+For more information about setting up your project, see <<setup-a-new-policy-project>>.
+* `make build-asset-files`: Generates all the policy asset files required to build, execute, and publish the policy. This command also updates the `config.rs` source code file with the latest configurations defined in the `gcl.yaml` file. 
++
+For more information about compiling a policy, see xref:policies-pdk-compile-policies.adoc[].
++
+* `make build`: Runs the `make build-asset-files` command and compiles the WebAssembly binary of the policy. 
++
+For more information about compiling a policy, see xref:policies-pdk-compile-policies.adoc[]. 
+* `make run`: Provides a simple way to execute the current build of the policy in a Docker containerized environment. 
++
+For more information about testing your policy, see xref:policies-pdk-debug-local.adoc[].
+* `make publish`: Publishes the policy asset in Exchange. 
++
+For more information about publishing policies in Exchange, see xref:policies-pdk-publish-policies.adoc[].
+* `make release`: Releases the policy asset in Exchange. 
++
+For more information about releasing policies in Exchange, see xref:policies-pdk-publish-policies.adoc[].
