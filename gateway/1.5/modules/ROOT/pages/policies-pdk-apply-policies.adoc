@@ -24,9 +24,22 @@ To apply a custom policy in Connected Mode, see xref:policies-included-apply.ado
 
 For Flex Gateway running in Local Mode, you apply API policies using xref:flex-local-configuration-reference-guide.adoc[local declarative configuration files]. You specify the location of these configuration files when you first run Flex Gateway.
 
-To apply a custom policy in Local Mode, use either xref:flex-local-secure-api-with-basic-auth-policy.adoc[] or xref:flex-local-secure-api-with-auto-policy.adoc[] as an example. 
+To apply a custom policy in Local Mode, use either xref:flex-local-secure-api-with-basic-auth-policy.adoc[] or xref:flex-local-secure-api-with-auto-policy.adoc[] as an example. Add your policy's configuration parameters to the `policies` object. You can remove any policy used in the example.
 
-Add your policy configuration parameters found in `test/api/config.yaml` to the `policies` object. You can remove any policy used in the example.
+Additionally, you can develop your own YAML configuration file similar to the configuration file from the xref:policies-included-rate-limiting#flex-gateway-local-mode[Rate Limiting Policy] and distribute it:
+
+[source,yaml]
+----
+- policyRef:
+    name: rate-limiting-flex
+  config:
+    rateLimits: <array> // REQUIRED
+      - maximumRequests: <int> // REQUIRED
+        timePeriodInMilliseconds: <int> // REQUIRED
+    keySelector: <string> // OPTIONAL
+    exposeHeaders: <bool> // OPTIONAL, default: false
+    clusterizable: <bool> // OPTIONAL, default: true
+----
 
 == Reorder Custom Policies
 
