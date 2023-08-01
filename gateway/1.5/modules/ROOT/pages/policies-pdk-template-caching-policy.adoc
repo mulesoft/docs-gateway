@@ -20,7 +20,7 @@ The policy first checks the time of each incoming request. Then, if the request 
 
 To reuse the policy, the amount of cached requests and the non-business hours are configurable. 
 
-An error in the caching flow should not make a request fail. So, by default, the caching policy does not block requests.  
+An error in the caching flow should not make a request fail. By default, the caching policy does not block requests.  
 
 == Implement the Policy
 
@@ -419,6 +419,6 @@ NOTE: The upstream service used in the debugging environment included with PDK r
 curl http://127.0.0.1:8081/catalog/1 -H "cache_check: cache_value1"
 ----
 +
-If the requests were made outside of business hours, the header `cache_check: cache_value` is included in the response body instead of `cache_check: cache_value1`. If the requests were made inside of business hours, the header `cache_check: cache_value1` is included in the response body.
+If requests are made outside of business hours, the header `cache_check: cache_value` is included in the response body instead of `cache_check: cache_value1`. If requests are made inside of business hours, the header `cache_check: cache_value1` is included in the response body.
 
-. Adjust the configured non-business hours and the request path to view different responses.
+. Change the non-business hours and request path to view different responses.
