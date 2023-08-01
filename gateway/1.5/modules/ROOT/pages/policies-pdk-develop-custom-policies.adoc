@@ -3,3 +3,43 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
+
+After installing the xref:policies-pdk-prerequisites.adoc[], you can develop custom policies by using the Policy Development Kit (PDK).
+
+The custom policy lifecycle consists of all the steps of developing a custom policy that occur in PDK. The following steps do not include steps that occur outside of PDK, such as xref:policies-pdk-deploy-policies.adoc[applying a policy], which is the same for all Flex Gateway policies.
+
+After you xref:policies-pdk-create-project.adoc[create a new project], you might iteratively complete some steps. For example, while writing the policy's source code, you might need to return to xref:policies-pdk-create-schema-definition.adoc[add additional parameters], or you might need to recompile the policy after debugging the source code.
+
+To create a custom policy with PDK, follow these steps:
+
+. xref:policies-pdk-create-project.adoc[Create a new project].
+
+. xref:policies-pdk-create-schema-definition.adoc[Define a schema definition].
++
+Modify the `definition/gcl.yaml` file to define metadata and configuration parameters for your custom policy.
+
+
+. xref:policies-pdk-configure-features.adoc[Configure custom policy features in Rust].
++
+Use the rust code examples to implement your custom logic in the `src/lib.rs` file.
+
+. xref:policies-pdk-compile-policies.adoc[Compile your custom policy].
++
+Compiling your policy creates the `WebAssembly` binary file and configuration files necessary to upload your policy to Exchange and deploy it to a Flex Gateway.
+
+. xref:policies-pdk-debug-local.adoc[Debug Your Policy Locally with PDK].
++
+Use the provided Flex Gateway configuration files to debug your policy locally with PDK before distributing it on Exchange.
+
+
+. xref:policies-pdk-publish-policies.adoc#publish[Publish your policy on Exchange].
++
+Publish your policy on Exchange to distribute a beta version of your policy for testing with your Flex Gateway configuration. To deploy a policy to Flex Gateway, see step 8.
+
+. xref:policies-pdk-publish-policies.adoc#release[Release your policy on Exchange].
++
+Release your policy on Exchange to distribute a production-ready policy.
+
+. Deploy your custom policy to a production environment by xref:policies-pdk-deploy-policies.adoc[applying it to an API instance] deployed on Flex Gateway. 
+
+. Configure a new version of this API instance by returning to step 2.
