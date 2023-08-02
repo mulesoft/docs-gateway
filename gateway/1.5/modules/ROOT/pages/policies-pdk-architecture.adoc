@@ -3,3 +3,39 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
+
+The Policy Development Kit (PDK) consists of the:
+
+*  Anypoint CLI PDK plugin to generate and distribute the policy to Exchange
+* Policy template to scaffold new custom policies
+* Software Developmen Kit (SDK) to simplify the development process
+
+== Anypoint CLI PDK Plugin
+
+The Anypoint CLI PDK plugin creates the PDK project and uploads policy assets to Exchange. After creating the project, PDK provides a simplied set of commands in a `Makefile` to complete all development steps.
+
+== Policy Template
+
+PDK generates some simply scaffolding when creating the policy.
+
+All generated files contain the required information to properly compile the policy.
+
+For more information about the included files, see xref:policies-pdk-create-project.adoc#project-structure[].
+
+== SDK
+Flex Gateway is built on Envoy which requires developed policies be compatible with the event-driven `proxy-wasm` architecture. 
+
+`proxy-wasm` event driven interface forces the user to keep the track between the different events received to handle a single request. This causes the following drawbacks the make developing and maintaining event driven code costly:
+
+* High complexity of the code due to the coupling of business logic with the entry points 
+* Inability to modularize common logic which creates monolithic
+* Verbose non-linear control flow that create difficult function callbacks and error propagation
+
+PDK abstracts the user from the event oriented coding approach by using reactor and executor patterns. PDK provides the developer a way to code each incoming request in a linear methos which results in: 
+
+* Less errors because you can only use methods in the correct context
+* Reduced learning curve
+* Improved debugging by minimizing call stacks
+* Reduced code duplication
+* Improved parameter injection
+* Reduced use of dynamic memory that decreases indeterminism and the need of custom memory management
