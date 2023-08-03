@@ -78,7 +78,13 @@ let filter = on_request(|rs| request_filter(rs, &config));
 launcher.launch(filter).await?;
 ----
 
-Instead of filtering an incoming request, you can define a function that processes the outgoing response by using the `on_response` wrapper instead of the `on_request` wrapper:
+=== Wrapped Functions
+
+The `on_response` or `on_request` wrapper defines when the filter function executes. 
+
+You can define functions other than the provided `requests_filter` and `response_filter` from the `#[entrypoint]` function. The `requests_filter` and `response_filter` are only examples.
+
+Instead of filtering an incoming request as shown in the pervious example, you can process the outgoing response by using the `on_response` wrapper:
 
 [source,Rust]
 ----
@@ -118,10 +124,6 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
     Ok(())
 }
 ----
-
-The `on_response` or `on_request` wrapper defines when the request executes. 
-
-You can define functions other than the provided `requests_filter` and `response_filter` from the `#[entrypoint]` function. The `requests_filter` and `response_filter` are only examples.
 
 == Configure Policy Logging
 
