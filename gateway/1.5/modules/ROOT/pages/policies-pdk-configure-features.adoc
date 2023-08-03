@@ -23,7 +23,7 @@ NOTE: You may need to add or redefine configuration parameters while implementin
 
 == Policy Template
 
-PDK provides the initial `src/lib.rs` file in the policy project as a template to begin impletmenting your policy:
+PDK provides the initial `src/lib.rs` file in the policy project as a template to begin implementing your policy:
 
 [source,Rust]
 ----
@@ -66,9 +66,9 @@ The `#[entrypoint]` function receives the following parameters:
 ** `Launcher`: Sets the filter functions.
 ** `Configuration`: Provides the configuration parameters defined in xref:policies-pdk-create-schema-definition.adoc[]. 
 
-* `request_filter`: Executes once per every request sent to the API instance to which the policy is applied. This function is the implementation of the filtering performed by the policy. Variables defined inside this function available for the duration of the request.
+* `request_filter`: Executes once per every request sent to the API instance to which the policy is applied. This function is the implementation of the filtering performed by the policy. Variables defined inside this function are available for the duration of the request.
 +
-The `request_filter` is an example of a wrapped function
+The `request_filter` is an example of a wrapped function.
 +
 The `#[entrypoint]` function executes wrapped functions:
 +
@@ -97,7 +97,7 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 
 NOTE: The `request_filter` function is now the `response_filter` function.
 
-To filter both requests and response, use bother wrappers:
+To filter both requests and responses, use bother wrappers:
 
 [source,Rust]
 ----
@@ -119,9 +119,9 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-The `on_response` or `on_request` wrapper defines when the request is executed. 
+The `on_response` or `on_request` wrapper defines when the request executes. 
 
-You can define functions other than the provided `requests_filter` and `response_filter` and define them from the `#[entrypoint]` function. The `requests_filter` and `response_filter`` are only examples.
+You can define functions other than the provided `requests_filter` and `response_filter` from the `#[entrypoint]` function. The `requests_filter` and `response_filter` are only examples.
 
 == Configure Policy Logging
 
@@ -134,7 +134,7 @@ Insert custom logs with the following macros by using the `logger::` package:
 * `logger::warn!`
 * `logger::error!`
 
-The macros behave the same as the https://doc.rust-lang.org/std/macro.format.html[Rust std::format! macro].  The first parameter must be a format string literal. Use `{}` in the literal to pass parameters, for example:
+The macros behave the same as the https://doc.rust-lang.org/std/macro.format.html[Rust std::format! macro^]. The first parameter must be a format string literal. Use `{}` in the literal to pass parameters, for example:
 
 [source,Rust]
 ----
@@ -192,7 +192,7 @@ async fn response_filter(response_state: ResponseState, _config: &Config) {
 
 ----
 
-Envoy handles the method, scheme, path, authority, and status codes as headers. Modify the headers by accessing the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status`. Additionally PDK provides the `RequestHeadersHandler` and `ResponseHeadersHandler` traits for ease of access:
+Envoy handles the method, scheme, path, authority, and status codes as headers. Modify the headers by accessing the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status`. PDK provides the `RequestHeadersHandler` and `ResponseHeadersHandler` traits for ease of access:
 
 [source,Rust]
 ----
@@ -227,7 +227,7 @@ pub trait BodyHandler {
 }
 ----
 
-Envoy uses the same buffer to share data from the headers and the body to the policy. So, at a given moment, the policy can only access the headers or the body. If the policy must read both:
+Because Envoy uses the same buffer to share data from the headers and the body, the policy cannot access the headers and the body at the same time. If the policy must read both:
 
 . Read the headers and save the necessary values in a variable
 . Read the body
@@ -296,7 +296,7 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-If your `on_request` or `on_response` wrapped functions only receives the predefined parameters, it is not necessary to include the lambda in the wrapper. For example, if the signature of the function is:
+If your `on_request` or `on_response` wrapped functions only receive the predefined parameters, the lambda is not required in the wrapper. For example, if the signature of the function is:
 
 [source,Rust]
 ----
@@ -312,7 +312,7 @@ let filter = on_request(|request_state| request_filter(request_state))
     .on_response(|response_state, request_data| response_filter(response_state, request_data));
 ----
 
-You can use the following functions definition:
+You can use the following function definition:
 
 [source,Rust]
 ----
@@ -322,7 +322,7 @@ let filter = on_request(request_filter)
 
 == Perform an HTTP Call
 
-If your policy must interact with external services, the policy must use HTTP calls. You can preform HTTP calls in the request and response filters and in the function. To perform a the HTTP call, inject the `HttpClient` as follows:
+To interact with external services, the policy must use HTTP calls. You can perform HTTP calls in the request and response filters and in the function. To perform an HTTP call, inject the `HttpClient` as follows:
 
 * Injection for `on_request` or `on_response` wrapped functions functions:
 +
@@ -344,7 +344,7 @@ If your policy must interact with external services, the policy must use HTTP ca
 
 You can only make HTTP calls to services defined in the Flex Gateway configuration files. For more information about defining services, see xref:flex-local-configuration-reference-guide.adoc#service[Services].
 
-For both Connected and Local mode, define services using `Service` resource. If the service is not defined when the request is made, the API request fails.
+For both Connected and Local modes, define services using the `Service` resource. If the service is not defined when the request is made, the API request fails.
 
 For an example of how to make HTTP calls from the policy, given the `Service` resource:
 
@@ -389,7 +389,7 @@ fn as_slice(&self) -> Option<&[Value]>;
 fn as_object(&self) -> Option<&Object>;
 ----
 
-The functions return an `Option` containing the value if it was properly casted or `None` if the value didn't belong to the casted type. For example, the following code snippet, tests what type the value resolves as:
+The functions return an `Option` containing the value if it was properly cast or `None` if the value didn't belong to the cast type. For example, the following code snippet tests what type the value resolves as:
 
 [source,Rust]
 ----
@@ -465,7 +465,7 @@ async fn request_filter(request_state: RequestState) -> Flow<()> {
 
 [IMPORTANT]
 ====
-Due to the streaming nature of `proxy wasm`, it is possible for an early request to partially reach the upstream service while awaiting the `headers_state.into_body_state` function. The only way to avoid this by not awaiting the body. However, that is not possible for all policies. You should configure your upstream to ignore partial requests if the policy must read the body.
+Due to the streaming nature of `proxy wasm`, it is possible for an early request to partially reach the upstream service while awaiting the `headers_state.into_body_state` function. The only way to avoid this is by not awaiting the body. However, that is not possible for all policies. Configure your upstream to ignore partial requests if the policy must read the body.
 
 To avoid early responses reaching the client, see <<share-data-between-requests-and-responses>>.
 ====
@@ -521,15 +521,15 @@ async fn response_filter(state: ResponseState, RequestData(path): RequestData<St
 
 == Share Data Between Workers and Caching
 
-To increase the capability of handling requests, envoy spawns many workers for the policy. A single worker handles all the stages of a specific request including outgoing connections and the response flow. Due to this, you can track an internal status for a specific request and create sequential execution flow even though the underlying implementation is event driven. 
+Envoy spawns many workers for the policy to increase the capability of handling requests. A single worker handles all the stages of a specific request, including outgoing connections and the response flow, enabling you to track an internal status for a specific request and create a sequential execution flow even though the underlying implementation is event-driven. 
 
 Each worker processes a single request at a given time. To share a global state in a specific worker, use a `RefCell` without any risk of concurrent modification.
 
-Communicating a shared global state to all workers is more complex. Achieve this is by using the provided `Cache` mechanism.
+Use the provided `Cache` mechanism to communicate a shared global state to all workers.
 
 After injecting the cache builder, provide an ID for the cache and the maximum number of elements the cache can support. 
 
-For example a cache with id “calculator” can hold ten elements:
+In the following example, a cache with ID “calculator” can hold ten elements:
 
 [source,Rust]
 ----
@@ -554,13 +554,13 @@ pub trait Cache {
 }
 ----
 
-IMPORTANT: Because another work may write to the cache concurrently, there is no guarantee that the value overwritten when saving the cache is the same as when it was retrieved.
+IMPORTANT: Because different works write to the cache concurrently, there is no guarantee that the value overwritten when saving the cache is the same as when it was retrieved.
 
 == Use Third-Party Libraries
  
 Proxy Wasm defines a low level binary application interface (abi), that limits the system calls a library can make. All third-party libraries included in your policy must be compatible with the `wasm32-wasi` Rust compilation target.
 
-To define a library, such as `serde_urlencoded` has already been, add it to the depenpedency list in `cargo.toml`:
+To define a library such as `serde_urlencoded`, add it to the dependency list in `cargo.toml`:
 
 [source,toml]
 ----
@@ -569,18 +569,18 @@ To define a library, such as `serde_urlencoded` has already been, add it to the 
 serde_urlencoded = "0.7.0"
 ----
 
-This enables you to use functions in `lib.rs` such as:
+Defining libraries enables you to use functions in `lib.rs` such as:
 
 [source,Rust]
 ----
 serde_urlencoded::to_string([("token", "myToken")])
 ----
 
-In general, if a library interacts with an external service, for example a database, or performs a system call, like reading a file, it is probable that it isn't compatible with the `wasm32-wasi` target. 
+Libraries that interact with an external service like a database, or perform a system call like reading a file, are usually not compatible with the `wasm32-wasi` target. 
 
-If your policy to must interact with external services, achieve this is using Flex Gateway's exposed HttpClient. For more information about performing an HTTP call, see <<performing-an-http-call>>.
+If your policy interacts with external services, use the Flex Gateway exposed HttpClient. For more information about performing an HTTP call, see <<performing-an-http-call>>.
 
-Even though some libraries may compile properly to the wasm32-wasi target, they still might not work properly when deployed to Flex Gateway. Example errors of this are:
+It is possible that some libraries compile properly to the `wasm32-wasi` target but don't work properly when deployed to Flex Gateway. Example errors of this are:
 
 * `Failed to load Wasm module due to a missing import: ...`
 * `Wasm VM failed Failed to initialize Wasm code`
