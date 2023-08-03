@@ -427,20 +427,16 @@ async fn response_filter(response_state: ResponseState, config: &Config) {
 [[stop-request-execution]]
 == Stop Request Execution
 
-During request processing, you can abort the request and send a response.
-
-Do this by returning a `Response` object from your `on_request` wrapped functions:
+To intercept and stop a request, return a Response object from your `on_request` wrapped functions:
 
 [source,Rust]
 ----
-async fn request_filter(_request_state: RequestState) -> Response {
-    Response::new(401)
-        .with_headers(vec![("WWW-Authenticate".to_string(), "Bearer realm=\"oauth2\"".to_string())])
-        .with_body(r#"{ "error": "token was not present"}"#)
-}
+Response::new(401)
+    .with_headers(vec![("WWW-Authenticate".to_string(), "Bearer realm=\"oauth2\"".to_string())])
+    .with_body(r#"{ "error": "token was not present"}"#)
 ----
 
-This function is not very useful as it intercepts the requests no matter what. You can block or allow requests to reach the upstream service using a `Flow`. A `Flow` in an `enum` value with two possible values:
+You can block or allow requests to reach the upstream service using a `Flow`. A `Flow` in an `enum` value with two possible values:
 
 * `Continue`: Lets the request pass. 
 +
