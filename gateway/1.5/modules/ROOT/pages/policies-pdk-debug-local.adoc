@@ -6,7 +6,7 @@ endif::[]
 
 The Policy Development Kit (PDK) provides a preconfigured API instance located in the `<root-directory>/test/config` directory to begin testing your policy.
 
-After you successfully xref:policies-pdk-compile-policies.adoc[compile your custom policy project] and add a <<register, Flex Gateway `registration.yaml`>> file to the configuration directory, you can use the `run` command to deploy the API instance and your policy to begin testing.
+After you successfully xref:policies-pdk-compile-policies.adoc[compile your custom policy project] and add a <<register, Flex Gateway registration file>> to the configuration directory, you can use the `run` command to deploy the API instance and your policy to begin testing.
 
 NOTE: PDK only supports Flex Gateways running in a Docker container.
 
@@ -23,7 +23,7 @@ To test your policy, complete the following tasks:
 Ensure that you have:
 
 * xref:policies-pdk-compile-policies.adoc[Compiled your custom policy]
-* https://www.docker.com/[Installed Docker ^]
+* https://www.docker.com/[Installed Docker^]
 
 [[register]]
 == Register a Flex Gateway Instance in Local Mode
@@ -34,9 +34,9 @@ For the `run` command to work, a Flex Gateway `registration.yaml` file must be i
 
 The `run` command only supports Flex Gateways running in Local Mode in a Docker Container. To register a Flex Gateway, see the relevant tutorial for your preferred credential type:
 
-* xref:local-reg-run-up.adoc#docker[]
-* xref:local-reg-run-app.adoc#docker[]
-* xref:local-reg-run-token.adoc#docker[]
+* xref:flex-local-reg-run-up.adoc#docker[Register with a Username and Password]
+* xref:flex-local-reg-run-app.adoc#docker[Register with a Connected App]
+* xref:flex-local-reg-run-token.adoc#docker[Register with a Token]
 
 IMPORTANT: You only need to run the registration command. Do not run the Docker start command. The `run` command completes this step.
 
@@ -117,8 +117,7 @@ However, your custom policy under development must be the first policy specified
         password: 12345678
     - policyRef:
         name: additional-policy
-      config:
-        
+      config: 
 ----
 
 == Deploy the Policy with PDK
@@ -146,3 +145,17 @@ curl --location --request POST 'http://0.0.0.0:8081/some/route' \
 ----
 
 The backend service returns an echo response including the requests’s route, body, and headers sent with any modification performed by the custom policy or additional policies. Any logs included in the custom policy's source code are visible in the terminal running the containers.
+
+== Loglevel
+
+By default, the PDK debugging environment enables logs with the `debug` loglevel configured.
+
+To change the loglevel, edit the `logging.runtimeLogs.logLevel` value in `test/config/logging.yaml`.
+
+To learn more about editing a Flex Gateway's logging configuration file, see xref:flex-local-third-party-logs-config.adoc[].
+
+== Use the Rust Debugger
+
+Visual Studio Code (VS Code) includes a Rust debugger that can run unit tests. You cannot use the VS Code Debugger while the policy is deployed on a Flex Gateway. To create the API mocking, you must use unit tests for the specific logic you need to debug.
+
+To debug Rust code in VS Code, you must install the https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb[CodeLLDB Debugger Extension^] or a different VS Code extension with the same functionality. To learn more about debugging Rust in VS Code, see https://code.visualstudio.com/docs/languages/rust#_debugging[Rust in Visual Studio Code^].
