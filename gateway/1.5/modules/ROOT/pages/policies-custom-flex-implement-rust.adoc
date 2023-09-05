@@ -250,7 +250,7 @@ Flex Gateway configures your policy with JSON defined in the policy definition. 
 . Deserialize the configuration:
 +
 After creating the basic policy configuration structure, you must implement the `RootContext` `on_configure` method in order to deserialize it.
-
++
 Within the implementation of `RootContext` for `CustomAuthRootContext`, add the `on_configure` method, like the following snippet.
 +
 ----
@@ -315,6 +315,19 @@ let header = self.get_http_request_header_bytes("x-custom-auth").map(String::fro
 ----
 rustup target add wasm32-wasi
 ----
++
+All third-party libraries included in your policy must be compatible with the `wasm32-wasi` Rust compilation target.
++
+[IMPORTANT]
+====
+Some libraries might compile properly to the wasm32-wasi target but might not work properly when deployed to Flex Gateway. Example deployment errors when this happens are:
+
+* `Failed to load Wasm module due to a missing import`
+* `Wasm VM failed to initialize Wasm code`
+* `Plugin configured to fail closed failed to load`
+
+To resolve these issues, contact the owners of the third-party library or use a different library.
+====
 
 . Compile your custom policy via the following command:
 +
