@@ -1,0 +1,33 @@
+= Use Case 2: Organization-Owned API Exposed to a Non-Organization-Owned API Consumer
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Use case two covers all patterns of a scenario in which an organization-owned API is exposed to a non-organization-owned API consumer; for example, when a user makes a request to your public-facing API.
+
+[[pattern-5]]
+== Pattern 5: Organization Internal API exposed to a Non-Organization External Consumer
+In pattern five, the infrastructure of the organization-owned API is isolated from the API consumer. The consumer can access the exposed API only via the internet. In this use case, you deploy Flex Gateway as an ingress.
+
+image:ad-uc-1-p-2.png["Consumer application requests pass through the internet and a firewall before reaching Flex Gateway."]
+
+The following diagram shows the physical implementation of a scenario in which an organization-owned internal API is exposed to a non-organization-owned external consumer on Kubernetes. The diagram assumes that the firewall terminates the incoming external mTLS connection.
+
+image:ad-uc-2-p-5-physical.png["A detailed view of pattern five, which contains the necessary services to support Flex Gateway"]
+
+[[pattern-6]]
+== Pattern 6: Organization External API exposed to a Non-Organization External Consumer
+In pattern six, Flex Gateway acts as an intermediary between two external network entities. Flex Gateway runs as an ingress and egress that applies secure communication and policy enforcement.
+
+image:ad-uc-1-p-4.png["Flex Gateway acts as an intermediary between an external application and external API."]
+
+The following diagram shows the physical implementation of a scenario in which an organization external API is exposed to an non-organization external consumer on Kubernetes. The diagram assumes that the firewall terminates the external mTLS connections.
+
+image:ad-uc-2-p-6-physical.png["A detailed view of pattern six, which contains the necessary services to support Flex Gateway"]
+
+== See Also
+
+* xref:flex-architecture-uc1.adoc[]
+* xref:flex-architecture-uc3.adoc[]
+* xref:flex-architecture-uc4.adoc[]

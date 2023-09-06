@@ -1,0 +1,38 @@
+= Reordering Policies
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:page-aliases: api-manager::re-order-policies-task.adoc, policies-included-reorder.adoc, policies::policies-included-reorder.adoc, policies::policies-reorder.adoc
+
+To execute certain policies before others, you can configure the order of execution of included and custom API-level policies. However, you cannot configure API-level policies to execute before automated policies.
+
+For Flex Gateway running in Connected Mode, you reorder policies via API Manager. For Flex Gateway running in Local Mode you order policies via a `PolicyBinding` YAML resource.
+
+IMPORTANT: You cannot configure the execution order of the xref:policies-included-cors.adoc[Cross-Origin Resource Sharing (CORS) policy]. The CORS policy executes before automated and API-level policies.
+
+== Flex Gateway in Connected Mode
+
+To reorder policies in Flex Gateway running in Connected Mode:
+
+. Go to *Anypoint Platform > API Manager*.
+
+. In *API Administration*, click the name of the API instance whose policies you want to reorder.
+
+. From the left navigation menu, click *Policies*.
+
+. From the top of the list of the applied policies, click *Reorder policies*.
+
+. From the *Reorder Applied Policies* section, use the up and down arrows to rearrange the order of policies.
+
+. Click *Apply order*.
+
+== Flex Gateway in Local Mode
+In Flex Gateway running in Local Mode, you configure policy ordering via a `PolicyBinding` YAML resource.
+
+When defining a policy using a `PolicyBinding` YAML resource, edit the `order` parameter to match when you want the policy to execute. Ensure that you do not assign the same order number to different policies.
+
+For information about Local Mode policy order, see the xref:flex-local-configuration-reference-guide.adoc#policy-binding[Declarative Configuration Reference Guide].
+
+== See Also
+
+* xref:policies-included-directory.adoc[Included Policies Directory]
