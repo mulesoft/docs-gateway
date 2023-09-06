@@ -3,3 +3,31 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
+
+This document provides recommendations for sizing Flex Gateway resources. As the bridge between your application and backend services, Flex Gateway plays a critical role in managing and controlling the interactions between these components. It is therefore important to size your resources appropriately to ensure optimal performance and reliability.
+
+The recommendations are guidelines only. Additional benchmarking adjustments should be performed to satisfy specific performance requirements.
+
+== Use Cases
+
+The following five use cases describe baseline performance against given specifications.
+
+=== Use Case 1
+
+This scenario has a gateway with computing settings in kubernetes-deployments limits for cpu=2000m, memory=2Gi and requests cpu=250m, memory=512Mi and replica=2. The test will be to deploy in this gateway 20 APIs distributed load in 200 users and 100 transactions per second.
+
+=== Use Case 2
+
+This scenario has a gateway with computing settings in kubernetes-deployments limits for cpu=2cores, memory=2GiB and requests cpu=250m, memory=512MiB and replica=2. The test will be to deploy in this gateway 100 APIs distributed load in 200 users and 200 transactions per second.
+
+=== Use Case 3
+
+This scenario has a gateway with computing settings in kubernetes-deployments limits for cpu=2cores, memory=4Gi and requests cpu=0.250, memory=512MiB and replica=2. The test will be to deploy in this gateway 200 APIs distributed load in 200 users and 200 transactions per second.
+
+=== Use Case 4
+
+This scenario has a gateway with computing settings in kubernetes-deployments limits for cpu=2, memory=8GiB  and requests cpu=0.250, memory=512MiB and replica=2. The test will be to deploy in this gateway 400 APIs distributed load in 500 users and 500 transactions per second.
+
+=== Use Case 5
+
+This scenario has a gateway with computing settings in kubernetes-deployments limits for cpu=2, memory=12GiB and requests cpu=250m, memory=512MiB  and replica=2. The test will be to deploy in this gateway 500 APIs distributed load in 1000 users and 200 transactions per second.
