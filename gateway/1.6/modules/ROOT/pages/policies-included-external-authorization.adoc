@@ -8,13 +8,15 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s|Policy name | External Authorization
->s|Summary | Adds headers to a request or a response
+>s|Summary | Authenticates requests with an gRPC or HTTP authorization service
 >s|Category | Security
 >s| First Flex Gateway version available | v1.6.0
 .3+>.^s| Returned Status Codes |
 
-| 500 - The configuration includes an expression that was not evaluated.
+| 403 - Forbidden, invalid client application credentials
 |===
+
+The external authorization policy calls an external gRPC or HTTP service to check whether an incoming HTTP request is authorized or not.
 
 == Summary
 
@@ -60,7 +62,7 @@ In Local Mode, you apply the External Authorization policy to your API via decla
 | `uri`
 | Required
 | NA
-| 
+| External authorization service Uri. With gRPC type server, define the uri as `h2://ext.authz.com:<port>`.
 
 | `serverType`
 | Required
@@ -70,12 +72,12 @@ In Local Mode, you apply the External Authorization policy to your API via decla
 | `serverVersion`
 | Optional
 | `v3`
-| Supported values are `v3` and `v2`.
+| Transport protocol API version. Supported values are `v3` and `v2`.
 
 | `includePeerCertificate`
 | Optional
 | `false`
-| Supported values are `true` and `false`.
+| Includes peer certificates in the authorization server request. Supported values are `true` and `false`.
 
 | `allowedHeaders`
 | Optional
