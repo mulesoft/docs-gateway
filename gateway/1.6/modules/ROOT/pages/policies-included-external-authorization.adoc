@@ -39,39 +39,17 @@ To overwrite any other existing message header, remove it before adding your hea
 
 === Flex Gateway Local Mode
 
-In Local Mode, you apply the Header Injection policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
-
-----
-- policyRef:
-    name: header-injection-flex
-  config:
-    inboundHeaders: <array> // OPTIONAL, default: []
-      - key: <string> // REQUIRED
-        value: <string> // REQUIRED
-    outboundHeaders: <array> // OPTIONAL, default: []
-      - key: <string> // REQUIRED
-        value: <string> // REQUIRED
-----
+In Local Mode, you apply the External Authorization policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
 
 ----
 - policyRef:
     name: native-external-authz
   config:
-
     uri: <string> // REQUIRED
-    
-
-
-
-    inboundHeaders: <array> // OPTIONAL, default: []
-      - key: <string> // REQUIRED
-        value: <string> // REQUIRED
-    outboundHeaders: <array> // OPTIONAL, default: []
-      - key: <string> // REQUIRED
-        value: <string> // REQUIRED
-
-
-
+    serverType: <string> // REQUIRED, default: "grpc"
+    serverVersion: <string> // OPTIONAL, default: `v3`
+    includePeerCertificate: <boolean> // REQUIRED, default: `false`
+    allowedHeaders: <array> // OPTIONAL, default: []
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -79,35 +57,30 @@ In Local Mode, you apply the Header Injection policy to your API via declarative
 
 |Parameter | Required or Optional | Default Value | Description
 
-| `inboundHeaders`
+| `uri`
+| Required
+| NA
+| 
+
+| `serverType`
+| Required
+| `grpc`
+| Supported values are `grpc` and `http`.
+
+| `serverVersion`
 | Optional
-| Empty array
-| List of headers to be injected at the beginning of the message processing.
+| `v3`
+| Supported values are `v3` and `v2`.
 
-| `inboundHeaders.key`
-| Required
-| N/A
-| A string or DataWeave expression for header name
-
-| `inboundHeaders.value`
-| Required
-| N/A
-| A string or DataWeave expression for header value
-
-| `outboundHeaders`
+| `includePeerCertificate`
 | Optional
-| Empty array
-| List of header to be injected at the end of the message processing.
+| `false`
+| Supported values are `true` and `false`.
 
-| `outboundHeaders.key`
-| Required
-| N/A
-| A string or DataWeave expression for header name
-
-| `outboundHeaders.value`
-| Required
-| N/A
-| A string or DataWeave expression for header value
+| `allowedHeaders`
+| Optional
+| NA
+| Array of strings
 
 |===
 
