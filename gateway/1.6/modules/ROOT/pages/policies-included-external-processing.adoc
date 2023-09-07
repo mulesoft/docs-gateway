@@ -23,74 +23,21 @@ endif::[]
 
 === Flex Gateway Local Mode
 
-In Local Mode, you apply the IP Allowlist policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
+In Local Mode, you apply the External Processing policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
 
 ----
-- policyRef:
-    name: ip-allowlist-flex
-  config:
-    ips: <array> // REQUIRED
-    ipExpression: <string> // OPTIONAL, default: "#[attributes.headers['x-forwarded-for']]"
-----
-
 - policyRef:
     name: native-external-proc
   config: 
     uri: <string> // REQUIRED
     messageTimeout: <integer> // OPTIONAL
-    requestHeaderMode: <string> // OPTIONAL, default: 
-    responseHeaderMode: <string> // OPTIONAL, default:
-    requestBodyMode: <string> // OPTIONAL, default:
-    responseBodyMode: <string> // OPTIONAL, default:
-    requestTrailerMode: <string> // OPTIONAL, default:
-    responseTrailerMode: <string> // OPTIONAL, default:
-
-  properties:
-    uri:
-      type: string
-      default: "http://ext.proc.com"
-    messageTimeout:
-      type: integer
-    requestHeaderMode:
-      type: string
-      enum:
-        - default
-        - send
-        - skip
-    responseHeaderMode:
-      type: string
-      enum:
-        - default
-        - send
-        - skip
-    requestBodyMode:
-      type: string
-      enum:
-        - none
-        - streamed
-        - buffered
-        - bufferedPartial
-    responseBodyMode:
-      type: string
-      enum:
-        - none
-        - streamed
-        - buffered
-        - bufferedPartial
-    requestTrailerMode:
-      type: string
-      enum:
-        - default
-        - send
-        - skip
-    responseTrailerMode:
-      type: string
-      enum:
-        - default
-        - send
-        - skip
-  required:
-    - uri
+    requestHeaderMode: <string> // OPTIONAL, default: "send"
+    responseHeaderMode: <string> // OPTIONAL, default: "send"
+    requestBodyMode: <string> // OPTIONAL
+    responseBodyMode: <string> // OPTIONAL 
+    requestTrailerMode: <string> // OPTIONAL, default: "send"
+    responseTrailerMode: <string> // OPTIONAL, default: "send"
+----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
@@ -109,33 +56,33 @@ In Local Mode, you apply the IP Allowlist policy to your API via declarative con
 
 | `requestHeaderMode`
 | Optional
-| 
-| 
+| `send`
+| Supported values are `send` and `skip`.
 
 | `responseHeaderMode`
 | Optional
-| 
-| 
+| `send`
+| Supported values are `send` and `skip`.
 
 | `requestBodyMode`
 | Optional
-| 
-| 
+| `none`
+| Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`.
 
 | `responseBodyMode`
 | Optional
-| 
-|
+| `none`
+| Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`.
 
 | `requestTrailerMode`
 | Optional
-| 
-|
+| `send`
+| Supported values are `send` and `skip`.
 
 | `responseTrailerMode`
 | Optional
-| 
-|
+| `send`
+| Supported values are `send` and `skip`.
 
 |===
 
