@@ -17,42 +17,73 @@ To invoke the registration renewal `flexctl` command, download the latest versio
 
 Flex Gateway includes the following CLI command to renew registration:
 
-[source,ssh]
 ----
 flexctl registration renew
 ----
 
-The command renews an existing Flex Gateway registration with Runtime Manager. For authentication, you specify *either* user credentials or application credentials. Authentication with user credentials requires the `--username` and `--password` flags. Authentication with application credentials requires the `--client-id` and `--client-secret` flags.
+The command renews an existing Flex Gateway registration with Runtime Manager. For authentication, you specify *either* user credentials or connected appl credentials. Authentication with user credentials requires the `--username` and `--password` flags. Authentication with connected app credentials requires the `--client-id` and `--client-secret` flags.
 
-Invoke one of the following for overview information about command usage:
+Invoke the following command for overview information about usage:
 
-* `flexctl registration renew --help`
-* `flexctl registration renew -h`
+[source,ssh]
+----
+flexctl registration renew --help
+----
 
-Refer to the following for more information about command usage:
+Refer to the following topics for more information about command usage:
 
 * <<renew-with-user-password,Renew Registration with User Credentials>>
-* <<renew-with-app,Renew Registration with Application Credentials>>
+* <<renew-with-conn-app,Renew Registration with Connected App Credentials>>
 
 [[renew-with-user-password]]
 == Renew Registration with User Credentials
 
-[cols="1a,1a"]
-|===
-| Command |Result
+[source,ssh]
+----
+flexctl registration renew --username=<your-username> --password=<your-password> \
+ <path-to-registration.yaml>
+----
 
-|
-`flexctl registration renew
---username=user
---password=pass
-/path/to/registration.yaml`
+This command renews the registration certificate by using Anypoint Platform user credentials. The user must have _Read Servers_ and _Manage Servers_ permissions for Runtime Manager.
 
-|
+Invoking the command results in the following output:
 
+[source,text]
+----
 Starting registration renewal, please be patient.
-Registration renewal completed, the configuration files were written in directory ".". For security, modify the file permissions to restrict production scenario access to the user running flex.
+Registration renewal completed, the configuration files were written in directory ".".
+For security, modify the file permissions to restrict production scenario access to the user running flex.
 
-Side effect: the following files were written on the current directory
+Side effect: the following files were written in the current directory
 registration.yaml
+----
 
-|===
+[[renew-with-conn-app]]
+== Renew Registration with Connected App Credentials
+
+[source,ssh]
+----
+flexctl registration renew --client-id=<your-client-id> --client-secret=<your-client-secret> \
+ <path-to-registration.yaml>
+----
+
+This command renews the registration certificate by using connected app credentials. If you do not have a username or password for Anypoint Platform, you can configure connected apps via Anypoint Access Management:
+
+* xref:access-management::connected-apps-developers.adoc#create-a-connected-app[Configure a Connected App]
+** Include the following scopes:
+*** Read Servers
+*** Manage Servers
+*** View Organization
+** Save the *Id* and *Secret* of the Connected app you configure, then use these credentials in the `flexctl registration renew` command.
+
+Invoking the command results in the following output:
+
+[source,text]
+----
+Starting registration renewal, please be patient.
+Registration renewal completed, the configuration files were written in directory ".".
+For security, modify the file permissions to restrict production scenario access to the user running flex.
+
+Side effect: the following files were written in the current directory
+registration.yaml
+----
