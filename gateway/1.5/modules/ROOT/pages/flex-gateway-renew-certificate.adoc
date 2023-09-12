@@ -7,13 +7,19 @@ Renewing the Flex Gateway registration is a straightforward process that ensures
 
 Verify the success of the renewal process to avoid any potential disruptions.
 
+This document describes two registration CLI commands:
+
+* <<renewal-cli-overview,Registration Renewal CLI Command Overview>>
+* <<inspection-cli-overview,Registration Inspection CLI Command Overview>>
+
 == Before You Begin
 
 * xref:flex-install.adoc[Download Flex Gateway].
 +
 To invoke the registration renewal `flexctl` command, download the latest version of Flex Gateway. It is not necessary to run this version of the gateway.
 
-== CLI Command Overview
+[[renewal-cli-overview]]
+== Registration Renewal CLI Command Overview
 
 Flex Gateway includes the following CLI command to renew registration:
 
@@ -23,14 +29,14 @@ flexctl registration renew
 
 The command renews an existing Flex Gateway registration with Runtime Manager. For authentication, you specify *either* user credentials or connected appl credentials. Authentication with user credentials requires the `--username` and `--password` flags. Authentication with connected app credentials requires the `--client-id` and `--client-secret` flags.
 
-Invoke the following command for overview information about usage:
+Invoke the following command for overview information about renewal usage:
 
 [source,ssh]
 ----
 flexctl registration renew --help
 ----
 
-Refer to the following topics for more information about command usage:
+Refer to the following topics for more information about renewal command usage:
 
 * <<renew-with-user-password,Renew Registration with User Credentials>>
 * <<renew-with-conn-app,Renew Registration with Connected App Credentials>>
@@ -41,10 +47,12 @@ Refer to the following topics for more information about command usage:
 [source,ssh]
 ----
 flexctl registration renew --username=<your-username> --password=<your-password> \
- <path-to-registration.yaml>
+ <path-to-registration-file>
 ----
 
-This command renews the registration certificate by using Anypoint Platform user credentials. The user must have _Read Servers_ and _Manage Servers_ permissions for Runtime Manager.
+This command renews the registration certificate by using Anypoint Platform user credentials. The user must include _Read Servers_ and _Manage Servers_ permissions for Runtime Manager.
+
+Replace `<path-to-registration-file>` with the path and filename of the existing `registration.yaml` file. Typically, the existing registration file is overwritten by the renewal process. You can optionally output the new registration file to a directory by using the `--output-directory` flag.
 
 Invoking the command results in the following output:
 
@@ -64,7 +72,7 @@ registration.yaml
 [source,ssh]
 ----
 flexctl registration renew --client-id=<your-client-id> --client-secret=<your-client-secret> \
- <path-to-registration.yaml>
+ <path-to-registration-file>
 ----
 
 This command renews the registration certificate by using connected app credentials. If you do not have a username or password for Anypoint Platform, you can configure connected apps via Anypoint Access Management:
@@ -75,6 +83,8 @@ This command renews the registration certificate by using connected app credenti
 *** Manage Servers
 *** View Organization
 ** Save the *Id* and *Secret* of the Connected app you configure, then use these credentials in the `flexctl registration renew` command.
+
+Replace `<path-to-registration-file>` with the path and filename of the existing `registration.yaml` file. Typically, the existing registration file is overwritten by the renewal process. You can optionally output the new registration file to a directory by using the `--output-directory` flag.
 
 Invoking the command results in the following output:
 
@@ -87,3 +97,66 @@ For security, modify the file permissions to restrict production scenario access
 Side effect: the following files were written in the current directory
 registration.yaml
 ----
+
+[[inspection-cli-overview]]
+== Registration Inspection CLI Command Overview
+
+Flex Gateway includes the following CLI command to inspect registration:
+
+----
+flexctl registration inspect
+----
+
+The command inspects your Flex Gateway registration, extracting useful information you use to verify whether the renewal command was successful.
+
+Invoke the following command for overview information about inspection usage:
+
+[source,ssh]
+----
+flexctl registration inspect --help
+----
+
+Refer to the following topics for more information about inspection command usage:
+
+* <<inspect-with-custom-url,Inspect Registration Status with a Custom URL>>
+* <<inspect-with-reg-file,Inspect Registration Status with a Registration File>>
+
+[[inspect-with-custom-url]]
+== Inspect Registration Status with a Custom URL
+
+You can inspect a registration by specifying the base URL of the Flex Gateway Admin API. The default value is `http://localhost:9999`.
+
+[source,ssh]
+----
+flexctl registration inspect --flex-gateway-admin-api-url=<your-custom-admin-api-url>
+----
+
+Invoking the command results in the following example output:
+
+[source,text]
+----
+{“expiration_date”: “2024-01-16 16:20:30 +0000 UTC”}
+----
+
+[[inspect-with-reg-file]]
+== Inspect Registration Status with a Registration File
+
+You can inspect a registration by extracting the information from your `registration.yaml` file. Specify the path and filename.
+
+[source,ssh]
+----
+flexctl registration inspect --file=<path-to-registration-file>
+----
+
+Invoking the command results in the following example output:
+
+[source,text]
+----
+{“expiration_date”: “2024-01-16 16:20:30 +0000 UTC”}
+----
+
+== See Also
+
+* xref:flex-install.adoc[Download Flex Gateway]
+* xref:flex-conn-reg-run.adoc[Register and Run Flex Gateway in Connected Mode]
+* xref:flex-local-reg-run.adoc[Register and Run Flex Gateway in Local Mode]
