@@ -3,11 +3,17 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 
-Renewing the Flex Gateway registration is a straightforward process that ensures the continued interaction of your applications with Anypoint Runtime Manager. Renewing registration will help maintain the smooth operation of your applications. Verify the success of the renewal process to avoid any potential disruptions in your application's operation.
+Renewing the Flex Gateway registration is a straightforward process that ensures the continued operation of your applications. You renew registration by using the `flexctl` CLI.
+
+Verify the success of the renewal process to avoid any potential disruptions.
 
 == Before You Begin
 
-* xref:flex-install.adoc[Download Flex Gateway]. To invoke the registration renewal `flexctl` commands, download the latest version of Flex Gateway. It is not necessary to run this version of the gateway.
+* xref:flex-install.adoc[Download Flex Gateway].
++
+To invoke the registration renewal `flexctl` command, download the latest version of Flex Gateway. It is not necessary to run this version of the gateway.
+
+== CLI Command Overview
 
 Flex Gateway includes the following CLI command to renew registration:
 
@@ -16,13 +22,37 @@ Flex Gateway includes the following CLI command to renew registration:
 flexctl registration renew
 ----
 
+The command renews an existing Flex Gateway registration with Runtime Manager. For authentication, you specify *either* user credentials or application credentials. Authentication with user credentials requires the `--username` and `--password` flags. Authentication with application credentials requires the `--client-id` and `--client-secret` flags.
 
+Invoke one of the following for overview information about command usage:
 
+* `flexctl registration renew --help`
+* `flexctl registration renew -h`
 
-Renews a Flex Gateway existing registration with Runtime Manager. Only one of user credentials or app credentials is required, if more than one type of authentication is used then the following precedence will take place: user credentials -> app credentials.
-For user authentication use the "--username" and "--password" flags.
-For app authentication use the "--client-id" and "--client-secret" flags.
+Refer to the following for more information about command usage:
 
-If the Flex Gateway instance is running normally, the command returns an exit code of `0`. Otherwise, the gateway is unhealthy and the command returns a `1`.
+* <<renew-with-user-password,Renew Registration with User Credentials>>
+* <<renew-with-app,Renew Registration with Application Credentials>>
 
-You can either run the liveness check command manually or configure the command to run automatically. By default, Flex Gateways deployed on Kubernetes have an automatic liveness probe configured. The liveness probe periodically runs the liveness check command and automatically restarts the Flex Gateway pod after a specified number of failed liveness checks.
+[[renew-with-user-password]]
+== Renew Registration with User Credentials
+
+[cols="1a,1a"]
+|===
+| Command |Result
+
+|
+`flexctl registration renew
+--username=user
+--password=pass
+/path/to/registration.yaml`
+
+|
+
+Starting registration renewal, please be patient.
+Registration renewal completed, the configuration files were written in directory ".". For security, modify the file permissions to restrict production scenario access to the user running flex.
+
+Side effect: the following files were written on the current directory
+registration.yaml
+
+|===
