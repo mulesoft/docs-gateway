@@ -155,6 +155,7 @@ flexctl registration inspect --help
 
 For inspecting registration using Docker, invoke `flexctl` commands as part of `docker run`. For example:
 
+[source,ssh]
 ----
 docker run --entrypoint flexctl mulesoft/flex-gateway inspect --help
 ----
@@ -167,11 +168,20 @@ Refer to the following topics for more information about inspection command usag
 [[inspect-with-custom-url]]
 == Inspect Registration Status with a Custom URL
 
-You can inspect a registration by specifying the base URL of the Flex Gateway Admin API. The default value is `http://localhost:9999`.
+You can inspect a registration by specifying the base URL of the Flex Gateway Admin API. The default value is `http://localhost:9999`. Omit the `--flex-gateway-admin-api-url` flag if using the default value.
 
 [source,ssh]
 ----
-flexctl registration inspect --flex-gateway-admin-api-url=<your-custom-admin-api-url>
+flexctl registration inspect \
+--flex-gateway-admin-api-url=<your-custom-admin-api-url>
+----
+
+For inspecting the Flex Gateway Admin API registration using Docker, invoke `flexctl` commands as part of `docker exec`. Replace `<container-name-or-id>` with the running container reference. For example:
+
+[source,ssh]
+----
+docker exec -u $UID <container-name-or-id> flexctl inspect \
+--flex-gateway-admin-api-url=<your-custom-admin-api-url>
 ----
 
 Invoking the command results in the following example output:
@@ -189,6 +199,16 @@ You can inspect a registration by extracting the information from your `registra
 [source,ssh]
 ----
 flexctl registration inspect --file=<path-to-registration-file>
+----
+
+For inspecting registration using Docker, invoke `flexctl` commands as part of `docker run`. For example:
+
+[source,ssh]
+----
+docker run --entrypoint flexctl \
+-v <path-to-registration-directory>:/registration \
+-u $UID mulesoft/flex-gateway \
+inspect --file=registration/<registration-filename>
 ----
 
 Invoking the command results in the following example output:
