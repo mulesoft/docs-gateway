@@ -36,6 +36,13 @@ Invoke the following command for overview information about renewal usage:
 flexctl registration renew --help
 ----
 
+For renewing registration using Docker, invoke `flexctl` commands as part of `docker run`. For example:
+
+[source,ssh]
+----
+docker run --entrypoint flexctl mulesoft/flex-gateway renew --help
+----
+
 Refer to the following topics for more information about renewal command usage:
 
 * <<renew-with-user-password,Renew Registration with User Credentials>>
@@ -53,6 +60,21 @@ flexctl registration renew --username=<your-username> --password=<your-password>
 This command renews the registration certificate by using Anypoint Platform user credentials. The user must include _Read Servers_ and _Manage Servers_ permissions for Runtime Manager.
 
 Replace `<path-to-registration-file>` with the path and filename of the existing `registration.yaml` file. Typically, the existing registration file is overwritten by the renewal process. You can optionally output the new registration file to a directory by using the `--output-directory` flag.
+
+For renewing registration using Docker, invoke the command as part of `docker run`. For example:
+
+[source,ssh]
+----
+docker run --entrypoint flexctl \
+-v "$(pwd)":/renew \
+-v <path-to-registration-directory>:/registration \
+-u $UID flex-gateway \
+renew \
+--username=<your-username> \
+--password=<your-password> \
+--output-directory=/renew \
+/registration/<registration-filename>
+----
 
 Invoking the command results in the following output:
 
@@ -86,6 +108,21 @@ This command renews the registration certificate by using connected app credenti
 
 Replace `<path-to-registration-file>` with the path and filename of the existing `registration.yaml` file. Typically, the existing registration file is overwritten by the renewal process. You can optionally output the new registration file to a directory by using the `--output-directory` flag.
 
+For renewing registration using Docker, invoke the command as part of `docker run`. For example:
+
+[source,ssh]
+----
+docker run --entrypoint flexctl \
+-v "$(pwd)":/renew \
+-v <path-to-registration-directory>:/registration \
+-u $UID flex-gateway \
+renew \
+--client-id=<your-client-id> \
+--client-secret=<your-client-secret> \
+--output-directory=/renew \
+/registration/<registration-filename>
+----
+
 Invoking the command results in the following output:
 
 [source,text]
@@ -114,6 +151,12 @@ Invoke the following command for overview information about inspection usage:
 [source,ssh]
 ----
 flexctl registration inspect --help
+----
+
+For inspecting registration using Docker, invoke `flexctl` commands as part of `docker run`. For example:
+
+----
+docker run --entrypoint flexctl mulesoft/flex-gateway inspect --help
 ----
 
 Refer to the following topics for more information about inspection command usage:
