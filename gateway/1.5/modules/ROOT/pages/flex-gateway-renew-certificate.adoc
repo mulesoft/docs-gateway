@@ -3,11 +3,11 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 
-Renewing the Flex Gateway registration is a straightforward process that ensures the continued operation of your applications. You renew registration by using the `flexctl` CLI.
+Renewing Flex Gateway registration ensures the continued operation of your applications. You renew registration by using the `flexctl` CLI.
 
 To avoid potential disruptions, verify the success of the renewal process by using the `flexctl inspect` command.
 
-This document describes two registration CLI commands:
+This document describes two `flexctl` CLI commands: `renew`, and `inspect`.
 
 * <<renewal-cli-overview,Registration Renewal CLI Command Overview>>
 * <<inspection-cli-overview,Registration Inspection CLI Command Overview>>
@@ -89,7 +89,7 @@ Docker::
 docker run --entrypoint flexctl \
 -v "$(pwd)":/renew \
 -v <path-to-registration-directory>:/registration \
--u $UID flex-gateway \
+-u $UID mulesoft/flex-gateway \
 renew \
 --username=<your-username> \
 --password=<your-password> \
@@ -101,7 +101,15 @@ Podman::
 +
 [source,ssh]
 ----
-xx
+podman run --entrypoint flexctl --userns=keep-id \
+-v "$(pwd)":/renew:Z \
+-v <path-to-registration-directory>:/registration:Z \
+-u $UID docker.io/mulesoft/flex-gateway \
+renew \
+--username=<your-username> \
+--password=<your-password> \
+--output-directory=/renew \
+/registration/<registration-filename>
 ----
 ====
 
@@ -150,7 +158,7 @@ Docker::
 docker run --entrypoint flexctl \
 -v "$(pwd)":/renew \
 -v <path-to-registration-directory>:/registration \
--u $UID flex-gateway \
+-u $UID mulesoft/flex-gateway \
 renew \
 --client-id=<your-client-id> \
 --client-secret=<your-client-secret> \
@@ -162,7 +170,15 @@ Podman::
 +
 [source,ssh]
 ----
-xx
+podman run --entrypoint flexctl --userns=keep-id \
+-v "$(pwd)":/renew:Z \
+-v <path-to-registration-directory>:/registration:Z \
+-u $UID docker.io/mulesoft/flex-gateway \
+renew \
+--client-id=<your-client-id> \
+--client-secret=<your-client-secret> \
+--output-directory=/renew \
+/registration/<registration-filename>
 ----
 ====
 
@@ -247,7 +263,8 @@ Podman::
 +
 [source,ssh]
 ----
-xx
+podman exec -u $UID <container-name-or-id> flexctl inspect \
+--flex-gateway-admin-api-url=<your-custom-admin-api-url>
 ----
 ====
 
@@ -279,14 +296,17 @@ Docker::
 docker run --entrypoint flexctl \
 -v <path-to-registration-directory>:/registration \
 -u $UID mulesoft/flex-gateway \
-inspect --file=registration/<registration-filename>
+inspect --file=/registration/<registration-filename>
 ----
 
 Podman::
 +
 [source,ssh]
 ----
-xx
+podman run --entrypoint flexctl --userns=keep-id \
+-v <path-to-registration-directory>:/registration:Z \
+-u $UID docker.io/mulesoft/flex-gateway \
+inspect --file=/registration/<registration-filename>
 ----
 ====
 
