@@ -9,7 +9,7 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | External Processing
->s|Summary | 
+>s|Summary | Sends requests to an external gRPC service for additional processing
 >s|Category | Transformation
 >s|First Flex Gateway version available | v1.6.0
 .1+>.^s| Returned Status Codes
@@ -25,16 +25,17 @@ endif::[]
 
 In Local Mode, you apply the External Processing policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
 
+[source,yaml]
 ----
 - policyRef:
     name: native-external-proc
   config: 
     uri: <string> // REQUIRED
     messageTimeout: <integer> // OPTIONAL
-    requestHeaderMode: <string> // OPTIONAL, default: "send"
-    responseHeaderMode: <string> // OPTIONAL, default: "send"
-    requestBodyMode: <string> // OPTIONAL
-    responseBodyMode: <string> // OPTIONAL 
+    requestHeaderMode: <string> // REQUIRED, default: "send"
+    responseHeaderMode: <string> // REQUIRED, default: "send"
+    requestBodyMode: <string> // REQUIRED, default: "none"
+    responseBodyMode: <string> // REQUIRED, default: "none"
     requestTrailerMode: <string> // OPTIONAL, default: "send"
     responseTrailerMode: <string> // OPTIONAL, default: "send"
 ----
@@ -46,48 +47,51 @@ In Local Mode, you apply the External Processing policy to your API via declarat
 
 | `uri`
 | Required
-| `http://ext.proc.com`
-| 
+| NA
+| External processing server URI. For gRPC type servers, define the URI as `\h2://<ext.authz.com>:<port>`.
 
 | `messageTimeout`
-| Optional
+| Required
 | `1000`
-| Message timeout to processing server expressed in milliseconds
+| Message timeout to processing server expressed in milliseconds.
 
 | `requestHeaderMode`
-| Optional
+| Required
 | `send`
-| Supported values are `send` and `skip`.
+| Whether the requests headers are sent to the processing service or not. Supported values are `send` and `skip`.
 
 | `responseHeaderMode`
-| Optional
+| Required
 | `send`
-| Supported values are `send` and `skip`.
+| Whether the response headers are sent to the processing service or not. Supported values are `send` and `skip`.
 
 | `requestBodyMode`
-| Optional
+| Required
 | `none`
-| Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`.
+| Mode the request body is sent in. Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`.
 
 | `responseBodyMode`
-| Optional
+| Required
 | `none`
-| Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`.
+| Mode the response body is sent in. Processing resSupported values are `none`, `streamed`, `buffered`, and `bufferedPartial`.
 
 | `requestTrailerMode`
-| Optional
+| Required
 | `send`
-| Supported values are `send` and `skip`.
+| Whether the requests trailer headers are sent to the processing service or not. Supported values are `send` and `skip`.
 
 | `responseTrailerMode`
-| Optional
+| Required
 | `send`
-| Supported values are `send` and `skip`.
+| Whether the response trailer headers are sent to the processing service or not. Supported values are `send` and `skip`.
 
 |===
 
+NOTE: Leaving a required value blank configures the parameter as the default value. No value is set for optional values left blank.
+
 ==== Resource Configuration Example
 
+[source,yaml]
 ----
 - policyRef:
     name: ip-allowlist-flex
