@@ -18,6 +18,7 @@ endif::[]
 
 == Summary
 
+The External Processing policy is an extension of the External Processing filter native to Envoy. To learn more about the External Processing filter, see https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_proc/v3/ext_proc.proto[External Processing Filter^].
 
 == Configuring Policy Parameters
 
@@ -68,12 +69,12 @@ In Local Mode, you apply the External Processing policy to your API via declarat
 | `requestBodyMode`
 | Required
 | `none`
-| Mode the request body is sent in. Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`.
+| Mode the request body is sent in. Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`. Selecting `none` does not send the request body.
 
 | `responseBodyMode`
 | Required
 | `none`
-| Mode the response body is sent in. Processing resSupported values are `none`, `streamed`, `buffered`, and `bufferedPartial`.
+| Mode the response body is sent in. Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`. Selecting `none` does not send the request body.
 
 | `requestTrailerMode`
 | Required
@@ -91,56 +92,33 @@ NOTE: Leaving a required value blank configures the parameter as the default val
 
 ==== Resource Configuration Example
 
+This configuration sends both the request headers, trailers, and the request body in a streamed manner to the external proccessing server. This configuration does not send any part of the response to to the external proccessing server.
+
 [source,yaml]
 ----
 - policyRef:
-    name: ip-allowlist-flex
-  config:
-    ips:
-      - "192.168.1.1"
-      - "192.168.3.1/30"
-      - "192.168.2"
-      - "192.160"
+    name: native-external-proc
+  config: 
+    uri: h2://<ext.authz.com>:<port>
+    messageTimeout: <integer> // OPTIONAL
+    responseHeaderMode: skip
+    requestBodyMode: streamed
+    responseTrailerMode: skip
 ----
 
 === Flex Gateway Connected Mode
 
-When you apply the IP Allowlist policy to your API from the UI, configure the following parameters:
+When you apply the External Processing policy to your API from the UI, configure the following parameters:
 
 [%header%autowidth.spread,cols="a,a"]
 |===
 | Parameter | Description
-|IP expression  |The DataWeave 2.0 used for extracting the IP address from this API request.
-|Allowlist |The list of IP addresses allowed access to the API. You can define one IP or IP range at a time, as many times as required.  For more information, see <<specifying_ip_address,Specifying IP Addresses to Allowlist in Your Policy>>.
-|Method & Resource conditions |The option to add configurations either to a select few or to all methods and resources of the API.
+|External processing server URI | External processing server URI. For gRPC type servers, define the URI as `\h2://<ext.authz.com>:<port>`.
+|Message timeout | Message timeout to processing server expressed in milliseconds.
+|Request header processing mode | Whether the requests headers are sent to the processing service or not.
+|Response header processing mode  | Whether the response headers are sent to the processing service or not.
+|Request body processing mode | Mode the request body is sent in.
+|Response body processing mode | Mode the response body is sent in.
+|Request trailer processing mode | Whether the requests trailers are sent to the processing service or not.
+|Response trailer processing mode | Whether the response trailers are sent to the processing service or not.
 |===
-
-[[specifying_ip_address]]
-== Specifying IP Addresses to Allowlist in Your Policy 
-
-Specify IP addresses to allow access to your policy based on:
-
-* The IP address of the request
-* The origin IP address that is determined by resolving a specific DataWeave expression, such as the https://en.wikipedia.org/wiki/X-Forwarded-For[x-Forwarded-For^] header
-* Any other origin.
-
-=== Allowlisting Access Based on the IP address of the Request
-
-Allowlist access based on the IP address of the request in any of the following ways:
-
-* Define a specific IP address by enumerating it in the Allowlist field, for example, `192.168.1.1`.
-* Define a subset of addresses by identifying a subnet mask, for example, `192.168.3.1/30`, which includes the consolidated range `192.168.3.01` through `192.168.3.3`.
-* Define a whole range of IP addresses by stating the relevant octets of the IP address you want to permit, for example, setting `192.168`, which includes IP addresses from `192.168.0.0` through `192.168.255.255`.
-
-
-=== Allowlisting Access Based on the Origin IP Address of the x-Forwarded-For Header
-
-If the client connects to your API through an HTTP proxy or a load balancer, you can allowlist the client's specific IP address (the IP address originating the request) instead of the address that appears in the request.
-
-For example, if you want to allowlist `192.168.2.3`(private IP) and the address of a client connecting through an HTTP proxy is `92.40.1.255` (public IP), the client requests appear with the public address using the proxy.
-
-Typically, applications use the `X-Forwarded-For` header to identify the origin IP addresses of a request that was redirected to your endpoint.
-
-You can use a DataWeave 2.0 expression in the policy to instruct the service to look for the IP address in the `x-Forwarded-For` header.
-
-When you insert the IP address in the IP expression field of the policy parameters, Anypoint Platform is instructed to look for the starting IP address in the concatenated values of the `x-Forwarded-For` header of the request.
