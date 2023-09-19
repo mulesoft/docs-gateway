@@ -13,7 +13,7 @@ Publish a policy if the policy version is still in development. This enables you
 * <<release, Release a Custom Policy>> +
 Release the policy to create a definitive version of the policy. After releasing the policy, you must create a new policy version to edit the policy.
 
-Both published and released policies are `stable` state assets. For more information about `stable` state assets, see xref:exchange::lifecycle.adoc#stablet-state[Stable State Assets].
+Everytime you publish or release a policy, you create a new `stable` asset in Exchange. Therefore, republishing a policy does not override previous versions. To release a policy again, you must change the policy version number. For more information about `stable` state assets, see xref:exchange::lifecycle.adoc#stablet-state[Stable State Assets].
 
 After you upload your policy to Exchange, xref:policies-pdk-apply-policies.adoc[apply your policy to a Flex Gateway].
 
@@ -59,11 +59,15 @@ To release a custom policy, run the `release` command from the policy's root fol
 make release
 ----
 
-After releasing the asset in Exchange, the `DEV` label is removed. The asset's GAV appears similar to the following:
+Released policies are not labeled `DEV`. The asset's GAV appears similar to the following:
 
 * *groupID*: `<organizationId>`
 * *assetID*: `my-custom-policy`
++
+Released policies do not have `-dev` appended to their *assetID*.
 * *version*: `1.0.0`
++
+Released policies do not have a timestamp appended to their *assetID*.
 
 After releasing the asset, rerunning the `release` command results in a conflict error.
 
