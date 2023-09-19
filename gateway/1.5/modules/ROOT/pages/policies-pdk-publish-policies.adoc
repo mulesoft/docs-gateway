@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-During the custom policy development cycle, you can upload your policy to Exchange to manage its version and distribute it to other users. For more information about Exchange, see xref:exchange::index.adoc[].
+During the custom policy development cycle, you can upload your policy to Exchange to create a new Exchange asset to manage the policy's version and to distribute it to other users. For more information about Exchange, see xref:exchange::index.adoc[].
 
 When uploading your policy to Exchange, you can choose to either:
 
@@ -12,6 +12,8 @@ When uploading your policy to Exchange, you can choose to either:
 Publish a policy if the policy version is still in development. This enables you to test and edit the policy version.
 * <<release, Release a Custom Policy>> +
 Release the policy to create a definitive version of the policy. After releasing the policy, you must create a new policy version to edit the policy.
+
+Every time you publish or release a policy, you create a new `stable` asset in Exchange. For more information about `stable` state assets, see xref:exchange::lifecycle.adoc#stablet-state[Stable State Assets].
 
 After you upload your policy to Exchange, xref:policies-pdk-apply-policies.adoc[apply your policy to a Flex Gateway].
 
@@ -30,7 +32,11 @@ To publish a custom policy, run the `publish` command from the policy's root fol
 make publish
 ----
 
-After publishing the asset, a new asset appears in Exchange. The asset's group ID, asset ID, and asset version (GAV) appear, similar to the following:
+After publishing the asset, a new asset labeled `DEV` appears in Exchange:
+
+image:pdk-dev-asset.png["Policy appears in Exchange labeled DEV."]
+
+The asset's group ID, asset ID, and asset version (GAV) appear, similar to the following:
 
 * *groupID*: `<organizationId>`
 * *assetID*: `my-custom-policy-dev` 
@@ -53,13 +59,17 @@ To release a custom policy, run the `release` command from the policy's root fol
 make release
 ----
 
-After releasing the asset in Exchange, the asset's GAV appears, similar to the following:
+Released policies are not labeled `DEV`. The asset's GAV appears similar to the following:
 
 * *groupID*: `<organizationId>`
 * *assetID*: `my-custom-policy`
++
+Released policies do not have `-dev` appended to their *assetID*.
 * *version*: `1.0.0`
++
+Released policies do not have a timestamp appended to their *assetID*.
 
-After releaseing the asset, rerunning the `publish` command results in a conflict error.
+After releasing the asset, rerunning the `release` command results in a conflict error.
 
 To begin working on the next version of your policy, update the version number in the `Cargo.toml` file.
 
