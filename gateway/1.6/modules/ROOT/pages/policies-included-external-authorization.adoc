@@ -36,10 +36,10 @@ In Local Mode, you apply the External Authorization policy to your API instance 
     name: native-external-authz
   config:
     uri: <string> // REQUIRED
-    serverType: <string> // REQUIRED, default: "grpc"
-    serverVersion: <string> // REQUIRED, default: `v3`
-    includePeerCertificate: <boolean> // REQUIRED, default: `false`
-    allowedHeaders: <array> // OPTIONAL, default: []
+    serverType: <string> // REQUIRED, default "grpc"
+    serverVersion: <string> // REQUIRED, default `v3`
+    includePeerCertificate: <boolean> // REQUIRED, default `false`
+    allowedHeaders: <array> // OPTIONAL
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -88,7 +88,8 @@ In the following configuration, a gRPC authorization service receives a request 
     uri: h2://ext-authz-grpc-service:9001
     serverType: "grpc"
     includePeerCertificate: "true"
-    allowedHeaders: <array> // OPTIONAL, default: []
+    allowedHeaders:
+      - access-token
 ----
 
 === Flex Gateway Connected Mode
