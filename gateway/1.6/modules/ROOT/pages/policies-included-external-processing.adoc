@@ -20,7 +20,7 @@ endif::[]
 
 The External Processing policy is an extension of the External Processing filter native to Envoy. To learn more about the External Processing filter, see https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_proc/v3/ext_proc.proto[External Processing Filter^].
 
-The External Processing policy sends the incoming HTTP requests or outgoing HTTP response to an external gRPC service to modify the request's or response's header, trailers, or body. You can configure this policy to process either the request, response, or both.
+The External Processing policy sends the incoming HTTP request or outgoing HTTP response to an external gRPC service to modify the headers, trailers, or body. You can configure this policy to process either the request, response, or both.
 
 NOTE: If other policies modify the HTTP request or response, ensure you order the policies depending on if these modification should be present when the request is sent to the processing service. For more information about ordering policies, see xref:policies-reorder.adoc[].
 
@@ -126,3 +126,9 @@ When you apply the External Processing policy to your API from the UI, configure
 |Request trailer processing mode | Whether the requests trailers are sent to the processing service or not.
 |Response trailer processing mode | Whether the response trailers are sent to the processing service or not.
 |===
+
+== How This Policy Works
+
+The following diagram demonstrates the order in which requests and responses flow when the External Processing policy is applied:
+
+image:ext-proccessing-policy.png[]
