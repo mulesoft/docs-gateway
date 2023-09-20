@@ -18,17 +18,17 @@ endif::[]
 
 The External Authorization policy is an extension of the External Authorization filter native to Envoy. To learn more about the External Authorization filter, see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_authz_filter[External Authorization Filter^].
 
-The External Authorization policy sends incoming HTTP requests to an external gRPC of HTTP authorization service to determine if the request is authorized to make calls to the Flex Replica. Flex Gateway returns a `403` forbidden request error for unauthorized access. For authorized accesses, Flex Gateway returns the response from the backend service.
+The External Authorization policy sends incoming HTTP requests to an external gRPC of HTTP authorization service to determine if the request is authorized to access the backend service. Flex Gateway returns a `403` forbidden request error for unauthorized accesses. For authorized accesses, Flex Gateway returns the response from the backend service.
 
-If it is necessary to send request headers to the authorization service, such as an authorization token header, you can configure what headers are sent by using the *Allowed Headers* parameter
+If it is necessary to send request headers to the authorization service, such as an authorization token header, you can configure what headers are sent by using the *Allowed Headers* parameter.
 
-NOTE: If other policies are modifying the incoming HTTP request, ensure you order the policies depending on if these modification should be present when the request is sent to the authorization service. 
+NOTE: If other policies modify the incoming HTTP request, ensure you order the policies depending on if these modification should be present when the request is sent to the authorization service.
 
 == Configuring Policy Parameters
 
 === Flex Gateway Local Mode
 
-In Local Mode, you apply the External Authorization policy to your API via YAML configuration files. Refer to the following policy definition and table of parameters:
+In Local Mode, you apply the External Authorization policy to your API instance via YAML configuration files. Refer to the following policy definition and table of parameters:
 
 [source,yaml]
 ----
@@ -50,7 +50,7 @@ In Local Mode, you apply the External Authorization policy to your API via YAML 
 | `uri`
 | Required
 | NA
-| External authorization service Uri. With gRPC type server, define the uri as `\h2://<ext.authz.com>:<port>`.
+| External authorization service Uri. With gRPC type server, define the uri in the following format: `h2://<ext.authz.com>:<port>`.
 
 | `serverType`
 | Required
@@ -74,11 +74,11 @@ In Local Mode, you apply the External Authorization policy to your API via YAML 
 
 |===
 
-NOTE: Leaving a required value blank configures the parameter as the default value. No value is set for optional values left blank.
+NOTE: Leaving a required value blank configures the parameter as the default value. No value is configured for optional values left blank.
 
 === Resource Configuration Example
 
-In the following example, all the headers matching the configured `#[attributes.requestPath]` expression are injected into the message.
+In the following configuration, the gRPC authorization service receives a request including the peer certificates and the authorization token header:
 
 [source,yaml]
 ----
@@ -93,7 +93,7 @@ In the following example, all the headers matching the configured `#[attributes.
 
 === Flex Gateway Connected Mode
 
-When you apply the policy to your API from the UI, the following parameters are displayed:
+When you apply the policy to your API instance from the UI, the following parameters are displayed:
 
 [%header%autowidth.spread,cols="a,a"]
 |===
@@ -107,12 +107,12 @@ When you apply the policy to your API from the UI, the following parameters are 
 
 == How This Policy Works
 
-The following diagram demonstrates the order in which requests and responses flow when this policy is applied:
+The following diagram demonstrates the order in which requests and responses flow when the External Authorization policy is applied:
 
 image:ext-auth-policy.png[]
 
-. The client sends an HTTP request to the API exposed by Flex.
+. The client sends an HTTP request to the API instance exposed by Flex.
 . Flex Gateway sends a request consisting of the client's request and headers to the authorization service.
-. The authorization services sends a response of whether or not the client request is authorized back to Flex Gateway.
+. The authorization services sends a response back to Flex Gateway of whether the client request is authorized.
 . If the request is not authorized, Flex Gateway returns a `403` error code to the client.
 . If the request is authorized, Flex Gateway allows the request to pass to the backend service and returns the response as normal.
