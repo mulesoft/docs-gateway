@@ -20,9 +20,9 @@ endif::[]
 
 The External Processing policy sends the incoming HTTP request or outgoing HTTP response to an external gRPC service to modify the headers, trailers, body, or any combination of the three. You can also configure this policy to process either the request, response, or both.
 
-Additionally, the external processing service can request different parts of the HTTP request or response after the initial gRPC request has been sent by Flex Gateway to the external processing server. This enables you to send the minimum amount of data necessary. For example, Flex Gateway can initially send only the requests headers. Then, after some processing, the external processor can request the body or trailers from Flex Gateway if necessary. 
+Additionally, the external processing service can request different parts of the HTTP request or response after the initial gRPC request has been sent by Flex Gateway to the external processing server. This enables you to send the minimum amount of data necessary. For example, Flex Gateway can initially send only the HTTP requests headers. Then, after some processing, the external processor can request the HTTP request body or trailers from Flex Gateway if necessary. 
 
-The parameters you set for sending the headers, trailers, and body only configure what is initially sent. The external processing service has access to all parts of the request or response regardless of what is configured. Configure the parameters to send all the information the processing service needs for every incoming request or response. For example, if the processing service needs the headers for every request but only needs the body for some of the requests depending on the information found in the header, only configure the parameters to send the headers.
+The parameters you set for sending the HTTP headers, trailers, and body only configure what is initially sent. The external processing service has access to all parts of the HTTP request or response regardless of what is configured. Configure the parameters to send all the information the processing service needs for every incoming HTTP request or response. For example, if the processing service needs the headers for every request but only needs the body for some of the requests depending on the information found in the header, only configure the parameters to send the headers.
 
 The External Processing policy is an extension of the External Processing filter native to Envoy. To learn more about the External Processing filter, see https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_proc/v3/ext_proc.proto[External Processing Filter^]. Not all External Processing filter parameters are avialible for the External Processing policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>. 
 
@@ -67,32 +67,32 @@ In Local Mode, you apply the External Processing policy to your API instance via
 | `requestHeaderMode`
 | Required
 | `send`
-| Whether the requests headers are sent to the processing service or not. Supported values are `send` and `skip`.
+| Whether the HTTP requests headers are sent to the processing service or not. Supported values are `send` and `skip`.
 
 | `responseHeaderMode`
 | Required
 | `send`
-| Whether the response headers are sent to the processing service or not. Supported values are `send` and `skip`.
+| Whether the HTTP response headers are sent to the processing service or not. Supported values are `send` and `skip`.
 
 | `requestBodyMode`
 | Required
 | `none`
-| Mode the request body is sent in. Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`. Selecting `none` does not send the request body.
+| Mode the HTTP request body is sent in. Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`. Selecting `none` does not send the request body.
 
 | `responseBodyMode`
 | Required
 | `none`
-| Mode the response body is sent in. Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`. Selecting `none` does not send the request body.
+| Mode the HTTP response body is sent in. Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`. Selecting `none` does not send the request body.
 
 | `requestTrailerMode`
 | Required
 | `send`
-| Whether the requests trailer headers are sent to the processing service or not. Supported values are `send` and `skip`.
+| Whether the HTTP requests trailer headers are sent to the processing service or not. Supported values are `send` and `skip`.
 
 | `responseTrailerMode`
 | Required
 | `send`
-| Whether the response trailer headers are sent to the processing service or not. Supported values are `send` and `skip`.
+| Whether the HTTP response trailer headers are sent to the processing service or not. Supported values are `send` and `skip`.
 
 |===
 
