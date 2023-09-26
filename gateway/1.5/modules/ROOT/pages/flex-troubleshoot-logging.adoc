@@ -18,7 +18,16 @@ After applying a logging configuration YAML file, logs should begin appearing wi
 . If the service is running, check the runtime logs for potential configuration errors.
 +
 You can view the runtime logs for both Flex Gateways running in Connected Mode and Local Mode by following the steps in xref:flex-local-view-logs.adoc[]. Additionally, for Flex Gateways running in Connected Mode, you can xref:flex-view-logs-in-monitoring.adoc[view runtime logs in Anypoint Monitoring].
++
+Potential configuration errors may appear similar to the following:
++
+----
+[flex-gateway-fluent] [2023/09/07 20:17:49] [error] [output:http:http.1] hzk83039.live.dynatrace.com:443, HTTP status=401
+[flex-gateway-fluent] {"error":{"code":401,"message":"Missing authorization parameter."}}
+[flex-gateway-fluent] [2023/09/07 20:17:49] [ warn] [engine] failed to flush chunk '20-1694117863.683606251.flb', retry in 7 seconds: task_id=2, input=emitter_for_rewrite_tag.11 > output=http.1 (out_id=1)
+----
 
+. Regardless of if configuration errors appear in the runtime logs, view the `/var/tmp/mulesoft/flex-gateway/fluent-bit.conf` file to ensure your configuration values are correct.
 
 
 
