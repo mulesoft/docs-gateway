@@ -20,6 +20,10 @@ endif::[]
 
 The External Processing policy sends the incoming HTTP request or outgoing HTTP response to an external gRPC service to modify the headers, trailers, body, or any combination of the three. You can also configure this policy to process either the request, response, or both.
 
+Additionally, the external processing service can request different parts of the HTTP request or response after the initial gRPC request has been sent by Flex Gateway to the external processing server. This enables you to send the minimum amount of data necessary. For example, Flex Gateway can initially send only the requests headers. Then, after some processing, the external processor can request the body or trailers from Flex Gateway if necessary. 
+
+The parameters you set for sending the headers, trailers, and body only configure what is initially sent. The external processing service has access to all parts of the request or response regardless of what is configured. Configure the parameters to send all the information the processing service needs for every incoming request or response. For example, if the processing service needs the headers for every request but only needs the body for some of the requests depending on the information found in the header, only configure the parameters to send the headers.
+
 The External Processing policy is an extension of the External Processing filter native to Envoy. To learn more about the External Processing filter, see https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_proc/v3/ext_proc.proto[External Processing Filter^]. Not all External Processing filter parameters are avialible for the External Processing policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>. 
 
 NOTE: If other policies modify the HTTP request or response, ensure you order the policies depending on if these modification should be present when the request is sent to the processing service. For more information about ordering policies, see xref:policies-reorder.adoc[].
@@ -133,11 +137,11 @@ The following diagram demonstrates the order in which requests and responses flo
 
 image:ext-processing-policy.png[80%,80%,align="center"]
 
-. The client sends the request to Flex Gateway.
-. Flex Gateway sends the request to the external processing service.
-. After Flex Gateway receives the modified request, Flex Gateway sends the request to the upstream API service.
-. Flex Gateway receives the response from the upstream API service and sends the response to the external processing service.
-. Flex Gateway returns the modified response from the external processing service to the client.
+. The client sends an HTTP request to Flex Gateway.
+. Flex Gateway sends the initial parts of the client HTTP request you configure to the external processing service. At this point, the external processing service may request additional parts of the request.
+. After Flex Gateway receives the modified HTTP request, Flex Gateway sends the HTTP request to the upstream API service.
+. Flex Gateway receives the HTTP response from the upstream API service and sends the initial parts of the HTTP response you configure to the external processing service. At this point, the external processing service may request additional parts of the HTTP response.
+. Flex Gateway returns the HTTP modified response from the external processing service to the client.
 
 By default, if Flex Gateway cannot establish a connection to the gRPC service or if the gRPC service returns an error, the policy fails. 
 
