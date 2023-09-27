@@ -3,15 +3,25 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 
-Flex Gateway uses a certificate to communicate with Anypoint Platform. Updating the certificate ensures the continued operation of your applications. You update a certificate by renewing registration, via the `flexctl registration renew` CLI.
+Flex Gateway uses a managed PKI certificate to communicate with Anypoint Platform. This certificate is generated when you register Flex Gateway in either Connected Mode or Local Mode. Updating the certificate ensures the continued operation of your applications. You update a certificate by renewing registration, via the `flexctl registration renew` CLI.
 
-To avoid potential disruptions, verify the success of the renewal process by using the `flexctl registration inspect` command.
+Attempting to run Flex Gateway with an expired certificate in Connected Mode results in the following:
 
-This document describes two `flexctl` CLI commands: `renew`, and `inspect`.
+* New replicas fail to download API configurations from Anypoint Platform, thereby becoming unusable. Existing clusters fail to reload.
+* Logs and metrics fail to upload to Anypoint Platform. Troubleshooting using Anypoint Platform is not possible.
+* Metering information fails to upload to Anypoint Platform. MuleSoft is unable to collect or report usage metrics.
 
-* <<renewal-cli-overview,Registration Renewal>>
-* <<inspection-cli-overview,Registration Inspection>>
+Attempting to run Flex Gateway with an expired certificate in Local Mode results in the following:
 
+* Metering information fails to upload to Anypoint Platform. MuleSoft is unable to collect or report usage metrics.
+
+To avoid disruptions:
+
+. <<before-you-begin,Download the latest version of Flex Gateway.>>
+. <<renewal-cli-overview,Renew your Flex Gateway registration.>>
+. <<inspection-cli-overview,Verify (inspect) the success of the renewal process.>>
+
+[[before-you-begin]]
 == Before You Begin
 
 * xref:flex-install.adoc[Download Flex Gateway].
