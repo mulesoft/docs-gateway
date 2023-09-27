@@ -16,11 +16,13 @@ endif::[]
 
 == Summary
 
-The External Authorization policy sends incoming HTTP requests to an external gRPC of HTTP authorization service to determine if the request is authorized to access the upstream service. Flex Gateway returns a `403` forbidden request error for unauthorized accesses. For authorized accesses, Flex Gateway returns the response from the backend service.
+The External Authorization policy sends incoming client HTTP requests to an external gRPC of HTTP authorization service to determine if the client HTTP request is authorized to access the upstream service. For authorized accesses, Flex Gateway returns the response from the upstream service. For unauthorized accesses, Flex Gateway returns a `403` forbidden request error. 
+
+If it is necessary to send request headers to the authorization service, such as an authorization token header, you can configure what headers from the client HTTP requests are sent to the authorization service by using the *Allowed Headers* parameter.
+
+The External Authorization policy can also modify the client HTTP requests header with additional information returned from the authorization service. If the authorization service returns headers with the authorization response, Flex Gateway either appends these headers to the client HTTP request or overwrites the header if it is already present in the HTTP request. For example, if an authorized user sends a request with an access token corresponding to a username, the authorization service can return a `username` header for Flex Gateway to append to the client HTTP request.
 
 The External Authorization policy is an extension of the External Authorization filter native to Envoy. To learn more about the External Authorization filter, see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_authz_filter[External Authorization Filter^]. Not all External Authorization filter parameters are avialible for the External Authorization policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>. 
-
-If it is necessary to send request headers to the authorization service, such as an authorization token header, you can configure what headers are sent by using the *Allowed Headers* parameter.
 
 NOTE: If other policies modify the incoming HTTP request, ensure you order the policies depending on if these modification should be present when the request is sent to the authorization service. For more information about ordering policies, see xref:policies-reorder.adoc[].
 
@@ -114,6 +116,7 @@ image:ext-auth-policy.png[80%,80%,align="center"]
 
 . The client sends an HTTP request to the API instance exposed by Flex.
 . Flex Gateway sends a request consisting of the client's request and headers to the authorization service.
-. The authorization services sends a response back to Flex Gateway of whether the client request is authorized.
+. The authorization services sends a response back to Flex Gateway of whether the client HTTP request is authorized and the headers to append or to edit.
 . If the request is not authorized, Flex Gateway returns a `403` forbidden access code to the client.
-. If the request is authorized, Flex Gateway allows the request to pass to the backend service and returns the response as normal.
+. If the request is authorized, Flex Gateway appends the header data to the client request if necessary and allows the request to pass to the backend service.
+. Flex Gateway returns the response as normal.
