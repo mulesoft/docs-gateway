@@ -3,6 +3,8 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 
+== Using CLI Commands to Renew and Verify Registration
+
 Flex Gateway uses a managed PKI certificate to communicate with Anypoint Platform. This certificate is generated when you register Flex Gateway in either Connected Mode or Local Mode. Updating the certificate ensures the continued operation of your applications. You update a certificate by renewing registration, via the `flexctl registration renew` CLI.
 
 Attempting to run Flex Gateway with an expired certificate in Connected Mode results in the following:
@@ -24,14 +26,14 @@ To avoid disruptions:
 . <<inspection-cli-overview,Verify the success of the renewal process.>>
 
 [[before-you-begin]]
-== 1. Download Latest Version of Flex Gateway
+=== 1. Download Latest Version of Flex Gateway
 
 To invoke the registration renewal `flexctl` command, download the latest version of Flex Gateway. You don't need to register and run this version of the gateway.
 
 * xref:flex-install.adoc[]
 
 [[renewal-cli-overview]]
-== 2. Renew Your Registration
+=== 2. Renew Your Registration
 
 Flex Gateway includes the following CLI command to renew registration:
 
@@ -79,7 +81,7 @@ The `flexctl` CLI provides two methods to renew your registration:
 * <<renew-with-conn-app,Method 2: Renew Registration with Connected App Credentials>>
 
 [[renew-with-user-password]]
-=== Method 1: Renew Registration with Anypoint Platform User Credentials
+==== Method 1: Renew Registration with Anypoint Platform User Credentials
 
 . Create a new directory called `flex-renew-registration` (or similar). You run the `renew` command in this new directory.
 
@@ -146,9 +148,9 @@ Registration renewal completed
 ----
 
 [[renew-with-conn-app]]
-=== Method 2: Renew Registration with Connected App Credentials
+==== Method 2: Renew Registration with Connected App Credentials
 
-. If you do not have a username or password for Anypoint Platform, you can xref:access-management::connected-apps-developers.adoc#create-a-connected-app[configure a connected app] via Anypoint Access Management.
+. If you don't have a username or password for Anypoint Platform, you can xref:access-management::connected-apps-developers.adoc#create-a-connected-app[configure a connected app] via Anypoint Access Management.
 .. Include the following scopes:
 
 * Read Servers
@@ -222,12 +224,7 @@ Registration renewal completed
 ----
 
 [[inspection-cli-overview]]
-== 3. Verify Registration Renewal
-
-
-
-
-
+=== 3. Verify Registration Renewal
 
 Flex Gateway includes the following CLI command to verify (inspect) registration:
 
@@ -235,20 +232,24 @@ Flex Gateway includes the following CLI command to verify (inspect) registration
 flexctl registration inspect
 ----
 
-The command inspects your Flex Gateway registration, extracting information you use to verify whether the renewal command was successful.
+The command extracts registration information you can use to verify whether the `renew` command was successful.
 
-Invoke the following `help` command for information about usage:
+You can run the following `help` command for information about usage:
 
+[tabs]
+====
+Linux::
++
 [source,ssh]
 ----
 flexctl registration inspect --help
 ----
++
+Use `sudo` if you encounter file permission issues when running this command.
 
-For Flex Gateway running in a container, invoke `help` as part of the container `run` command:
-
-[tabs]
-====
 Docker::
++
+For Flex Gateway running in a container, invoke `help` as part of the container `run` command.
 +
 [source,ssh]
 ----
@@ -257,38 +258,46 @@ docker run --entrypoint flexctl mulesoft/flex-gateway registration inspect --hel
 
 Podman::
 +
+For Flex Gateway running in a container, invoke `help` as part of the container `run` command.
++
 [source,ssh]
 ----
 podman run --entrypoint flexctl docker.io/mulesoft/flex-gateway registration inspect --help
 ----
 ====
 
-Refer to the following topics for more information about inspection command usage:
+The `flexctl` CLI provides two methods to verify your registration:
 
-* <<inspect-with-custom-url,Inspect Registration Status with an Admin API URL>>
-* <<inspect-with-reg-file,Inspect Registration Status with a Registration File>>
+* <<inspect-with-custom-url,Method 1: Verify Registration Status with an Admin API URL>>
+* <<inspect-with-reg-file,Method 2: Verify Registration Status with a Registration File>>
 
 [NOTE]
 ====
-If you call `flexctl registration inspect` without flags, the command inspects registration status by using the default Admin API URL.
+If you run `flexctl registration inspect` without flags, the command inspects registration status by using the default Admin API URL.
 ====
 
 [[inspect-with-custom-url]]
-=== Inspect Registration Status with an Admin API URL
+==== Method 1: Verify Registration Status with an Admin API URL
 
-You can inspect a registration by specifying the base URL of the Flex Gateway Admin API. The default value is `http://localhost:9999`. Omit the `--flex-gateway-admin-api-url` flag if using the default value.
+You can inspect a registration by specifying the base URL of the Flex Gateway Admin API. The default value is `\http://localhost:9999`. Omit the `--flex-gateway-admin-api-url` flag if using the default value.
 
+To inspect a registration, run the following command:
+
+[tabs]
+====
+Linux::
++
 [source,ssh]
 ----
 flexctl registration inspect \
 --flex-gateway-admin-api-url=<your-custom-admin-api-url>
 ----
++
+Use `sudo` if you encounter file permission issues when running this command.
 
-For Flex Gateway running in a container, invoke `inspect` as part of the container `exec` command. Replace `<container-name-or-id>` with the running container reference:
-
-[tabs]
-====
 Docker::
++
+For Flex Gateway running in a container, run `inspect` as part of the container `exec` command. Replace `<container-name-or-id>` with the running container reference.
 +
 [source,ssh]
 ----
@@ -298,6 +307,8 @@ docker exec -u $UID <container-name-or-id> flexctl registration inspect \
 
 Podman::
 +
+For Flex Gateway running in a container, run `inspect` as part of the container `exec` command. Replace `<container-name-or-id>` with the running container reference.
++
 [source,ssh]
 ----
 podman exec -u $UID <container-name-or-id> flexctl registration inspect \
@@ -305,7 +316,7 @@ podman exec -u $UID <container-name-or-id> flexctl registration inspect \
 ----
 ====
 
-Invoking the command results in the following example output:
+The output should include the date of certificate expiration:
 
 [source,text]
 ----
@@ -313,20 +324,26 @@ Invoking the command results in the following example output:
 ----
 
 [[inspect-with-reg-file]]
-=== Inspect Registration Status with a Registration File
+==== Method 2: Verify Registration Status with a Registration File
 
 You can inspect a registration by extracting the information from your `registration.yaml` file. Specify the path and filename.
 
+To inspect a registration, run the following command:
+
+[tabs]
+====
+Linux::
++
 [source,ssh]
 ----
 flexctl registration inspect --file=<path-to-registration-file>
 ----
++
+Use `sudo` if you encounter file permission issues when running this command.
 
-For Flex Gateway running in a container, invoke `inspect` as part of the container `run` command:
-
-[tabs]
-====
 Docker::
++
+For Flex Gateway running in a container, invoke `inspect` as part of the container `run` command.
 +
 [source,ssh]
 ----
@@ -338,6 +355,8 @@ registration inspect --file=/registration/<registration-filename>
 
 Podman::
 +
+For Flex Gateway running in a container, invoke `inspect` as part of the container `run` command.
++
 [source,ssh]
 ----
 podman run --entrypoint flexctl --userns=keep-id \
@@ -347,7 +366,7 @@ registration inspect --file=/registration/<registration-filename>
 ----
 ====
 
-Invoking the command results in the following example output:
+The output should include the date of certificate expiration:
 
 [source,text]
 ----
@@ -356,6 +375,6 @@ Invoking the command results in the following example output:
 
 == See Also
 
-* xref:flex-install.adoc[Download Flex Gateway]
-* xref:flex-conn-reg-run.adoc[Register and Run Flex Gateway in Connected Mode]
-* xref:flex-local-reg-run.adoc[Register and Run Flex Gateway in Local Mode]
+* xref:flex-install.adoc[]
+* xref:flex-conn-reg-run.adoc[]
+* xref:flex-local-reg-run.adoc[]
