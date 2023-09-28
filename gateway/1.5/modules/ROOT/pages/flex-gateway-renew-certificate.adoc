@@ -21,17 +21,17 @@ To avoid disruptions:
 
 . <<before-you-begin,Download the latest version of Flex Gateway.>>
 . <<renewal-cli-overview,Renew your Flex Gateway registration.>>
-. <<inspection-cli-overview,Verify (inspect) the success of the renewal process.>>
+. <<inspection-cli-overview,Verify the success of the renewal process.>>
 
 [[before-you-begin]]
-== Before You Begin
+== 1. Download Latest Version of Flex Gateway
 
-* xref:flex-install.adoc[Download Flex Gateway].
-+
-To invoke the registration renewal `flexctl` command, download the latest version of Flex Gateway. It is not necessary to register and run this version of the gateway.
+To invoke the registration renewal `flexctl` command, download the latest version of Flex Gateway. You don't need to register and run this version of the gateway.
+
+* xref:flex-install.adoc[]
 
 [[renewal-cli-overview]]
-== Registration Renewal
+== 2. Renew Your Registration
 
 Flex Gateway includes the following CLI command to renew registration:
 
@@ -39,20 +39,24 @@ Flex Gateway includes the following CLI command to renew registration:
 flexctl registration renew
 ----
 
-The command renews an existing Flex Gateway registration with Runtime Manager. For authentication, you specify *either* user credentials or connected appl credentials. Authentication with user credentials requires the `--username` and `--password` flags. Authentication with connected app credentials requires the `--client-id` and `--client-secret` flags.
+The command renews an existing Flex Gateway registration with Runtime Manager. For authentication, you run the command with either user credentials or with connected app credentials. Authentication with user credentials requires the `--username` and `--password` flags. Authentication with connected app credentials requires the `--client-id` and `--client-secret` flags.
 
-Invoke the following `help` command for information about usage:
+You can run the following `help` command for information about usage:
 
+[tabs]
+====
+Linux::
++
 [source,ssh]
 ----
 flexctl registration renew --help
 ----
++
+Use `sudo` if you encounter file permission issues when running this command.
 
-For Flex Gateway running in a container, invoke `help` as part of the container `run` command:
-
-[tabs]
-====
 Docker::
++
+For Flex Gateway running in a container, invoke `help` as part of the container `run` command.
 +
 [source,ssh]
 ----
@@ -61,37 +65,41 @@ docker run --entrypoint flexctl mulesoft/flex-gateway registration renew --help
 
 Podman::
 +
+For Flex Gateway running in a container, invoke `help` as part of the container `run` command.
++
 [source,ssh]
 ----
 podman run --entrypoint flexctl docker.io/mulesoft/flex-gateway registration renew --help
 ----
 ====
 
-Refer to the following topics for more information about renewal command usage:
+The `flexctl` CLI provides two methods to renew your registration:
 
-* <<renew-with-user-password,Renew Registration with User Credentials>>
-* <<renew-with-conn-app,Renew Registration with Connected App Credentials>>
+* <<renew-with-user-password,Method 1: Renew Registration with Anypoint Platform User Credentials>>
+* <<renew-with-conn-app,Method 2: Renew Registration with Connected App Credentials>>
 
 [[renew-with-user-password]]
-=== Renew Registration with User Credentials
+=== Method 1: Renew Registration with Anypoint Platform User Credentials
 
-Flex Gateway includes the following CLI command to renew registration using Anypoint Platform user credentials:
+. Create a new directory called `flex-renew-registration` (or similar). You run the `renew` command in this new directory.
 
+. Use the following command:
++
+[tabs]
+====
+Linux::
++
 [source,ssh]
 ----
 flexctl registration renew --username=<your-username> --password=<your-password> \
  <path-to-registration-file>
 ----
++
+Use `sudo` if you encounter file permission issues when running this command.
 
-Replace `<path-to-registration-file>` with the path and filename of the existing `registration.yaml` file. You can optionally output the new registration file to a directory by using the `--output-directory` flag. The `renew` command overwrites the existing registration file if you specify the file's directory as the output directory.
-
-IMPORTANT: Create a new directory called `flex-renew-registration` (or similar) and then run the `renew` command in this new directory. The command creates registration files in this location.
-
-For Flex Gateway running in a container, invoke `renew` as part of the container `run` command:
-
-[tabs]
-====
 Docker::
++
+For Flex Gateway running in a container, invoke `renew` as part of the container `run` command.
 +
 [source,ssh]
 ----
@@ -108,6 +116,8 @@ registration renew \
 
 Podman::
 +
+For Flex Gateway running in a container, invoke `renew` as part of the container `run` command.
++
 [source,ssh]
 ----
 podman run --entrypoint flexctl --userns=keep-id \
@@ -122,47 +132,50 @@ registration renew \
 ----
 ====
 
-Invoking the command results in the following output:
+. Replace `<path-to-registration-file>` with the path and filename of the existing `registration.yaml` file. You can optionally output the new registration file to a directory by using the `--output-directory` flag. The `renew` command overwrites the existing registration file if you specify the file's directory as the output directory.
 
+. Replace <your-username> and <your-password> with Anypoint Platform user credentials.
+
+. Run the command.
++
+The output should include the message:
++
 [source,text]
 ----
-Starting registration renewal, please be patient.
-Registration renewal completed, the configuration files were written in directory ".".
-For security, modify the file permissions to restrict production scenario access to the user running flex.
-
-Side effect: the following files were written in the current directory
-registration.yaml
+Registration renewal completed
 ----
 
 [[renew-with-conn-app]]
-=== Renew Registration with Connected App Credentials
+=== Method 2: Renew Registration with Connected App Credentials
 
-Flex Gateway includes the following CLI command to renew registration using connected app credentials:
+. If you do not have a username or password for Anypoint Platform, you can xref:access-management::connected-apps-developers.adoc#create-a-connected-app[configure a connected app] via Anypoint Access Management.
+.. Include the following scopes:
 
+* Read Servers
+* Manage Servers
+* View Organization
+
+.. Save the *Id* and *Secret* of the connected app you configure, then use these credentials in the `renew` command.
+
+. Create a new directory called `flex-renew-registration` (or similar). You run the `renew` command in this new directory.
+
+. Use the following command:
++
+[tabs]
+====
+Linux::
++
 [source,ssh]
 ----
 flexctl registration renew --client-id=<your-client-id> --client-secret=<your-client-secret> \
  <path-to-registration-file>
 ----
++
+Use `sudo` if you encounter file permission issues when running this command.
 
-If you do not have a username or password for Anypoint Platform, you can configure connected apps via Anypoint Access Management:
-
-* xref:access-management::connected-apps-developers.adoc#create-a-connected-app[Configure a Connected App]
-** Include the following scopes:
-*** Read Servers
-*** Manage Servers
-*** View Organization
-** Save the *Id* and *Secret* of the Connected app you configure, then use these credentials in the `flexctl registration renew` command.
-
-Replace `<path-to-registration-file>` with the path and filename of the existing `registration.yaml` file. You can optionally output the new registration file to a directory by using the `--output-directory` flag. The `renew` command overwrites the existing registration file if you specify the file's directory as the output directory.
-
-IMPORTANT: Create a new directory called `flex-renew-registration` (or similar) and then run the `renew` command in this new directory. The command creates registration files in this location.
-
-For Flex Gateway running in a container, invoke `renew` as part of the container `run` command:
-
-[tabs]
-====
 Docker::
++
+For Flex Gateway running in a container, invoke `renew` as part of the container `run` command.
 +
 [source,ssh]
 ----
@@ -179,6 +192,8 @@ registration renew \
 
 Podman::
 +
+For Flex Gateway running in a container, invoke `renew` as part of the container `run` command.
++
 [source,ssh]
 ----
 podman run --entrypoint flexctl --userns=keep-id \
@@ -193,22 +208,28 @@ registration renew \
 ----
 ====
 
-Invoking the command results in the following output:
+. Replace `<path-to-registration-file>` with the path and filename of the existing `registration.yaml` file. You can optionally output the new registration file to a directory by using the `--output-directory` flag. The `renew` command overwrites the existing registration file if you specify the file's directory as the output directory.
 
+. Replace <your-client-id> and <your-client-secret> with the connected app credentials.
+
+. Run the command.
++
+The output should include the message:
++
 [source,text]
 ----
-Starting registration renewal, please be patient.
-Registration renewal completed, the configuration files were written in directory ".".
-For security, modify the file permissions to restrict production scenario access to the user running flex.
-
-Side effect: the following files were written in the current directory
-registration.yaml
+Registration renewal completed
 ----
 
 [[inspection-cli-overview]]
-== Registration Inspection
+== 3. Verify Registration Renewal
 
-Flex Gateway includes the following CLI command to inspect registration:
+
+
+
+
+
+Flex Gateway includes the following CLI command to verify (inspect) registration:
 
 ----
 flexctl registration inspect
