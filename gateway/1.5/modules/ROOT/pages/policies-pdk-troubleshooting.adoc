@@ -1,0 +1,56 @@
+= Policy Development Kit Troubleshooting Guide
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Troubleshoot errors encountered during the custom policy development lifecycle using PDK.
+
+== Project setup
+
+=== Dependency fetching
+
+==== Failed to download dependency
+
+===== credential-provider configuration requirement
+
+Whenever facing the following error during project setup or project building:
+
+----
+cargo +nightly install cargo-anypoint@1.0.0-beta.1 --registry anypoint -Z registry-auth --config .cargo/config.toml
+warning: flag `-Z registry-auth` has been stabilized in the 1.74 release, and is no longer necessary
+  Authenticated registries are available if a credential provider is configured.
+
+    Updating `anypoint` index
+error: failed to download `cargo-anypoint v1.0.0-beta.1 (registry `anypoint`)`
+
+Caused by:
+  unable to get packages from source
+
+Caused by:
+  authenticated registries require a credential-provider to be configured
+  see https://doc.rust-lang.org/cargo/reference/registry-authentication.html for details
+make: *** [install-cargo-anypoint] Error 101
+----
+
+This is a Cargo related issue, caused by newer updates on the Cargo Nightly distribution.
+
+To solve the issue, execute the following steps:
+
+1. Locate the Cargo main directory (`.cargo/`) in your file system.
+2. Edit the `credentials.toml` (`.cargo/credentials.toml`) and add the `credential-provider` field in the `[registries.anypoint]` section. It should end up looking like:
+
+[source,toml]
+----
+[registries.anypoint]
+token = <someToken>
+credential-provider = ["cargo:token"]
+----
+
+3. Save the changes.
+4. Re-run the setup/build of the custom policy project. Should work correctly now.
+
+== See Also
+
+* xref:policies-pdk-architecture.adoc[]
+* xref:policies-pdk-prerequisites.adoc[]
