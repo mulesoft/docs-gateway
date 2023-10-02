@@ -1,20 +1,16 @@
-= Policy Development Kit Troubleshooting Guide
+= Policy Development Kit Troubleshooting
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Troubleshoot errors encountered during the custom policy development lifecycle using PDK.
+When using the Policy Development Kit (PDK), you might encounter issues or receive error messages. See the following sections to help you resolve these issues:
 
-== Project setup
+* <<cargo-credential-provider-configuration, Cargo Credential-Provider Configuration>>
 
-=== Dependency fetching
+== Cargo Credential-Provider Configuration
 
-==== Failed to download dependency
-
-===== credential-provider configuration requirement
-
-Whenever facing the following error during project setup or project building:
+When running the `setup` or `build` commands, you might receive the following error:
 
 ----
 cargo +nightly install cargo-anypoint@1.0.0-beta.1 --registry anypoint -Z registry-auth --config .cargo/config.toml
@@ -33,12 +29,10 @@ Caused by:
 make: *** [install-cargo-anypoint] Error 101
 ----
 
-This is a Cargo related issue, caused by newer updates on the Cargo Nightly distribution.
+To fix the error:
 
-To solve the issue, execute the following steps:
-
-1. Locate the Cargo main directory (`.cargo/`) in your file system.
-2. Edit the `credentials.toml` (`.cargo/credentials.toml`) and add the `credential-provider` field in the `[registries.anypoint]` section. It should end up looking like:
+1. Find your Cargo main directory, `.cargo/`.
+2. In the main directory, find the `credentials.toml` file and add the `credential-provider` field to the `[registries.anypoint]` section, for example:
 +
 [source,toml]
 ----
@@ -48,7 +42,7 @@ credential-provider = ["cargo:token"]
 ----
 +
 3. Save the changes.
-4. Re-run the setup/build of the custom policy project. Should work correctly now.
+4. Run the `setup` or `build` in your custom policy root directory. The command should now execute properly.
 
 == See Also
 
