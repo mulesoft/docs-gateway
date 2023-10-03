@@ -31,8 +31,8 @@ make: *** [install-cargo-anypoint] Error 101
 
 To fix the error:
 
-1. Find your Cargo main directory, `.cargo/`.
-2. In the main directory, find the `credentials.toml` file and add the `credential-provider` field to the `[registries.anypoint]` section, for example:
+. Find your Cargo main directory (`.cargo/`).
+. In `.cargo/`, find the `credentials.toml` file and add the following new line `credential-provider = ["cargo:token"]` to the '[registries.anypoint]` section, for example:
 +
 [source,toml]
 ----
@@ -41,8 +41,10 @@ token = <someToken>
 credential-provider = ["cargo:token"]
 ----
 +
-3. Save the changes.
-4. Run the `setup` or `build` in your custom policy root directory. The command should now execute properly.
+NOTE: Do not edit the `token` field.
+
+. Save the changes.
+. Run the `setup` or `build` command from your custom policy root directory. The command should now execute properly.
 
 == See Also
 
