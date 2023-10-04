@@ -34,22 +34,26 @@ As well as being able to configure additional Fluent Bit log output types, Flex 
 
 == Before You Begin
 
-Before configuring Flex Gateway log output for Splunk, complete the following tasks:
+Before configuring Flex Gateway log output, complete the following tasks:
 
 * xref:flex-install.adoc[Download Flex Gateway]
 * xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
 
-Additionally, depending on your output, ensure that the service where you are directing logs to is operational. For Splunk, you must configure:
+Additionally, depending on your output, ensure that the service where you direct logs to is operational and that you have the necessary information:
 
-* A running https://www.splunk.com/[Splunk^] service. You can test Splunk by setting up a free Splunk Cloud trial.
-* Added an HTTP Event Collector (HEC) data input to the Cloud or Enterprise Splunk service. See the https://docs.splunk.com/Documentation/Splunk/7.0.3/Data/UsetheHTTPEventCollector[Splunk documentation^] about how to add a data input, and how to create an HEC token.
-
+* Splunk:
+** A running https://www.splunk.com/[Splunk^] service. You can test Splunk with a free Splunk Cloud trial.
+** Added an HTTP Event Collector (HEC) data input to the Cloud or Enterprise Splunk service. See the https://docs.splunk.com/Documentation/Splunk/7.0.3/Data/UsetheHTTPEventCollector[Splunk documentation^] about how to add a data input, and how to create an HEC token.
+* Dynatrace:
+** A running https://www.dynatrace.com/[Dynatrace^] service. You can test Dynatrace with a free Dynatrace trial.
+** Environment ID. To find your Dynatrace environment ID, see https://www.dynatrace.com/support/help/get-started/monitoring-environment/environment-id[Environment ID^]
+** Access token. To generate a Dynatrace access token, see https://www.dynatrace.com/support/help/manage/access-control/access-tokens[Access Tokens^]. Ensure that the token has the `Ingest logs` token scope.
 //end::byb[]
 
 //tag::runtime-access-logs[]
 
 == Runtime Logs and Access Logs
-Runtime and access logs both appear in the same log output. However, you can choose whether or not to include both logs in your log output. To use access logs, you must also apply a Message Logging policy.
+Runtime and access logs both appear in the same log output. However, you can choose whether to include both logs in your log output. To use access logs, you must also apply a Message Logging policy.
 
 === Runtime Logs
 Runtime logs include the following information:
@@ -76,6 +80,7 @@ To view configuration files with applied values, see the following configuration
 * <<file-configuration-example, File Configuration Example>>
 * <<http-configuration-example, HTTP Configuration Example>>
 * <<splunk-configuration-example, Splunk Configuration Example>>
+* <<dynatrace-configuration-example, Dynatrace Configuration Example>>
 
 
 //end::file-example[]
@@ -96,6 +101,7 @@ sudo touch /usr/local/share/mulesoft/flex-gateway/conf.d/logs-config.yaml
 * <<file-configuration-example, File Configuration Example>>
 * <<http-configuration-example, HTTP Configuration Example>>
 * <<splunk-configuration-example, Splunk Configuration Example>>
+* <<dynatrace-configuration-example, Dynatrace Configuration Example>>
 +
 //end::linux[]
 //tag::docker[]
@@ -117,6 +123,7 @@ Flex Gateway configuration files, skip to the create and save a YAML file step.
 * <<file-configuration-example, File Configuration Example>>
 * <<http-configuration-example, HTTP Configuration Example>>
 * <<splunk-configuration-example, Splunk Configuration Example>>
+* <<dynatrace-configuration-example, Dynatrace Configuration Example>>
 +
 //end::docker2[]
 //tag::k8s[]
@@ -131,19 +138,24 @@ To configure logging for Flex Gateway:
 * <<file-configuration-example, File Configuration Example>>
 * <<http-configuration-example, HTTP Configuration Example>>
 * <<splunk-configuration-example, Splunk Configuration Example>>
+* <<dynatrace-configuration-example, Dynatrace Configuration Example>>
 +
 //end::k8s[]
 
 //tag::view-logs-conn[]
 If no events appear in the logging output, check the Flex Gateway runtime logs for any configuration errors.
 +
-To view runtime logs, see xref:flex-view-logs-in-monitoring.adoc[],
+To view runtime logs, see xref:flex-view-logs-in-monitoring.adoc[].
++
+For additional troubleshooting help, see xref:flex-troubleshoot-log.adoc[].
 //end::view-logs-conn[]
 
 //tag::view-logs-local[]
 If no events appear in the logging output, check the Flex Gateway standard output logs for any configuration errors.
 +
 To view standard output logs, see xref:flex-local-view-logs.adoc[View Logs].
++
+For additional troubleshooting help, see xref:flex-troubleshoot-log.adoc[].
 //end::view-logs-local[]
 
 //tag::configure-message-logging-step[]
@@ -223,6 +235,51 @@ spec:
 ----
 
 //end::http-configuration-example[]
+
+//tag::dynatrace-configuration-example[]
+
+[[dynatrace-configuration-example]]
+== Dynatrace Configuration Example
+
+You can configure Flex Gateway to send formatted runtime and access logs to a Dynatrace environment `HTTP` output. As an example, the following file contains the necessary configurations:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: dynatrace-config
+spec:
+  logging:
+    outputs:
+    - name: dynatrace
+      type: http
+      parameters:
+        host: <environmentID>.live.dynatrace.com        
+        Port: "443"
+        allow_duplicated_headers: "false"        
+        header: 
+          - Content-Type application/json; charset=utf-8
+          - Authorization Api-Token <accessToken>
+        URI: /api/v2/logs/ingest
+        Format: json
+        json_date_key: timestamp
+        json_date_format: iso8601
+        tls: "on"
+        tls.verify: "off"
+    runtimeLogs:
+      logLevel: info
+      outputs:
+        - dynatrace
+    accessLogs:
+      outputs:
+        - dynatrace
+
+----
+
+For more information about configuration options, see https://docs.fluentbit.io/manual/v/{fluentbit-url-ver-var}/pipeline/outputs/http[HTTP Output^].
+
+//end::dynatrace-configuration-example[]
 
 //tag::splunk-configuration-example[]
 
