@@ -1,0 +1,366 @@
+= Renewing Flex Gateway Registration
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+
+Flex Gateway uses a managed PKI certificate to communicate with Anypoint Platform. This certificate is generated when you register Flex Gateway in either Connected Mode or Local Mode. Updating the certificate ensures the continued operation of your applications.
+
+You update a certificate by renewing registration via the `flexctl registration renew` command.
+
+* The `renew` command renews an existing Flex Gateway registration with Runtime Manager.
+* For authentication, you run the `renew` command with either user credentials or with connected app credentials. Authentication with user credentials requires the `--username` and `--password` flags. Authentication with connected app credentials requires the `--client-id` and `--client-secret` flags.
+
+You verify the renewal process via the `flexctl registration inspect` command.
+
+* The `inspect` command extracts registration information you can use to verify whether the `renew` command was successful.
+* You can verify renewal by specifying the URL of the Admin API, or you can specify your existing registration file. If you run the `inspect` command without flags, the command inspects registration status by using the default Admin API URL.
+
+Attempting to run Flex Gateway with an expired certificate in Connected Mode results in the following:
+
+* New replicas fail to download API configurations from Anypoint Platform, thereby becoming unusable. Existing clusters fail to reload.
+* Logs and metrics fail to upload to Anypoint Platform. Troubleshooting using Anypoint Platform is not possible.
+* Metering information fails to upload to Anypoint Platform. MuleSoft is unable to collect or report usage metrics.
+
+Attempting to run Flex Gateway with an expired certificate in Local Mode results in the following:
+
+* Metering information fails to upload to Anypoint Platform. MuleSoft is unable to collect or report usage metrics.
+
+If a certificate expires, you can still invoke `flexctl registration renew`, which updates the expired certificate.
+
+To avoid disruptions:
+
+. <<before-you-begin,Download the latest version of Flex Gateway.>>
+. Renew your Flex Gateway registration.
++
+Choose one of two methods:
++
+* <<renew-with-user-password,Anypoint Platform User Credentials>>
+* <<renew-with-conn-app,Connected App Credentials>>
+
+. Verify the success of the renewal process.
++
+Choose one of two methods:
++
+* <<inspect-with-custom-url,Admin API URL>>
+* <<inspect-with-reg-file,Registration File>>
+
+[[before-you-begin]]
+== Before You Begin
+
+To invoke the registration renewal `flexctl` command, download the latest version of Flex Gateway. You don't need to register and run this version of the gateway.
+
+* xref:flex-install.adoc[]
+
+[[renew-with-user-password]]
+== Renew Registration with Anypoint Platform User Credentials
+
+. Create a new directory called `flex-renew-registration` (or similar). You run the `renew` command in this new directory.
+
+. Use the following command:
++
+[tabs]
+====
+Linux::
++
+[source,ssh]
+----
+flexctl registration renew --username=<your-username> --password=<your-password> \
+ <path-to-registration-file>
+----
++
+Use `sudo` if you encounter file permission issues when running this command.
+
+Docker::
++
+For Flex Gateway running in a container, invoke `renew` as part of the container `run` command.
++
+[source,ssh]
+----
+docker run --entrypoint flexctl \
+-v "$(pwd)":/renew \
+-v <path-to-registration-directory>:/registration \
+-u $UID mulesoft/flex-gateway \
+registration renew \
+--username=<your-username> \
+--password=<your-password> \
+--output-directory=/renew \
+<path-to-registration-file>
+----
+
+Podman::
++
+For Flex Gateway running in a container, invoke `renew` as part of the container `run` command.
++
+[source,ssh]
+----
+podman run --entrypoint flexctl --userns=keep-id \
+-v "$(pwd)":/renew:Z \
+-v <path-to-registration-directory>:/registration:Z \
+-u $UID docker.io/mulesoft/flex-gateway \
+registration renew \
+--username=<your-username> \
+--password=<your-password> \
+--output-directory=/renew \
+<path-to-registration-file>
+----
+====
+
+. Replace `<path-to-registration-file>` with the path and filename of the existing `registration.yaml` file. You can optionally output the new registration file to a directory by using the `--output-directory` flag.
+
+. Replace <your-username> and <your-password> with Anypoint Platform user credentials.
+
+. Run the command.
++
+The output should include the message:
++
+[source,text]
+----
+Registration renewal completed
+----
+
+[[renew-with-conn-app]]
+== Renew Registration with Connected App Credentials
+
+. If you don't have a username or password for Anypoint Platform, you can xref:access-management::connected-apps-developers.adoc#create-a-connected-app[configure a connected app] via Anypoint Access Management.
+.. Include the following scopes:
+
+* Read Servers
+* Manage Servers
+* View Organization
+
+.. Save the *Id* and *Secret* of the connected app you configure, then use these credentials in the `renew` command.
+
+. Create a new directory called `flex-renew-registration` (or similar). You run the `renew` command in this new directory.
+
+. Use the following command:
++
+[tabs]
+====
+Linux::
++
+[source,ssh]
+----
+flexctl registration renew --client-id=<your-client-id> --client-secret=<your-client-secret> \
+ <path-to-registration-file>
+----
++
+Use `sudo` if you encounter file permission issues when running this command.
+
+Docker::
++
+For Flex Gateway running in a container, invoke `renew` as part of the container `run` command.
++
+[source,ssh]
+----
+docker run --entrypoint flexctl \
+-v "$(pwd)":/renew \
+-v <path-to-registration-directory>:/registration \
+-u $UID mulesoft/flex-gateway \
+registration renew \
+--client-id=<your-client-id> \
+--client-secret=<your-client-secret> \
+--output-directory=/renew \
+<path-to-registration-file>
+----
+
+Podman::
++
+For Flex Gateway running in a container, invoke `renew` as part of the container `run` command.
++
+[source,ssh]
+----
+podman run --entrypoint flexctl --userns=keep-id \
+-v "$(pwd)":/renew:Z \
+-v <path-to-registration-directory>:/registration:Z \
+-u $UID docker.io/mulesoft/flex-gateway \
+registration renew \
+--client-id=<your-client-id> \
+--client-secret=<your-client-secret> \
+--output-directory=/renew \
+<path-to-registration-file>
+----
+====
+
+. Replace `<path-to-registration-file>` with the path and filename of the existing `registration.yaml` file. You can optionally output the new registration file to a directory by using the `--output-directory` flag.
+
+. Replace <your-client-id> and <your-client-secret> with the connected app credentials.
+
+. Run the command.
++
+The output should include the message:
++
+[source,text]
+----
+Registration renewal completed
+----
+
+[[inspect-with-custom-url]]
+== Verify Registration Status with an Admin API URL
+
+You can inspect a registration by specifying the base URL of the Flex Gateway Admin API. The default value is `\http://localhost:9999`. Omit the `--flex-gateway-admin-api-url` flag if using the default value.
+
+To inspect a registration, run the following command:
+
+[tabs]
+====
+Linux::
++
+[source,ssh]
+----
+flexctl registration inspect \
+--flex-gateway-admin-api-url=<your-custom-admin-api-url>
+----
++
+Use `sudo` if you encounter file permission issues when running this command.
+
+Docker::
++
+For Flex Gateway running in a container, run `inspect` as part of the container `exec` command. Replace `<container-name-or-id>` with the running container reference.
++
+[source,ssh]
+----
+docker exec -u $UID <container-name-or-id> flexctl registration inspect \
+--flex-gateway-admin-api-url=<your-custom-admin-api-url>
+----
+
+Podman::
++
+For Flex Gateway running in a container, run `inspect` as part of the container `exec` command. Replace `<container-name-or-id>` with the running container reference.
++
+[source,ssh]
+----
+podman exec -u $UID <container-name-or-id> flexctl registration inspect \
+--flex-gateway-admin-api-url=<your-custom-admin-api-url>
+----
+====
+
+The output should include the date of certificate expiration. For example:
+
+[source,text]
+----
+{“expiration_date”: “2025-09-25 19:27:32 +0000 UTC”}
+----
+
+[[inspect-with-reg-file]]
+== Verify Registration Status with a Registration File
+
+You can inspect a registration by extracting the information from your `registration.yaml` file. Specify the path and filename.
+
+To inspect a registration, run the following command:
+
+[tabs]
+====
+Linux::
++
+[source,ssh]
+----
+flexctl registration inspect --file=<path-to-registration-file>
+----
++
+Use `sudo` if you encounter file permission issues when running this command.
+
+Docker::
++
+For Flex Gateway running in a container, invoke `inspect` as part of the container `run` command.
++
+[source,ssh]
+----
+docker run --entrypoint flexctl \
+-v <path-to-registration-directory>:/registration \
+-u $UID mulesoft/flex-gateway \
+registration inspect --file=<path-to-registration-file>
+----
+
+Podman::
++
+For Flex Gateway running in a container, invoke `inspect` as part of the container `run` command.
++
+[source,ssh]
+----
+podman run --entrypoint flexctl --userns=keep-id \
+-v <path-to-registration-directory>:/registration:Z \
+-u $UID docker.io/mulesoft/flex-gateway \
+registration inspect --file=<path-to-registration-file>
+----
+====
+
+The output should include the date of certificate expiration. For example:
+
+[source,text]
+----
+{“expiration_date”: “2025-09-25 19:27:32 +0000 UTC”}
+----
+
+== Get Help with the Renewal and Verification Commands
+
+You can run the following `help` commands for information about usage:
+
+* Renewal
++
+[tabs]
+====
+Linux::
++
+[source,ssh]
+----
+flexctl registration renew --help
+----
++
+Use `sudo` if you encounter file permission issues when running this command.
+
+Docker::
++
+For Flex Gateway running in a container, invoke `help` as part of the container `run` command.
++
+[source,ssh]
+----
+docker run --entrypoint flexctl mulesoft/flex-gateway registration renew --help
+----
+
+Podman::
++
+For Flex Gateway running in a container, invoke `help` as part of the container `run` command.
++
+[source,ssh]
+----
+podman run --entrypoint flexctl docker.io/mulesoft/flex-gateway registration renew --help
+----
+====
+
+* Verification
++
+[tabs]
+====
+Linux::
++
+[source,ssh]
+----
+flexctl registration inspect --help
+----
++
+Use `sudo` if you encounter file permission issues when running this command.
+
+Docker::
++
+For Flex Gateway running in a container, invoke `help` as part of the container `run` command.
++
+[source,ssh]
+----
+docker run --entrypoint flexctl mulesoft/flex-gateway registration inspect --help
+----
+
+Podman::
++
+For Flex Gateway running in a container, invoke `help` as part of the container `run` command.
++
+[source,ssh]
+----
+podman run --entrypoint flexctl docker.io/mulesoft/flex-gateway registration inspect --help
+----
+====
+
+== See Also
+
+* xref:flex-install.adoc[]
+* xref:flex-conn-reg-run.adoc[]
+* xref:flex-local-reg-run.adoc[]
