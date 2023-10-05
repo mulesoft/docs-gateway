@@ -323,11 +323,20 @@ registration inspect --file=<path-to-registration-file>
 ----
 ====
 
-The output should include the date of certificate expiration. For example:
+The output should include the date of certificate expiration:
 
 [source,text]
 ----
 {“expiration_date”: “2025-09-25 19:27:32 +0000 UTC”}
+----
+
+As an example, if your current directory contains the registration file, run the following command:
+[source,ssh]
+----
+docker run --entrypoint flexctl \
+-v "$(pwd)":/registration \
+-u $UID mulesoft/flex-gateway \
+registration inspect --file=/registration/registration.yaml
 ----
 
 == Get Help with the Renewal and Verification Commands
