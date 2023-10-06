@@ -13,19 +13,8 @@ You update a certificate by renewing registration via the `flexctl registration 
 You verify the renewal process via the `flexctl registration inspect` command.
 
 * The `inspect` command extracts registration information you can use to verify whether the `renew` command was successful.
-* You can verify renewal by specifying the URL of the Admin API, or you can specify your existing registration file. If you run the `inspect` command without flags, the command inspects registration status by using the default Admin API URL.
-
-Attempting to run Flex Gateway with an expired certificate in Connected Mode results in the following:
-
-* New replicas fail to download API configurations from Anypoint Platform, thereby becoming unusable. Existing clusters fail to reload.
-* Logs and metrics fail to upload to Anypoint Platform. Troubleshooting using Anypoint Platform is not possible.
-* Metering information fails to upload to Anypoint Platform. MuleSoft is unable to collect or report usage metrics.
-
-Attempting to run Flex Gateway with an expired certificate in Local Mode results in the following:
-
-* Metering information fails to upload to Anypoint Platform. MuleSoft is unable to collect or report usage metrics.
-
-If a certificate expires, you can still invoke `flexctl registration renew`, which updates the expired certificate.
+* You can also use the `inspect` command to first determine if renewing registration is actually required. The `inspect` command returns the certificate expiration date.
+* You can verify (inspect) renewal by specifying the URL of the Admin API, or you can specify your existing registration file. If you run the `inspect` command without flags, the command inspects registration status by using the default Admin API URL.
 
 To avoid disruptions:
 
@@ -105,9 +94,9 @@ registration renew \
 ----
 ====
 
-. Replace `<path-to-registration-file>` with the path and filename of the existing `registration.yaml` file. You can optionally output the new registration file to a directory by using the `--output-directory` flag.
+. Replace `<path-to-registration-file>` with the path and filename of the existing `registration.yaml` file.
 
-. Replace <your-username> and <your-password> with Anypoint Platform user credentials.
+. Replace `<your-username>` and `<your-password>` with Anypoint Platform user credentials.
 
 . Run the command.
 +
@@ -117,6 +106,31 @@ The output should include the message:
 ----
 Registration renewal completed
 ----
+
+As an example, if `/home/user/flex/registration.yaml` contains your current registration file, navigate to `/home/user/flex/` and run the following command with your Anypoint Platform credentials:
+
+[source,ssh]
+----
+docker run --entrypoint flexctl \
+-u $UID -v "$(pwd)":/registration  \
+mulesoft/flex-gateway \
+registration renew \
+--username=<your-username> \
+--password=<your-password> \
+--output-directory=/registration/new \
+/registration/registration.yaml
+----
+
+The command creates a new registration file: `/home/user/flex/new/registration.yaml`.
+
+[NOTE]
+====
+Unsuccessful renewal attempts generate an empty `registration.yaml` file in the current path. Running `renew` again with this empty file in the current path results in the following error:
+
+`Error: file already exists: /renew/registration.yaml`
+
+Delete the empty `registration.yaml` file.
+====
 
 [[renew-with-conn-app]]
 == Renew Registration with Connected App Credentials
@@ -181,9 +195,9 @@ registration renew \
 ----
 ====
 
-. Replace `<path-to-registration-file>` with the path and filename of the existing `registration.yaml` file. You can optionally output the new registration file to a directory by using the `--output-directory` flag.
+. Replace `<path-to-registration-file>` with the path and filename of the existing `registration.yaml` file.
 
-. Replace <your-client-id> and <your-client-secret> with the connected app credentials.
+. Replace `<your-client-id>` and `<your-client-secret>` with the connected app credentials.
 
 . Run the command.
 +
@@ -193,6 +207,31 @@ The output should include the message:
 ----
 Registration renewal completed
 ----
+
+As an example, if `/home/user/flex/registration.yaml` contains your current registration file, navigate to `/home/user/flex/` and run the following command with your connected app credentials:
+
+[source,ssh]
+----
+docker run --entrypoint flexctl \
+-u $UID -v "$(pwd)":/registration  \
+mulesoft/flex-gateway \
+registration renew \
+--client-id=<your-client-id> \
+--client-secret=<your-client-secret> \
+--output-directory=/registration/new \
+/registration/registration.yaml
+----
+
+The command creates a new registration file: `/home/user/flex/new/registration.yaml`.
+
+[NOTE]
+====
+Unsuccessful renewal attempts generate an empty `registration.yaml` file in the current path. Running `renew` again with this empty file in the current path results in the following error:
+
+`Error: file already exists: /renew/registration.yaml`
+
+Delete the empty `registration.yaml` file.
+====
 
 [[inspect-with-custom-url]]
 == Verify Registration Status with an Admin API URL
@@ -284,11 +323,46 @@ registration inspect --file=<path-to-registration-file>
 ----
 ====
 
-The output should include the date of certificate expiration. For example:
+The output should include the date of certificate expiration:
 
 [source,text]
 ----
 {“expiration_date”: “2025-09-25 19:27:32 +0000 UTC”}
+----
+
+As an example, if your current directory contains the registration file, run the following command:
+[source,ssh]
+----
+docker run --entrypoint flexctl \
+-v "$(pwd)":/registration \
+-u $UID mulesoft/flex-gateway \
+registration inspect --file=/registration/registration.yaml
+----
+
+== Renew Registration for Flex Gateway Running in Kubernetes
+
+The following example describes a scenario where Flex Gateway is installed in a `gateway` namespace with an `ingress` release name, and where registration is stored in the Kubernetes database.
+
+. Recover the `registration.yaml` file with the following `kubectl` command:
++
+[source,ssh]
+----
+kubectl -n gateway get secret "$(kubectl -n gateway get deployment ingress -o=jsonpath='{.spec.template.spec.volumes[?(@.name=="registration")].secret.secretName}')" -o=jsonpath='{.data.registration\.yaml}' | base64 --decode > registration.yaml
+----
++
+The command stores the registration file in `./registration.yaml`.
+
+. Run the `flexctl registration renew` command, as described for Docker in previous sections:
++
+* <<renew-with-user-password,Renew with Anypoint Platform User Credentials>>
+* <<renew-with-conn-app,Renew with Connected App Credentials>>
+
+. Upgrade Flex Gateway with the following `helm` command:
++
+[source,ssh]
+----
+helm get values -n gateway ingress > values.yaml \
+&& helm upgrade -n gateway ingress flex-gateway/flex-gateway --wait -f values.yaml --set-file registration.content=new/registration.yaml
 ----
 
 == Get Help with the Renewal and Verification Commands
@@ -358,6 +432,20 @@ For Flex Gateway running in a container, invoke `help` as part of the container 
 podman run --entrypoint flexctl docker.io/mulesoft/flex-gateway registration inspect --help
 ----
 ====
+
+== Renew an Expired Registration
+
+Attempting to run Flex Gateway with an expired certificate in Connected Mode results in the following:
+
+* New replicas fail to download API configurations from Anypoint Platform, thereby becoming unusable. Existing clusters fail to reload.
+* Logs and metrics fail to upload to Anypoint Platform. Troubleshooting using Anypoint Platform is not possible.
+* Metering information fails to upload to Anypoint Platform. MuleSoft is unable to collect or report usage metrics.
+
+Attempting to run Flex Gateway with an expired certificate in Local Mode results in the following:
+
+* Metering information fails to upload to Anypoint Platform. MuleSoft is unable to collect or report usage metrics.
+
+If a certificate expires, you can still invoke `flexctl registration renew`, which updates the expired certificate.
 
 == See Also
 
