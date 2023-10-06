@@ -339,6 +339,32 @@ docker run --entrypoint flexctl \
 registration inspect --file=/registration/registration.yaml
 ----
 
+== Renew Registration for Flex Gateway Running in Kubernetes
+
+The following example describes a scenario where Flex Gateway is installed in a `gateway` namespace with an `ingress` release name, and where registration is stored in the Kubernetes database.
+
+. Recover the `registration.yaml` file with the following `kubectl` command:
++
+[source,ssh]
+----
+kubectl -n gateway get secret "$(kubectl -n gateway get deployment ingress -o=jsonpath='{.spec.template.spec.volumes[?(@.name=="registration")].secret.secretName}')" -o=jsonpath='{.data.registration\.yaml}' | base64 --decode > registration.yaml
+----
++
+The command stores the registration file in `./registration.yaml`.
+
+. Run the `flexctl registration renew` command, as described for Docker in previous sections:
++
+* <<renew-with-user-password,Renew with Anypoint Platform User Credentials>>
+* <<renew-with-conn-app,Renew with Connected App Credentials>>
+
+. Upgrade Flex Gateway with the following `helm` command:
++
+[source,ssh]
+----
+helm get values -n gateway ingress > values.yaml \
+&& helm upgrade -n gateway ingress flex-gateway/flex-gateway --wait -f values.yaml --set-file registration.content=new/registration.yaml
+----
+
 == Get Help with the Renewal and Verification Commands
 
 You can run the following `help` commands for information about usage:
