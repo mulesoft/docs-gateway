@@ -1,102 +1,68 @@
-= Flex Gateway Resource Sizing
+= Reviewing Resource Sizing 
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 :table-caption!:
 
-This document provides recommendations for sizing Flex Gateway resources. As the bridge between your application and backend services, Flex Gateway plays a critical role in managing and controlling the interactions between these components. Therefore, appropriate resource sizing is important for optimal performance and reliability.
+Before getting started with Flex Gateway, you must analyze and choose your configuration to obtain the best performance and auto-scaling rate.
 
-The two key factors to consider are the number of APIs deployed, and the number of policies applied. Additional considerations include the throughput of transactions at peak times, and the payload size of the data being sent through the APIs.
+When you build a node, you must consider:
 
-Resource sizing recommendations are guidelines based on the following scenarios. Additional benchmarking adjustments should be performed to satisfy specific performance requirements.
+* Number of APIs
+* Amount of memory each node needs
+* Processing power for each node
 
-== 20 APIs, 2 Policies
+NOTE: Nodes belonging to a cluster must be of the same size.
 
-- Flex Gateway deployed in a Kubernetes cluster
-- 2 replicas
-- Load distributed among 200 users
-- 100 transactions per second
-- Message Logging and JWT Validation policies applied
+When assigning resources for each node, you must consider some configuration aspects:
 
-.Sizing recommendations
-[cols="1a, 1a"]
-|===
-|CPU (m) |Memory (MiB)
+* Number of APIs in your environment
+* Number of policies in each API
+* Amount of traffic each node handles
+* Amount of time the node takes to answer the request (latency)
+* Type of traffic each node handles, and within the traffic:
+** The number of requests per second the node handles
+** Size of each request (bytes)
 
-| xx
-| xx
+== Choose Appropriate Resources
+The following table guides you to know the resources you must allocate to your node according to your environment:
 
-|===
+[options="header"]
+|====
+| Node Size | CPU | RAM 
+| Small | 1-2 cores | 2-4 GB
+| Medium | 2-4 cores | 4-8 GB
+| Large | 8-16 cores | 16-32 GB	
+|====
 
-== 100 APIs, 2 Policies
+== Choose Your Cluster Size
 
-- Flex Gateway deployed in a Kubernetes cluster
-- 2 replicas
-- Load distributed among 200 users
-- 200 transactions per second
-- Message Logging and JWT Validation policies applied
+You can choose the appropriate cluster size with the following guiding table:
 
-.Sizing recommendations
-[cols="1a, 1a"]
-|===
-|CPU (m) |Memory (MiB)
+[options="header"]
+|====
+| Node Size | Number of APIs | Number of Policies | Expected Latency | Expected Throughput | Target Environment
+| Small | < 100 | 4 | < 100 ms | < 500 RPS | Dev/test cluster
+| Medium | < 1000 | 4 | < 20 ms | < 2500 RPS | Production cluster
+| Large | < 10000 | 4 | < 10 ms | < 10000 RPS | Mission-critical clusters
+|====
 
-| xx
-| xx
+Depending on the cluster performance, you can try with the following changes:
 
-|===
+* If the cluster delays your requests more than expected, increase its size.
+* If the cluster has high CPU consumption, increase its latency.
+* If the cluster has high memory consumption, check the OOM errors.
 
-== 200 APIs, 2 Policies
+In all cases, the average request size is 1kB and the 4 out-of-the-box policies commonly used are:
 
-- Flex Gateway deployed in a Kubernetes cluster
-- 2 replicas
-- Load distributed among 200 users
-- 200 transactions per second
-- Message Logging and JWT Validation policies applied
+* Message logging
+* Rate limiting
+* JWT validation
+* Header Injection
 
-.Sizing recommendations
-[cols="1a, 1a"]
-|===
-|CPU (m) |Memory (MiB)
+NOTE: Using TLS highly affects the response time and the process consumption.
 
-| xx
-| xx
+== See Also
 
-|===
-
-== 400 APIs, 2 Policies
-
-- Flex Gateway deployed in a Kubernetes cluster
-- 2 replicas
-- Load distributed among 500 users
-- 500 transactions per second
-- Message Logging and JWT Validation policies applied
-
-.Sizing recommendations
-[cols="1a, 1a"]
-|===
-|CPU (m) |Memory (MiB)
-
-| xx
-| xx
-
-|===
-
-== 500 APIs, 2 Policies
-
-- Flex Gateway deployed in a Kubernetes cluster
-- 2 replicas
-- Load distributed among 1000 users
-- 200 transactions per second
-- Message Logging and JWT Validation policies applied
-
-.Sizing recommendations
-[cols="1a, 1a"]
-|===
-|CPU (m) |Memory (MiB)
-
-| xx
-| xx
-
-|===
+* xref:flex-gateway-getting-started.adoc[]
