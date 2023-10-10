@@ -1,0 +1,16 @@
+[[envoy-policy-limitations]]
+== Envoy Policy Limatations
+
+Policies that extend filters native to Envoy have certain monitoring limitations when running in connected mode.
+
+=== Policy Violation Metrics
+
+Envoy filter policies do not support the *Policy Violations* metric in either the API instance Key Metrics or Anypoint Monitoring. However, Envoy filter policies do support the *Response Code* metric.
+
+Applying an Envoy filter policy does not affect the *Policy Violations* metrics for other policies applied to the API instance. Flex Gateway reports the *Policy Violations* metrics for Non-Envoy filter policies as normal, but these metrics are incomplete and do not include Envoy filter policy violations.
+
+=== API Alerts
+
+Envoy filter policies do not support policy violation API alerts. To monitor an Envoy filter policies with an API alert, add an alert that monitors response codes and specify the response error code of your policy.
+
+To learn more about adding alerts, see xref:flex-use-api-alerts.adoc[].
