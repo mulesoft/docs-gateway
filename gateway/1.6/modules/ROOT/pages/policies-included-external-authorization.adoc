@@ -22,9 +22,9 @@ To send request headers, such as an authorization token header, to the authoriza
 
 The External Authorization policy can also modify the client HTTP requests header with additional information returned from the authorization service. If the authorization service returns headers with the authorization response, Flex Gateway either appends these headers to the client HTTP request or overwrites the header if it is already present in the HTTP request. For example, if an authorized user sends a request with an access token corresponding to a username, the authorization service can return a `username` header for Flex Gateway to append to the client HTTP request.
 
-The External Authorization policy is an extension of the External Authorization filter native to Envoy. To learn more about the External Authorization filter, see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_authz_filter[External Authorization Filter^]. Not all External Authorization filter parameters are available for the External Authorization policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>. 
+The External Authorization policy is an extension of the External Authorization filter native to Envoy. To learn more about the External Authorization filter, see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_authz_filter[External Authorization Filter^]. Not all External Authorization filter parameters are available to the External Authorization policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>. 
 
-NOTE: If other policies modify the incoming HTTP request, ensure you order the policies depending on if these modification should be present when the request is sent to the authorization service. For more information about ordering policies, see xref:policies-reorder.adoc[].
+NOTE: If other policies modify the incoming HTTP request, ensure that you order the policies depending on if these modification should be present when the request is sent to the authorization service. For more information about ordering policies, see xref:policies-reorder.adoc[].
 
 == Configuring Policy Parameters
 
@@ -52,7 +52,7 @@ In Local Mode, you apply the External Authorization policy to your API instance 
 | `uri`
 | Required
 | NA
-| External authorization service Uri. With gRPC type server, define the uri in the following format: `h2://<ext.authz.com>:<port>`.
+| External authorization service URI. With a gRPC type server, define the URI by using this format: `h2://<ext.authz.com>:<port>`.
 
 | `serverType`
 | Required
@@ -72,7 +72,7 @@ In Local Mode, you apply the External Authorization policy to your API instance 
 | `allowedHeaders`
 | Optional
 | NA
-| By default, requests sent to gRPC servers include all client headers, and requests sent to HTTP servers do not include any client headers. If you list allowed headers for either server type, requests include only the listed headers.
+| By default, requests sent to gRPC servers include all client headers and requests sent to HTTP servers don't include any client headers. If you list allowed headers for either server type, requests include only the listed headers.
 
 |===
 
@@ -80,7 +80,7 @@ NOTE: Leaving a required value blank configures the parameter as the default val
 
 === Resource Configuration Example
 
-In the following configuration, a gRPC authorization service receives a request including the peer certificates and the authorization token header:
+In the following configuration, a gRPC authorization service receives a request that includes the peer certificates and authorization token header:
 
 [source,yaml]
 ----
@@ -101,11 +101,11 @@ When you apply the policy to your API instance from the UI, the following parame
 [%header%autowidth.spread,cols="a,a"]
 |===
 | *Parameter* | *Description*
-|External authorization service URI  | External authorization service Uri. With gRPC type server, define the uri as `\h2://<ext.authz.com>:<port>`.
+|External authorization service URI  | External authorization service Uri. With a gRPC type server, define the URI as `\h2://<ext.authz.com>:<port>`.
 |External authorization server type  | Type of external server.
 |Transport protocol API version  | Transport protocol API version.
 |Include peer certificates in the authorization server request | Includes peer certificates in the authorization server request.
-|Allowed headers | By default, requests sent to gRPC servers include all client headers, and requests sent to HTTP servers do not include any client headers. If you list allowed headers for either server type, requests include only the listed headers.
+|Allowed headers | By default, requests sent to gRPC servers include all client headers and requests sent to HTTP servers don't include any client headers. If you list allowed headers for either server type, requests include only the listed headers.
 |===
 
 == How This Policy Works
