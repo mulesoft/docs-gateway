@@ -300,7 +300,7 @@ Each entry's key is the expected header name and the value is a regular expressi
 
 |===
 
-=== Policy Binding Examples 
+=== Policy Binding Examples
 
 The following resource binds a `route` policy to the API instance, routing traffic specified by the `rules` to the proxy address specified in the `Service` configuration snippet:
 
@@ -324,7 +324,10 @@ spec:
   - path: /api/json(/.*)
 ----
 
-The following resource binds a `http-basic-authentication-flex` policy to the API instance -  requiring requests to include the basic credentials defined in `config.username` and `config.password`. The policy is given a read order value of `2`.
+[NOTE]
+The `route` policy is required only when defining `PolicyBinding` entities in resource-based configurations. For instance, using `spec.services.routes` in an `ApiInstance` entity, either inline or as a resource, does not require defining the `route` policy.
+
+The following resource binds a `http-basic-authentication-flex` policy to the API instance, requiring requests to include the basic credentials defined in `config.username` and `config.password`. The policy is given a read order value of `2`.
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
