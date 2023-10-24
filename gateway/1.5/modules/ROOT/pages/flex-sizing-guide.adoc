@@ -45,6 +45,10 @@ The following guiding table helps you choose the appropriate node and cluster si
 | Large | > 500 | 4 | < 10 ms | < 10000 RPS | Mission-critical clusters
 |====
 
+The figures above are per node. API configurations are replicated to all nodes in the cluster. For example, if you have 10 APIs deployed with 3 policies for each API, it means that the 10 APIs and their policies are deployed to each node in the cluster.
+
+The traffic is distributed across all nodes in the cluster. A small cluster node supports up to 500 RPS, but if the cluster has two nodes then the total traffic that the cluster allows is 1000 RPS (500 RPS for each node). Exceeding the recommended traffic per node eventually causes increased CPU usage. To avoid this issue, you must increase the size of all nodes in the cluster or scale horizontally.
+
 High CPU usage can lead to increased latency. In such a case, proceed with horizontal scaling or increase the node size. 
 
 High memory consumption can lead to out-of-memory errors. To solve this issue, increase the memory allocation or the node size. Horizontal scaling might not help solve issues in this situation. Horizontal scaling fails if high memory utilization is the problem. You must increase memory first, and scale horizontally later.
