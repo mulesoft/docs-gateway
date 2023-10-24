@@ -302,6 +302,8 @@ Each entry's key is the expected header name and the value is a regular expressi
 
 === Policy Binding Examples
 
+To allow routing requests to a `Service` when an `ApiInstance` does not include `spec.services`, you must define a `PolicyBinding` configuration with the `route` policy. You do not need to configure a `route` policy if a custom policy is managing requests.
+
 The following resource binds a `route` policy to the API instance, routing traffic specified by the `rules` to the proxy address specified in the `Service` configuration snippet:
 
 ----
@@ -323,9 +325,6 @@ spec:
   rules:
   - path: /api/json(/.*)
 ----
-
-[NOTE]
-The `route` policy is required only when defining `PolicyBinding` entities in resource-based configurations. For instance, using `spec.services.routes` in an `ApiInstance` entity, either inline or as a resource, does not require defining the `route` policy.
 
 The following resource binds a `http-basic-authentication-flex` policy to the API instance, requiring requests to include the basic credentials defined in `config.username` and `config.password`. The policy is given a read order value of `2`.
 
