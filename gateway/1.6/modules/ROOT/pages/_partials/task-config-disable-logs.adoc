@@ -1,0 +1,81 @@
+//tag::config-disable-logs-intro[]
+
+Flex Gateway logging provides insights into startup and shutdown, API requests and responses, policies, and Fluent Bit. Such logging allows developers and administrators to identify and address any issues or anomalies. However, disabling log output might become necessary. Reasons include:
+
+. Performance: Logging consumes system resources, including disk space and processing power. In high-traffic scenarios, disabling logs can help improve the overall performance of Flex Gateway.
+
+. Compliance: Certain regulatory or compliance frameworks may impose restrictions on storing or retaining logs beyond a specific period. Disabling logs ensures compliance with such requirements and avoids unnecessary data retention.
+
+. Security: In some cases, logging sensitive information might pose a security risk. Disabling logs can prevent the storage of sensitive data, reducing the chances of potential data breaches.
+
+Before disabling logs, consider the potential impact on troubleshooting capabilities. In some cases, it might be more appropriate to adjust the log verbosity level or implement log rotation policies to manage log storage effectively.
+
+Disabling logs applies to the following:
+
+* Runtime logs, including:
+** The startup and shutdown of Flex Gateway, Fluent Bit, and Envoy.
+** Deployed APIs and policies.
+** Possible misconfigurations of Flex Gateway or other errors.
+
+* Access logs
+** The description of incoming interaction with Envoy over a period of time.
+** Incoming requests and responses for specific APIs.
+
+You disable Flex Gateway logs by using a local configuration file. The following tutorial describes how to create and deploy the file.
+
+//end::config-disable-logs-intro[]
+//tag::icon-table[]
+
+[cols="1a,1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="#linux"]
+|image:install-container-logo.png[25%,25%,xref="#containers"]
+|image:install-kubernetes-logo.png[20%,20%,xref="#kubernetes"]
+|image:install-openshift-logo.png[20%,20%,xref="#openshift"]
+
+|<<linux>>
+|<<containers>>
+|<<kubernetes>>
+|<<openshift>>
+|===
+
+//end::icon-table[]
+//tag::byb[]
+
+== Before You Begin
+
+Before configuring Flex Gateway log output, complete the following task:
+
+* Depending on your output, ensure that the service where you direct logs to is operational. For more information about log output services, refer to xref:flex-{page-mode}-third-party-logs-config.adoc[Configuring Flex Gateawy Output for Third-Party Services].
+
+//end::byb[]
+//tag::config-disable-logs-example[]
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: Configuration
+metadata:
+  name: logging-config
+spec:
+  logging:
+    outputs:
+      default:
+        type: file
+        parameters:
+          file: /dev/stdout
+          format: template
+          template: "[{date}][{logger}][{level}][{kind}] {message}\n"
+    runtimeLogs:
+      logLevel: info
+      outputs:
+        default: enabled
+        anypoint: disabled
+    accessLogs:
+      outputs:
+        default: enabled
+        anypoint: disabled
+----
+
+//end::config-disable-logs-example[]
+
