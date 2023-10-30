@@ -46,9 +46,81 @@ You disable Flex Gateway logs by using a local configuration file. The following
 
 Before configuring Flex Gateway log output, complete the following task:
 
-* Depending on your output, ensure that the service where you direct logs to is operational. For more information about log output services, refer to xref:flex-{page-mode}-third-party-logs-config.adoc[Configuring Flex Gateawy Output for Third-Party Services].
+* Depending on your output, ensure that the service where you direct logs to is operational. For more information about log output services, refer to xref:flex-{page-mode}-third-party-logs-config.adoc[Configuring Flex Gateway Output for Third-Party Services].
 
 //end::byb[]
+//tag::linux-section-1[]
+
+[[linux]]
+== Disable Log Output for Flex Gateway as a Linux Service
+
+. Create a YAML configuration file in your Flex Gateway configuration directory. For example:
++
+[source,ssh]
+----
+sudo touch /usr/local/share/mulesoft/flex-gateway/conf.d/disable-logs-config.yaml
+----
+
+. In the configuration file, set either `spec.logging.runtimeLogs.outputs.anypoint` or `spec.logging.accessLogs.outputs.anypoint` to `disabled`. The file will resemble the following:
++
+//end::linux-section-1[]
+
+//tag::linux-section-2[]
+. Save the file.
+//end::linux-section-2[]
+
+//tag::containers-section-1[]
+
+[[containers]]
+== Disable Log Output for Flex Gateway in a Container
+
+NOTE: If you have already added a volume for a folder with your
+Flex Gateway configuration files, skip to the create and save a YAML file step.
+
+. Press Ctrl+C to stop your Flex Gateway and any replicas.
+. Create a folder named `app` in the directory with your Flex Gateway configuration files.
+. Navigate to the `app` directory.
+. Create a new configuration YAML file named `disable-logs-config.yaml`.
+. In the configuration file, set either `spec.logging.runtimeLogs.outputs.anypoint` or `spec.logging.accessLogs.outputs.anypoint` to `disabled`. The file will resemble the following:
+//end::containers-section-1[]
+
+//tag::containers-section-2[]
+. Save the configuration file.
+. Restart your Flex Gateway with the configuration directory volume:
+//end::containers-section-2[]
+
+//tag::k8s-section-1[]
+
+[[kubernetes]]
+== Disable Log Output for Flex Gateway in a Kubernetes Cluster
+
+To disable logging for Flex Gateway:
+
+. Create a new resource using a YAML configuration file with the following example output configuration details:
++
+//end::k8s-section-1[]
+
+//tag::k8s-section-2[]
+. Set either `spec.logging.runtimeLogs.outputs.anypoint` or `spec.logging.accessLogs.outputs.anypoint` to `disabled`.
+
+//end::k8s-section-2[]
+
+//tag::openshift-section-1[]
+
+[[openshift]]
+== Disable Log Output for Flex Gateway in an OpenShift Cluster
+
+To disable logging for Flex Gateway:
+
+. Create a new resource using a YAML configuration file with the following example output configuration details:
++
+//end::openshift-section-1[]
+
+//tag::openshift-section-2[]
+. Set either `spec.logging.runtimeLogs.outputs.anypoint` or `spec.logging.accessLogs.outputs.anypoint` to `disabled`.
+
+//end::openshift-section-2[]
+
 //tag::config-disable-logs-example[]
 
 [source,yaml]
@@ -79,3 +151,9 @@ spec:
 
 //end::config-disable-logs-example[]
 
+//tag::see-also[]
+== See Also
+
+* xref:flex-{page-mode}-third-party-logs-config.adoc[Configuring Flex Gateway Output for Third-Party Services]
+* xref:policies-included-message-logging.adoc[]
+//end::see-also[]
