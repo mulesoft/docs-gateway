@@ -107,6 +107,40 @@ spec:
 ----
 //end::sample-config-all[]
 
+//tag::sentinel-intro[]
+== Configure Redis Sentinel
+
+Redis Sentinel provides high availability for Redis shared storage when not using a Redis Cluster
+
+For more information about Redis Sentinel, see https://redis.io/docs/management/sentinel/[Redi Sentinel^].
+
+Configure Redis Sentinel using the steps described in the previous sections.
+
+Sample configuration for adding Redis Sentinel:
+//end::sentinel-intro[]
+
+//tag::sentinel-sample-config[]
+[source, yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: shared-storage
+  namespace: test-ns
+spec:
+  sharedStorage:
+    redis:
+      username: "user"
+      password: "pass"
+      sentinel:
+        addresses:
+          - internal.redis.com:6379
+        masterName: "name"
+        password: "pass"
+      db: 0
+----
+//end::sentinel-sample-config[]
+
 //tag::tls-intro[]
 == Configure TLS for Redis-Based Shared Storage
 
@@ -174,37 +208,6 @@ spec:
 
 ----
 //end::tls-sample-config[]
-
-//tag::sentinel-intro[]
-== Configure Redis Sentinel
-
-Redis Sentinel provides high availability for Redis shared storage when not using a Redis Cluster
-
-For more information about Redis Sentinel, see https://redis.io/docs/management/sentinel/[Redi Sentinel^].
-
-//end::sentinel-intro[]
-
-//tag::sentinel-sample-config[]
-[source, yaml]
-----
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: Configuration
-metadata:
-  name: shared-storage
-  namespace: test-ns
-spec:
-  sharedStorage:
-    redis:
-      username: "user"
-      password: "pass"
-      sentinel:
-        addresses:
-          - internal.redis.com:6379
-        masterName: "name"
-        password: "pass"
-      db: 0
-----
-//end::sentinel-sample-config[]
 
 //tag::tls-more-information[]
 For information about configuration parameters, see the xref:flex-local-configuration-reference-guide.adoc#shared-storage[Declarative Configuration Reference (Shared Storage)].
