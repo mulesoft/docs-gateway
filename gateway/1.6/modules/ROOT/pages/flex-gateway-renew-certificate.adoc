@@ -57,6 +57,10 @@ flexctl registration renew --username=<your-username> --password=<your-password>
  <path-to-registration-file>
 ----
 +
+Replace `<your-username>` and `<your-password>` with Anypoint Platform user credentials.
++
+Replace `<path-to-registration-file>` with the path and filename of the existing `registration.yaml` file.
++
 Use `sudo` if you encounter file permission issues when running this command.
 
 Docker::
@@ -75,6 +79,10 @@ registration renew \
 --output-directory=/renew \
 <path-to-registration-file-in-container>
 ----
++
+Replace `<your-username>` and `<your-password>` with Anypoint Platform user credentials.
++
+Replace `<path-to-registration-file-in-container>` with the path and filename of the existing `registration.yaml` file. You must specify the file in the container file system, which in this case is `/registration/registration.yaml`.
 
 Podman::
 +
@@ -92,11 +100,11 @@ registration renew \
 --output-directory=/renew \
 <path-to-registration-file-in-container>
 ----
++
+Replace `<your-username>` and `<your-password>` with Anypoint Platform user credentials.
++
+Replace `<path-to-registration-file-in-container>` with the path and filename of the existing `registration.yaml` file. You must specify the file in the container file system, which in this case is `/registration/registration.yaml`.
 ====
-
-. Replace `<path-to-registration-file-in-container>` with the path and filename of the existing `registration.yaml` file. For Flex Gateway running in a container, you must specify the file in the container file system.
-
-. Replace `<your-username>` and `<your-password>` with Anypoint Platform user credentials.
 
 . Run the command.
 +
@@ -123,14 +131,7 @@ registration renew \
 
 The command creates a new registration file: `/home/user/flex/new/registration.yaml`.
 
-[NOTE]
-====
-Unsuccessful renewal attempts generate an empty `registration.yaml` file in the current path. Running `renew` again with this empty file in the current path results in the following error:
-
-`Error: file already exists: /renew/registration.yaml`
-
-Delete the empty `registration.yaml` file.
-====
+NOTE: If the location of the created registration file differs from the runtime registration file location, you must copy the newly created file to the runtime registration file location.
 
 [[renew-with-conn-app]]
 == Renew Registration with Connected App Credentials
@@ -158,6 +159,10 @@ flexctl registration renew --client-id=<your-client-id> --client-secret=<your-cl
  <path-to-registration-file>
 ----
 +
+Replace `<your-client-id>` and `<your-client-secret>` with the connected app credentials.
++
+Replace `<path-to-registration-file>` with the path and filename of the existing `registration.yaml` file.
++
 Use `sudo` if you encounter file permission issues when running this command.
 
 Docker::
@@ -176,6 +181,10 @@ registration renew \
 --output-directory=/renew \
 <path-to-registration-file-in-container>
 ----
++
+Replace `<your-client-id>` and `<your-client-secret>` with the connected app credentials.
++
+Replace `<path-to-registration-file-in-container>` with the path and filename of the existing `registration.yaml` file. You must specify the file in the container file system, which in this case is `/registration/registration.yaml`.
 
 Podman::
 +
@@ -193,11 +202,11 @@ registration renew \
 --output-directory=/renew \
 <path-to-registration-file-in-container>
 ----
++
+Replace `<your-client-id>` and `<your-client-secret>` with the connected app credentials.
++
+Replace `<path-to-registration-file-in-container>` with the path and filename of the existing `registration.yaml` file. You must specify the file in the container file system, which in this case is `/registration/registration.yaml`.
 ====
-
-. Replace `<path-to-registration-file-in-container>` with the path and filename of the existing `registration.yaml` file. For Flex Gateway running in a container, you must specify the file in the container file system.
-
-. Replace `<your-client-id>` and `<your-client-secret>` with the connected app credentials.
 
 . Run the command.
 +
@@ -224,14 +233,7 @@ registration renew \
 
 The command creates a new registration file: `/home/user/flex/new/registration.yaml`.
 
-[NOTE]
-====
-Unsuccessful renewal attempts generate an empty `registration.yaml` file in the current path. Running `renew` again with this empty file in the current path results in the following error:
-
-`Error: file already exists: /renew/registration.yaml`
-
-Delete the empty `registration.yaml` file.
-====
+NOTE: If the location of the created registration file differs from the runtime registration file location, you must copy the newly created file to the runtime registration file location.
 
 [[inspect-with-custom-url]]
 == Verify Registration Status with the Default Method
