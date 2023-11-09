@@ -6,9 +6,9 @@ endif::[]
 
 To execute certain policies before others, you can configure the order of execution of included and custom policies. 
 
-You can configure both included and custom policies to execute as automated-policies or API-level policies. Automated policies are policies that are applied to all API instances deployed on the Flex Replica, and API-level policies are polices that are only applied to a specific API instance.
+You can configure both included and custom policies to execute as automated-policies or API-level policies. Automated policies are policies that are applied to all API instances deployed on the Flex Replica and execute before API level policies. API-level policies are polices that are only applied to a specific API instance.
 
-For Flex Gateway running in Connected Mode, you reorder policies via API Manager. For Flex Gateway running in Local Mode you order policies via a `PolicyBinding` YAML resource.
+For Flex Gateway running in Connected Mode, you order policies via API Manager. For Flex Gateway running in Local Mode you order policies via a `PolicyBinding` YAML resource.
 
 IMPORTANT: You cannot configure the execution order of the xref:policies-included-cors.adoc[Cross-Origin Resource Sharing (CORS) policy]. The CORS policy executes before automated and API-level policies.
 
@@ -16,7 +16,7 @@ IMPORTANT: You cannot configure the execution order of the xref:policies-include
 
 Policies can either execute on the API request, the API response, or on both. Policies execute in order during the API request and in inverse order during the API response. If a policy does not execute in a certain direction, Flex Gateway skips the policy.
 
-For example, if in API Manager you have Automated Policy 1, Automated Policy 2, API-Level Policy 1, API-Level Policy 2 ordered:
+For example, if you have four polices ordered:
 
 . Automated Policy 1
 . Automated Policy 2
