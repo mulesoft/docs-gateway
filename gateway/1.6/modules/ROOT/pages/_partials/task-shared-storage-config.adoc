@@ -1,7 +1,7 @@
 //tag::intro1[]
-Anypoint Flex Gateway enables you to configure shared storage for distributed caching and rate limiting policies.
+Anypoint Flex Gateway enables you to configure shared storage for distributed caching and rate limiting policies. Redis also provides extra memory for caching.
 
-Production workflows should use https://redis.io/[Redis^], though defining it is optional. If Redis is not defined, shared storage services at port 4000 are still available but use an in-memory implementation.
+Production workflows should use https://redis.io/[Redis^]. If Redis is not defined, shared storage services at port 4000 are still available but use an in-memory implementation. You must configure Redis for distributed policies to share data. All other policies use replica memory for storage.
 
 //end::intro1[]
 //tag::intro2[]
@@ -9,6 +9,11 @@ You configure shared storage via a custom YAML file.
 
 The following steps demonstrate Redis-based storage support for Flex Gateway running in a Docker container, as a Linux Service,
 or as a Kubernetes cluster.
+
+To configure Redis Sentinel or a TLS connection to your Redis shared storage, refer to:
+
+* <<redis-sentinel>>
+* <<redis-tls>>
 //end::intro2[]
 //tag::icon-table[]
 
@@ -107,10 +112,46 @@ spec:
 ----
 //end::sample-config-all[]
 
+//tag::sentinel-intro[]
+[[redis-sentinel]]
+== Configure Redis Sentinel
+
+Redis Sentinel provides high availability for Redis shared storage. For more information about Redis Sentinel, refer to https://redis.io/docs/management/sentinel/[Redi Sentinel^].
+
+Configure Redis Sentinel using the steps described in the previous sections.
+
+Sample configuration for adding Redis Sentinel:
+//end::sentinel-intro[]
+
+//tag::sentinel-sample-config[]
+[source, yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: shared-storage
+  namespace: test-ns
+spec:
+  sharedStorage:
+    redis:
+      username: "user"
+      password: "pass"
+      sentinel:
+        addresses:
+          - internal.redis.com:6379
+        masterName: "name"
+        password: "pass"
+      db: 0
+----
+//end::sentinel-sample-config[]
+
 //tag::tls-intro[]
+[[redis-tls]]
 == Configure TLS for Redis-Based Shared Storage
 
-You can use Redis with TLS to ensure data security between Flex Gateway and the Redis instance. Configuring TLS enables you to protect sensitive data, prevent unauthorized access, and maintain the reliability of your services. Additionally, configuring TLS helps organizations meet compliance requirements and build trust with users.
+Use TLS with Redis to ensure data security between Flex Gateway and the Redis instance. Configuring TLS enables you to protect sensitive data, prevent unauthorized access, and maintain the reliability of your services. Additionally, configuring TLS helps organizations meet compliance requirements and build trust with users.
+
+TLS works with both Redis and Redis Sentinel.
 
 Configure TLS for Redis-based shared storage using the steps described in the previous sections.
 
