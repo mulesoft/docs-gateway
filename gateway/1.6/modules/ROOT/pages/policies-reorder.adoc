@@ -6,7 +6,7 @@ endif::[]
 
 To execute certain policies before others, you can configure the order of execution of included and custom policies. 
 
-You can configure both included and custom policies to execute as automated-policies or API-level policies. Automated policies are policies that are applied to all API instances deployed on the Flex Replica and execute before API level policies. API-level policies are polices that are only applied to a specific API instance.
+You can configure both included and custom policies to execute as automated policies or API-level policies. Automated policies are policies that are applied to all API instances deployed on the Flex Replica and execute before API-level policies. API-level policies are polices that are only applied to a specific API instance.
 
 For Flex Gateway running in Connected Mode, you order policies via API Manager. For Flex Gateway running in Local Mode you order policies via a `PolicyBinding` YAML resource.
 
@@ -33,6 +33,8 @@ The policies execute in the following order on the response:
 [[automated-policies]]
 == Order Automated Policies
 
+Refer to the following sections for your relevant mode.
+
 === Flex Gateway in Connected Mode
 
 You cannot configure the order or automated policies in API Manager. Automated policies execute in the order they are applied to the API instance. Apply automated policies in the order you want them to execute.
@@ -43,10 +45,12 @@ To apply a automated policy to Flex Gateway running in Local Mode, you must appl
 
 To apply a resource-level policy to all API instances, refer to xref:flex-local-secure-api-with-auto-policy.adoc[].
 
-To order the automated resource-level policy, edit the `order` parameter to match when you want the policy to execute. Ensure that this order does not conflict with the order of any other policies. For example, if you apply two automated resource-level policy with `order: 1` and 'order: 2', any API-level policy must start at 'order: 3'.
+To order the automated resource-level policy, edit the `order` parameter to match when you want the policy to execute. Ensure that this order does not conflict with the order of any other policies. For example, if you apply two automated resource-level policy with `order: 1` and `order: 2`, any API-level policy must start at `order: 3`.
 
 [[api-level-policies]]
 == Order API-Level Policies
+
+Refer to the following sections for your relevant mode.
 
 === Flex Gateway in Connected Mode
 
