@@ -5,7 +5,7 @@ endif::[]
 :imagesdir: ../assets/images
 
 //TODO: IS THERE AN OPENSHIFT OPTION HERE?
-You can uninstall Flex Gateway as a Linux service, in a Docker container, or from a Kubernetes cluster.
+You can uninstall Flex Gateway running as a Linux service, in a container, or in a Kubernetes cluster.
 
 //TODO: IS THERE AN OPENSHIFT OPTION HERE?
 [cols="1a,1a,1a"]
@@ -20,7 +20,7 @@ You can uninstall Flex Gateway as a Linux service, in a Docker container, or fro
 |===
 
 [[linux]]
-== Uninstall as a Linux Service
+== Uninstall Flex Gateway Running as a Linux Service
 
 Flex Gateway can be uninstalled as any other package:
 
@@ -30,35 +30,50 @@ sudo apt remove -y flex-gateway
 ----
 
 [[docker]]
-== Uninstall in a Docker Container
+== Uninstall Flex Gateway Running in a Docker Container
 
-If you are finished with your Flex Gateway instance in a Docker Container, stop and remove the container.
+To uninstall Flex Gateway, stop and remove the Flex Gateway container:
 
-. Determine the container ID.
+. Determine the Flex Gateway container ID by listing all the running containers:
 +
 [source,ssh]
 ----
 docker ps
 ----
 
-. Stop the container:
+. In the list of containers, note the container ID associated with the Flex Gateway container you want to uninstall.
+
+. Stop the Flex Gateway container:
++
+[source,ssh]
+----
+docker stop <container id>
+----
++
+Replace `<container-id` with the container ID of the Flex Gateway container you want to stop:
+
+. Remove the Flex Gateway container:
 +
 [source,ssh]
 ----
 docker rm <container id>
 ----
++
+Replace `<container-id` with the container ID of the Flex Gateway container you want to remove. The command permanently deletes the container and its associated resources.
 
-. Optionally, remove the Docker image as well:
+. Optionally, remove the Flex Gateway container image:
 +
 [source,ssh]
 ----
 docker rmi mulesoft/flex-gateway
 ----
 
-[[kubernetes]]
-== Uninstall from a Kubernetes Cluster
+. To confirm that Flex Gateway is uninstalled, run the `docker ps` command again. The uninstalled container no longer appears in the list.
 
-To uninstall Flex Gateway from a Kubernetes cluster:
+[[kubernetes]]
+== Uninstall Flex Gateway Running in a Kubernetes Cluster
+
+To uninstall Flex Gateway running in a Kubernetes cluster:
 
 . Uninstall the Helm release. The following example removes a release called “my-release”:
 +
