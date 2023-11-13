@@ -4,17 +4,17 @@ include::_attributes.adoc[]
 endif::[]
 :page-aliases: api-manager::re-order-policies-task.adoc, policies-included-reorder.adoc, policies::policies-included-reorder.adoc, policies::policies-reorder.adoc
 
-To execute certain policies before others, you can configure the order of execution of included and custom policies. 
+To execute certain policies before others, configure the order of execution of included and custom policies. 
 
 You can configure both included and custom policies to execute as automated policies or API-level policies. Automated policies are policies that are applied to all API instances deployed on the Flex Replica and execute before API-level policies. API-level policies are policies that are only applied to a specific API instance.
 
-For Flex Gateway running in Connected Mode, you order policies via API Manager. For Flex Gateway running in Local Mode you order policies via a `PolicyBinding` YAML resource.
+For Flex Gateway running in Connected Mode, use API Manager to order policies. For Flex Gateway running in Local Mode, use a `PolicyBinding` YAML resource to order policies.
 
 IMPORTANT: You cannot configure the execution order of the xref:policies-included-cors.adoc[Cross-Origin Resource Sharing (CORS) policy]. The CORS policy executes before automated and API-level policies.
 
 == Policy Execution Order
 
-Policies can either execute on the API request, the API response, or on both. Policies execute in order during the API request and in inverse order during the API response. If a policy does not execute in a certain direction, Flex Gateway skips the policy in that direction.
+Policies can either execute on the API request, the API response, or both. Policies execute in order during the API request and in inverse order during the API response. If a policy does not execute in a certain direction, Flex Gateway skips the policy in that direction.
 
 For example, if you have four policies ordered:
 
@@ -69,7 +69,7 @@ To reorder API-level policies in Flex Gateway running in Connected Mode:
 . Click *Apply order*.
 
 === Flex Gateway in Local Mode
-In Flex Gateway running in Local Mode, you configure policy ordering via a `PolicyBinding` YAML resource.
+In Flex Gateway running in Local Mode, configure policy ordering via a `PolicyBinding` YAML resource.
 
 When defining a policy using a `PolicyBinding` YAML resource, edit the `order` parameter to match when you want the policy to execute. Ensure that you do not assign the same order number to different policies.
 
