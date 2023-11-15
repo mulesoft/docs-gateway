@@ -150,6 +150,26 @@ spec:
   address: https://orders.svc.local:443/
 ----
 
+== Determining a Request Path
+
+The following table describes all the possible parameter combinations, with examples of the attributes that determine routing and the expected transformation of a request's path. The columns refer to data values of the attributes in the previous configuration examples.
+
+[options="header"]
+|====
+| ApiInstance .address .path | PolicyBinding(route) .rules .path | PolicyBinding(route) .config .destinationPath | Input Path | Output Path
+| <empty> | /api/.* | <empty> | /api/foo/bar | /api/foo/bar
+| <empty> | /api(/.*) | <empty> | /api/foo/bar | /foo/bar
+| <empty> | /api/.* | /orders | /api/foo/bar | /orders/api/foo/bar
+| <empty> | /api(/.*) | /orders | /api/foo/bar | /orders/foo/bar
+| /api | /foo/.* | <empty> | /api/foo/bar | /foo/bar
+| /api | /foo(/.*) | <empty> | /api/foo/bar | /bar
+| /api | /foo/.* | /orders | /api/foo/bar | /orders/foo/bar
+| /api | /foo(/.*) | /orders | /api/foo/bar | /orders/bar
+| /api | /api/foo/.* | /orders | /api/foo/bar | <no match> (expected a path like /api/api/foo/bar)
+| /api | /foo(/.)/bar(/.) | <empty> | /api/foo/abc/bar/def | /abc/def
+| /api | /foo(/.)/bar(/.) | /orders | /api/foo/abc/bar/def | /orders/abc/def
+|====
+
 == See Also
 
 * xref:policies-included-traffic-management.adoc[]
