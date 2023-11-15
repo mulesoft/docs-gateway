@@ -105,7 +105,7 @@ You can define only one host URL for each ruleset. Only requests made from the d
 
 === Resource Configuration Example
 
-// The following example defines a rate limit of three requests every six seconds:
+You can define an `ApiInstance` configuration that does not include the `spec.services` parameter:
 
 [source,yaml]
 ----
@@ -114,8 +114,10 @@ kind: ApiInstance
 metadata:
   name: ingress-http
 spec:
-  address: http://0.0.0.0:8080/api # [1] ApiInstance.address.path
+  address: http://0.0.0.0:8080/api
 ----
+
+Given the absence of the `spec.services` parameter, you must define the `route` policy in a `PolicyBinding` configuration:
 
 [source,yaml]
 ----
@@ -129,12 +131,14 @@ spec:
   policyRef:
     name: route
   config:
-    destinationPath: /orders # [2] PolicyBinding(route).config.destinationPath
+    destinationPath: /orders
     destinationRef:
       name: orders-svc
   rules:
-  - path: /foo(/.*) # [3] PolicyBinding(route).rules.path
+  - path: /foo(/.*)
 ----
+
+The related `Service` configuration:
 
 [source,yaml]
 ----
