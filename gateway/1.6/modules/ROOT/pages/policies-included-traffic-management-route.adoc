@@ -1,4 +1,4 @@
-= Traffic Management for Upstream Services Policy
+= Traffic Management for Multiple Upstream Services
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -7,24 +7,23 @@ endif::[]
 
 [%autowidth.spread,cols="a,a"]
 |===
->s| Policy Name | Traffic Management for Upstream Services
->s|Summary      | Manages API instance traffic to an upstream service from a single consumer endpoint
+>s| Policy Name | Traffic Management for Multiple Upstream Services
+>s|Summary      | Manages API instance traffic to multiple upstream services from a single consumer endpoint
 >s| First Flex Gateway version available | v1.0.0
 .4+>.^s| Returned Status Codes | No return codes exist for this policy.
 [%autowidth.spread,cols="a,a"]
-|
 |===
 
 [NOTE]
 ====
-The following information applies only to Flex Gateway running in Local Mode. To configure an upstream service for Flex Gateway running in Connected Mode, refer to xref:api-manager::create-instance-task-flex.adoc[Adding a Flex Gateway API Instance in Connected Mode].
+The following information applies only to Flex Gateway running in Local Mode. To configure multiple upstream services for Flex Gateway running in Connected Mode, see xref:api-manager::create-instance-task-flex.adoc#traffic-management[Multiple Upstream Services for Flex Gateway Running in Connected Mode].
 ====
 
 == Summary
 
-Flex Gateway running in Local Mode supports API instances that expose upstream services through a single consumer endpoint. For information about exposing multiple upstream services, refer to xref:policies-included-traffic-management.adoc[].
+Flex Gateway manages request traffic by using different routes that can each direct traffic to multiple upstream services. Flex Gateway directs traffic to the routes by using the route order and the individual route's rules. Additionally, you can add a weighted percentage to each upstream service within a route to manage the percentage of requests sent to the upstream service. For information about adding weight percentages, refer to xref:policies-included-traffic-management.adoc[].
 
-To allow routing requests to a Service when an `ApiInstance` does not include `spec.services`, you must define a `PolicyBinding` configuration with the Traffic Management for Upstream Services (`route`) policy. You do not need to configure a Traffic Management for Upstream Services (`route`) policy if a custom policy is managing requests.
+To allow routing requests to a Service when an `ApiInstance` does not include `spec.services`, you must define a `PolicyBinding` configuration with the Traffic Management for Multiple Upstream Services (`route`) policy. You do not need to configure a `route` policy if a custom policy is managing requests.
 
 == Configuring Policy Parameters
 
