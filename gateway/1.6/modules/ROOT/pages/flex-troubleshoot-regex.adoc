@@ -8,11 +8,3 @@ Troubleshoot compatibility issues with using regular expressions:
 == Negative Lookaheads
 
 Flex Gateway conforms to https://github.com/google/re2/wiki/Syntax[Google RE2 regular expression syntax^], which does not support negative lookaheads.
-
-Consider the following example workaround.
-
-To match all words that are not followed by the word "cat". A negative lookahead regular expression pattern might resemble: `\b\w+(?!cat)\b`.
-
-In this case, `\b` represents a word boundary, `\w+` matches one or more word characters, and `(?!cat)` ensures that "cat" is not present immediately after the word.
-
-Instead of using a negative lookahead, use a capturing group and then filter out the undesired matches. For example, the regular expression pattern might be: `\b(\w+)\b cat\b`. Here, you capture the words using parentheses and then check if "cat" follows them. You must then discard the captured group to obtain the desired result.
