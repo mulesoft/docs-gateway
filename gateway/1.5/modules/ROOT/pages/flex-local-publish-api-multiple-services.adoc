@@ -42,7 +42,7 @@ Before getting started, ensure that you have:
 
 . Copy and paste the following YAML snippet into the file, substituting the configuration field values with your values.
 +
-The snippit refers to the fictional `products-api` and `products-api-beta` services and a fictional `json-http` API instance. Specify your own API name and your own service details:
+The snippet refers to the fictional `products-api` and `products-api-beta` services and a fictional `json-http` API instance. Specify your own API name and your own service details:
 +
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -136,7 +136,7 @@ Before getting started, ensure that you have:
 
 . Copy and paste the following YAML snippet into the file, substituting configuration fields with your values. 
 +
-The snippit refers to the fictional `products-api` and `products-api-beta` services and a fictional `json-http` API instance. Specify your own API name and your own service details:
+The snippet refers to the fictional `products-api` and `products-api-beta` services and a fictional `json-http` API instance. Specify your own API name and your own service details:
 +
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -218,7 +218,7 @@ Before getting started, ensure that you have:
 
 . Use the `kubectl apply` command to apply the following `.yaml` configuration file, substituting the configuration field values with your values.
 +
-The snippit refers to the fictional `products-api` and `products-api-beta` services and a fictional `json-http` API instance. Specify your own API name and your own service details:
+The snippet refers to the fictional `products-api` and `products-api-beta` services and a fictional `json-http` API instance. Specify your own API name and your own service details:
 +
 +
 ----
@@ -263,7 +263,18 @@ spec:
     host: test.com
 ----
 
-. Enter the following command to view the pods logs and ensure that the API was created successfully: +
+. Enter the following command to view the pods logs and ensure that the API is created successfully: +
 ----
 kubectl logs -f <pod-name>
 ----
+
+If you use https://kubernetes.io/docs/concepts/services-networking/service/[Kubernetes Service^] as an upstream or you make a request from a policy, you must set:
+
+* `spec.ports[].protocol`, which must be TCP
+* `spec.ports[].name`
+
+Your `spec.ports[].name` service must adhere to the `<protocol>[-<suffix>]` structure. `[-<suffix>]` is optional, and the valid options for `<protocol>` are:
+
+* HTTP
+* H2
+* HTTPS
