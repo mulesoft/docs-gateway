@@ -116,7 +116,7 @@ spec:
 |`spec.policies[#].config`
 |Optional
 |Empty
-|The policy's configuration. Refer to <<policy-binding,spec.config>> in Policy Binding.
+|The policy's configuration. Refer to <<policy-binding,spec.config>> in Policy Binding. To use environment variables in `policies[#].config` fields, refer to <<environment-variables>>. 
 
 |`spec.policies[#].rules`
 |Optional
@@ -258,7 +258,7 @@ spec:
 |`spec.config`
 |Optional
 |Empty
-|The policy configuration. The content of this field depends on the specified policy. See the list of available policies.
+|The policy configuration. The content of this field depends on the specified policy. See the list of available policies. To use environment variables in `config` fields, refer to <<environment-variables>>. 
 
 |`spec.order`
 |Optional
@@ -330,24 +330,25 @@ The following resource binds a `http-basic-authentication-flex` policy to the AP
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: PolicyBinding
 metadata:
- name: hello-flex-gateway-auth
- namespace: e-commerce
+  name: hello-flex-gateway-auth
+  namespace: e-commerce
 spec:
- targetRef:
-   name: hello-flex-gateway-instance
-   namespace: e-commerce
- policyRef:
-   name: http-basic-authentication-flex
-   namespace: default
- config:
-   username: chris
-   password: admin
- order: 2
+  targetRef:
+    name: hello-flex-gateway-instance
+    namespace: e-commerce
+  policyRef:
+    name: http-basic-authentication-flex
+    namespace: default
+  config:
+    username: chris
+    password: admin
+  order: 2
 ----
 
+[[environment-variables]]
 === Environment Variables for Policy Bindings
 
-Policy binding's `config` fields support environment variables. The environment variables available are dependent on you environment.
+Both policy binding resources and inline policy bindings support environment variables in `config` fields. The environment variables available are dependent on you environment.
 
 To reference your environment variable, specify your environment variable prefixed by `$`, for example:
 
