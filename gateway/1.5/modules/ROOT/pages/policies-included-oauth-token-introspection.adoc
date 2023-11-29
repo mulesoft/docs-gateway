@@ -34,53 +34,53 @@ To apply OAuth 2.0 token introspection when using Flex Gateway as your runtime, 
 - policyRef:
     name: oauth2-token-introspection-flex
   config:
-    introspection_url: <string> // REQUIRED
-    authorization_value: <string> // REQUIRED
-    validated_token_ttl: <number> // OPTIONAL
-    authentication_timeout: <number> // OPTIONAL
-    skip_client_id_validation: <boolean> // REQUIRED
-    consumer_by: <string> // REQUIRED
-    expose_headers: <boolean> // OPTIONAL
+    introspectionURL: <string> // REQUIRED
+    authorizationValue: <string> // REQUIRED
+    validatedTokenTTL: <number> // OPTIONAL
+    authenticationTimeout: <number> // OPTIONAL
+    skipClientIdValidation: <boolean> // REQUIRED
+    consumerBy: <string> // REQUIRED
+    exposeHeaders: <boolean> // OPTIONAL
     scopes: <string> // OPTIONAL
-    scope_validation_criteria: <string> // OPTIONAL
-    max_cache_entries: <number> // OPTIONAL
+    scopeValidationCriteria: <string> // OPTIONAL
+    maxCacheEntries: <number> // OPTIONAL
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
 |Parameter | Required or Optional | Default Value | Description
 
-| `introspection_url`
+| `introspectionURL`
 | Required
 |
 | The third-party token introspection URL
 
-| `authorization_value`
+| `authorizationValue`
 | Required
 |
 | The method to request authorization from the authentication service. Specify either a Basic Auth string with `client_id` and `client_secret`, or a Bearer Token.
 
-| `validated_token_ttl`
+| `validatedTokenTTL`
 | Optional
 | 600
 | The caching limit for the validated token
 
-| `authentication_timeout`
+| `authenticationTimeout`
 | Optional
 | 10000
 | The timeout when sending data to the authentication service
 
-| `skip_client_id_validation`
+| `skipClientIdValidation`
 | Required
 | false
 | Enables/disables client ID enforcement support
 
-| `consumer_by`
+| `consumerBy`
 | Required
 |
 | Associate an identity provider's `username` or `client_id` response with a registered platform's `client_id`. Required if `skip_client_id_validation`is `true`.
 
-| `expose_headers`
+| `exposeHeaders`
 | Optional
 | false
 |
@@ -90,12 +90,12 @@ To apply OAuth 2.0 token introspection when using Flex Gateway as your runtime, 
 | ""
 | A space-delimited list
 
-| `scope_validation_criteria`
+| `scopeValidationCriteria`
 | Optional
 | "AND"
 | The criteria to apply to the `scopes` values. Valid parameter values are "AND" or "OR".
 
-| `max_cache_entries`
+| `maxCacheEntries`
 | Optional
 | 1000
 |
@@ -109,14 +109,14 @@ To apply OAuth 2.0 token introspection when using Flex Gateway as your runtime, 
 - policyRef:
     name: oauth2-token-introspection-flex
   config:
-    introspection_url: https://my-introspection.com/introspect
-    authorization_value: Basic am9obkBleGFtcGxlLmNvbTphYmMxMjM=
-    validated_token_ttl: 600
-    authentication_timeout: 10000
-    skip_client_id_validation: false
-    consumer_by: "client_id"
-    expose_headers: true
+    introspectionURL: https://my-introspection.com/introspect
+    authorizationValue: Basic am9obkBleGFtcGxlLmNvbTphYmMxMjM=
+    validatedTokenTTL: 600
+    authenticationTimeout: 10000
+    skipClientIdValidation: false
+    consumerBy: "client_id"
+    exposeHeaders: true
     scopes: "profile email shopping"
-    scope_validation_criteria: "AND"
-    max_cache_entries: 1000
+    scopeValidationCriteria: "AND"
+    maxCacheEntries: 1000
 ----
