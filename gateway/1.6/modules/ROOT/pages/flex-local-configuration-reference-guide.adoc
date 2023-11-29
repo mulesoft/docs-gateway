@@ -116,7 +116,7 @@ spec:
 |`spec.policies[#].config`
 |Optional
 |Empty
-|The policy's configuration. Refer to <<policy-binding,spec.config>> in Policy Binding.
+|The policy's configuration. Refer to <<policy-binding,spec.config>> in Policy Binding. To use environment variables in `policies[#].config` fields, refer to <<environment-variables>>. 
 
 |`spec.policies[#].rules`
 |Optional
@@ -258,7 +258,7 @@ spec:
 |`spec.config`
 |Optional
 |Empty
-|The policy configuration. The content of this field depends on the specified policy. See the list of available policies.
+|The policy configuration. The content of this field depends on the specified policy. See the list of available policies. To use environment variables in `config` fields, refer to <<environment-variables>>. 
 
 |`spec.order`
 |Optional
@@ -300,9 +300,7 @@ Each entry's key is the expected header name and the value is a regular expressi
 
 |===
 
-=== Policy Binding Examples
-
-To allow routing requests to a `Service` when an `ApiInstance` does not include `spec.services`, you must define a `PolicyBinding` configuration with the `route` policy. You do not need to configure a `route` policy if a custom policy is managing requests.
+=== Policy Binding Examples 
 
 The following resource binds a `route` policy to the API instance, routing traffic specified by the `rules` to the proxy address specified in the `Service` configuration snippet:
 
@@ -332,20 +330,36 @@ The following resource binds a `http-basic-authentication-flex` policy to the AP
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: PolicyBinding
 metadata:
- name: hello-flex-gateway-auth
- namespace: e-commerce
+  name: hello-flex-gateway-auth
+  namespace: e-commerce
 spec:
- targetRef:
-   name: hello-flex-gateway-instance
-   namespace: e-commerce
- policyRef:
-   name: http-basic-authentication-flex
-   namespace: default
- config:
-   username: chris
-   password: admin
- order: 2
+  targetRef:
+    name: hello-flex-gateway-instance
+    namespace: e-commerce
+  policyRef:
+    name: http-basic-authentication-flex
+    namespace: default
+  config:
+    username: chris
+    password: admin
+  order: 2
 ----
+
+[[environment-variables]]
+=== Environment Variables for Policy Bindings
+
+Both policy binding resources and inline policy bindings support environment variables in `config` fields. The environment variables available are dependent on your environment.
+
+To reference your environment variable, specify your environment variable prefixed by `$`, for example:
+
+----
+- policyRef:
+    name: http-basic-authentication-flex
+  config:
+    username: $USERNAME
+    password: $PASSWORD
+----
+
 
 == Service
 
