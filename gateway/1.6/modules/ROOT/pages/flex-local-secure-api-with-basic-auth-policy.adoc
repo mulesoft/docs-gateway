@@ -1,0 +1,195 @@
+= Secure an API with Basic Authentication and Rate Limiting
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Publish an API running behind Flex Gateway in Local Mode, modifying YAML configuration data by the following method:
+
+* Linux and Docker: `.yaml` files
+
+The following procedures demonstrate applying a simple YAML configuration for an API with multiple upstream services, all secured with xref:policies-included-basic-auth-simple.adoc[basic authentication] and xref:policies-included-rate-limiting.adoc[rate limiting].
+
+[cols="1,1"]
+|===
+
+|image:install-linux-logo.png[20%,20%,xref="flex-local-secure-api-with-basic-auth-policy.adoc#publish-an-api-running-behind-flex-gateway-on-linux"]
+
+|image:install-docker-logo.png[25%,25%,xref="flex-local-secure-api-with-basic-auth-policy.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container"]
+
+|xref:flex-local-secure-api-with-basic-auth-policy.adoc#publish-an-api-running-behind-flex-gateway-on-linux[Publish an API Running Behind Flex Gateway on Linux]
+
+|xref:flex-local-secure-api-with-basic-auth-policy.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container[Publish an API Running Behind Flex Gateway in a Docker Container]
+
+|===
+
+== Publish an API Running Behind Flex Gateway on Linux 
+
+=== Before You Begin
+
+Before getting started, ensure that you have:
+
+* Flex Gateway installed and running in local mode. See xref:flex-install.adoc[] for more information about installing and running the gateway. 
+* Your upstream service URLs. The following example refers to fictional `products-api` and `users-api` services, but you can specify your own API name in `metadata.name` and your service details in `spec.services`.
+
+=== Publish an API
+
+. Create a configuration file with a `.yaml` file extension:
+.. Give the file a custom name.
+.. Save the file in the Flex Gateway configuration directory `/etc/mulesoft/flex-gateway/conf.d/custom`. This directory can contain multiple configuration files.
+
+. Copy and paste the following YAML snippet into the file, substituting your values where indicated:
++
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: products-users-api
+spec:
+  address: http://0.0.0.0:8080
+  services:
+    products:
+      address: https://<your products URL>:<your port>/
+      routes:
+        - rules:
+            - path: /products(/.*)
+            - path: /products-featured(/.*)
+          config:
+            destinationPath: /api            
+    users:
+      address: https://<your users URL>:<your port>/
+      routes:
+        - rules:
+            - path: /api/users(/.*)
+  policies:
+    - policyRef:
+        name: http-basic-authentication-flex
+      config:
+        username: chris
+        password: admin
+    - policyRef:
+        name: rate-limiting-flex
+      config:
+        exposeHeaders: true
+        rateLimits:
+          - maximumRequests: 3
+            timePeriodInMilliseconds: 6000
+        keySelector: "#[attributes.queryParams['identifier']]"
+----
+
+. Save the file. The gateway automatically refreshes the configuration.
++
+. View the logs by executing the following command:
++
+----
+journalctl -u flex-gateway-*
+----
++
+The response looks something like this: 
++
+----
+[agent][info] Generating config
+[agent][info] Gateway default/18b4e890fe7d: Adding ApiInstance default/products-users-api http://0.0.0.0:8080
+[agent][info] Gateway default/4191c977e1ce: Adding Policy default/products-users-api-users-http-basic-authentication-flex-1
+[agent][info] Gateway default/4191c977e1ce: Adding Policy default/products-users-api-users-rate-limiting-flex-2
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/products(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-products Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/users(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-users Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Policy default/envoy.filters.http.router
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/monitoring_metrics http://0.0.0.0:9881
+[agent][debug] generating service monitoring_metrics.default.svc hostname: 0.0.0.0 port: 9881
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/products-users-api-products https://<your products URL>:<your port>/
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/products-users-api-users https://<your users URL>:<your port>/
+[agent][debug] generating service products-users-api-products.default.svc hostname: <your products URL> port: <your port>
+[agent][debug] generating service products-users-api-users.default.svc hostname: <your users URL> port: <your port>
+[agent][info] Writing envoy bootstrap configuration to /tmp/envoy.json
+[envoy][info] cds: add 2 cluster(s), remove 2 cluster(s)
+[envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
+----
+
+An API secured with basic authentication and rate limiting is now running behind Flex Gateway.
+
+== Publish an API Running Behind Flex Gateway in a Docker Container 
+
+=== Before You Begin
+
+Before getting started, ensure that you have:
+
+* Flex Gateway installed. See xref:flex-install.adoc[] for more information. 
+* Flex Gateway registered and running in Local Mode. See xref:flex-local-reg-run.adoc[Register and Run in Local Mode] for more information. 
+* Your upstream service URLs. The following example refers to fictional `products-api` and `users-api` services, but you can specify your own API name in `metadata.name` and your service details in `spec.services`.
+
+=== Publish an API
+
+. Open a terminal and navigate to the directory that will contain your Flex Gateway configuration files. This directory was specified when you started Flex Gateway.
+
+. Create a configuration file with a `.yaml` file extension:
+.. Give the file a custom name.
+.. Save the file.
+
+. Copy and paste the following YAML snippet into the file, substituting your values where indicated:
++
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: products-users-api
+spec:
+  address: http://0.0.0.0:8080
+  services:
+    products:
+      address: https://<your products URL>:<your port>/
+      routes:
+        - rules:
+            - path: /api/products(/.*)
+            - path: /api/products-featured(/.*)
+          config:
+            destinationPath: /api            
+    users:
+      address: https://<your users URL>:<your port>/
+      routes:
+        - rules:
+            - path: /api/users(/.*)
+  policies:
+    - policyRef:
+        name: http-basic-authentication-flex
+      config:
+        username: chris
+        password: admin
+    - policyRef:
+        name: rate-limiting-flex
+      config:
+        exposeHeaders: true
+        rateLimits:
+          - maximumRequests: 3
+            timePeriodInMilliseconds: 6000
+        keySelector: "#[attributes.queryParams['identifier']]"
+----
+
+. Save the file. The gateway automatically refreshes the configuration.
+
+. View the Docker container logs, which look something like this: 
++
+----
+[agent][info] Generating config
+[agent][info] Gateway default/18b4e890fe7d: Adding ApiInstance default/products-users-api http://0.0.0.0:8080
+[agent][info] Gateway default/4191c977e1ce: Adding Policy default/products-users-api-users-http-basic-authentication-flex-1
+[agent][info] Gateway default/4191c977e1ce: Adding Policy default/products-users-api-users-rate-limiting-flex-2
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/products(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-products Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/users(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-users Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Policy default/envoy.filters.http.router
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/monitoring_metrics http://0.0.0.0:9881
+[agent][debug] generating service monitoring_metrics.default.svc hostname: 0.0.0.0 port: 9881
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/products-users-api-products https://<your products URL>:<your port>/
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/products-users-api-users https://<your users URL>:<your port>/
+[agent][debug] generating service products-users-api-products.default.svc hostname: <your products URL> port: <your port>
+[agent][debug] generating service products-users-api-users.default.svc hostname: <your users URL> port: <your port>
+[agent][info] Writing envoy bootstrap configuration to /tmp/envoy.json
+[envoy][info] cds: add 2 cluster(s), remove 2 cluster(s)
+[envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
+----
+
+An API secured with basic authentication and rate limiting is now running behind Flex Gateway.
+
+== See Also
+
+* xref:policies-included-directory.adoc[]
