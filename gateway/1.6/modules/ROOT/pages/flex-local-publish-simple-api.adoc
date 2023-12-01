@@ -154,16 +154,7 @@ Before getting started, ensure that you have:
 * Flex Gateway installed and running in Local Mode. See xref:flex-install.adoc[] for more information about installing and running the gateway. 
 * A Docker image stored in a Docker repository. The following example refers to a fictional `orders-api` application, but you can specify your own Docker repository and Docker image in the `Deployment` configuration resource (in `spec.spec.image`).
 
-If you use https://kubernetes.io/docs/concepts/services-networking/service/[Kubernetes Service^] as an upstream service or you apply a policy that makes requests to a Kubernetes Service, you must set the following parameters in the `service` resource:
-
-* `spec.ports[].protocol` to `TCP`
-* `spec.ports[].name`
-
-Your `spec.ports[].name` service must adhere to the `<protocol>[-<suffix>]` structure. `[-<suffix>]` is optional, and the valid options for `<protocol>` are:
-
-* HTTP
-* H2
-* HTTPS
+include::partial$kubernetes-service-note.adoc[]
 
 === Publish an API
 
