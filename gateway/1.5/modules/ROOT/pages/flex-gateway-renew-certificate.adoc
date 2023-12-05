@@ -83,6 +83,22 @@ registration renew \
 Replace `<your-username>` and `<your-password>` with Anypoint Platform user credentials.
 +
 Replace `<path-to-registration-file-in-container>` with the path and filename of the existing `registration.yaml` file. You must specify the file in the container file system, which in this case is `/registration/registration.yaml`.
++
+As an example, if `/home/user/flex/registration.yaml` contains your current registration file, navigate to `/home/user/flex/` and run the following command with your Anypoint Platform credentials:
++
+[source,ssh]
+----
+docker run --entrypoint flexctl \
+-u $UID -v "$(pwd)":/registration  \
+mulesoft/flex-gateway \
+registration renew \
+--username=<your-username> \
+--password=<your-password> \
+--output-directory=/registration/new \
+/registration/registration.yaml
+----
++
+The command creates a new registration file: `/home/user/flex/new/registration.yaml`.
 
 Podman::
 +
@@ -115,23 +131,7 @@ The output should include the message:
 Registration renewal completed
 ----
 
-As a Docker example, if `/home/user/flex/registration.yaml` contains your current registration file, navigate to `/home/user/flex/` and run the following command with your Anypoint Platform credentials:
-
-[source,ssh]
-----
-docker run --entrypoint flexctl \
--u $UID -v "$(pwd)":/registration  \
-mulesoft/flex-gateway \
-registration renew \
---username=<your-username> \
---password=<your-password> \
---output-directory=/registration/new \
-/registration/registration.yaml
-----
-
-The command creates a new registration file: `/home/user/flex/new/registration.yaml`.
-
-NOTE: If the location of the created registration file differs from the runtime registration file location, you must copy the newly created file to the runtime registration file location.
+. If the location of the created registration file differs from the runtime registration file location, you must copy the newly created file to the runtime registration file location.
 
 [[renew-with-conn-app]]
 == Renew Registration with Connected App Credentials
@@ -185,6 +185,22 @@ registration renew \
 Replace `<your-client-id>` and `<your-client-secret>` with the connected app credentials.
 +
 Replace `<path-to-registration-file-in-container>` with the path and filename of the existing `registration.yaml` file. You must specify the file in the container file system, which in this case is `/registration/registration.yaml`.
++
+As an example, if `/home/user/flex/registration.yaml` contains your current registration file, navigate to `/home/user/flex/` and run the following command with your connected app credentials:
++
+[source,ssh]
+----
+docker run --entrypoint flexctl \
+-u $UID -v "$(pwd)":/registration  \
+mulesoft/flex-gateway \
+registration renew \
+--client-id=<your-client-id> \
+--client-secret=<your-client-secret> \
+--output-directory=/registration/new \
+/registration/registration.yaml
+----
++
+The command creates a new registration file: `/home/user/flex/new/registration.yaml`.
 
 Podman::
 +
@@ -217,23 +233,7 @@ The output should include the message:
 Registration renewal completed
 ----
 
-As a Docker example, if `/home/user/flex/registration.yaml` contains your current registration file, navigate to `/home/user/flex/` and run the following command with your connected app credentials:
-
-[source,ssh]
-----
-docker run --entrypoint flexctl \
--u $UID -v "$(pwd)":/registration  \
-mulesoft/flex-gateway \
-registration renew \
---client-id=<your-client-id> \
---client-secret=<your-client-secret> \
---output-directory=/registration/new \
-/registration/registration.yaml
-----
-
-The command creates a new registration file: `/home/user/flex/new/registration.yaml`.
-
-NOTE: If the location of the created registration file differs from the runtime registration file location, you must copy the newly created file to the runtime registration file location.
+. If the location of the created registration file differs from the runtime registration file location, you must copy the newly created file to the runtime registration file location.
 
 [[inspect-with-custom-url]]
 == Verify Registration Status with the Default Method
