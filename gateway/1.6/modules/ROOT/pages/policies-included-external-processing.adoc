@@ -18,7 +18,7 @@ endif::[]
 
 == Summary
 
-The External Processing policy sends the incoming HTTP request or outgoing HTTP response to an external gRPC service to modify the headers, trailers, body, or any combination of the three. You can also configure this policy to process either the request, response, or both.
+The External Processing policy forwards the incoming HTTP request or outgoing HTTP response to an external gRPC service to modify the headers, trailers, body, or any combination of the three. You can also configure this policy to process either the request, response, or both.
 
 Additionally, the external processing service can request different parts of the HTTP request or response after the initial gRPC request was sent by Flex Gateway to the external processing server. This enables you to send the minimum amount of data necessary. For example, Flex Gateway can initially send only the HTTP requests headers. Then, after some processing, the external processor can request the HTTP request body or trailers from Flex Gateway. 
 
@@ -26,7 +26,7 @@ The parameters you set for sending the HTTP headers, trailers, and body only con
 
 The External Processing policy is an extension of the External Processing filter native to Envoy. To learn more about the External Processing filter, see https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_proc/v3/ext_proc.proto[External Processing Filter^]. Not all External Processing filter parameters are available for the External Processing policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>. 
 
-NOTE: If other policies modify the HTTP request or response, ensure that you order the policies depending on if these modification should be present when the request is sent to the processing service or backend service. For more information about ordering policies, see xref:policies-reorder.adoc[].
+NOTE: If other policies modify the HTTP request or response, ensure that you order the policies depending on if these modification should be present when the request is sent to the processing service or upstream service. For more information about ordering policies, see xref:policies-reorder.adoc[].
 
 == Configuring Policy Parameters
 
@@ -105,7 +105,7 @@ This configuration streams the request headers, trailers, and body to the extern
 [source,yaml]
 ----
 - policyRef:
-    name: native-external-proc
+    name: native-external-proc-flex
   config: 
     uri: h2://<ext.authz.com>:<port>
     messageTimeout: <integer> // OPTIONAL
@@ -137,10 +137,10 @@ The following diagram demonstrates the order in which requests and responses flo
 
 image:ext-processing-policy.png[80%,80%,align="center"]
 
-. The client sends an HTTP request to Flex Gateway.
-. Flex Gateway sends the initial parts of the client HTTP request that you configure to the external processing service. At this point, the external processing service can request additional parts of the request.
+. The client makes an HTTP request to Flex Gateway.
+. Flex Gateway forwards the initial parts of the client HTTP request that you configure to the external processing service. At this point, the external processing service can request additional parts of the request.
 . After Flex Gateway receives the modified HTTP request, Flex Gateway sends the HTTP request to the upstream API service.
-. Flex Gateway receives the HTTP response from the upstream API service and sends the initial parts of the HTTP response that you configure to the external processing service. At this point, the external processing service can request additional parts of the HTTP response.
+. Flex Gateway receives the HTTP response from the upstream API service and forwards the initial parts of the HTTP response that you configure to the external processing service. At this point, the external processing service can request additional parts of the HTTP response.
 . Flex Gateway returns the modified HTTP response from the external processing service to the client.
 
 By default, if Flex Gateway cannot establish a connection to the gRPC service or if the gRPC service returns an error, the policy fails. 
