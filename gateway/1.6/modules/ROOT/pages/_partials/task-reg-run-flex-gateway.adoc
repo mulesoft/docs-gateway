@@ -524,6 +524,8 @@ This command creates the `gateway` namespace and a release named `ingress` if th
 +
 The command uses `--set gateway.mode=connected` because the default for the Helm chart is Local Mode.
 +
+When you install Flex Gateway in Kubernetes, a Service type `LoadBalancer` is created by default. You must have the appropriate permissions to create a load balancer in your cloud. If the load balancer is not provisioned or has issues with the provisioning process, you must choose another type by changing the `service.type` property during the installation.
++
 When successful, the command prints a message indicating an upgrade to your `ingress` release:
 +
 ----
@@ -551,7 +553,9 @@ helm -n gateway upgrade -i --create-namespace \
 --set-file registration.content=registration.yaml
 ----
 +
-This command creates the `gateway` namespace and a release named `ingress` if they do not exist. You can use names of your choice for your namespace and release. The command syntax for the Helm repository and chart names is `<helm-repo-name>/<helm-chart-name>`. 
+This command creates the `gateway` namespace and a release named `ingress` if they do not exist. You can use names of your choice for your namespace and release. The command syntax for the Helm repository and chart names is `<helm-repo-name>/<helm-chart-name>`.
++
+When you install Flex Gateway in OpenShift, a Service type `LoadBalancer` is created by default. You must have the appropriate permissions to create a load balancer in your cloud. If the load balancer is not provisioned or has issues with the provisioning process, you must choose another type by changing the `service.type` property during the installation. 
 +
 When successful, the command prints a message indicating an upgrade to your `ingress` release:
 +
@@ -572,8 +576,7 @@ The `REVISION` value increments the `ingress` release by `1` each time you run t
 
 In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find your new gateway in the UI. Notice that your gateway's current status is *Connected*. Refresh the page, if necessary.
 
-NOTE::
-After 30 days, a stopped or deleted gateway is removed from the Runtime Manager UI. Otherwise, the UI continues to list the gateway even if it is no longer running or connected.
+NOTE: After 30 days, a stopped or deleted gateway is removed from the Runtime Manager UI. Otherwise, the UI continues to list the gateway even if it is no longer running or connected.
 // end::gateway-connected[]
 // tag::helm-chart-options[]
 
