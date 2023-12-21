@@ -1,0 +1,144 @@
+= Transport Layer Security Policy - Outbound
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: tls, mtls, transport layer security, outbound tls, api gateway, flex gateway, gateway, policy
+:page-aliases: policies::policies-included-tls-outbound.adoc
+
+[%autowidth.spread,cols="a,a"]
+|===
+>s| Policy Name | Transport Layer Security (TLS) - Outbound
+>s|Summary      | Enables two-way authentication between the API proxy and an upstream service
+>s|Category | Security
+>s| First Flex version available | v1.4.0
+.4+>.^s| Returned Status Codes | No return codes exist for this policy.
+[%autowidth.spread,cols="a,a"]
+|
+|===
+
+[NOTE]
+====
+The following document applies only to Flex Gateway running in Local Mode. To configure TLS in Connected Mode, see xref:flex-conn-tls-config.adoc[].
+====
+
+== Summary
+Flex Gateway supports outbound Transport Layer Security (TLS) and outbound mutual authentication TLS (mTLS) in Local Mode.
+
+To apply outbound TLS in Local Mode, use the xref:flex-local-tls-config.adoc[Configuring TLS Context for Flex Gateway in Local Mode] tutorial and refer to the following configuration files in this documentation.
+
+You can configure an outbound TLS context to enable authentication between an API instance and an upstream service by binding the TLS policy to the upstream service.
+
+include::partial$task-tls-config.adoc[tags=outboundAllInstances]
+
+[NOTE]
+====
+TLS policies do not support policy ordering.
+====
+
+[NOTE]
+====
+Upstream certificates must include the Subject Alternative Name (SAN) extension. The Common Name (CN) field is deprecated.
+
+Flex Gateway supports the SAN extension of type `dNSName`.
+====
+
+== Configuring Policy Parameters
+
+To enable outbound TLS between an API instance and an upstream service when using Flex Gateway as your runtime, you must manually configure the TLS context
+in a YAML configuration file.
+
+Refer to the following policy definition and table of parameters:
+
+----
+- policyRef:
+    name: tls-outbound
+  config:
+    skipValidation: <boolean> // REQUIRED
+    certificate: // REQUIRED
+        key: <string> // REQUIRED
+        crt: <string> // REQUIRED
+    alpn: <array> // OPTIONAL
+    minversion: <string> // OPTIONAL
+    maxversion: <string> // OPTIONAL
+    ciphers: <array> // OPTIONAL
+----
+
+Not including optional parameters in your configuration file applies the parameters default values to your TLS context.
+
+When configuring the `ciphers` parameter, ensure that your API upstream supports the listed ciphers. For the supported ciphers, see <<local-support, TLS Cipher Support on Flex Gateway>>.
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `skipValidation`
+| Required
+| false
+| Skipping validation disables outbound mTLS
+
+| `trustedCA`
+| Optional, unless `skipValidation` is false
+| N/A
+| The client certificate used in mTLS
+
+| `certificate`
+| Required
+| N/A
+| A TLS certificate key pair. To comply with security standards, all certificates must be 2048 bits or longer.
+
+| `certificate.key`
+| Required
+| N/A
+| The private key part of the certificate
+
+| `certificate.crt`
+| Required
+| N/A
+| The public key part of the certificate
+
+| `alpn`
+| Optional
+| `h2` and `http/1.1`
+| A prioritized list of supported application level protocols; for example, h2, http/1.1, and so forth.
+
+| `minversion`
+| Optional
+| `1.2`
+| The minimum TLS version allowed
+
+| `maxversion`
+| Optional
+| `1.3`
+| The maximum TLS version allowed
+
+| `ciphers`
+| Optional
+| For the default and other supported ciphers, see <<local-support, TLS Cipher Support on Flex Gateway>>.
+| A list of supported TLS ciphers (IANA format).
+
+|===
+
+=== Resource Configuration Examples
+
+You can format the YAML file to configure TLS or mTLS for a upstream service.
+
+// sample config outbound TLS applied to a a specific instance
+include::partial$task-tls-config.adoc[tags=sample-config-outbound-instance-intro]
+// sample config outbound TLS applied to a a specific instance
+include::partial$task-tls-config.adoc[tags=sample-config-outbound-instance]
+
+// sample config outbound mTLS applied to a a specific instance
+include::partial$task-tls-config.adoc[tags=sample-config-mtls-outbound-intro]
+// sample config outbound mTLS applied to a a specific instance
+include::partial$task-tls-config.adoc[tags=sample-config-mtls-outbound]
+
+include::partial$flex-tls-cipher.adoc[tags=cipherSupportLocal;outboundImportantLocal;local-ciphers]
+
+
+
+
+== See Also
+* xref:flex-conn-tls-config.adoc[]
+* xref:flex-local-tls-config.adoc[]
+* xref:policies-included-tls.adoc[]

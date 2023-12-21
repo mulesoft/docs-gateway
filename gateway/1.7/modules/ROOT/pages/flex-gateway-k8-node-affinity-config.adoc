@@ -1,0 +1,76 @@
+= Configure Node Selection for Flex Gateway Deployments on Kubernetes (Node Affinity)
+//page-level attribute for repeated content on this page:
+:link-helm-chart: After configuring the YAML configuration file for the Pod, proceed to <<upgrade_helm_chart>>.
+
+//Introduction:
+include::partial$task-k8-node-affinity.adoc[tags=flex-node-affinity-intro]
+
+== Before You Begin
+
+Meet the minimum Kubernetes and Helm version requirements described in the xref:flex-review-prerequisites.adoc#software-requirements[software requirements].
+
+//New section:
+//== List and Create Node Labels
+include::partial$task-k8-node-affinity.adoc[tags=flex-node-affinity-list-labels]
+
+
+//New section
+//== Set Node Affinity for a Pod
+include::partial$task-k8-node-affinity.adoc[tags=set-node-affinity]
+
+For guidance, see the following configuration options:
+
+//link to anchored section in tag flex-node-affinity-required-matching-intro
+* <<required_node_matching>>
+//link to anchored section in tag flex-node-affinity-preferred-matching-intro
+* <<preferred_node_matching>>
+//link to anchored section in tag flex-node-affinity-mixed-matching-intro
+* <<mixed_node_matching>>
+
+
+//New section:
+//==Configure a Required Node Matching Rule for a Pod 
+include::partial$task-k8-node-affinity.adoc[tags=flex-node-affinity-required-matching-intro]
+
+//flex-node-affinity-common-conditions (shared in multiple sections)
+include::partial$task-k8-node-affinity.adoc[tags=flex-node-affinity-common-conditions]
+
+//flex-node-affinity-required-matching-yaml
+include::partial$task-k8-node-affinity.adoc[tags=flex-node-affinity-required-matching-yaml]
+
+//page-level attribute (defined in page header) providing link to related section
+{link-helm-chart}
+
+// New subsection:
+//=== Configure a Preferred Node Matching Rule for a Pod
+include::partial$task-k8-node-affinity.adoc[tags=flex-node-affinity-preferred-matching-intro]
+
+//shared in multiple sections (common & preferred conditions)
+include::partial$task-k8-node-affinity.adoc[tags=flex-node-affinity-common-conditions]
+include::partial$task-k8-node-affinity.adoc[tags=flex-node-affinity-preferred-conditions]
+
+include::partial$task-k8-node-affinity.adoc[tags=flex-node-affinity-preferred-matching-yaml]
+
+//page-level attribute (defined in page header) providing link to related section
+{link-helm-chart}
+
+// New subsection:
+//=== Configure Required and Preferred Node Matching Rules for a Pod
+include::partial$task-k8-node-affinity.adoc[tags=flex-node-affinity-mixed-matching-intro]
+
+//contains links to anchored sections in tags 
+//(flex-node-affinity-required-matching-intro and flex-node-affinity-preferred-matching-intro):
+The example combines the settings from <<required_node_matching>> and <<preferred_node_matching>>.
+
+//shared in multiple sections (common & preferred conditions)
+include::partial$task-k8-node-affinity.adoc[tags=flex-node-affinity-common-conditions]
+include::partial$task-k8-node-affinity.adoc[tags=flex-node-affinity-preferred-conditions]
+
+include::partial$task-k8-node-affinity.adoc[tags=flex-node-affinity-mixed-matching-yaml]
+
+//page-level attribute (defined in page header) providing link to related section
+{link-helm-chart}
+
+//New section
+//=== Upgrade the Helm Chart
+include::partial$task-k8-node-affinity.adoc[tags=upgrade-helm-chart]
