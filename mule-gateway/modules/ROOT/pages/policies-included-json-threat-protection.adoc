@@ -17,6 +17,8 @@ endif::[]
 
 == Summary
 
+NOTE: The JSON Threat Protection policy does not support SOAP APIs.
+
 Applications processing JSON requests are susceptible to attacks characterized by unusual inflation of elements and nesting levels. Attackers use recursive techniques to consume memory resources. Dramatic swings in the size of the application data often signal a security problem. The JSON Threat Protection policy helps protect your applications from such intrusions.
 
 If you find that attacks on your Anypoint Platform setup are difficult to detect, design your services architecture with layers of protection in addition to JSON Threat Protection.
@@ -42,8 +44,41 @@ s|Field s|Description s|Default s|Required
 A value of -1 indicates that the field value has no limits.
 ====
 
-== Example
+== Payload Example
 
-The following screenshot shows an example of the parameters configured for the JSON Threat Protection policy:
+If your payload contains the following example JSON:
 
-image::json-threat-policy.png[]
+----
+{
+   "Players":[
+      {
+         "Name":"Sachin",
+         "Email":"sachin.tendulkar@example.com"
+      },
+      {
+         "Name":"Suryakumar",
+         "email":"Surya@example.com"
+      },
+      {   "Name":"Bhuvi",
+          "email":"bhuvi@example.com"
+      },
+      {
+         "Name":"Jonty",
+         "Email":"jonty@example.com"
+      }
+   ]
+}
+----
+
+The policy defines the example parameter values as follows:
+
+[%header%autowidth.spread]
+|===
+|Parameter |Value |Explanation
+
+|Maximum Container Depth |3 |The depth of the `Name` and `Email` entries
+|Maximum String Value Length |28 |The length of `sachin.tendulkar@example.com`
+|Maximum Object Entry Name Length |7 |The length of the `Players` object entry name
+|Maximum Object Entry Count |2 | The number of entries in each `Players` object
+|Maximum Array Element Count |4 | The number of elements in the `Players` array
+|===
