@@ -1,0 +1,591 @@
+= Implementing Your Custom Policy Features in Rust
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+The following sections provide Rust code examples that complete various policy tasks. Implement the Rust code for your policy in the `src/lib.rs` file.
+
+The code examples assume you have some prior knowledge of the Rust Programming Language. For more information about programming in Rust, see:
+
+* https://doc.rust-lang.org/book/[The Rust Programming Language Documentation ^]
+* https://rust-lang-nursery.github.io/rust-cookbook/intro.html[Rust Cookbook ^]
+
+
+== Before You Begin
+
+* xref:policies-pdk-create-project.adoc[Create a New Project]
+* xref:policies-create-schema-definition.adoc[Define a Schema Definition]
++
+NOTE: You may need to add or redefine configuration parameters while implementing your policy. 
+
+* Review <<policy-template>> before adding additional features.
+
+== Policy Template
+
+PDK provides the initial `src/lib.rs` file in the policy project as a template to begin implementing your policy:
+
+[source,Rust]
+----
+// Copyright 2023 Salesforce, Inc. All rights reserved.
+mod generated;
+
+use anyhow::Result;
+
+use pdk::api::hl::*;
+
+use crate::generated::config::Config;
+
+// This filter shows how to log a specific request header.
+// You can extend the function and use the configurations exposed in config.rs file
+async fn request_filter(request_state: RequestState, _config: &Config) {
+    let headers_state = request_state.into_headers_state().await;
+    let token = headers_state.handler().header("Token").unwrap_or_default();
+    // Log the header value
+    logger::info!("Header value: {token}");
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
+    let config = serde_json::from_slice(&bytes)?;
+    let filter = on_request(|rs| request_filter(rs, &config));
+    launcher.launch(filter).await?;
+    Ok(())
+}
+----
+
+The policy performs some simple logging. For each incoming request, the policy logs the header `token` at the `info` log level. 
+
+The following elements configure the policy:
+
+* `use pdk::api::hl::*;`: Imports all the necessary components of the PDK into the `lib.rs` source code.
+* `#[entrypoint]` function: Executes when the policy is applied and calls the `request_filter` function. Variables defined inside this function are avaliable while the policy is applied.
++
+The `#[entrypoint]` function receives the following parameters:
++
+** `Launcher`: Sets the filter functions.
+** `Configuration`: Provides the configuration parameters defined in xref:policies-pdk-create-schema-definition.adoc[]. 
+
+* `request_filter`: Executes once per every request sent to the API instance to which the policy is applied. This function is the implementation of the filtering performed by the policy. Variables defined inside this function are available for the duration of the request.
++
+The `request_filter` is an example of a wrapped function.
++
+The `#[entrypoint]` function executes wrapped functions:
++
+[source,Rust]
+----
+let filter = on_request(|rs| request_filter(rs, &config));
+launcher.launch(filter).await?;
+----
+
+=== Wrapped Functions
+
+The `on_response` or `on_request` wrapper defines when the filter function executes. 
+
+You can define functions other than the provided `requests_filter` and `response_filter` from the `#[entrypoint]` function. The `requests_filter` and `response_filter` are only examples.
+
+Instead of filtering an incoming request as shown in the pervious example, you can process the outgoing response by using the `on_response` wrapper:
+
+[source,Rust]
+----
+async fn response_filter(response_state: ResponseState, _config: &Config) {
+    ...
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
+    let config = serde_json::from_slice(&bytes)?;
+    let filter = on_response(|rs| response_filter(rs, &config));
+    launcher.launch(filter).await?;
+    Ok(())
+}
+----
+
+NOTE: The `request_filter` function is now the `response_filter` function.
+
+To filter both requests and responses, use bother wrappers:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState, _config: &Config) {
+   ...
+}
+
+async fn response_filter(response_state: ResponseState, _config: &Config) {
+    ...
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
+    let config = serde_json::from_slice(&bytes)?;
+    let filter = on_request(|rs| request_filter(rs, &config))
+        .on_response(|rs| response_filter(rs, &config));
+    launcher.launch(filter).await?;
+    Ok(())
+}
+----
+
+== Configure Policy Logging
+
+PDK provides a logging mechanism that generates a log message enriched with the API instance ID, policy ID, and request ID.
+
+Insert custom logs with the following macros by using the `logger::` package:
+
+* `logger::debug!`
+* `logger::info!`
+* `logger::warn!`
+* `logger::error!`
+
+The macros behave the same as the https://doc.rust-lang.org/std/macro.format.html[Rust std::format! macro^]. The first parameter must be a format string literal. Use `{}` in the literal to pass parameters, for example:
+
+[source,Rust]
+----
+let value = "there!";
+logger::debug!("Hello there!");
+logger::info!("Hello {}", value);
+logger::warn!("Hello {value}");
+logger::error!("Hello {}", "there!");    into_headers_state().await
+----
+
+All examples appear in the Flex Gateway logs in the following format:
+----
+[flex-gateway-envoy][<log-level>] wasm log <policy-name>.<api-instance-name> main: [policy: <policy-name>][api: <api-instance-name>][req: <request-id> ] Hello there!
+----
+
+For more information about viewing Flex Gateway logs, see xref:flex-gateway-monitor.adoc[].
+
+== Read and Write Headers
+
+To access the headers in both the request and the response, transform the `RequestState` or `ResponseState` to a header state by calling the method `into_headers_state` and awaiting it. After calling either method, access and manipulate the headers by calling the functions of the `HeadersHandler` trait.
+
+[source,Rust]
+----
+pub trait HeadersHandler {
+    fn headers(&self) -> Vec<(String, String)>;
+    fn header(&self, name: &str) -> Option<String>;
+    fn add_header(&self, name: &str, value: &str);
+    fn set_header(&self, name: &str, value: &str);
+    fn set_headers(&self, headers: Vec<(&str, &str)>);
+    fn remove_header(&self, name: &str);
+}
+----
+
+You can access headers in `on_request` or `on_response` wrapped functions by implementing the following code:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState, _config: &Config) {
+    let headers_state = request_state.into_headers_state().await;
+    let old_value = headers_state.header("request-header").unwrap_or_default();
+
+    let new_value = "--replaced--";
+    logger::info!("Old request header value: {old_value}, New value: {new_value}");
+    headers_state.set_header("request-header", new_value);
+}
+
+async fn response_filter(response_state: ResponseState, _config: &Config) {
+    let headers_state = response_state.into_headers_state().await;
+    let old_headers = headers_state.header("request-header").unwrap_or_default();
+
+    let new_value = vec![("response-header1", "--replaced--"), ("response-header2", "--replaced--")];
+    logger::info!("Old request header value: {old_headers:?}, New value: {new_value:?}");
+    headers_state.set_headers(new_value);
+}
+
+----
+
+Envoy handles the method, scheme, path, authority, and status codes as headers. Modify the headers by accessing the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status`. PDK provides the `RequestHeadersHandler` and `ResponseHeadersHandler` traits for ease of access:
+
+[source,Rust]
+----
+pub trait RequestHeadersHandler: HeadersHandler {
+    fn method(&self) -> String;
+    fn scheme(&self) -> String;
+    fn authority(&self) -> String;
+    fn path(&self) -> String;
+}
+
+pub trait ResponseHeadersHandler: HeadersHandler {
+    fn status_code(&self) -> u32;
+}
+----
+
+== Read the Request Body
+
+To access the body in both the request and the response, transform the `RequestState` or `ResponseState` to a body state by calling the method `into_body_state` and awaiting it. If the original state was already transformed into a header state, transform the state into a body state by calling the same function, for example:
+
+[source,Rust]
+----
+let headers_state = request_state.into_headers_state().await;
+let body_state = headers_state.into_body_state().await;
+----
+
+After calling `into_body_state`, access and manipulate the headers by calling the functions of the `BodyHandler` trait.
+
+[source,Rust]
+----
+pub trait BodyHandler {
+    fn body(&self) -> Vec<u8>;
+}
+----
+
+Because Envoy uses the same buffer to share data from the headers and the body, the policy cannot access the headers and the body at the same time. If the policy must read both:
+
+. Read the headers and save the necessary values in a variable
+. Read the body
+
+You can read the headers and then the body in both the response and request.
+
+You cannot modify headers after reading the body. Complete all header modification before reading the body.
+
+For example:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState) {
+    let headers_state = request_state.into_headers_state().await;
+
+    let agent = headers_state.header("User-Agent").unwrap_or_else(|| "Undefined".to_string());
+
+    let body_state = headers_state.into_body_state().await;
+    
+    let body = body_state.body();
+
+    logger::info!("User: {agent} sent: {}", String::from_utf8_lossy(body.as_slice()));
+}
+----
+
+== Inject Parameters
+
+The default functions receive the predefined parameters:
+
+* `#[entrypoint]` configuration function:
+** `Configuration`
+** `HttpClient`
+** `CacheBuilder`
+
+* `on_request` wrapped functions:
+** `RequestState`
+** `HttpClient`
+
+* `on_response` wrapped functions:
+** `ResponseState`
+** `HttpClient`
+** `RequestData`
+
+NOTE: For more information about `HttpClient`, `CacheBuilder`, and `RequestData`, see <<perform-an-http-request>>, <<share-data-between-workers-and-caching>>, and <<share-data-between-requests-and-responses>>.
+
+The `on_request` or `on_response` wrapped functions may require other parameters, such as the configuration parameters defined in the `#[entrypoint]` function. To pass the parameters, define the lambda and send a variable reference, for example:
+
+[source,Rust]
+----
+async fn request_filter(state: RequestState, conf: &Config, tuple: &(u32, u32)) {
+...
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
+    let config = serde_json::from_slice(&bytes)?;
+    let tuple: (u32, u32) = (10, 10);
+
+    let filter = on_request(|request_state| request_filter(request_state, &config, &tuple));
+
+    launcher
+        .launch(filter)
+        .await?;
+
+    Ok(())
+}
+----
+
+If your `on_request` or `on_response` wrapped functions only receive the predefined parameters, the lambda is not required in the wrapper. For example, if the signature of the function is:
+
+[source,Rust]
+----
+async fn request_filter(state: RequestState) -> RequestData<String>;
+async fn response_filter(state: ResponseState, RequestData(path): RequestData<String>);
+----
+
+Instead of a function definition of:
+
+[source,Rust]
+----
+let filter = on_request(|request_state| request_filter(request_state))
+    .on_response(|response_state, request_data| response_filter(response_state, request_data));
+----
+
+You can use the following function definition:
+
+[source,Rust]
+----
+let filter = on_request(request_filter)
+        .on_response(response_filter);
+----
+
+== Perform an HTTP Call
+
+To interact with external services, the policy must use HTTP calls. You can perform HTTP calls in the request and response filters and in the function. To perform an HTTP call, inject the `HttpClient` as follows:
+
+* Injection for `on_request` or `on_response` wrapped functions functions:
++
+[source,Rust]
+----
+​​async fn request_filter(state: RequestState, conf: &Config, client: HttpClient) {
+ ...
+}
+----
+
+* Injection for `[entrypoint]` function:
++
+[source,Rust]
+----
+​​async fn request_filter(state: RequestState, conf: &Config, client: HttpClient) {
+ ...
+}
+----
+
+You can only make HTTP calls to services defined in the Flex Gateway configuration files. For more information about defining services, see xref:flex-local-configuration-reference-guide.adoc#service[Services].
+
+For both Connected and Local modes, define services using the `Service` resource. If the service is not defined when the request is made, the API request fails.
+
+For an example of how to make HTTP calls from the policy, given the `Service` resource:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Service
+metadata:
+  name: login
+  namespace: custom-policy
+spec:
+  address: https://login.com
+----
+
+Make calls in `lib.rs` with the following:
+
+[source,Rust]
+----
+let response = client.request("login.custom-policy.svc", "https://login.com")
+    .path("/login")
+    .headers(vec![("Content-Type", "application/json")])
+    .body(r#"{"client_id": "client", "client_secret": "secret"}"#.as_bytes())
+    .post().await?;
+----
+
+NOTE: In this example, the upstream service and URL are hardcoded. For reusability when making calls to an upstream service in your policy, add the necessary information to the xref:policies-pdk-create-schema-definition.adoc[configuration parameters].
+
+
+== Use DataWeave Expressions
+
+If you define a `string` type configuration parameter with the `dataweave` format in your xref:policies-pdk-create-schema-definition.adoc[], the parameter maps to a Rust `Expression` type parameter.
+ 
+To solve the expression, await the header state and pass it as a parameter to the expression. After the expression is solved, and the potential errors are handled, you can obtain the result value. Because the value can be of different types, cast the value using the provided functions:
+
+[source,Rust]
+----
+fn is_null(&self) -> bool;
+fn as_bool(&self) -> Option<bool>;
+fn as_f64(&self) -> Option<f64>;
+fn as_str(&self) -> Option<&str>;
+fn as_slice(&self) -> Option<&[Value]>;
+fn as_object(&self) -> Option<&Object>;
+----
+
+The functions return an `Option` containing the value if it was properly cast or `None` if the value didn't belong to the cast type. For example, the following code snippet tests what type the value resolves as:
+
+[source,Rust]
+----
+async fn response_filter(response_state: ResponseState, config: &Config) {
+    let headers_state = response_state.into_headers_state().await;
+    
+    match config.dw_property.resolve_on_headers(&headers_state) {
+        Ok(value) => {
+            if value.is_null() {
+                logger::info!("Datewave expression resolved to null!");
+            }
+            else if let Some(val) = value.as_bool() {
+                logger::info!("Datewave expression resolved to boolean: {val}!");
+            }
+            else if let Some(val) = value.as_f64() {
+                logger::info!("Datewave expression resolved to f64: {val}!");
+            }
+            else if let Some(val) = value.as_str() {
+                logger::info!("Datewave expression resolved to str: {val}!");
+            }
+            else if let Some(val) = value.as_slice() {
+                logger::info!("Datewave expression resolved to slice: {val:?}!");
+            }
+            else if let Some(val) = value.as_object() {
+                logger::info!("Datewave expression resolved to object: {val:?}!");
+            }
+        },
+        Err(err) => {
+            logger::warn!("Failed to resolve the dataweave expression: {err}!")
+        }
+    }
+}
+----
+
+[[stop-request-execution]]
+== Stop Request Execution
+
+To intercept and stop a request, return a `Response` object from your `on_request` wrapped functions:
+
+[source,Rust]
+----
+Response::new(401)
+    .with_headers(vec![("WWW-Authenticate".to_string(), "Bearer realm=\"oauth2\"".to_string())])
+    .with_body(r#"{ "error": "token was not present"}"#)
+----
+
+You can block or allow requests to reach the upstream service using a `Flow`. A `Flow` in an `enum` value with two possible values:
+
+* `Continue`: Lets the request pass. 
++
+This element defines an object that is forwarded to the response.
+* `Break`: Aborts the request and returns the provided response.
+
+Create a `Flow` as follows:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState) -> Flow<()> {
+    let header_state = request_state.into_headers_state().await;
+    if header_state.header("authorization").is_some() {
+        Flow::Continue(())
+    } else {
+        Flow::Break(Response::new(401)
+        .with_headers(vec![("WWW-Authenticate".to_string(), "Bearer realm=\"oauth2\"".to_string())])
+        .with_body(r#"{ "error": "token was not present"}"#))
+    }
+}
+----
+
+[IMPORTANT]
+====
+Due to the streaming nature of `proxy wasm`, it is possible for an early request to partially reach the upstream service while awaiting the `headers_state.into_body_state` function. The only way to avoid this is by not awaiting the body. However, that is not possible for all policies. Configure your upstream to ignore partial requests if the policy must read the body.
+
+To avoid early responses reaching the client, see <<share-data-between-requests-and-responses>>.
+====
+
+[[share-data-between-requests-and-responses]]
+== Share Data Between Requests and Responses
+
+To share a status between the request and the response functions, the request function must return a `RequestData` object for the request function to receive, for example:
+
+[source,Rust]
+----
+async fn request_filter(state: RequestState) -> RequestData<String> {
+    let state = state.into_headers_state().await;
+    RequestData(state.path())
+}
+
+async fn response_filter(state: ResponseState, RequestData(path): RequestData<String>) {
+    let state = state.into_headers_state().await;
+    logger::info!("Path: {path}, Status: {}", state.status_code());
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher) -> Result<()> {
+    let filter = on_request(request_filter)
+        .on_response(response_filter);
+
+    launcher
+        .launch(filter)
+        .await
+}
+----
+
+Returning `RequestData` prevents a response from reaching a client early.`Flow::Continue` enum has a template parameter that enables you to pass data between the request and the response. Implement this by adding an `on_response` wrapped function to the `Flow` example used in <<stop-request-execution>>:
+
+[source,Rust]
+----
+async fn request_filter(state: RequestState) -> Flow<String> {
+    let state = state.into_headers_state().await;
+    if state.header("authorization").is_some() {
+        Flow::Continue(state.path())
+    } else {
+        Flow::Break(Response::new(401)
+            .with_headers(vec![("WWW-Authenticate".to_string(), "Bearer realm=\"oauth2\"".to_string())])
+            .with_body(r#"{ "error": "token was not present"}"#))
+    }
+}
+
+async fn response_filter(state: ResponseState, RequestData(path): RequestData<String>) {
+    let state = state.into_headers_state().await;
+    logger::info!("Path: {path}, Status: {}", state.status_code());
+}
+----
+
+== Share Data Between Workers and Caching
+
+Envoy spawns many workers for the policy to increase the capability of handling requests. A single worker handles all the stages of a specific request, including outgoing connections and the response flow, enabling you to track an internal status for a specific request and create a sequential execution flow even though the underlying implementation is event-driven. 
+
+Each worker processes a single request at a given time. To share a global state in a specific worker, use a `RefCell` without any risk of concurrent modification.
+
+Use the provided `Cache` mechanism to communicate a shared global state to all workers.
+
+After injecting the cache builder, provide an ID for the cache and the maximum number of elements the cache can support. 
+
+In the following example, a cache with ID “calculator” can hold ten elements:
+
+[source,Rust]
+----
+#[entrypoint]
+async fn configure(
+    launcher: Launcher,
+    cache_builder: CacheBuilder,
+) -> Result<()> {
+    let cache = cache_builder.build(String::from("calculator"), 10);
+    ...
+----
+
+The cache has the following interface:
+
+[source,Rust]
+----
+pub trait Cache {
+    fn save(&self, key: &str, value: Vec<u8>) -> Result<(), CacheError>;
+    fn get(&self, key: &str) -> Option<Vec<u8>>;
+    fn delete(&self, key: &str) -> Option<Vec<u8>>;
+    fn purge(&self);
+}
+----
+
+IMPORTANT: Because different works write to the cache concurrently, there is no guarantee that the value overwritten when saving the cache is the same as when it was retrieved.
+
+== Use Third-Party Libraries
+ 
+Proxy Wasm defines a low level binary application interface (abi), that limits the system calls a library can make. All third-party libraries included in your policy must be compatible with the `wasm32-wasi` Rust compilation target.
+
+To define a library such as `serde_urlencoded`, add it to the dependency list in `cargo.toml`:
+
+[source,toml]
+----
+[dependencies]
+...
+serde_urlencoded = "0.7.0"
+----
+
+Defining libraries enables you to use functions in `lib.rs` such as:
+
+[source,Rust]
+----
+serde_urlencoded::to_string([("token", "myToken")])
+----
+
+Libraries that interact with an external service like a database, or perform a system call like reading a file, are usually not compatible with the `wasm32-wasi` target. 
+
+If your policy interacts with external services, use the Flex Gateway exposed HttpClient. For more information about performing an HTTP call, see <<perform-an-http-call>>.
+
+It is possible that some libraries compile properly to the `wasm32-wasi` target but don't work properly when deployed to Flex Gateway. Example errors of this are:
+
+* `Failed to load Wasm module due to a missing import: ...`
+* `Wasm VM failed to initialize Wasm code`
+* `Plugin configured to fail closed failed to load`
+
+In this case, contact the owners of the third-party library or use a different library.
+
+== See Also
+
+* xref:policies-pdk-troubleshooting.adoc[]
