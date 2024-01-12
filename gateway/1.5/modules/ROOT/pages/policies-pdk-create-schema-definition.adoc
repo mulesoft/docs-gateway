@@ -16,23 +16,28 @@ The default `gcl.yaml` file has the following content:
 
 [source,yaml]
 ----
-apiVersion: gateway.mulesoft.com.v1alpha1
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Extension
 metadata:
-    labels:
-        title: my-custom-policy
-        category: Security 
+  labels:
+    title: my-custom-policy
+    category: Custom
 spec:
-    extends:
-        - name: extension-definition
-    properties: 
-        stringProperty: 
-        type: string
+  extends:
+    - name: extension-definition
+      namespace: default
+  properties:
+    stringProperty:
+      type: string
+      default: some value
+  required:
+    - stringProperty
 ----
 
 The `gcl.yaml` file contains two sections:
 
-* `metadate`: Defines information about the policy
+* `metadata`: Defines information about the policy
 * `properties`: Defines the policy's configuration parameters
 
 To define a schema definition:
