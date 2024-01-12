@@ -1,0 +1,51 @@
+= Configuring a Network Proxy for PDK
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+If you use a network proxy to connect to the internet, you might have to define the network proxy for the PDK tools. Besides Docker, all tools downloaded in the xref:policies-pdk-prerequisites.adoc[PDK prerequisites] accept the `HTTP_PROXY` and `HTTPS_PROXY` environment variables. 
+
+To configure your environment variable, refer to <<configure-a-network-proxy>>.
+
+To use Docker with a network proxy, also <<configure-a-network-proxy-for-docker>>.
+
+NOTE: Depending on your network proxy, you might have to define the domains the PDK tools access in your proxy's allowlist.
+
+[[configure-a-network-proxy]]
+== Configure a Network Proxy
+
+Configure the environment variables by running following command after replacing the variables with your information:
+
+* `HTTPS_PROXY`:
++
+[source,ssh]
+----
+export HTTPS_PROXY=<proxy-method>://<proxy-server>:<proxy-port>
+----
+* `HTTP_PROXY`:
++
+[source,ssh]
+----
+export HTTPS_PROXY=<proxy-method>://<proxy-server>:<proxy-port>
+----
+
+If your network proxy requires authentication, use the following command:
+
+[source,ssh]
+----
+export HTTPS_PROXY=<proxy-method>://<username>:<password>@<proxy-server>:<proxy-port>
+----
+
+
+[[configure-a-network-proxy-for-docker]]
+== Configure a Network Proxy for Docker
+
+xref:policies-pdk-intergration-testing.adoc[Integration testing] and xref:policies-pdk-debug-local.adoc[the debugging environment] require Docker.
+
+Docker requires access to the internet to pull Docker images. To configure a network proxy for Docker, refer to the following Docker documentation for your relevant use case:
+
+* https://docs.docker.com/network/proxy/[Docker CLI Client]
+* https://docs.docker.com/desktop/settings/mac/#proxies[Docker Desktop on Mac]
+* https://docs.docker.com/desktop/settings/windows/#proxies[Docker Desktop on Windows]
+* https://docs.docker.com/desktop/settings/linux/#proxies[Docker Desktop on Linux]
