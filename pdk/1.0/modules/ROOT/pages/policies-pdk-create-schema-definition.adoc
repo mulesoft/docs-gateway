@@ -140,6 +140,29 @@ In the following configuration table, if the policy was applied in API Manager, 
 "username": "user2"}` | Success
 |===
 
+=== Define Sensitive Data
+
+Protect sensitive data, such as passwords or certificates, by adding the `security:sensitive` certificate:
+
+[source,yaml]
+----
+properties:
+    key:
+        type: string
+        default: "YourKey"
+        "@context": {
+        "@characteristics": [
+          "security:sensitive"
+        ]
+      }
+----
+
+When applying the policy, the input value to the sensitive parameter is not visible to the user:
+
+image:sensitive-data.png[The character inputs to the key parameter appear as black dots.]
+
+Clicking *Show* revels the obscured data. However, this is not available for previously stored data. For example, if a user configures the example *Key* parameter and applies the policy, they cannot view the parameter if they edit the policy's configuration in the future.
+
 === Define Supported Types
 
 Define a supported data type for each policy parameter to ensure the policy receives the correct data.
