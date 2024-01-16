@@ -161,7 +161,7 @@ When applying the policy, the input value to the sensitive parameter is not visi
 
 image:sensitive-data.png[The character inputs to the key parameter appear as black dots.]
 
-Clicking *Show* revels the obscured data. However, this is not available for previously stored data. For example, if a user configures the example *Key* parameter and applies the policy, they cannot view the parameter if they edit the policy's configuration in the future.
+Toggling *Show* revels any new data currently being entered. However, this is not available for previously stored data. For example, if a user configures the example *Key* parameter and applies the policy, they cannot view the parameter if they edit the policy's configuration in the future.
 
 === Define Supported Types
 
@@ -188,7 +188,7 @@ The supported formating types are:
 * `ip-range`: Specifies the expected text is a range or IPs
 * `dataweave`: specifies the expected text is a DataWeave variable
 +
-Defining a string as the `uri` or `ip-range` provides additional validations, but defining a string as `dataweave` notifies Flex Gateway that the input must be transformed. For more information about supported DataWeave transformations, see xref:policies-flex-dataweave-support.adoc[].
+Defining a string as the `uri` or `ip-range` provides additional validations, but defining a string as `dataweave` notifies Flex Gateway that the input must be transformed. For more information about dataweave expressions, see <<dataweave-expressions>>.
 +
 The following yaml snippet demonstrates all string formats:
 +
@@ -294,6 +294,45 @@ properties:
       default: {"id": "1", "name": "John Doe"}
 ----
 
+[[dataweave-expressions]]
+=== Dataweave Expressions
+
+The `dataweave` format for `string` type parameters specifies the input parameter as a dataweave expression. For more information about what DataWeave transformations are, see xref:gateway::policies-flex-dataweave-support.adoc[].
+
+The supported bindings are: 
+* `payload`: by defining the mimeType you’ll be able to read the payload as ‘text’ or ‘json’. If the mimeType entry is omitted the type will default to text. Furthermore, if  the payload entry is omitted entirely, the payload will not be bound and expressions using it will be rejected during policy deployment state, for example:
+ bindings:
+   attributes: true
+   authentication: false
+   vars: []
+* `attributes`: true or false. By setting this value you’ll be able to read attributes of the requests or responses such as the headers. If the entry is set to false it won’t be bound and expressions using it will be rejected during policy deployment state.
+authentication: true or false. By setting this value you’ll be able to read the authentication object. If the entry is set to false it won’t be bound and expressions using it will be rejected during policy deployment state.
+* `vars`: specify the names of the vars that are available for usage in the expression. If the list is empty, expressions using the `vars` binding will be rejected. If the expression uses other vars not defined here they will be evaluated as null. 
+
+When evaluating the dataweave expression in your policy you’ll need to provide the script with the appropriate information to be able to resolve these bindings. For more information check the “Use dataweave expressions“ section of Implementing your custom policy features in rust.
+
+
+When using dataweave variables in your policy schema, the default binding type is `text`. You can over
+
+If the input expression contains bindings that are not specified in the policy's schema, the configuration of the policy fails. If we submit the expression "#[authentication.principal]" to the field of the example, the policy will fail since “authentication” was not bound. The error appears similar to the following:
+
+----
+test-local-flex-1  | [flex-gateway-envoy][error] wasm log main: [policy: ingress-http-jwt-auth-v1-0-impl-1.default][api: ingress-http.default.svc] Launcher problem: Failed to parse configuration '{"dw":"P[[\".\", \"0-24\", [\":ref\", \"0-14\", \"authentication\"], [\":str\", \"15-24\", \"principal\"]], \"#[authentication.principal]\"]"}'. Cause: Error compiling expression: Unknown symbol `authentication` at line 1 column 141
+----
+
+[source,yaml]
+----
+
+type: string
+format: dataweave
+bindings:
+    payload:
+        mimeType: text
+    attributes: true
+    authentication: false
+    vars: []
+----
+
 [[use-custom-parameters-in-rust-source-code]]
 == Use Custom Parameters in Rust Source Code
 
@@ -322,7 +361,7 @@ Properties defined in the `gcl.yaml` files are mapped to the Rust data types in 
 | `string` | `String`
 | `uri` string | `String`
 | `ip-range` string | `String`
-| `dataveave` string | `pdk::api::expression::Expression`
+| `dataveave` string | `pdk::api::script::Script`
 | `number` | `f64`
 | `integer` | `i64`
 | `boolean` | `bool`
@@ -375,7 +414,7 @@ pub struct Config {
     #[serde(alias = "reject_missing_tokens")]
     pub reject_missing_tokens: Option<bool>,
     #[serde(alias = "tokenExtractor")]
-    pub token_extractor: pdk::api::expression::Expression,
+    pub token_extractor: pdk::api::script::Script,
 }
 ----
 |===
