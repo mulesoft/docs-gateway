@@ -324,18 +324,19 @@ bindings:
    vars: []
 ----
 
-* `attributes`: Attribute of the incoming request such as headers. Set `attributes` as `true` to enable the policy to read the attributes of the incoming request. By default, attributes is set to `true`.
+* `attributes`: Attributes of the incoming request such as headers. Set `attributes` as `true` to enable the policy to read the attributes of the incoming request. By default, attributes is set to `true`.
 * `authentication`: Authentication information of the incoming request. Set `authentication` to `true`to enable the policy to read authenticaton details of the incoming request. By default, `authentication is set to false.
 * `vars`: Specifies the names of the variables that are available for the policy to use. By default, `vars` is empty. If the user inputs variables that are not defined in the schema, they evaluate to null.
 
 For more information about the supported expression bindings, see xref:dataweave::dataweave-variables-context.adoc[].
 
-If the user's expression contains bindings that are not defined in the policy's schema, the configuration of the policy fails. ßFor example, the user expressions is `[authentication.principal]` and `authentication` is not set to true, an error similar to the following occurs:
+If the user's expression contains bindings that are not defined in the policy's schema, the configuration of the policy fails. For example, if the user expressions is `[authentication.principal]` and `authentication` is not set to true, an error similar to the following occurs:
+
 ----
 test-local-flex-1  | [flex-gateway-envoy][error] wasm log main: [policy: ingress-http-jwt-auth-v1-0-impl-1.default][api: ingress-http.default.svc] Launcher problem: Failed to parse configuration '{"dw":"P[[\".\", \"0-24\", [\":ref\", \"0-14\", \"authentication\"], [\":str\", \"15-24\", \"principal\"]], \"#[authentication.principal]\"]"}'. Cause: Error compiling expression: Unknown symbol `authentication` at line 1 column 141
 ----
 
-When evaluating the DataWeave expression in your policy you must provide the script to resolve the expression. To learn how to implement DataWeave expressions in your Rust source code, see xref:policies-pdk-configure-features.adoc#eus-dataweave-expressions[Implement DataWeave Expressions].
+When evaluating the DataWeave expression in your policy you must provide the script to resolve the expression. To learn how to implement DataWeave expressions in your Rust source code, see xref:policies-pdk-configure-features.adoc#use-dataweave-expressions[Implement DataWeave Expressions].
 
 For more information about DataWeave support for Flex Gateway, see xref:gateway::policies-flex-dataweave-support.adoc[].
 
