@@ -188,7 +188,7 @@ The supported formating types are:
 * `ip-range`: Specifies the expected text is a range or IPs
 * `dataweave`: specifies the expected text is a DataWeave variable
 +
-Defining a string as the `uri` or `ip-range` provides additional validations, but defining a string as `dataweave` notifies Flex Gateway that the input must be transformed. For more information about dataweave expressions, see <<dataweave-expressions>>.
+Defining a string as the `uri` or `ip-range` provides additional validations, but defining a string as `dataweave` notifies Flex Gateway that the input must be transformed. For more information about DataWeave expressions, see <<dataweave-expressions>>.
 +
 The following yaml snippet demonstrates all string formats:
 +
@@ -295,43 +295,49 @@ properties:
 ----
 
 [[dataweave-expressions]]
-=== Dataweave Expressions
+=== DataWeave Expressions
 
-The `dataweave` format for `string` type parameters specifies the input parameter as a dataweave expression. For more information about what DataWeave transformations are, see xref:gateway::policies-flex-dataweave-support.adoc[].
+The `dataweave` format for `string` type parameters specifies the input parameter as a DataWeave expression.
 
-The supported bindings are: 
-* `payload`: by defining the mimeType you’ll be able to read the payload as ‘text’ or ‘json’. If the mimeType entry is omitted the type will default to text. Furthermore, if  the payload entry is omitted entirely, the payload will not be bound and expressions using it will be rejected during policy deployment state, for example:
+The `dataweave` variable supports the following expressions bindings:
+
+[source,yaml]
+----
+<configuration-parameter>:
+ type: string
+ format: dataweave
  bindings:
+   payload:
+     mimeType: text
    attributes: true
    authentication: false
    vars: []
-* `attributes`: true or false. By setting this value you’ll be able to read attributes of the requests or responses such as the headers. If the entry is set to false it won’t be bound and expressions using it will be rejected during policy deployment state.
-authentication: true or false. By setting this value you’ll be able to read the authentication object. If the entry is set to false it won’t be bound and expressions using it will be rejected during policy deployment state.
-* `vars`: specify the names of the vars that are available for usage in the expression. If the list is empty, expressions using the `vars` binding will be rejected. If the expression uses other vars not defined here they will be evaluated as null. 
+----
 
-When evaluating the dataweave expression in your policy you’ll need to provide the script with the appropriate information to be able to resolve these bindings. For more information check the “Use dataweave expressions“ section of Implementing your custom policy features in rust.
+* `payload`: The body of the imcoming request. Define the `mineType` as either `text` or `json` to set how to read the payload. the default `mimeType` is `text`. However, you must include the payload variable. The following schema configuration fails when applied to the API instance:
++
+[source,yaml]
+----
+bindings:
+   attributes: true
+   authentication: false
+   vars: []
+----
 
+* `attributes`: Attribute of the incoming request such as headers. Set `attributes` as `true` to enable the policy to read the attributes of the incoming request. By default, attributes is set to `true`.
+* `authentication`: Authentication information of the incoming request. Set `authentication` to `true`to enable the policy to read authenticaton details of the incoming request. By default, `authentication is set to false.
+* `vars`: Specifies the names of the variables that are available for the policy to use. By default, `vars` is empty. If the user inputs variables that are not defined in the schema, they evaluate to null.
 
-When using dataweave variables in your policy schema, the default binding type is `text`. You can over
+For more information about the supported expression bindings, see xref:dataweave::dataweave-variables-context.adoc[].
 
-If the input expression contains bindings that are not specified in the policy's schema, the configuration of the policy fails. If we submit the expression "#[authentication.principal]" to the field of the example, the policy will fail since “authentication” was not bound. The error appears similar to the following:
-
+If the user's expression contains bindings that are not defined in the policy's schema, the configuration of the policy fails. ßFor example, the user expressions is `[authentication.principal]` and `authentication` is not set to true, an error similar to the following occurs:
 ----
 test-local-flex-1  | [flex-gateway-envoy][error] wasm log main: [policy: ingress-http-jwt-auth-v1-0-impl-1.default][api: ingress-http.default.svc] Launcher problem: Failed to parse configuration '{"dw":"P[[\".\", \"0-24\", [\":ref\", \"0-14\", \"authentication\"], [\":str\", \"15-24\", \"principal\"]], \"#[authentication.principal]\"]"}'. Cause: Error compiling expression: Unknown symbol `authentication` at line 1 column 141
 ----
 
-[source,yaml]
-----
+When evaluating the DataWeave expression in your policy you must provide the script to resolve the expression. To learn how to implement DataWeave expressions in your Rust source code, see xref:policies-pdk-configure-features.adoc#eus-dataweave-expressions[Implement DataWeave Expressions].
 
-type: string
-format: dataweave
-bindings:
-    payload:
-        mimeType: text
-    attributes: true
-    authentication: false
-    vars: []
-----
+For more information about DataWeave support for Flex Gateway, see xref:gateway::policies-flex-dataweave-support.adoc[].
 
 [[use-custom-parameters-in-rust-source-code]]
 == Use Custom Parameters in Rust Source Code
