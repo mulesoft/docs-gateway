@@ -1,0 +1,70 @@
+= Use Third-Party Libraries
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+The default functions receive the predefined parameters:
+
+* `#[entrypoint]` configuration function:
+** `Configuration`
+** `HttpClient`
+** `CacheBuilder`
+
+* `on_request` wrapped functions:
+** `RequestState`
+** `HttpClient`
+
+* `on_response` wrapped functions:
+** `ResponseState`
+** `HttpClient`
+** `RequestData`
+
+NOTE: For more information about `HttpClient`, `CacheBuilder`, and `RequestData`, see <<perform-an-http-request>>, <<share-data-between-workers-and-caching>>, and <<share-data-between-requests-and-responses>>.
+
+The `on_request` or `on_response` wrapped functions may require other parameters, such as the configuration parameters defined in the `#[entrypoint]` function. To pass the parameters, define the lambda and send a variable reference, for example:
+
+[source,Rust]
+----
+async fn request_filter(state: RequestState, conf: &Config, tuple: &(u32, u32)) {
+...
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
+    let config = serde_json::from_slice(&bytes)?;
+    let tuple: (u32, u32) = (10, 10);
+
+    let filter = on_request(|request_state| request_filter(request_state, &config, &tuple));
+
+    launcher
+        .launch(filter)
+        .await?;
+
+    Ok(())
+}
+----
+
+If your `on_request` or `on_response` wrapped functions only receive the predefined parameters, the lambda is not required in the wrapper. For example, if the signature of the function is:
+
+[source,Rust]
+----
+async fn request_filter(state: RequestState) -> RequestData<String>;
+async fn response_filter(state: ResponseState, RequestData(path): RequestData<String>);
+----
+
+Instead of a function definition of:
+
+[source,Rust]
+----
+let filter = on_request(|request_state| request_filter(request_state))
+    .on_response(|response_state, request_data| response_filter(response_state, request_data));
+----
+
+You can use the following function definition:
+
+[source,Rust]
+----
+let filter = on_request(request_filter)
+        .on_response(response_filter);
+----
