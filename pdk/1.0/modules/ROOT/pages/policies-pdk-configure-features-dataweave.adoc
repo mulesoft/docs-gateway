@@ -1,0 +1,54 @@
+= Use DataWeave Expressions
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+If you define a `string` type configuration parameter with the `dataweave` format in your xref:policies-pdk-create-schema-definition.adoc[], the parameter maps to a Rust `Expression` type parameter.
+ 
+To solve the expression, await the header state and pass it as a parameter to the expression. After the expression is solved, and the potential errors are handled, you can obtain the result value. Because the value can be of different types, cast the value using the provided functions:
+
+[source,Rust]
+----
+fn is_null(&self) -> bool;
+fn as_bool(&self) -> Option<bool>;
+fn as_f64(&self) -> Option<f64>;
+fn as_str(&self) -> Option<&str>;
+fn as_slice(&self) -> Option<&[Value]>;
+fn as_object(&self) -> Option<&Object>;
+----
+
+The functions return an `Option` containing the value if it was properly cast or `None` if the value didn't belong to the cast type. For example, the following code snippet tests what type the value resolves as:
+
+[source,Rust]
+----
+async fn response_filter(response_state: ResponseState, config: &Config) {
+    let headers_state = response_state.into_headers_state().await;
+    
+    match config.dw_property.resolve_on_headers(&headers_state) {
+        Ok(value) => {
+            if value.is_null() {
+                logger::info!("Datewave expression resolved to null!");
+            }
+            else if let Some(val) = value.as_bool() {
+                logger::info!("Datewave expression resolved to boolean: {val}!");
+            }
+            else if let Some(val) = value.as_f64() {
+                logger::info!("Datewave expression resolved to f64: {val}!");
+            }
+            else if let Some(val) = value.as_str() {
+                logger::info!("Datewave expression resolved to str: {val}!");
+            }
+            else if let Some(val) = value.as_slice() {
+                logger::info!("Datewave expression resolved to slice: {val:?}!");
+            }
+            else if let Some(val) = value.as_object() {
+                logger::info!("Datewave expression resolved to object: {val:?}!");
+            }
+        },
+        Err(err) => {
+            logger::warn!("Failed to resolve the dataweave expression: {err}!")
+        }
+    }
+}
+----
