@@ -1,0 +1,40 @@
+= Share Data Between Workers and Caching
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Envoy spawns many workers for the policy to increase the capability of handling requests. A single worker handles all the stages of a specific request, including outgoing connections and the response flow, enabling you to track an internal status for a specific request and create a sequential execution flow even though the underlying implementation is event-driven. 
+
+Each worker processes a single request at a given time. To share a global state in a specific worker, use a `RefCell` without any risk of concurrent modification.
+
+Use the provided `Cache` mechanism to communicate a shared global state to all workers.
+
+After injecting the cache builder, provide an ID for the cache and the maximum number of elements the cache can support. 
+
+In the following example, a cache with ID “calculator” can hold ten elements:
+
+[source,Rust]
+----
+#[entrypoint]
+async fn configure(
+    launcher: Launcher,
+    cache_builder: CacheBuilder,
+) -> Result<()> {
+    let cache = cache_builder.build(String::from("calculator"), 10);
+    ...
+----
+
+The cache has the following interface:
+
+[source,Rust]
+----
+pub trait Cache {
+    fn save(&self, key: &str, value: Vec<u8>) -> Result<(), CacheError>;
+    fn get(&self, key: &str) -> Option<Vec<u8>>;
+    fn delete(&self, key: &str) -> Option<Vec<u8>>;
+    fn purge(&self);
+}
+----
+
+IMPORTANT: Because different works write to the cache concurrently, there is no guarantee that the value overwritten when saving the cache is the same as when it was retrieved.

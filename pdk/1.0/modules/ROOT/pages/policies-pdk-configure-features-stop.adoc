@@ -1,0 +1,44 @@
+= Stop Request Execution
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+To intercept and stop a request, return a `Response` object from your `on_request` wrapped functions:
+
+[source,Rust]
+----
+Response::new(401)
+    .with_headers(vec![("WWW-Authenticate".to_string(), "Bearer realm=\"oauth2\"".to_string())])
+    .with_body(r#"{ "error": "token was not present"}"#)
+----
+
+You can block or allow requests to reach the upstream service using a `Flow`. A `Flow` in an `enum` value with two possible values:
+
+* `Continue`: Lets the request pass. 
++
+This element defines an object that is forwarded to the response.
+* `Break`: Aborts the request and returns the provided response.
+
+Create a `Flow` as follows:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState) -> Flow<()> {
+    let header_state = request_state.into_headers_state().await;
+    if header_state.header("authorization").is_some() {
+        Flow::Continue(())
+    } else {
+        Flow::Break(Response::new(401)
+        .with_headers(vec![("WWW-Authenticate".to_string(), "Bearer realm=\"oauth2\"".to_string())])
+        .with_body(r#"{ "error": "token was not present"}"#))
+    }
+}
+----
+
+[IMPORTANT]
+====
+Due to the streaming nature of `proxy wasm`, it is possible for an early request to partially reach the upstream service while awaiting the `headers_state.into_body_state` function. The only way to avoid this is by not awaiting the body. However, that is not possible for all policies. Configure your upstream to ignore partial requests if the policy must read the body.
+
+To avoid early responses reaching the client, see <<share-data-between-requests-and-responses>>.
+====

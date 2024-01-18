@@ -1,0 +1,32 @@
+= Configure Policy Logging
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+PDK provides a logging mechanism that generates a log message enriched with the API instance ID, policy ID, and request ID.
+
+Insert custom logs with the following macros by using the `logger::` package:
+
+* `logger::debug!`
+* `logger::info!`
+* `logger::warn!`
+* `logger::error!`
+
+The macros behave the same as the https://doc.rust-lang.org/std/macro.format.html[Rust std::format! macro^]. The first parameter must be a format string literal. Use `{}` in the literal to pass parameters, for example:
+
+[source,Rust]
+----
+let value = "there!";
+logger::debug!("Hello there!");
+logger::info!("Hello {}", value);
+logger::warn!("Hello {value}");
+logger::error!("Hello {}", "there!");    into_headers_state().await
+----
+
+All examples appear in the Flex Gateway logs in the following format:
+----
+[flex-gateway-envoy][<log-level>] wasm log <policy-name>.<api-instance-name> main: [policy: <policy-name>][api: <api-instance-name>][req: <request-id> ] Hello there!
+----
+
+For more information about viewing Flex Gateway logs, see xref:flex-gateway-monitor.adoc[].
