@@ -38,12 +38,18 @@ Choose one of two methods:
 
 To invoke the registration renewal `flexctl` command, download the latest version of Flex Gateway. You don't need to register and run this version of the gateway.
 
-* xref:flex-install.adoc[]
+// This must be an absolute xref because it always needs to link to "latest"
+* xref:gateway::flex-install.adoc[]
 
 [[renew-with-user-password]]
 == Renew Registration with Anypoint Platform User Credentials
 
-. Create a new directory called `flex-renew-registration` (or similar). You run the `renew` command in this new directory.
+. Create a new directory called `flex-renew-registration` (or similar). You run the `renew` command in this new directory. The command creates a new registration file.
++
+[NOTE]
+====
+Registration renewal fails if the `renew` command is run in a directory containing an existing registration file.
+====
 
 . Use the following command:
 +
@@ -131,7 +137,11 @@ The output should include the message:
 Registration renewal completed
 ----
 
-. If the location of the created registration file differs from the runtime registration file location, you must copy the newly created file to the runtime registration file location.
+. Copy the newly created registration file to the runtime registration file location. For example:
++
+`/usr/local/share/mulesoft/flex-gateway/conf.d/registration.yaml`
+
+. Restart the Flex Gateway replica if one is already running.
 
 [[renew-with-conn-app]]
 == Renew Registration with Connected App Credentials
@@ -145,7 +155,12 @@ Registration renewal completed
 
 .. Save the *Id* and *Secret* of the connected app you configure, then use these credentials in the `renew` command.
 
-. Create a new directory called `flex-renew-registration` (or similar). You run the `renew` command in this new directory.
+. Create a new directory called `flex-renew-registration` (or similar). You run the `renew` command in this new directory. The command creates a new registration file.
++
+[NOTE]
+====
+Registration renewal fails if the `renew` command is run in a directory containing an existing registration file.
+====
 
 . Use the following command:
 +
@@ -233,7 +248,11 @@ The output should include the message:
 Registration renewal completed
 ----
 
-. If the location of the created registration file differs from the runtime registration file location, you must copy the newly created file to the runtime registration file location.
+. Copy the newly created registration file to the runtime registration file location. For example:
++
+`/usr/local/share/mulesoft/flex-gateway/conf.d/registration.yaml`
+
+. Restart the Flex Gateway replica if one is already running.
 
 [[inspect-with-custom-url]]
 == Verify Registration Status with the Default Method
