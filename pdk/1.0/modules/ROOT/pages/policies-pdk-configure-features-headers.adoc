@@ -1,4 +1,4 @@
-= Policy Logging
+= Read and Write to Request Headers and Body
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -6,7 +6,7 @@ endif::[]
 
 == Read and Write Headers
 
-To access the headers in both the request and the response, transform the `RequestState` or `ResponseState` to a header state by calling the method `into_headers_state` and awaiting it. After calling either method, access and manipulate the headers by calling the functions of the `HeadersHandler` trait.
+To access the headers in both the request and the response, transform the `RequestState` or `ResponseState` to a header state by calling the method `into_headers_state()` and awaiting it. After calling either method, access and manipulate the headers by calling the functions of the `HeadersHandler` trait.
 
 [source,Rust]
 ----
@@ -26,37 +26,41 @@ You can access headers in `on_request` or `on_response` wrapped functions by imp
 ----
 async fn request_filter(request_state: RequestState, _config: &Config) {
     let headers_state = request_state.into_headers_state().await;
-    let old_value = headers_state.header("request-header").unwrap_or_default();
+    let headers_handler = headers_state.handler();
+    let old_value = headers_handler.header("request-header").unwrap_or_default();
 
     let new_value = "--replaced--";
     logger::info!("Old request header value: {old_value}, New value: {new_value}");
-    headers_state.set_header("request-header", new_value);
+    headers_handler.set_header("request-header", new_value);
 }
 
 async fn response_filter(response_state: ResponseState, _config: &Config) {
     let headers_state = response_state.into_headers_state().await;
-    let old_headers = headers_state.header("request-header").unwrap_or_default();
+    let headers_handler = headers_state.handler();
+    let old_headers = headers_handler.header("request-header").unwrap_or_default();
 
     let new_value = vec![("response-header1", "--replaced--"), ("response-header2", "--replaced--")];
     logger::info!("Old request header value: {old_headers:?}, New value: {new_value:?}");
-    headers_state.set_headers(new_value);
+    headers_handler.set_headers(new_value);
 }
-
 ----
 
-Envoy handles the method, scheme, path, authority, and status codes as headers. Modify the headers by accessing the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status`. PDK provides the `RequestHeadersHandler` and `ResponseHeadersHandler` traits for ease of access:
+Envoy handles the method, scheme, path, authority, and status codes as headers. Modify the headers by accessing the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status`. PDK provides methods for ease of access:
 
 [source,Rust]
 ----
-pub trait RequestHeadersHandler: HeadersHandler {
-    fn method(&self) -> String;
-    fn scheme(&self) -> String;
-    fn authority(&self) -> String;
-    fn path(&self) -> String;
+async fn request_filter(request_state: RequestState, _config: &Config) {
+    let headers_state = request_state.into_headers_state().await;
+    let method = headers_state.method();
+    let scheme = headers_state.scheme();
+    let authority = headers_state.authority();
+    let path = headers_state.path();
+    ...
 }
 
-pub trait ResponseHeadersHandler: HeadersHandler {
-    fn status_code(&self) -> u32;
+async fn response_filter(response_state: ResponseState, _config: &Config) {
+    let headers_state = response_state.into_headers_state().await;
+    let status = headers_state.status_code();
 }
 ----
 

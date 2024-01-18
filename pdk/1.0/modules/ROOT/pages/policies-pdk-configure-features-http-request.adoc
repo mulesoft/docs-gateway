@@ -4,52 +4,67 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-To interact with external services, the policy must use HTTP calls. You can perform HTTP calls in the request and response filters and in the function. To perform an HTTP call, inject the `HttpClient` as follows:
-
-* Injection for `on_request` or `on_response` wrapped functions functions:
-+
-[source,Rust]
-----
-​​async fn request_filter(state: RequestState, conf: &Config, client: HttpClient) {
- ...
-}
-----
+To interact with external services, the policy must use HTTP calls. You can perform HTTP calls in the `[entrypoint]` function, the request filter, or the response filter. To perform an HTTP call, inject the `HttpClient` as follows:
 
 * Injection for `[entrypoint]` function:
 +
 [source,Rust]
 ----
+#[entrypoint]
+async fn configure(
+    launcher: Launcher,
+    Configuration(configuration): Configuration,
+    client: HttpClient,
+) -> Result<(), LaunchError> {
+----
+
+* Injection for `on_request` or `on_response` wrapped functions functions:
++
+[source,Rust]
+----
+// Handler with the logic for incoming requests
 ​​async fn request_filter(state: RequestState, conf: &Config, client: HttpClient) {
  ...
 }
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
+    let config: Config = serde_json::from_slice(&bytes).unwrap();
+
+    // For incoming request events, using the on_request wrapper, inject the client and pass it to the request_filter handler
+    launcher
+        .launch(on_request(|request, client| {
+            request_filter(request, &config, client)
+        }))
+        .await?;
+    Ok(())
+}
 ----
 
-You can only make HTTP calls to services defined in the Flex Gateway configuration files. For more information about defining services, see xref:flex-local-configuration-reference-guide.adoc#service[Services].
-
-For both Connected and Local modes, define services using the `Service` resource. If the service is not defined when the request is made, the API request fails.
-
-For an example of how to make HTTP calls from the policy, given the `Service` resource:
+Define your service as a parameter in you schema definition to reuse your policy with different services. The following code snippit provides an example schema definition for an external service:
 
 [source,yaml]
 ----
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: Service
-metadata:
-  name: login
-  namespace: custom-policy
-spec:
-  address: https://login.com
+properties:
+      externalService:
+          type: string
+          format: service
+      endpointPath:
+          type: string
 ----
 
-Make calls in `lib.rs` with the following:
+To learn more about defining parameters, see xref:policies-pdk-create-schema-definition.adoc[]
 
-[source,Rust]
+In Rust, you can access the defined external service in the `Config` struct. To perform requests, call the HTTP client in your policy similar to the following example:
+
+[source,rust]
 ----
-let response = client.request("login.custom-policy.svc", "https://login.com")
-    .path("/login")
+let response = client
+    .request(&config.external_service)
+    .path(&config.endpoint_path)
     .headers(vec![("Content-Type", "application/json")])
-    .body(r#"{"client_id": "client", "client_secret": "secret"}"#.as_bytes())
-    .post().await?;
+    .body(r#"{"key": "value"}"#.as_bytes())
+    .put().await?;
 ----
 
-NOTE: In this example, the upstream service and URL are hardcoded. For reusability when making calls to an upstream service in your policy, add the necessary information to the xref:policies-pdk-create-schema-definition.adoc[configuration parameters].
+To view an example policy that makes HTTP request, see the xref:policies-pdk-policy-templates.adoc[JWT Example Policy]. 
