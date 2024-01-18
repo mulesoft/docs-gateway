@@ -4,54 +4,115 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-When using the Policy Development Kit (PDK), you might encounter issues with PDK itself. See the following section to help you resolve these issues:
+When using the Policy Development Kit (PDK), you might encounter issues with PDK itself. See the following sections to help you resolve these issues:
 
-* <<cargo-credential-provider-configuration, Cargo Credential-Provider Configuration>>
+* <<cargo-generate>>
+* <<cli-credential>>
+* <<group-id-error>>
+* <<authorization-error>>
 
 To debug issues with your custom policy, see:
 
 * xref:policies-pdk-debug-local.adoc[]
 * xref:policies-pdk-debug-deployed-policies.adoc[]
 
+[[cargo-generate]]
+== Cargo-Generate Error on a Mac Device
 
-== Cargo Credential-Provider Configuration
+When compiling Rust on a Mac Device for the first time, the following error might occur:
 
-When running the `setup` or `build` commands, you might receive the following error:
-
-[source,shell]
+[source,ssh]
 ----
-cargo +nightly install cargo-anypoint@1.0.0-beta.1 --registry anypoint -Z registry-auth --config .cargo/config.toml
-warning: flag `-Z registry-auth` has been stabilized in the 1.74 release, and is no longer necessary
-  Authenticated registries are available if a credential provider is configured.
-
-    Updating `anypoint` index
-error: failed to download `cargo-anypoint v1.0.0-beta.1 (registry `anypoint`)`
-
-Caused by:
-  unable to get packages from source
-
-Caused by:
-  authenticated registries require a credential-provider to be configured
-  see https://doc.rust-lang.org/cargo/reference/registry-authentication.html for details
-make: *** [install-cargo-anypoint] Error 101
+$ cargo install cargo-generate
+error: linking with `cc` failed: exit status: 1
+[...]
 ----
 
-To fix the error:
+To troubleshoot this error:
 
-. Find your Cargo main directory (`.cargo/`).
-. In `.cargo/`, find the `credentials.toml` file and add the following new line `credential-provider = ["cargo:token"]` to the '[registries.anypoint]` section, for example:
+. Ensure Xcode is installed, then compile again.
++
+To install Xcode, execute the following command:
++
+[source,ssh]
+----
+xcode-select --install
+----
+
+. If Xcode is installed and PDK still does not compile, create or edit the `~/.cargo/config.toml` file by adding the following:
 +
 [source,toml]
 ----
-[registries.anypoint]
-token = <someToken>
-credential-provider = ["cargo:token"]
+[target.x86_64-apple-darwin]
+rustflags = [
+  "-C", "link-arg=-undefined",
+  "-C", "link-arg=dynamic_lookup",
+]
+[target.aarch64-apple-darwin]
+rustflags = [
+  "-C", "link-arg=-undefined",
+  "-C", "link-arg=dynamic_lookup",
+]
+----
+
+[[cli-credential]]
+== Anypoint CLI Credential Error
+
+Anypoint CLI requires multi-factor authentication (MFA) with a Connected App. Using any PDK command without Connected App credentials results in an error similar to the following:
+
+[source,ssh]
+----
+Error: Failed to launch the browser process! undefined
+[...]:ERROR:ozone_platform_x11.cc(239)] Missing X server or $DISPLAY
+[21921:21921:1103/113335.217708:ERROR:env.cc(255)] The platform failed to initialize. Exiting.
+TROUBLESHOOTING: https://pptr.dev/troubleshooting
+----
+
+To configure Anypoint CLI with MFA authentication using a Connected App, refer to xref:4.x@anypoint-cli::auth.adoc[].
+
+[[group-id-error]]
+== Group ID Error When Creating the Policy Project
+
+Anypoint CLI uses the `ANYPOINT_ORG` environment variable. This variable can use either the organization name or the organization ID as the value. If the variable is set to the organization name, the xref:policies-pdk-create-project.adoc[policy creation command] fails to infer the group ID of the organization. 
+
+Use the organization ID for the value of `ANYPOINT_ORG`. However, if you cannot change the variable, use one of the following methods to provide the group ID:
+
+* If you run the create command and receive the following prompt:
++
+[source,ssh]
+----
+Please provide a valid group-id (the id of the organization that will own the asset):
 ----
 +
-NOTE: Do not edit the `token` field.
+Enter your group ID, then press Enter.
 
-. Save the changes.
-. Run the `setup` or `build` command from your custom policy root directory again. The command should now execute properly.
+* Use the `--group-id` flag when creating the PDK project, for example:
++
+[source,ssh]
+----
+anypoint-cli-v4 pdk policy-project create -n <policy-name> --group-id <organization-id>
+----
+
+[[authorization-error]]
+== 401 Authorization Error When Running Make Setup
+
+When executing `make setup', the following error might occur:
+
+[source,ssh]
+----
+$ make setup
+       Login token for `anypoint` saved
+[...]
+
+Caused by:
+  failed to get successful HTTP response from `https://anypoint.mulesoft.com/crates[...]/download` [...], got 401
+  body:
+make: *** [install-cargo-anypoint] Error 101
+----
+
+This error occurs when your version of Rust is not {rust-ver-var} or later.
+
+To solve this error, refer to xref:policies-pdk-prerequisites.adoc#rust-requirements[Rust Requirements for Using PDK] to ensure your Rust software meets the required version.
 
 == See Also
 
