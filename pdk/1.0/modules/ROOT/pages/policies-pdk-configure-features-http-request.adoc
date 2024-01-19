@@ -4,21 +4,35 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-To interact with external services, the policy must use HTTP calls. You can perform HTTP calls in the `[entrypoint]` function, the request filter, or the response filter. To perform an HTTP call, inject the `HttpClient` as follows:
+To interact with external services, the policy must use HTTP calls. You cam only HTTP calls from the request filter or the response filter. 
 
-* Injection for `[entrypoint]` function:
+To perform an HTTP call either eject the client parameters into the `[entrypoint]` function or the filters:
+
+* Injection for `[entrypoint]` function.
++
+Injecting the client parameters into the `[entrypoint]` function enables you to make calls in both the request and the response filter.
 +
 [source,Rust]
 ----
+// Injecting the HttpClient as a parameter in the entrypoint. This case is useful when using the client both in the request and the response.
 #[entrypoint]
-async fn configure(
-    launcher: Launcher,
-    Configuration(configuration): Configuration,
-    client: HttpClient,
-) -> Result<(), LaunchError> {
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration, client: HttpClient) -> Result<()> {
+    let config: Config = serde_json::from_slice(&bytes).unwrap();
+
+    // Both request and the response handlers will use the client   
+    let filter = on_request(|request_state| request_filter(request_state, &config, &client))
+        .on_response(|response_state, request_data| {
+            response_filter(response_state, request_data, &config, &client)
+        });
+
+    launcher.launch(filter).await?;
+    Ok(())
+}
 ----
 
-* Injection for `on_request` or `on_response` wrapped functions:
+* Injection for `on_request` or `on_response` wrapped functions.
++
+Injecting the client parameters into one of the wrapped functions enables you to only make calls in that function.
 +
 [source,Rust]
 ----
@@ -41,7 +55,7 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-Define your service as a parameter in you schema definition to reuse your policy with different services. The following code snippet provides an example schema definition for an external service:
+You must define your service as a parameter in you schema definition to make HTTP requests. The following code snippet provides an example schema definition for an external service:
 
 [source,yaml]
 ----
@@ -55,7 +69,7 @@ properties:
 
 To learn more about defining parameters, see xref:policies-pdk-create-schema-definition.adoc[]
 
-In Rust, you can access the defined external service in the `Config` struct. To perform requests, call the HTTP client in your policy similar to the following example:
+You must define your service as a parameter in you schema definition to make HTTP requests. To perform requests, call the HTTP client in your policy similar to the following example:
 
 [source,rust]
 ----
@@ -67,4 +81,4 @@ let response = client
     .put().await?;
 ----
 
-To view an example policy that makes HTTP request, see the xref:policies-pdk-policy-templates.adoc[JWT Example Policy]. 
+To view an example policy that makes HTTP request, see the xref:policies-pdk-policy-templates.adoc[Simple OAuth 2.0 Validation Example Policy]. 
