@@ -6,11 +6,9 @@ endif::[]
 
 To interact with external services, the policy must use HTTP calls. You cam only HTTP calls from the request filter or the response filter. 
 
-To perform an HTTP call either eject the client parameters into the `[entrypoint]` function or the filters:
+To perform an HTTP call, either eject the client parameters into the `[entrypoint]` function or the filters:
 
-* Injection for `[entrypoint]` function.
-+
-Injecting the client parameters into the `[entrypoint]` function enables you to make calls in both the request and the response filter.
+* Injecting the client parameters into the `[entrypoint]` function enables you to make calls in both the request and the response filter:
 +
 [source,Rust]
 ----
@@ -30,9 +28,7 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration, clie
 }
 ----
 
-* Injection for `on_request` or `on_response` wrapped functions.
-+
-Injecting the client parameters into one of the wrapped functions enables you to only make calls in that function.
+* Injecting the client parameters into one of the `on_request` or `on_response` wrapped functions enables you to only make calls in that function:
 +
 [source,Rust]
 ----
