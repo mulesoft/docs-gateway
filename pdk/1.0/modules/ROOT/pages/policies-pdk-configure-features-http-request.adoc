@@ -6,13 +6,12 @@ endif::[]
 
 To interact with external services, the policy must use HTTP calls. You can only make HTTP calls from the request filter or the response filter. 
 
-To perform an HTTP call, either eject the client parameters into the `[entrypoint]` function or the filters:
+To perform an HTTP call, either eject the client parameters into the `[entrypoint]` function or the wrapped functions:
 
 * Injecting the client parameters into the `[entrypoint]` function enables you to make calls in both the request and the response filter:
 +
 [source,Rust]
 ----
-// Injecting the HttpClient as a parameter in the entrypoint. This case is useful when using the client both in the request and the response.
 #[entrypoint]
 async fn configure(launcher: Launcher, Configuration(bytes): Configuration, client: HttpClient) -> Result<()> {
     let config: Config = serde_json::from_slice(&bytes).unwrap();
