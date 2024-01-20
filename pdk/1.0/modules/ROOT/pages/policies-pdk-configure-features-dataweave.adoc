@@ -6,55 +6,113 @@ endif::[]
 
 NOTE: To view an example policy project that uses DataWeave expressions, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/query/README.md[Query Policy Example^].
 
-If you define a `string` type configuration parameter with the `dataweave` format in your xref:policies-pdk-create-schema-definition.adoc[], the parameter maps to a Rust `Expression` type parameter.
- 
-To solve the expression, await the header state and pass it as a parameter to the expression. After the expression is solved, and the potential errors are handled, you can obtain the result value. Because the value can be of different types, cast the value using the provided functions:
+If the policy can successfully parse a Dataweave configuration parameter, it transforms it into a `pdk::script::Script` expressions. You must create an evaluator to obtain the result of the script.
 
-[source,Rust]
+To obtain the result of the script you’ll need to create an evaluator. Once the evaluator is created you’ll need to define the values for each of the bindings that were defined in the configuration GCL (See <link to define gcl bindings section>).  
+
+Binding values for:
+
+* `vars`: Call the `bind_vars` method for each of the policy's `vars`. After all of `vars` are bound, the evaluator tries to solve the expression. If the expression contains `vars` other than the ones defined in the schema, they resolve to `null`.
+* `attributes`: Call the `bind_attributes` methods with an implementation of the `AttributesBinding` trait . PDK provides an implementation of this trait for `RequestBodyState`, `ResponseBodyState`, and the response of an xref:policies-pdk-features-http-request.adoc[http call].
+* `authentication`: Call the method `bind_authentication` with an implementation of the trait `AuthenticationBinding`. PDK provides an implementation of this trait for `AuthenticationData`. To inject authentication information into your policy, see xref:policies-pdk-configure-features-inject-parameters.adoc#Authentication[Inject Authentication Inforamaion].
+* `payload`: Call the `bind_payload` method with an implementation of the trait `PayloadBinding`. PDK provides an implementation of this trait for `RequestBodyState`, `ResponseBodyState`, and the response of an xref:policies-pdk-features-http-request.adoc[http call].
+
+After you bind all expression variables, you can obtain the result by calling the `eval` method.
+
+NOTE: You only need to call the methods for the bindings that are defined in the schema definition. For example, if the `attributes` binding is not used, you don't need to call the `bind_attributes` method.
+
+For example, the DataWeave expression in the following policy schema definition:
+
+[source,yaml]
 ----
-fn is_null(&self) -> bool;
-fn as_bool(&self) -> Option<bool>;
-fn as_f64(&self) -> Option<f64>;
-fn as_str(&self) -> Option<&str>;
-fn as_slice(&self) -> Option<&[Value]>;
-fn as_object(&self) -> Option<&Object>;
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Extension
+metadata:
+ labels:
+   title: jwt-auth
+   category: Custom
+spec:
+ extends:
+   - name: extension-definition
+     namespace: default
+ properties:
+   tokenExtractor:
+     type: string
+     format: dataweave
+     default: "#[vars.myVar]"
+     bindings:
+       payload:
+         mimeType: text
+       attributes: true
+       authentication: true
+       vars:
+         - myVar
+ required:
+   - tokenExtractor
+
 ----
 
-The functions return an `Option` containing the value if it was properly cast or `None` if the value didn't belong to the cast type. For example, the following code snippet tests what type the value resolves as:
+Can be evaluated with this Rust snippet:
 
-[source,Rust]
+[source,rust]
 ----
-async fn response_filter(response_state: ResponseState, config: &Config) {
-    let headers_state = response_state.into_headers_state().await;
-    
-    match config.dw_property.resolve_on_headers(&headers_state) {
-        Ok(value) => {
-            if value.is_null() {
-                logger::info!("Datewave expression resolved to null!");
-            }
-            else if let Some(val) = value.as_bool() {
-                logger::info!("Datewave expression resolved to boolean: {val}!");
-            }
-            else if let Some(val) = value.as_f64() {
-                logger::info!("Datewave expression resolved to f64: {val}!");
-            }
-            else if let Some(val) = value.as_str() {
-                logger::info!("Datewave expression resolved to str: {val}!");
-            }
-            else if let Some(val) = value.as_slice() {
-                logger::info!("Datewave expression resolved to slice: {val:?}!");
-            }
-            else if let Some(val) = value.as_object() {
-                logger::info!("Datewave expression resolved to object: {val:?}!");
-            }
-        },
-        Err(err) => {
-            logger::warn!("Failed to resolve the dataweave expression: {err}!")
-        }
-    }
+// Copyright 2023 Salesforce, Inc. All rights reserved.
+mod generated;
+
+
+use anyhow::Result;
+
+
+use crate::generated::config::Config;
+use pdk::hl::authentication::{Authentication, AuthenticationHandler};
+use pdk::logger::info;
+use pdk::hl::*;
+use pdk::script::{Evaluator, HandlerAttributesBinding, Value};
+
+
+async fn request_filter(
+   state: RequestState,
+   stream: StreamProperties,
+   auth: Authentication,
+   mut evaluator: Evaluator<'_>,
+) {
+   evaluator.bind_vars("myVar", "myVal");
+
+
+   evaluator.bind_authentication(&auth.authentication());
+
+
+   let state = state.into_headers_state().await;
+   evaluator.bind_attributes(&HandlerAttributesBinding::new(state.handler(), &stream));
+
+
+   let state = state.into_body_state().await;
+   evaluator.bind_payload(&state);
+
+
+   if let Ok(value) = evaluator.eval() {
+       match value {
+           Value::Null => info!("value was null!"),
+           Value::Bool(val) => info!("value was Bool: {val}"),
+           Value::Number(val) => info!("value was Number: {val}"),
+           Value::String(val) => info!("value was String: {val}"),
+           Value::Array(val) => info!("value was Array: {val:?}"),
+           Value::Object(val) => info!("value was Object: {val:?}"),
+       }
+   }
+}
+
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
+   let config: Config = serde_json::from_slice(&bytes)?;
+
+
+   launcher
+       .launch(on_request(|request, stream, auth| {
+           request_filter(request, stream, auth, config.token_extractor.evaluator())
+       }))
+       .await?;
+   Ok(())
 }
 ----
-
-== See Also
-
-* xref:policies-pdk-configure-features.adoc[]
