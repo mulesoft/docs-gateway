@@ -1,4 +1,4 @@
-= Stoping Request Execution
+= Stopping Request Execution
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -26,7 +26,8 @@ Create a `Flow` as follows:
 ----
 async fn request_filter(request_state: RequestState) -> Flow<()> {
     let header_state = request_state.into_headers_state().await;
-    if header_state.header("authorization").is_some() {
+    let handler = header_state.handler();
+    if handler.header("authorization").is_some() {
         Flow::Continue(())
     } else {
         Flow::Break(Response::new(401)
@@ -40,5 +41,9 @@ async fn request_filter(request_state: RequestState) -> Flow<()> {
 ====
 Due to the streaming nature of `proxy wasm`, it is possible for an early request to partially reach the upstream service while awaiting the `headers_state.into_body_state` function. The only way to avoid this is by not awaiting the body. However, that is not possible for all policies. Configure your upstream to ignore partial requests if the policy must read the body.
 
-To avoid early responses reaching the client, see <<share-data-between-requests-and-responses>>.
+To avoid early responses reaching the client, see xref:policies-pdk-configure-features-share-data.adoc[].
 ====
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]

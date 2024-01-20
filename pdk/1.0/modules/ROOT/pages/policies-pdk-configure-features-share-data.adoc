@@ -25,7 +25,9 @@ async fn configure(launcher: Launcher) -> Result<()> {
 
     launcher
         .launch(filter)
-        .await
+        .await?;
+
+    Ok(())
 }
 ----
 
@@ -35,12 +37,18 @@ Returning `RequestData` prevents a response from reaching a client early.`Flow::
 ----
 async fn request_filter(state: RequestState) -> Flow<String> {
     let state = state.into_headers_state().await;
-    if state.header("authorization").is_some() {
+    let handler = state.handler();
+    if handler.header("authorization").is_some() {
         Flow::Continue(state.path())
     } else {
-        Flow::Break(Response::new(401)
-            .with_headers(vec![("WWW-Authenticate".to_string(), "Bearer realm=\"oauth2\"".to_string())])
-            .with_body(r#"{ "error": "token was not present"}"#))
+        Flow::Break(
+            Response::new(401)
+                .with_headers(vec![(
+                    "WWW-Authenticate".to_string(),
+                    "Bearer realm=\"oauth2\"".to_string(),
+                )])
+                .with_body(r#"{ "error": "token was not present"}"#),
+        )
     }
 }
 
@@ -49,3 +57,7 @@ async fn response_filter(state: ResponseState, RequestData(path): RequestData<St
     logger::info!("Path: {path}, Status: {}", state.status_code());
 }
 ----
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]

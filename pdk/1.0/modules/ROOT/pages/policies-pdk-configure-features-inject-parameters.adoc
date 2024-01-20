@@ -4,6 +4,15 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
+By deafult, the #[entrypoint] configuration function receives the following injectable parameters:
+
+* `Configuration`: As explained in the Policy template section, this parameter provides access to the policy configuration.
+* `Metadata`: Used to access Metadata from the Flex instance, policy, API and more... See Accessing Metadata section
+* `HttpClient`: Used for performing HTTP Calls. See Perform an HTTP call section
+* `CacheBuilder`: Provides Caching features to the policy. See Share Data Between Workers and Caching section.
+
+You may directly inject some of the parameters the configuration functions into the wrapped filter function, depending on the context where the injectable must be used, such as HttpClient. If the HTTP call must be performed inside the on_response filter, then the best place to inject it is there.
+
 The default functions receive the predefined parameters:
 
 * `#[entrypoint]` configuration function:

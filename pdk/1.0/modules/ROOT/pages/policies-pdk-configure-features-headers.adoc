@@ -4,6 +4,13 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
+PDK enables you to both:
+
+* <<read-and-write-headers>>
+* <<read-the-request-body>>
+
+
+[[read-and-write-headers]]
 == Read and Write Headers
 
 To access the headers in both the request and the response, transform the `RequestState` or `ResponseState` to a header state by calling the method `into_headers_state()` and awaiting it. After calling either method, access and manipulate the headers by calling the functions of the `HeadersHandler` trait.
@@ -64,6 +71,7 @@ async fn response_filter(response_state: ResponseState, _config: &Config) {
 }
 ----
 
+[[read-the-request-body]]
 == Read the Request Body
 
 To access the body in both the request and the response, transform the `RequestState` or `ResponseState` to a body state by calling the method `into_body_state` and awaiting it. If the original state was already transformed into a header state, transform the state into a body state by calling the same function, for example:
@@ -98,13 +106,21 @@ For example:
 ----
 async fn request_filter(request_state: RequestState) {
     let headers_state = request_state.into_headers_state().await;
+    let headers_handler = headers_state.handler();
 
-    let agent = headers_state.header("User-Agent").unwrap_or_else(|| "Undefined".to_string());
+    let agent = headers_handler.header("User-Agent").unwrap_or_else(|| "Undefined".to_string());
 
     let body_state = headers_state.into_body_state().await;
-    
-    let body = body_state.body();
+    let body_handler = body_state.handler();
+    let body = body_handler.body();
 
     logger::info!("User: {agent} sent: {}", String::from_utf8_lossy(body.as_slice()));
+	
+    let new_body = "new body".as_bytes();
+    body_handler.set_body(&new_body);
 }
 ----
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]
