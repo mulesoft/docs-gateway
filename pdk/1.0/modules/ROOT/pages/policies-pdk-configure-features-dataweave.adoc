@@ -9,18 +9,19 @@ NOTE: To view an example policy project that uses DataWeave expressions, see htt
 If input DataWeave parameter is valid, the policy parses the expression and transforms it into a `pdk::script::Script` expression. To obtain the result of the script:
 
 . Create an evaluator.
-. Call the binding function for each parameters defined in schema definition.
-+
-To learn more about defining DataWeave expressions, see xref:policies-pdk-create-schema-definition.adoc#dataweave-expressions[DataWeave Expressions].
-+
-The binding methods for each variable are:
+. Call the binding function for each parameter defined in schema definition:
 +
 * `vars`: Call the `bind_vars` method for each of the policy's `vars`. After all of `vars` are bound, the evaluator tries to solve the expression. If the expression contains `vars` other than the ones defined in the schema, they resolve to `null`.
 * `attributes`: Call the `bind_attributes` methods with an implementation of the `AttributesBinding` trait. PDK provides an implementation of this trait for `RequestBodyState`, `ResponseBodyState`, and the response of an xref:policies-pdk-features-http-request.adoc[HTTP call].
 * `authentication`: Call the method `bind_authentication` with an implementation of the trait `AuthenticationBinding`. PDK provides an implementation of this trait for `AuthenticationData`. To inject authentication information into your policy, see xref:policies-pdk-configure-features-inject-parameters.adoc#authentication[Inject Authentication Inforamaion].
 * `payload`: Call the `bind_payload` method with an implementation of the trait `PayloadBinding`. PDK provides an implementation of this trait for `RequestBodyState`, `ResponseBodyState`, and the response of an xref:policies-pdk-features-http-request.adoc[HTTP call].
 +
-NOTE: You only need to call the methods for the bindings that are defined in the schema definition. For example, if the `attributes` binding is not used, you don't need to call the `bind_attributes` method.
+[NOTE]
+----
+You only need to call the methods for the bindings that are defined in the schema definition. For example, if the `attributes` binding is not used, you don't need to call the `bind_attributes` method.
+
+To learn more about defining DataWeave expressions, see xref:policies-pdk-create-schema-definition.adoc#dataweave-expressions[DataWeave Expressions].
+----
 
 . After you bind all expression variables, you can obtain the result by calling the `eval` method.
 
