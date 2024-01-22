@@ -12,7 +12,7 @@ If input DataWeave expression parameter is valid, the policy parses the expressi
 . Call the binding function for each parameter defined in schema definition:
 +
 * `vars`: Call the `bind_vars` method for each of the policy's `vars`. After all of `vars` are bound, the evaluator tries to solve the expression. If the expression contains `vars` other than the ones defined in the schema, they resolve to `null`.
-* `attributes`: Call the `bind_attributes` methods with an implementation of the `AttributesBinding` trait. PDK provides a implementation of this trait by instantiating a new `HandlerAttributesBinding` for each `RequestBodyState`, `ResponseBodyState`, and response of an xref:policies-pdk-features-http-request.adoc[HTTP call].
+* `attributes`: Call the `bind_attributes` methods with an implementation of the `AttributesBinding` trait. PDK provides a implementation of this trait by instantiating a new `HandlerAttributesBinding` for each `RequestHeaderState`, `RequestHeaderState`, and response of an xref:policies-pdk-features-http-request.adoc[HTTP call].
 * `authentication`: Call the method `bind_authentication` with an implementation of the trait `AuthenticationBinding`. PDK provides an implementation of this trait for `AuthenticationData`. To inject authentication information into your policy, see xref:policies-pdk-configure-features-inject-parameters.adoc#authentication[Inject Authentication Inforamaion].
 * `payload`: Call the `bind_payload` method with an implementation of the trait `PayloadBinding`. PDK provides an implementation of this trait for `RequestBodyState`, `ResponseBodyState`, and the response of an xref:policies-pdk-features-http-request.adoc[HTTP call].
 +
@@ -202,11 +202,9 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-== Early Resolution
+== Validate the Expression was Solved
 
 You may solve some expressions before all values are bound. For example, the expression `#[vars.myVar]` does not require the `attributes`, `payload`, no `authentication` to be solved. 
-
-== Validate the Expression was Solved
 
 After one of the binding methods is called, you can confirm the expression was completely solved by calling the method:
 
