@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-The Policy Development Kit (PDK) provides a preconfigured API instance located in the `<root-directory>/test/config` directory to begin testing your policy.
+The Policy Development Kit (PDK) provides a preconfigured API instance located in the `<root-directory>/playground/config` directory to begin testing your policy.
 
 After you successfully xref:policies-pdk-compile-policies.adoc[compile your custom policy project] and add a <<register, Flex Gateway registration file>> to the configuration directory, you can use the `run` command to deploy the API instance and your policy to begin testing.
 
@@ -30,7 +30,7 @@ Ensure that you have:
 
 To begin using the `run` command to debug your custom policy, you must register a Flex Gateway in Local Mode.
 
-For the `run` command to work, a Flex Gateway `registration.yaml` file must be in `<root-directory>/test/config` directory. An easy way to do this is to run the registration command in the directory, or you can move a `registration.yaml` file of a previously registered Flex gateway to the directory.
+For the `run` command to work, a Flex Gateway `registration.yaml` file must be in `<root-directory>/playground/config` directory. An easy way to do this is to run the registration command in the directory, or you can move a `registration.yaml` file of a previously registered Flex gateway to the directory.
 
 The `run` command only supports Flex Gateways running in Local Mode in a Docker Container. To register a Flex Gateway, see the relevant tutorial for your preferred credential type:
 
@@ -76,7 +76,7 @@ spec:
   
 ----
 
-Update the `/test/config/api.yaml` file with your configuration value:
+Update the `/playground/config/api.yaml` file with your configuration value:
 
 [source,yaml]
 ----
@@ -129,7 +129,7 @@ After you complete the previous steps, run the `run` command from the policy's r
 make run
 ----
 
-This command starts the two Docker containers in the `<root-directory>/test/docker-compose.yaml` file:
+This command starts the two Docker containers in the `<root-directory>/playground/docker-compose.yaml` file:
 
 * `Local-flex`: The Flex Gateway instance Docker container that executes the custom policy. This Flex Gateway listens for requests made to the `localhost:8081`.
 * `Backend`: The Docker Container that runs the backend service for the Flex Gateway instance. This backend service echoes any request it receives.
@@ -150,7 +150,7 @@ The backend service returns an echo response including the requests’s route, b
 
 By default, the PDK debugging environment enables logs with the `debug` loglevel configured.
 
-To change the loglevel, edit the `logging.runtimeLogs.logLevel` value in `test/config/logging.yaml`.
+To change the loglevel, edit the `logging.runtimeLogs.logLevel` value in `<root-directory>/playground/config/logging.yaml`.
 
 To learn more about editing a Flex Gateway's logging configuration file, see xref:flex-local-third-party-logs-config.adoc[].
 
