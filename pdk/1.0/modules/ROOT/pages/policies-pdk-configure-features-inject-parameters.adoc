@@ -4,34 +4,75 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-By deafult, the #[entrypoint] configuration function receives the following injectable parameters:
+By default, the #[entrypoint] configuration function receives the following injectable parameters:
 
 * `Configuration`: Provides the policy's configuration parameters. For information about how to define configuration parameters, see xref:policies-pdk-create-schema-definition.adoc[].
 * `Metadata`: Provides metadata about the Policy, the Flex instance, the API instance and the Anypoint Organization. For more information about the metadata provided, see <<metadata>>.
 * `HttpClient`: Enables the policy to make HTTP calls. For more information about how to make HTTP calls from the policy, see xref:policies-pdk-configure-features-http-request.adoc[].
 * `CacheBuilder`: Provides the caching features of the policy. For more information about caching, see xref:policies-pdk-configure-features-caching.adoc[].
+* `StreamProperties`: Provides a structure to share properties with other policies that process the same request. For more information about sharing information between policies, see <<streamproperties>>.
 
-For the wrapped functions, you may inject some of the above parameters and some additional parameters:
+You can also directly inject the `HttpClient` and `StreamProperties` parameter into the wrapped functions. Choose where to inject these parameters based on where they are used. For example, because the HTTP call must be performed inside the wrapped functions, it is best to directly inject. However, if you want to use the `HttpClient` in both `on_response` and `on_request` functions, you should inject the `HttpClient` in the `#[entrypoint]`. 
 
-* 
+If the parameters require some initial configuration steps that must only be performed once. It is best to inject the parameters into the `#[entrypoint]` to complete the configuration steps to increase the performance of the wrapped functions.
+
+== on_request and on_response Wrapped Functions
 
 The wrapped functions receive the predefined parameters:
 
-* `on_request` wrapped functions:
-RequestState: Provides access to the different stages of request filtering to operate over the incoming requests headers and body. See Read and Write the Headers and Read and Write the body sections.
-HttpClient: Used for performing HTTP Calls. See Perform an HTTP call section.
-DefaultBindings: Provides an easy way to bind relevant information to Dataweave evaluators. See DefaultBindings subsection from Use dataweave expressions.
-StreamProperties: It is used to share properties with other policies that process the same request. See StreamProperties section.
-Authentication: It is used to read or propagate Authentication data shared with other policies. See Authentication section.
+* `StreamProperties`
+* `HttpClient`
+* `RequestState`: Provides access to the different stages of request filtering to operate over the incoming requests headers and body. `RequestState` is only availbile in `on_request` functions. To read and write to the `RequestState`, see xref:policies-pdk-configure-features-headers.adoc[].
+* `ResponseState`: Provides access to the different stages of request filtering to operate over the upstream responses headers and body. `ResponseState` is only availbile in `on_response` functions. To read and write to the `ResponseState`, see xref:policies-pdk-configure-features-headers.adoc[].
+* `DefaultBindings`: Provides an easy way to bind relevant information to Dataweave evaluators. To learn more about `DefaultBindings`, see xref:policies-pdk-configure-features-dataweave.adoc#defaultbindings[DefaultBindings].
+* `Authentication`: Provides access to read authentication data or share it with other policies. To learn more about `Authentication`, see <<authentication>>.
 
-* `on_response` wrapped functions:
-ResponseState: Provides access to the different stages of request filtering to operate over the upstream responses headers and body. See Read and Write the Headers and Read and Write the body sections.
-HttpClient: Used for performing HTTP Calls. See Perform an HTTP call section.
-RequestData: Used to share data between request and response filters. See Share Data Between Requests and Responses section.
-DefaultBindings: Provides an easy way to bind relevant information to Dataweave evaluators. See DefaultBindings subsection from Use dataweave expressions.
-StreamProperties: It is a structure used to share properties with other policies that process the same request. See StreamProperties section.
-Authentication: It is used to read or propagate Authentication data shared with other policies. See Authentication section.
+The wrapped functions may require other parameters, such as the configuration parameters defined in the `#[entrypoint]` function. To pass the parameters, define the lambda and send a variable reference, for example:
 
+[source,Rust]
+----
+async fn request_filter(state: RequestState, conf: &Config, tuple: &(u32, u32)) {
+...
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
+    let config = serde_json::from_slice(&bytes)?;
+    let tuple: (u32, u32) = (10, 10);
+
+    let filter = on_request(|request_state| request_filter(request_state, &config, &tuple));
+
+    launcher
+        .launch(filter)
+        .await?;
+
+    Ok(())
+}
+----
+
+If your wrapped functions only receives the predefined parameters, the lambda is not required in the wrapper. For example, if the signature of the function is:
+
+[source,Rust]
+----
+async fn request_filter(state: RequestState) -> RequestData<String>;
+async fn response_filter(state: ResponseState, RequestData(path): RequestData<String>);
+----
+
+Instead of a function definition of:
+
+[source,Rust]
+----
+let filter = on_request(|request_state| request_filter(request_state))
+    .on_response(|response_state, request_data| response_filter(response_state, request_data));
+----
+
+You can use the following function definition:
+
+[source,Rust]
+----
+let filter = on_request(request_filter)
+        .on_response(response_filter);
+----
 
 [[metadata]]
 == Metadata
