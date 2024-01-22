@@ -6,18 +6,21 @@ endif::[]
 
 NOTE: To view an example policy project that uses DataWeave expressions, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/query/README.md[Query Policy Example^].
 
-If the policy can successfully parse a Dataweave configuration parameter, it transforms it into a `pdk::script::Script` expressions. You must create an evaluator to obtain the result of the script.
+If the policy can successfully parse a Dataweave configuration parameter, it transforms it into a `pdk::script::Script` expressions. To obtain the result of the script:
 
-To obtain the result of the script you’ll need to create an evaluator. Once the evaluator is created you’ll need to define the values for each of the bindings that were defined in the configuration GCL (See <link to define gcl bindings section>).  
-
-Binding values for:
+. Create an evaluator.
+. Call the binding function for each parameters defined in schema definition.
++
+To learn more about defining DataWeave expressions, see xref:policies-pdk-create-schema-definition.adoc#dataweave-expressions[DataWeave Expressions].
++
+The binding methods for each variable are:
 
 * `vars`: Call the `bind_vars` method for each of the policy's `vars`. After all of `vars` are bound, the evaluator tries to solve the expression. If the expression contains `vars` other than the ones defined in the schema, they resolve to `null`.
-* `attributes`: Call the `bind_attributes` methods with an implementation of the `AttributesBinding` trait . PDK provides an implementation of this trait for `RequestBodyState`, `ResponseBodyState`, and the response of an xref:policies-pdk-features-http-request.adoc[http call].
-* `authentication`: Call the method `bind_authentication` with an implementation of the trait `AuthenticationBinding`. PDK provides an implementation of this trait for `AuthenticationData`. To inject authentication information into your policy, see xref:policies-pdk-configure-features-inject-parameters.adoc#Authentication[Inject Authentication Inforamaion].
-* `payload`: Call the `bind_payload` method with an implementation of the trait `PayloadBinding`. PDK provides an implementation of this trait for `RequestBodyState`, `ResponseBodyState`, and the response of an xref:policies-pdk-features-http-request.adoc[http call].
+* `attributes`: Call the `bind_attributes` methods with an implementation of the `AttributesBinding` trait. PDK provides an implementation of this trait for `RequestBodyState`, `ResponseBodyState`, and the response of an xref:policies-pdk-features-http-request.adoc[HTTP call].
+* `authentication`: Call the method `bind_authentication` with an implementation of the trait `AuthenticationBinding`. PDK provides an implementation of this trait for `AuthenticationData`. To inject authentication information into your policy, see xref:policies-pdk-configure-features-inject-parameters.adoc#authentication[Inject Authentication Inforamaion].
+* `payload`: Call the `bind_payload` method with an implementation of the trait `PayloadBinding`. PDK provides an implementation of this trait for `RequestBodyState`, `ResponseBodyState`, and the response of an xref:policies-pdk-features-http-request.adoc[HTTP call].
 
-After you bind all expression variables, you can obtain the result by calling the `eval` method.
+. After you bind all expression variables, you can obtain the result by calling the `eval` method.
 
 NOTE: You only need to call the methods for the bindings that are defined in the schema definition. For example, if the `attributes` binding is not used, you don't need to call the `bind_attributes` method.
 
@@ -78,17 +81,13 @@ async fn request_filter(
 ) {
    evaluator.bind_vars("myVar", "myVal");
 
-
    evaluator.bind_authentication(&auth.authentication());
-
 
    let state = state.into_headers_state().await;
    evaluator.bind_attributes(&HandlerAttributesBinding::new(state.handler(), &stream));
 
-
    let state = state.into_body_state().await;
    evaluator.bind_payload(&state);
-
 
    if let Ok(value) = evaluator.eval() {
        match value {
