@@ -6,7 +6,7 @@ endif::[]
 
 NOTE: To view an example policy project that uses DataWeave expressions, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/query/README.md[Query Policy Example^].
 
-If input DataWeave parameter is valid, the policy parses the expression and transforms it into a `pdk::script::Script` expression. To obtain the result of the script:
+If input DataWeave expression parameter is valid, the policy parses the expression and transforms it into a `pdk::script::Script` expression. To obtain the result of the script:
 
 . Create an evaluator.
 . Call the binding function for each parameter defined in schema definition:
@@ -17,14 +17,15 @@ If input DataWeave parameter is valid, the policy parses the expression and tran
 * `payload`: Call the `bind_payload` method with an implementation of the trait `PayloadBinding`. PDK provides an implementation of this trait for `RequestBodyState`, `ResponseBodyState`, and the response of an xref:policies-pdk-features-http-request.adoc[HTTP call].
 +
 [NOTE]
-----
+====
 You only need to call the methods for the bindings that are defined in the schema definition. For example, if the `attributes` binding is not used, you don't need to call the `bind_attributes` method.
 
 To learn more about defining DataWeave expressions, see xref:policies-pdk-create-schema-definition.adoc#dataweave-expressions[DataWeave Expressions].
-----
+====
 
 . After you bind all expression variables, you can obtain the result by calling the `eval` method.
 
+== Example Evaluator Code
 
 For example, the DataWeave expression in the following policy schema definition:
 
