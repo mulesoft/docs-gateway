@@ -1,8 +1,10 @@
-= Share Data Between Workers and Caching
+= Sharing Data Between Workers and Caching
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
+
+NOTE: To view an example policy project that uses caching, see https://github.com/mulesoft/pdk-custom-policy-examples/tree/main/data-caching/README.md[Data Caching Policy Example^].
 
 Envoy spawns many workers for the policy to increase the capability of handling requests. A single worker handles all the stages of a specific request, including outgoing connections and the response flow, enabling you to track an internal status for a specific request and create a sequential execution flow even though the underlying implementation is event-driven. 
 
@@ -21,7 +23,7 @@ async fn configure(
     launcher: Launcher,
     cache_builder: CacheBuilder,
 ) -> Result<()> {
-    let cache = cache_builder.build(String::from("calculator"), 10);
+    let cache = cache_builder.new(String::from("caching")).max_entries(10);
     ...
 ----
 
@@ -38,3 +40,7 @@ pub trait Cache {
 ----
 
 IMPORTANT: Because different works write to the cache concurrently, there is no guarantee that the value overwritten when saving the cache is the same as when it was retrieved.
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]
