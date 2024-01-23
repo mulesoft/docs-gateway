@@ -73,7 +73,7 @@ async fn response_filter(response_state: ResponseState, _config: &Config) {
 [[read-and-write-request-bodies]]
 == Read and Write Request Bodies
 
-To access the body in both the request and the response, transform the `RequestState` or `ResponseState` to a body state by calling the method `into_body_state` and awaiting it. If the original state was already transformed into a header state, transform the state into a body state by calling the same function, for example:
+To access the body in both the request and the response, transform the `RequestState` or `ResponseState` to a body state by calling the method `into_body_state()` and awaiting it. If the original state was already transformed into a header state, transform the state into a body state by calling the same function, for example:
 
 [source,Rust]
 ----
@@ -81,7 +81,7 @@ let headers_state = request_state.into_headers_state().await;
 let body_state = headers_state.into_body_state().await;
 ----
 
-After calling `into_body_state`, access and manipulate the headers by calling the functions of the `BodyHandler` trait.
+After calling `into_body_state()`, access and manipulate the headers by calling the functions of the `BodyHandler` trait.
 
 [source,Rust]
 ----
@@ -92,8 +92,8 @@ pub trait BodyHandler {
 
 Because Envoy uses the same buffer to share data from the headers and the body, the policy cannot access the headers and the body at the same time. If the policy must read both:
 
-. Read the headers and save the necessary values in a variable
-. Read the body
+. Read the headers and save the necessary values in a variable.
+. Read the body.
 
 You can read the headers and then the body in both the response and request.
 
