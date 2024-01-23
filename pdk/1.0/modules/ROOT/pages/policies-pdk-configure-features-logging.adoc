@@ -1,4 +1,4 @@
-= Configure Policy Logging
+= Configuring Policy Logging
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -6,7 +6,7 @@ endif::[]
 
 PDK provides a logging mechanism that generates a log message enriched with the API instance ID, policy ID, and request ID.
 
-Insert custom logs with the following macros by using the `logger::` package:
+Insert custom logs with the following macros by using the `pdk::logger;` package:
 
 * `logger::debug!`
 * `logger::info!`
@@ -17,6 +17,10 @@ The macros behave the same as the https://doc.rust-lang.org/std/macro.format.htm
 
 [source,Rust]
 ----
+use pdk::logger;
+
+// [...]
+
 let value = "there!";
 logger::debug!("Hello there!");
 logger::info!("Hello {}", value);
@@ -29,4 +33,4 @@ All examples appear in the Flex Gateway logs in the following format:
 [flex-gateway-envoy][<log-level>] wasm log <policy-name>.<api-instance-name> main: [policy: <policy-name>][api: <api-instance-name>][req: <request-id> ] Hello there!
 ----
 
-For more information about viewing Flex Gateway logs, see xref:flex-gateway-monitor.adoc[].
+For more information about viewing Flex Gateway logs, see xref:gateway::flex-gateway-monitor.adoc[].
