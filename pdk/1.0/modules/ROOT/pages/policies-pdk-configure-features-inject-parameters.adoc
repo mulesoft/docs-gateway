@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-PDK provides the following parameters that you can inject into the #[entrypoint] configuration function:
+PDK provides the following parameters that you can inject into the `#[entrypoint]` configuration function:
 
 * `Configuration`: Provides the policy's configuration parameters. For information about how to define configuration parameters, see xref:policies-pdk-create-schema-definition.adoc[].
 * `Metadata`: Provides metadata about the Policy, the Flex instance, the API instance and the Anypoint Organization. For more information about the metadata provided, see <<metadata>>.
@@ -24,6 +24,7 @@ The wrapped functions can receive the following parameters:
 * `HttpClient`
 * `RequestState`: Provides access to the different stages of request filtering to operate over the incoming requests headers and body. `RequestState` is only available in `on_request` functions. To read and write to the headers and body in the`RequestState`, see xref:policies-pdk-configure-features-headers.adoc[].
 * `ResponseState`: Provides access to the different stages of request filtering to operate over the upstream responses headers and body. `ResponseState` is only available in `on_response` functions. To read and write to the headers and body in the `ResponseState`, see xref:policies-pdk-configure-features-headers.adoc[].
+* `RequestData`: Share data between the `on_request` and`on_response` functions. `RequestData` is only available in `on_response` functions. To learn more about `RequestData`, see xref:policies-pdk-configure-features-share-data.adoc[].
 * `DefaultBindings`: Provides an easy way to bind relevant information to Dataweave evaluators. To learn more about `DefaultBindings`, see xref:policies-pdk-configure-features-dataweave.adoc#defaultbindings[DefaultBindings].
 * `Authentication`: Provides access to read authentication data or share it with other policies. To learn more about `Authentication`, see <<authentication>>.
 
@@ -140,10 +141,27 @@ pub struct PlatformMetadata {
 }
 ----
 
-To inject metadata into the wrapped functions:
+=== Inject Metadata into the #[entrypoint]
 
-. Add the `metadata` as a parameter in the entrypoint configure function and inject it into the desired wrapped functions:
-+
+To inject metadata into the `#[entrypoint]` configuration function, see the following code snippet: 
+
+[source,Rust]
+----
+#[entrypoint]
+async fn configure(launcher: Launcher, metadata: Metadata) -> Result<()> {
+    logger::info!("Flex instance name is: {}", metadata.flex_metadata.flex_name.to_string());
+
+    launcher
+        .launch(on_request(filter))
+        .await?;
+    Ok(())
+}
+----
+
+=== Inject Metadata into the Wrapped Functions
+
+You can not directly inject metadata into the wrapped functions. To use metadata in the wrapped functions, first inject the data into the `#[entrypoint]` function and then the wrapped function:
+
 [source,Rust]
 ----
 #[entrypoint]
@@ -153,12 +171,7 @@ async fn configure(launcher: Launcher, metadata: Metadata) -> Result<()> {
         .await?;
     Ok(())
 }
-----
 
-. Add the `metadata` parameter to the wrapped function:
-+
-[source,Rust]
-----
 async fn request_filter(_: RequestState, metadata: &Metadata) -> Flow<()> {
     let mut vec = Vec::new();
     let headers = &mut vec;
