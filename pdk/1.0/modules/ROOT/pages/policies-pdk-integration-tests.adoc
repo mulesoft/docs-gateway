@@ -3,3 +3,422 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
+
+PDK integration tests are based on Docker containers. Ensure you have a running https://docs.docker.com/engine/[Docker engine]
+running in your system before starting with PDK integration tests.
+
+== Integration Tests Directory Structure
+
+Integration tests are placed into the `<root-directory>/tests` directory following the https://doc.rust-lang.org/book/ch11-03-test-organization.html#integration-tests[Rust convention].
+When the policy project is created with `anypoint-cli` a dummy test is placed into `<root-directory>/tests/requests.rs` file.
+
+The `<root-directory>/tests/requests.rs` file is actually an individual module and executable. `anypoint-cli` also generates c `<root-directory>/tests/commons.rs` module
+intended to contain common constants and functionalities that have to be included in every integration test module.
+There is a configuration directory for each test module where configuration files are placed. In the case of `<root-directory>/tests/requests.rs`
+there is a correlative `<root-directory>/tests/requests` directory. Also, a `<root-directory>/tests/common` directory exists for common configurations.
+
+Every module contains test functions annotated with the `#[pdk_test]` attribute. For each test function exists a correlative
+configuration subdirectory. For the case of the `requests::hello` test function, exists a `<root-directory>/tests/requests/hello` folder. In this
+folder are placed all the configuration files related to the `hello` test.
+
+[source,]
+----
+my-policy
+├── Cargo.lock
+├── Cargo.toml
+├── playground
+├── src
+└── tests
+    ├── common.rs
+    ├── requests.rs
+    ├── common
+    │   └── logging.yaml
+    │   └── registration.yaml
+    └── requests
+        └── hello
+            └── api.yaml
+----
+
+
+== Customizing integration tests
+Before running integration tests a couple of customizations must be configured.
+
+=== Registration File
+The <<policies-pdk-debug-local.adoc#register, registration file>>  must be placed in the `<root-directory>/tests/common` directory.
+
+=== Policy Implementation Name
+The Policy Implementation Name can be printed out by invoking the command `make show-policy-ref-name`.
+[source,cmd]
+----
+$ make show-policy-ref-name
+my-policy-v1-0-impl
+----
+Every policy configuration
+file in the integration tests directory  (typically `<root-directory>/tests/<module>/<test>/api.yaml`)  must be updated to point
+the generated implementation name.
+
+[source,yaml]
+----
+  policies:
+    - policyRef:
+        name: my-policy-v1-0-impl
+----
+
+=== Running Integration Tests
+For running the default generated tests run `make test`. It will compile the policy and run the integration test modules.
+
+== Writing an Integration Test
+PDK integration tests are slightly inspired by https://docs.docker.com/compose/[Docker Compose], where there is a composite of
+services running inside a Docker network
+
+=== `pdk-test` library
+`pdk-test` is the crate containing all the functionality for writing integration tests in PDK. It is included by the
+`anypoint-cli` in the `[dev-dependencies]` section of `Cargo.toml`.
+
+=== Creating a test function
+A new test module can be added by placing a new test function in an existent test module (e.g. `<root-directory>/tests/requests.rs`).
+PDK test functions are `async` functions decorated with `#[pdk_test]` attribute.
+
+[source,rust]
+----
+use pdk_test::pdk_test;
+
+#[pdk_test]
+async fn say_hello() {
+
+}
+----
+NOTE: This test function should never fail since it's body is empty. Run `make test` to ensure everything is working fine.
+
+=== Building a test composite
+Service instances can be registered in a `TestComposite`. Every service has a configuration, a hostname and an instance.
+An https://crates.io/crates/httpmock[httpmock] service can be configured by using an `HttpMockConfig` value. `httpmock` is
+a mock server that allows to write request mocks in plain Rust.
+It is a good practice to return a `Result` from the test function. The crate https://crates.io/crates/anyhow:[anyhow]
+allows to return every error type.
+
+[source,rust]
+----
+use pdk_test::{pdk_test, TestComposite};
+use pdk_test::services::httpmock::HttpMockConfig;
+
+#[pdk_test]
+async fn say_hello() -> anyhow::Result<()> {
+
+    // Configure HttpMock service
+    let backend_config = HttpMockConfig::builder()
+        .hostname("backend")
+        .port(80) // Port where the service will accept requests
+        .build();
+
+    // Register HTTPBin service and start the docker network
+    let composite = TestComposite::builder()
+        .with_service(backend_config)
+        .build()
+        .await?;
+
+    Ok(())
+}
+----
+NOTE: If the Docker engine is properly configured this test should not fail. Run `make test` to ensure everything is working fine.
+
+=== Getting service instances
+Every configured service instance in the composite has a handle for custom interaction. Typically, the handle returns the sockets
+where the service endpoints are available.
+
+[source,rust]
+----
+use pdk_test::{pdk_test, TestComposite};
+use pdk_test::services::httpmock::{HttpMock, HttpMockConfig};
+
+#[pdk_test]
+async fn say_hello() -> anyhow::Result<()> {
+
+    // Configure HttpMock service
+    let backend_config = HttpMockConfig::builder()
+        .hostname("backend")
+        .build();
+
+    // Register HTTPBin service and start the docker network
+    let composite = TestComposite::builder()
+        .with_service(backend_config)
+        .port(80) // Port where the service will accept requests
+        .build()
+        .await?;
+
+    // Get the httpmock handle
+    let httpmock: HttpMock = composite.service()?;
+
+    Ok(())
+}
+----
+NOTE: If the `httpmock` instance is properly configured this test should not fail. Run `make test` to ensure everything is working fine.
+
+=== Endpoint assertions
+To assert on endpoints a request must be hit to the tested endpoint by means an HTTP client.
+The https://crates.io/crates/reqwest/[reqwest] crate offers the most comprehensive and flexible Rust HTTP client.
+An endpoint mock must be mocked with https://docs.rs/httpmock/latest/httpmock/#whenthen-api[httpmock When/Then API] in order to test it.
+
+[source,rust]
+----
+use pdk_test::{pdk_test, TestComposite};
+use pdk_test::services::httpmock::{HttpMock, HttpMockConfig};
+
+#[pdk_test]
+async fn say_hello() -> anyhow::Result<()> {
+
+    // Configure HttpMock service
+    let backend_config = HttpMockConfig::builder()
+        .hostname("backend")
+        .port(80) // Port where the service will accept requests
+        .build();
+
+    // Register HTTPBin service and start the docker network
+    let composite = TestComposite::builder()
+        .with_service(backend_config)
+        .build()
+        .await?;
+
+    // Get the httpmock handle
+    let httpmock: HttpMock = composite.service()?;
+
+    // Connect the mock server
+    let mock_server = httpmock::MockServer::connect_async(httpmock.socket()).await;
+
+    // Configure the endpoint mocks
+    mock_server.mock_async(|when, then| {
+        when.path_contains("/hello");
+        then.status(202).body("World!");
+    }).await;
+
+    let base_url = mock_server.base_url();
+
+    // Hit the endpoint
+    let response = reqwest::get(format!("{base_url}/hello")).await?;
+
+    // Assert on response
+    assert_eq!(response.status(), 202);
+    assert_eq!(response.text().await?, "World!");
+
+    Ok(())
+}
+----
+NOTE: Run `make test` to ensure everything is working fine.
+
+=== Log dumping
+When an integration test fails, root causes can probably be found in the service logs. To improve the debugging experience, service
+logs are dumped in a dedicated file that is placed at `<root-directory>/target/pdk-test/<module-name>/<test>/<service>.log`.
+For the previous example, the directory structure could be:
+
+[source,]
+----
+my-policy
+├── Cargo.lock
+├── Cargo.toml
+├── playground
+├── src
+├── tests
+└── target
+    └── pdk-test
+        └── requests
+            └── say_hello
+                └── backend.log
+----
+
+=== Configuring Flex Service
+A `Flex` service can be configured by registering a `FlexConfig` in the `TestComposite`.
+Flex service configurable properties are:
+
+[cols="1,1"]
+|===
+|Property |Content
+
+|`version`
+|Flex version to test.
+
+|`hostname`
+|Hostname of the Flex service. By default, "local-flex".
+
+|`config_mounts`
+|A map of local directories where the Flex service will look up for configuration files.
+`POLICY_DIR` and `COMMON_CONFIG_DIR` constants are defined in `common.rs` module when the project is created.
+Usually you will add the directory with the specific configuration for the actual test function. For the example it will be set
+into `SAY_HELLO_CONFIG_DIR`.
+|`ports`
+|A List of ports where the Flex service is waiting for requests. It must coincide with the ports configured at
+|===
+
+[source,rust]
+----
+mod common;
+use common::*;
+
+use pdk_test::{pdk_test, TestComposite};
+use pdk_test::port::Port;
+use pdk_test::services::flex::FlexConfig;
+
+// Directory with the configurations for the `say_hello` test.
+const SAY_HELLO_CONFIG_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/requests/say_hello");
+
+// Port where Flex is waiting for requests
+const FLEX_PORT: Port = 8081;
+
+#[pdk_test]
+async fn say_hello() -> anyhow::Result<()> {
+
+    // Configure a Flex service
+    let flex_config = FlexConfig::builder()
+        .version("1.6.1")
+        .hostname("local-flex")
+        .config_mounts([
+            (POLICY_DIR, "policy"),
+            (COMMON_CONFIG_DIR, "common"),
+            (SAY_HELLO_CONFIG_DIR, "say_hello"),
+        ])
+        .ports([FLEX_PORT])
+        .build();
+
+    let composite = TestComposite::builder()
+        .with_service(flex_config)
+        .build()
+        .await?;
+}
+----
+NOTE: Run `make test` to ensure everything is working fine.
+
+=== Hit on Flex endpoints
+Flex endpoints are exposed with external base URLs depending on what port must be hit. To access those URLs, the
+Flex service instance handle offers an `external_url()` method indexed by port.
+
+[source,rust]
+----
+use pdk_test::{pdk_test, TestComposite, port::Port};
+use pdk_test::services::flex::Flex;
+
+const FLEX_PORT: Port = 8081;
+
+async fn build_composite() -> anyhow::Result<TestComposite> {
+    todo!("Configuration stuff comes here")
+}
+
+#[pdk_test]
+async fn say_hello() -> anyhow::Result<()> {
+    // Invoke a helper composite builder function for simplicity
+    let composite = build_composite().await?;
+
+    // Get the Flex service handle
+    let flex: Flex = composite.service()?;
+
+    // Get the URL for our configured port
+    let flex_url = flex.external_url(FLEX_PORT).unwrap();
+
+    let response = reqwest::get(format!("{flex_url}/hello")).await?;
+
+    // Make assertions
+
+    Ok(())
+}
+----
+
+=== Putting all services working together
+Usually a PDK integration test will include a Flex service and at least one backend service.
+Mocks are configured for backend and a request to Flex service is hit for assertions.
+The next code is the default test generated by the `anypoint-cli` tool.
+
+[source,rust]
+----
+mod common;
+
+use httpmock::MockServer;
+use pdk_test::{pdk_test, TestComposite};
+use pdk_test::port::Port;
+use pdk_test::services::flex::{FlexConfig, Flex};
+use pdk_test::services::httpmock::{HttpMockConfig, HttpMock};
+
+use common::*;
+
+// Directory with the configurations for the `hello` test.
+const HELLO_CONFIG_DIR: &str =  concat!(env!("CARGO_MANIFEST_DIR"), "/tests/requests/hello");
+
+// Flex port for the internal test network
+const FLEX_PORT: Port = 8081;
+
+// This integration test shows how to build a test to compose a local-flex instance
+// with a MockServer backend
+#[pdk_test]
+async fn hello() -> anyhow::Result<()> {
+
+    // Configure a Flex service
+    let flex_config = FlexConfig::builder()
+        .version("1.6.1")
+        .hostname("local-flex")
+        .ports([FLEX_PORT])
+        .config_mounts([
+            (POLICY_DIR, "policy"),
+            (COMMON_CONFIG_DIR, "common"),
+            (HELLO_CONFIG_DIR, "hello"),
+        ])
+        .build();
+
+    // Configure an HttpMock service
+    let httpmock_config = HttpMockConfig::builder()
+        .port(80)
+        .version("latest")
+        .hostname("backend")
+        .build();
+
+    // Compose the services
+    let composite = TestComposite::builder()
+        .with_service(flex_config)
+        .with_service(httpmock_config)
+        .build()
+        .await?;
+
+    // Get a handle to the Flex service
+    let flex: Flex = composite.service()?;
+
+    // Get an external URL to point the Flex service
+    let flex_url = flex.external_url(FLEX_PORT).unwrap();
+
+    // Get a handle to the HttpMock service
+    let httpmock: HttpMock = composite.service()?;
+
+    // Create a MockServer
+    let mock_server = MockServer::connect_async(httpmock.socket()).await;
+
+    // Mock a /hello request
+    mock_server.mock_async(|when, then| {
+        when.path_contains("/hello");
+        then.status(202).body("World!");
+    }).await;
+
+    // Perform an actual request
+    let response = reqwest::get(format!("{flex_url}/hello")).await?;
+
+    // Assert on the response
+    assert_eq!(response.status(), 202);
+
+    Ok(())
+}
+----
+
+=== Supported Services
+The 3 types of services supported by PDK Test library:
+
+[cols="1,1"]
+|===
+|Service |Description
+
+|`Flex`
+|Flex service instance.
+
+|`httpmock`
+|Service binding to the Rust's https://crates.io/crates/httpmock:[httpmock] server.
+
+|`httpbin`
+|Service binding to the https://httpbin.org/[HTTPBin] server.
+|===
+
+=== Limitations
+Currently, it is not possible to define more types of service. Ideally the offered service types should cover the majority of use-cases for
+integration testing.
