@@ -12,9 +12,9 @@ PDK provides the following parameters that you can inject into the #[entrypoint]
 * `CacheBuilder`: Provides the caching features of the policy. For more information about caching, see xref:policies-pdk-configure-features-caching.adoc[].
 * `StreamProperties`: Provides a structure to share properties with other policies that process the same request. For more information about sharing information between policies, see <<streamproperties>>.
 
-You can also directly inject the `HttpClient` and `StreamProperties` parameter into the wrapped functions. Choose where to inject these parameters based on where they are used. For example, because the HTTP call must be performed inside the wrapped functions, it is best to directly inject. However, if you want to use the `HttpClient` in both `on_response` and `on_request` functions, you should inject the `HttpClient` in the `#[entrypoint]`. 
+You can also directly inject the `HttpClient` and `StreamProperties` parameter into the `on_request` or `on_response` wrapped functions. For example, if you need to perform an HTTP call inside the `on_request` function, inject `HTTPClient` directly into that function. 
 
-If the parameters require some initial configuration steps that must only be performed once. It is best to inject the parameters into the `#[entrypoint]` to complete the configuration steps to increase the performance of the wrapped functions.
+For best practice, inject the parameters only where they must be used. However, if the parameters require initialization steps that only need to be performed once when the policy is applied, it is best to inject the parameters into the `#[entrypoint]` to complete the configuration steps to increase the performance of the wrapped functions.
 
 == on_request and on_response Wrapped Functions
 
