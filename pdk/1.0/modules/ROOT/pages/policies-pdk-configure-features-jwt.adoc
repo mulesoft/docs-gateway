@@ -6,7 +6,7 @@ endif::[]
 
 NOTE: To view an example policy project that uses PDK's JWT Library, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/jwt-validation/README.md[JWT Validation Policy Example^].
 
-JSON Web Token (JWT) is a URL-secure method of representing claims to be transferred between two parties. The JWT token contains claims encoded in a JSON object as either the payload of a JSON Web Signature (JWS) or as a JSON web encryption (JWE) structure in plain text. This enables the claims to be digitally signed and integrity protected with a message authentication code (MAC). Because the token is signed, you can trust the information and its source.
+JSON Web Token (JWT) is a URL-secure method of representing claims to be transferred between two parties. The JWT token contains claims encoded in a JSON object as either the payload of a JSON Web Signature (JWS) or as a JSON web encryption (JWE) structure in plain text. This enables the claims to be digitally signed and protected with a message authentication code (MAC). Because the token is signed, you can trust the information and its source.
 
 The Flex Gateway Policy Development Kit (PDK) JWT library provides a set of tools to validate the JWT signatures and to extract and validate the claims of all incoming requests.
 
@@ -28,7 +28,7 @@ pub enum TokenProvider {
 }
 ----
 
-Both providers implement the following trait:
+Both providers implement the `TokenProvision` trait:
 
 [source,Rust]
 ----
@@ -85,7 +85,7 @@ spec:
 +
 NOTE: The default value for the parameter is a Dataweave expression that extracts a token from the `key` header. To learn more about defining Dataweave configuration parameters, see xref:policies-pdk-create-schema-definition.adoc#dataweave-expressions[DataWeave Expressions].
 
-. Use the following code example the `tokenExtractor` to extract the custom JWT token with the defined expression:
+. Use the following code example to extract the custom JWT token with the defined expression:
 +
 [source,Rust]
 ----
@@ -136,6 +136,7 @@ pub fn new(algorithm: SigningAlgorithm, key_length: SigningKeyLength, key: Strin
 
 PDK supports the following signing algorithms and key lengths:
 
+[%autowidth.spread,cols="a,a"]
 |===
 | Signing Algorithm | Signing Key Length
 | RSA | 256, 384 and 512
@@ -228,13 +229,13 @@ async fn configure(launcher: Launcher, Configuration(configuration): Configurati
 }
 ----
 
-Because, the `SignatureValidator` confirms that the policy configurations is correct during initialization, initializing the `SignatureValidator` in the `#[entrypoint]` function throws early error when the policy is applied rather than when the API receives a request.
+Because, the `SignatureValidator` confirms that the policy configurations is correct during initialization, initializing the `SignatureValidator` in the `#[entrypoint]` function throws an early error when the policy is applied rather than when the API receives a request.
 
 After initialization, the policy passes the `SignatureValidator` to the `on_request` wrapped function to perform `validate` method on incoming requests.
 
 == Claim Validation
 
-Because JWT tokens typically contain a set of standard claims that can be validated, the JWT library provides a small set of claim validators in the `ClaimValidator` enum:
+Because JWT tokens typically contain a set of standard claims that can be validated, the JWT library provides a set of claim validators in the `ClaimValidator` enum:
 
 [source,Rust]
 ----
@@ -353,7 +354,7 @@ async fn filter(
 
 === Exp (expiration) claim validation
 
-`ClaimValidator::Exp`` validates the JWT token is not expired:
+`ClaimValidator::Exp` validates the JWT token is not expired:
 
 . If the `mandatory` parameter is set to `true` in initialization, it verifies the `exp` JWT claim is included in the incoming token.
 . If the `exp` claim is included, it verifies that the `current_time` parameter passed in the `ClaimValidator::Exp` initialization is before the `exp` claim value.
@@ -444,7 +445,7 @@ pub struct ScriptClaimValidator {
 }
 ----
 
-The `ScriptClaimValidator` takes two properties:
+The `ScriptClaimValidator` has two properties:
 
 * `mandatory_custom_claims`: Incoming JWT tokens must contain the mandatory claims and the claims must be valid.
 * `non_mandatory_custom_claims`: Incoming JWT tokens do not have to contain the non-mandatory claims. If they do contain the claim, the claim must be valid.
@@ -459,7 +460,7 @@ pub struct ScriptClaimRule {
 }
 ----
 
-The `ScriptClaimRule` accepts two parameters:
+The `ScriptClaimRule` has two parameters:
 
 * `claim_name`: The name of the claim the rule validates.
 * `rule`: The DataWeave expression that validates the claim logic that has to be executed. 
@@ -498,7 +499,7 @@ To instantiate a `ScriptClaimValidator` and use it to perform custom validations
 ----
 
 . Initialize the `ScriptClaimValidator` in the entrypoint function using the configured DataWeave expression a the claim rule and inject the validator into the wrapped function:
-
++
 [source,rust]
 ----
 #[entrypoint]
@@ -532,7 +533,7 @@ async fn configure(launcher: Launcher, Configuration(configuration): Configurati
 ----
 
 . Perform custom validations in the wrapped function by executing the injected validator:
-
++
 [source,rust]
 ----
 async fn filter(
@@ -570,7 +571,7 @@ async fn filter(
 
 After the signature validation executes, the result contains the parsed JWT claims from the JWT token. 
 
-In case the signature is invalid or you choose not to validate the signature, PDK provides additional methods to parse the JWT claims by using the `JWTClaimsParser`. This structure provides a “parse” method that returns a `Result<JWTClaims, JWTError>`.
+In case the signature is invalid or you choose not to validate the signature, PDK provides additional methods to parse the JWT claims by using the `JWTClaimsParser`. This structure provides a `parse` method that returns `Result<JWTClaims, JWTError>`.
 
 [source,rust]
 ----
