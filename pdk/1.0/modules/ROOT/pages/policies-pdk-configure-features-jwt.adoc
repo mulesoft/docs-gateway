@@ -124,6 +124,7 @@ async fn configure(launcher: Launcher, Configuration(configuration): Configurati
 +
 NOTE: The `#[entrypoint]` function initializes `TokenProvider` and then passes is as parameter to the `on_request` wrapped function where the token is extracted.
 
+[[signature-validation]]
 == Signature Validation
 
 The JWT library provides a helper for performing signature validation of the incoming requests authorization tokens. Depending on the algorithm used by the policy, initialize a `SignatureValidator` with the corresponding configuration:
@@ -569,7 +570,7 @@ async fn filter(
 
 == Accessing Claims and Propagating to Headers
 
-After the signature validation executes, the result contains the parsed JWT claims from the JWT token. 
+After the <<signature-validation, signature validation>> executes, the result contains the parsed JWT claims from the JWT token. 
 
 In case the signature is invalid or you choose not to validate the signature, PDK provides additional methods to parse the JWT claims by using the `JWTClaimsParser`. This structure provides a `parse` method that returns `Result<JWTClaims, JWTError>`.
 
