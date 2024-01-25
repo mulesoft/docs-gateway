@@ -8,18 +8,22 @@ Flex Gateway Policy Development Kit (PDK) provides an automated testing framewor
 
 To test your policy, complete the following tasks:
 
-. <<before-you-begin>>
-. <<register>>
-. <<add-policy-id>>
-. <<configure-the-policy>>
-. <<deploy-the-policy-with-pdk>>
+. Review <<before-you-begin>>.
+. Review <<structure>>.
+. <<register>>.
+. <<add-policy-id>>.
+. <<run-integration-test>>.
+. <<write-an-integration-test>>.
+. <<review-service-logs>>.
 
+[[before-you-begin]]
 == Before You Begin
 
 Ensure that you have:
 
 * https://www.docker.com/[Installed Docker^]
 
+[[structure]]
 == Integration Tests Directory Structure
 
 By default, the `<root-directory>/tests` directory contains the following files:
@@ -64,18 +68,24 @@ A different registration file must be created on each device testing the policy.
 
 The registration file is ignored for storage in remote repositories and is listed in `.gitignore` file located at the root of the project directory.
 
-[[add-policy-id]]
+[[configure-the-custom-policy]]
 == Add the Custom Policy ID in Policy Configuration Files
 
-Print the policy ID by running the `show-policy-ref-name`:
+Each test function requires an `api.yaml` file to configure the custom policy for that request. PDK provides the `request/hello/api.yaml` file as an example. You can copy and paste the example file into the resource folders of your test functions.
+
+To configure the custom policy:
+
+. Print the policy ID by running the `show-policy-ref-name`:
 
 [source,ssh]
 ----
 make show-policy-ref-name
 ----
 
-Add the policy ID to the all API configuration files, typically the `/tests/<module>/<test>/api.yaml` file:
+. Copy the result.
 
+. Override `{{project-name}}` in `api.yaml` with your policy ID, for example:
++
 [source,yaml]
 ----
     policies:
@@ -83,8 +93,14 @@ Add the policy ID to the all API configuration files, typically the `/tests/<mod
         name: <custom-policy-id>
 ----
 
-[[run-intergration-tests]]
-== Run Integration Tests
+. Configure the policy's configuration parameters.
++
+To find your configuration parameters, see the `gcl.yaml` file.
+
+. Copy and past the `api.yaml` into the resource folders of your other test functions.
+
+[[run-integration-test]]
+== Run an Integration Test
 
 To run the integrations tests modules in the `/tests` folder, execute the `test` command:
 
@@ -93,18 +109,19 @@ To run the integrations tests modules in the `/tests` folder, execute the `test`
 make test
 ----
 
+Run this test as you add additional features to your integration test to ensure proper configuration.
+
 NOTE: The `test` command compiles the policy before running the integration tests.
 
+[[write-an-integration-test]]
+== Write an Integration Test
 
-== Writing an Integration Test
-
-PDK integration tests contain a composite of services running inside a Docker network.
-
-=== pdk-test Library
+PDK integration tests contain a composite of services running inside a Docker network. You can register service instances in a `TestComposite` object. Every service has a configuration, hostname, and instance
 
 The `pdk-test` crate contains all the functionality for writing integration tests for custom policies in PDK. It is included in the `[dev-dependencies]` section of the `Cargo.toml` file.
 
-=== Creating a Test Function
+[[create-a-test-function]]
+=== Create a Test Function
 
 Add a new test module by placing a new test function in an existing test module, for example `/tests/requests.rs`.
 
@@ -122,12 +139,7 @@ async fn say_hello() {
 
 NOTE: Because the body is empty, this test function never fails. Run `make test` to ensure everything is working fine.
 
-
-
-== Build a Test Composite
-
-You can register service instances in a `TestComposite` object. Every service has a configuration, hostname, and instance.
-
+[[supported-services]]
 === Supported Services
 
 The PDK test library supports the following services:
@@ -145,6 +157,7 @@ The PDK test library supports the following services:
 
 The supported services cover the majority of use-cases for integration testing. It is not possible to define different types of service.
 
+[[httpmock-service]]
 === httpmock Service
 
 `httpmock` is a mock server that enables you to write request mocks in Rust. You can configure an https://crates.io/crates/httpmock[httpmock^] service by using an `HttpMockConfig` value. It is a best practice to return a `Result` from the test function. The Rust crate https://crates.io/crates/anyhow:[anyhow^] Rust crate enables you to return different default error types.
@@ -177,10 +190,12 @@ async fn say_hello() -> anyhow::Result<()> {
 
 NOTE: If the Docker engine is properly configured, this test passes. Run `make test` to ensure proper configuration.
 
-=== Get Service Instances
+[[get-a-services-hande]]
+=== Get a Service's Handle
 
-Every configured service instance in the composite has a handle for custom interaction. The handle returns the sockets
-where the service endpoints are available.
+Every configured service instance in the composite has a handle for custom interaction. The handle returns the sockets where the service endpoints are available.
+
+To find a service's handle, see the following code example:
 
 [source,rust]
 ----
@@ -211,6 +226,7 @@ async fn say_hello() -> anyhow::Result<()> {
 
 NOTE: If the `httpmock` instance is properly configured, this test passes. Run `make test` to ensure proper configuration.
 
+[[http-entpoint-requests]]
 === HTTP Endpoint Requests
 
 To mock endpoints, use the https://docs.rs/httpmock/latest/httpmock/#whenthen-api[httpmock When/Then API^].
@@ -268,6 +284,7 @@ async fn say_hello() -> anyhow::Result<()> {
 
 NOTE: Run `make test` to ensure proper configuration.
 
+[[configure-a-flex-service-instance]]
 === Configure a Flex Service Instance
 
 Configure a `Flex` service by registering a `FlexConfig` in the `TestComposite`.
@@ -333,6 +350,7 @@ async fn say_hello() -> anyhow::Result<()> {
 
 NOTE: Run `make test` to ensure proper configuration.
 
+[[flex-service-endpoint-requests]]
 === Flex Service Endpoint Requests
 
 `Flex` service expose endpoints with external base URLs dependant on the port. To access those URLs, the
@@ -368,7 +386,8 @@ async fn say_hello() -> anyhow::Result<()> {
 }
 ----
 
-=== Putting all services working together
+[[combine-multiple-services]]
+=== Combine Multiple Services
 
 Usually a PDK integration test includes a `Flex` service and at least one backend service.
 
@@ -451,6 +470,7 @@ async fn hello() -> anyhow::Result<()> {
 }
 ----
 
+[[review-service-logs]]
 == Review Service Logs
 
 After an integration test fails, you can view the service logs to find errors. To improve the debugging experience, there is a dedicated service log in each test folder at `<root-directory>/target/pdk-test/<module-name>/<test>/<service>.log`.
