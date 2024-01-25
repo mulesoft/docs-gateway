@@ -25,8 +25,8 @@ metadata:
 spec:
     extends:
         - name: extension-definition
-    properties: 
-        stringProperty: 
+    properties:
+        stringProperty:
         type: string
 ----
 
@@ -52,7 +52,7 @@ The supported labels are:
 
 * `title`: The policy name that appears in the UI.
 * `description`: A brief explanation of the policy's behavior.
-* `category`: The category the policy appears under. Supported values are: `security`, `compliance`, `transformation`, `quality of service`, and `troubleshooting`. 
+* `category`: The category the policy appears under. Supported values are: `security`, `compliance`, `transformation`, `quality of service`, and `troubleshooting`.
 
 For example:
 
@@ -122,9 +122,9 @@ required:
     - password
 ----
 
-If you don't set a value for a required property when applying a policy, the property uses the default value. 
+If you don't set a value for a required property when applying a policy, the property uses the default value.
 
-For non-required properties, the API Manager UI suggests the configured default value for properties. If you don't specify the value for non-required properties, the property is not configured. 
+For non-required properties, the API Manager UI suggests the configured default value for properties. If you don't specify the value for non-required properties, the property is not configured.
 
 In the following configuration table, if the policy was applied in API Manager, `user2` would appear as a suggested value for `username` but does not affect if the value is configured:
 
@@ -180,33 +180,37 @@ properties:
         type: string
 ----
 +
-The `string` type also supports enables you to configure a `format` type. 
+The `string` type also supports enables you to configure a `format` type.
 +
 The supported formating types are:
 +
-* `uri`: Specifies the expected text is a URI
-* `ip-range`: Specifies the expected text is a range or IPs
-* `dataweave`: specifies the expected text is a DataWeave variable
-+
-Defining a string as the `uri` or `ip-range` provides additional validations, but defining a string as `dataweave` notifies Flex Gateway that the input must be transformed. For more information about DataWeave expressions, see <<dataweave-expressions>>.
+* `dataweave`: Specifies the input parameter is a DataWeave variable and notifies Flex Gateway to transform the input. For more information about DataWeave expressions, see <<dataweave-expressions>>.
+* `service`: Specifies the input parameter is an URI and automatically creates a Flex Gateway service to enable HTTP calls from the policy.
+* `ip-range`: Specifies the expected text is a range or IPs and provides additional validation on the input.
+* `uri`: Specifies the expected text is an URI and provides additional validation on the input. Only use `uri` when the uri is not a service making HTTP calls from the policy.
 +
 The following yaml snippet demonstrates all string formats:
 +
 [source,yaml]
 ----
 properties:
-    loginUrl:
+    externalService:
         type: string
-        format: uri
-        default: "https://anypoint.mulesoft.com/login"
+        format: service
+        default: "https://auth-service:9000/login"
+    token:
+        type: string
+        format: dataweave
+        default: "#[splitBy(attributes.headers['Authorization'], ' ')[1]]"
     blockedIps:
         type: string
         format: ip-range
         default: "192.168.3.1/30"
-    token:
-	type: string
-        format: dataweave
-        default: "#[splitBy(attributes.headers['Authorization'], ' ')[1]]"
+    loginUrl:
+        type: string
+        format: uri
+        default: "https://anypoint.mulesoft.com/login"
+
 ----
 +
 Number::
@@ -377,7 +381,7 @@ Properties defined in the `gcl.yaml` files are mapped to the Rust data types in 
 |===
 
 
-[IMPORTANT] 
+[IMPORTANT]
 ====
 If a parameter in `gcl.yaml` is not defined as ‘required’, the parameter's counterpart in the `config.rs` is wrapped in an ‘Option’ object.
 
@@ -427,13 +431,13 @@ pub struct Config {
 |===
 
 
-For example, you can access the values in `struct Config` with the following `.operators` in the `entrypoint` function: 
+For example, you can access the values in `struct Config` with the following `.operators` in the `entrypoint` function:
 
 [source, rust]
 ----
 #[entrypoint]
-async fn configure(launcher: Launcher, Configuration(configuration): Configuration,) -> Result<(), LaunchError> { 
-    let config: Config = serde_json::from_slice(&configuration)?; 
+async fn configure(launcher: Launcher, Configuration(configuration): Configuration,) -> Result<(), LaunchError> {
+    let config: Config = serde_json::from_slice(&configuration)?;
     match config.reject_missing_tokens {
 ----
 

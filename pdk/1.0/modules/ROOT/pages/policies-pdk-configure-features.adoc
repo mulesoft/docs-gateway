@@ -4,23 +4,39 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-The following sections provide Rust code examples that complete various policy tasks. Implement the Rust code for your policy in the `src/lib.rs` file.
+The following pages provide Rust code examples that complete various policy tasks. Implement the Rust code for your policy in the `src/lib.rs` file.
 
 The code examples assume you have some prior knowledge of the Rust Programming Language. For more information about programming in Rust, see:
 
 * https://doc.rust-lang.org/book/[The Rust Programming Language Documentation ^]
 * https://rust-lang-nursery.github.io/rust-cookbook/intro.html[Rust Cookbook ^]
 
-
 == Before You Begin
 
 * xref:policies-pdk-create-project.adoc[Create a New Project]
-* xref:policies-create-schema-definition.adoc[Define a Schema Definition]
+* xref:policies-pdk-create-schema-definition.adoc[Define a Schema Definition]
 +
 NOTE: You may need to add or redefine configuration parameters while implementing your policy. 
 
-* Review <<policy-template>> before adding additional features.
+* Review <<policy-template>> and <<wrapped-functions>> before adding additional features.
 
+== Additional Features
+
+PDK provides code examples for the following policy features. Review <<policy-template>> and <<wrapped-functions>> before adding the additional features:
+
+* xref:policies-pdk-configure-features-logging.adoc[Policy Logging]
+* xref:policies-pdk-configure-features-headers.adoc[Read and Writing to Request Headers and Body]
+* xref:policies-pdk-configure-features-inject-parameters.adoc[Inject Parameters]
+* xref:policies-pdk-configure-features-stop.adoc[Stop Request Execution]
+* xref:policies-pdk-configure-features-http-request.adoc[Perform an HTTP Call]
+* xref:policies-pdk-configure-features-jwt.adoc[Use JWT Library Functions]
+* xref:policies-pdk-configure-features-dataweave.adoc[Use DataWeave Expressions]
+* xref:policies-pdk-configure-features-share-data.adoc[Share Data Between Requests and Responses]
+* xref:policies-pdk-configure-features-libraries.adoc[Use Third-Party Libraries]
+* xref:policies-pdk-configure-features-caching.adoc[Share Data Between Workers and Caching]
+
+
+[[policy-template]]
 == Policy Template
 
 PDK provides the initial `src/lib.rs` file in the policy project as a template to begin implementing your policy:
@@ -30,9 +46,10 @@ PDK provides the initial `src/lib.rs` file in the policy project as a template t
 // Copyright 2023 Salesforce, Inc. All rights reserved.
 mod generated;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 
-use pdk::api::hl::*;
+use pdk::hl::*;
+use pdk::logger;
 
 use crate::generated::config::Config;
 
@@ -47,7 +64,13 @@ async fn request_filter(request_state: RequestState, _config: &Config) {
 
 #[entrypoint]
 async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
-    let config = serde_json::from_slice(&bytes)?;
+    let config: Config = serde_json::from_slice(&bytes).map_err(|err| {
+        anyhow!(
+            "Failed to parse configuration '{}'. Cause: {}",
+            String::from_utf8_lossy(&bytes),
+            err
+        )
+    })?;
     let filter = on_request(|rs| request_filter(rs, &config));
     launcher.launch(filter).await?;
     Ok(())
@@ -58,7 +81,7 @@ The policy performs some simple logging. For each incoming request, the policy l
 
 The following elements configure the policy:
 
-* `use pdk::api::hl::*;`: Imports all the necessary components of the PDK into the `lib.rs` source code.
+* `use pdk::api::hl::*;`: Imports all the components of the PDK into the `lib.rs` source code.
 * `#[entrypoint]` function: Executes when the policy is applied and calls the `request_filter` function. Variables defined inside this function are avaliable while the policy is applied.
 +
 The `#[entrypoint]` function receives the following parameters:
@@ -66,7 +89,7 @@ The `#[entrypoint]` function receives the following parameters:
 ** `Launcher`: Sets the filter functions.
 ** `Configuration`: Provides the configuration parameters defined in xref:policies-pdk-create-schema-definition.adoc[]. 
 
-* `request_filter`: Executes once per every request sent to the API instance to which the policy is applied. This function is the implementation of the filtering performed by the policy. Variables defined inside this function are available for the duration of the request.
+* `request_filter`: Executes once per every request sent to the API instance to which the policy is applied. This function implements the filtering performed by the example policy. Variables defined inside this function are available for the duration of the request.
 +
 The `request_filter` is an example of a wrapped function.
 +
@@ -78,11 +101,12 @@ let filter = on_request(|rs| request_filter(rs, &config));
 launcher.launch(filter).await?;
 ----
 
-=== Wrapped Functions
+[[wrapped-functions]]
+== Wrapped Functions
 
 The `on_response` or `on_request` wrapper defines when the filter function executes. 
 
-You can define functions other than the provided `requests_filter` and `response_filter` from the `#[entrypoint]` function. The `requests_filter` and `response_filter` are only examples.
+You can define custom functions other than the provided `requests_filter` and `response_filter` in the `#[entrypoint]` function. The `requests_filter` and `response_filter` are only examples.
 
 Instead of filtering an incoming request as shown in the pervious example, you can process the outgoing response by using the `on_response` wrapper:
 
@@ -94,7 +118,13 @@ async fn response_filter(response_state: ResponseState, _config: &Config) {
 
 #[entrypoint]
 async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
-    let config = serde_json::from_slice(&bytes)?;
+    let config: Config = serde_json::from_slice(&bytes).map_err(|err| {
+        anyhow!(
+            "Failed to parse configuration '{}'. Cause: {}",
+            String::from_utf8_lossy(&bytes),
+            err
+        )
+    })?;
     let filter = on_response(|rs| response_filter(rs, &config));
     launcher.launch(filter).await?;
     Ok(())
@@ -107,19 +137,25 @@ To filter both requests and responses, use bother wrappers:
 
 [source,Rust]
 ----
-async fn request_filter(request_state: RequestState, _config: &Config) {
-   ...
+async fn request_filter(request_state: RequestState,_config: &Config) {
+    ...
 }
 
-async fn response_filter(response_state: ResponseState, _config: &Config) {
+async fn response_filter(response_state: ResponseState,_config: &Config) {
     ...
 }
 
 #[entrypoint]
 async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
-    let config = serde_json::from_slice(&bytes)?;
+    let config: Config = serde_json::from_slice(&bytes).map_err(|err| {
+        anyhow!(
+            "Failed to parse configuration '{}'. Cause: {}",
+            String::from_utf8_lossy(&bytes),
+            err
+        )
+    })?;
     let filter = on_request(|rs| request_filter(rs, &config))
-        .on_response(|rs| response_filter(rs, &config));
+    .on_response(|rs| response_filter(rs, &config));
     launcher.launch(filter).await?;
     Ok(())
 }

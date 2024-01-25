@@ -1,4 +1,4 @@
-= Share Data Between Requests and Responses
+= Sharing Data Between Requests and Responses
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -25,22 +25,30 @@ async fn configure(launcher: Launcher) -> Result<()> {
 
     launcher
         .launch(filter)
-        .await
+        .await?;
+
+    Ok(())
 }
 ----
 
-Returning `RequestData` prevents a response from reaching a client early.`Flow::Continue` enum has a template parameter that enables you to pass data between the request and the response. Implement this by adding an `on_response` wrapped function to the `Flow` example used in <<stop-request-execution>>:
+Returning `RequestData` prevents a response from reaching a client early.`Flow::Continue` enum has a template parameter that enables you to pass data between the request and the response. Implement this by adding an `on_response` wrapped function to the `Flow` example used in xref:policies-pdk-configure-features-stop.adoc[]:
 
 [source,Rust]
 ----
 async fn request_filter(state: RequestState) -> Flow<String> {
     let state = state.into_headers_state().await;
-    if state.header("authorization").is_some() {
+    let handler = state.handler();
+    if handler.header("authorization").is_some() {
         Flow::Continue(state.path())
     } else {
-        Flow::Break(Response::new(401)
-            .with_headers(vec![("WWW-Authenticate".to_string(), "Bearer realm=\"oauth2\"".to_string())])
-            .with_body(r#"{ "error": "token was not present"}"#))
+        Flow::Break(
+            Response::new(401)
+                .with_headers(vec![(
+                    "WWW-Authenticate".to_string(),
+                    "Bearer realm=\"oauth2\"".to_string(),
+                )])
+                .with_body(r#"{ "error": "token was not present"}"#),
+        )
     }
 }
 
@@ -49,3 +57,7 @@ async fn response_filter(state: ResponseState, RequestData(path): RequestData<St
     logger::info!("Path: {path}, Status: {}", state.status_code());
 }
 ----
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]
