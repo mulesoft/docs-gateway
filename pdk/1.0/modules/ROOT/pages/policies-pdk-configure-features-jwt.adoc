@@ -572,7 +572,7 @@ async fn filter(
 
 After the <<signature-validation, signature validation>> executes, the result contains the parsed JWT claims from the JWT token. 
 
-In case the signature is invalid or you choose not to validate the signature, PDK provides additional methods to parse the JWT claims by using the `JWTClaimsParser`. This structure provides a `parse` method that returns `Result<JWTClaims, JWTError>`.
+In case the signature is invalid or you choose not to validate the signature, PDK provides the `JWTClaimsParser` to parse claims. This structure provides a `parse` method that returns `Result<JWTClaims, JWTError>`.
 
 [source,rust]
 ----
@@ -584,7 +584,7 @@ if claims.is_err() {
 }
 ----
 
-To access any claim, the `JWTClaims` struct exposes the following methods to access standard JWT claims:
+After you run the signature validation or the parsing method, use the following methods exposed by the `JWTClaims` struct to access the JWT claims:
 
 [source,rust]
 ----
