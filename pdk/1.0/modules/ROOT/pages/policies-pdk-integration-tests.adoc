@@ -22,7 +22,7 @@ Ensure that you have:
 
 == Integration Tests Directory Structure
 
-By default, the `<root-directory>/tests` directory contains the following files
+By default, the `<root-directory>/tests` directory contains the following files:
 
 ----
 tests
@@ -36,19 +36,17 @@ tests
         └── api.yaml
 ----
 
-The `/tests` directory contains the intergration tests. By default, the folder contains:
+The `/tests` directory contains the integration tests. By default, the folder contains:
 
-* `requests.rs` file: An individual module and executable
-* `commons.rs` file: Contains common constants and functionalities that have to be included in every integration test module
+* `requests.rs` file: An individual test module and executable.
+* `commons.rs` file: A test module that contains functionalities that must be included in every integration test module.
 
 Each test module has a configuration directory. By default, `/test` includes the following folders: 
 
 * `/requests`
 * `/common`
 
-Every module contains test functions annotated with the `#[pdk_test]` attribute. For each test function exists a correlative
-configuration subdirectory. For example, the `requests::hello` test function has the corresponding `requests/hello` directory containing all the all the configuration files related to the `hello` test.
-
+Every module contains test functions annotated with the `#[pdk_test]` attribute. Each test function also has a configuration subdirectory. For example, the `requests::hello` test function has the corresponding `requests/hello` directory containing all the `hello` test configuration files.
 
 
 [[register]]
@@ -56,7 +54,7 @@ configuration subdirectory. For example, the `requests::hello` test function has
 
 To begin using the `test` command to debug your custom policy, you must register a Flex Gateway in Local Mode.
 
-For the `test` command to work, a Flex Gateway `registration.yaml` file must be in `<root-directory>/tests/common` directory. An easy way to do this is to run the registration command in the directory, or you can move a `registration.yaml` file of a previously registered Flex gateway to the directory.
+For the `test` command to work, a Flex Gateway `registration.yaml` file must be in the `<root-directory>/tests/common` directory. An easy way to do this is to run the registration command in the directory, or you can move a `registration.yaml` file of a previously registered Flex Gateway to the directory.
 
 The `test` command only supports Flex Gateways running in Local Mode in a Docker Container. To register a Flex Gateway, see xref:gateway::flex-local-reg-run.adoc#docker[]
 
@@ -85,7 +83,7 @@ Add the policy ID to the all API configuration files, typically the `/tests/<mod
         name: <custom-policy-id>
 ----
 
-
+[[run-intergration-tests]]
 == Run Integration Tests
 
 To run the integrations tests modules in the `/tests` folder, execute the `test` command:
@@ -100,16 +98,15 @@ NOTE: The `test` command compiles the policy before running the integration test
 
 == Writing an Integration Test
 
-PDK integration tests are slightly inspired by https://docs.docker.com/compose/[Docker Compose], where there is a composite of
-services running inside a Docker network
+PDK integration tests contain a composite of services running inside a Docker network.
 
 === pdk-test Library
 
-The `pdk-test` Library is the crate containing all the functionality for writing integration tests in PDK. It is included in the `[dev-dependencies]` section of the `Cargo.toml` file.
+The `pdk-test` crate contains all the functionality for writing integration tests for custom policies in PDK. It is included in the `[dev-dependencies]` section of the `Cargo.toml` file.
 
-=== Creating a test function
+=== Creating a Test Function
 
-Add a new test module by placing a new test function in an existentins test module (e.g. `<root-directory>/tests/requests.rs`).
+Add a new test module by placing a new test function in an existing test module, for example `/tests/requests.rs`.
 
 PDK test functions are `async` functions decorated with `#[pdk_test]` attribute:ß
 
@@ -125,6 +122,12 @@ async fn say_hello() {
 
 NOTE: Because the body is empty, this test function never fails. Run `make test` to ensure everything is working fine.
 
+
+
+== Build a Test Composite
+
+You can register service instances in a `TestComposite` object. Every service has a configuration, hostname, and instance.
+
 === Supported Services
 
 The PDK test library supports the following services:
@@ -134,24 +137,19 @@ The PDK test library supports the following services:
 |Service |Description
 
 | `Flex`
-|Flex Gateway service instance.
+| Flex Gateway service instance.
 
 | `httpmock`
 | Service binding to the Rust's https://crates.io/crates/httpmock:[httpmock] server.
-
-| `httpbin`
-| Service binding to the https://httpbin.org/[HTTPBin] server.
 |===
 
-=== Building a test composite
+The supported services cover the majority of use-cases for integration testing. It is not possible to define different types of service.
 
-You can register service instances in a `TestComposite` object. Every service has a configuration, hostname, and instance.
+=== httpmock Service
 
+`httpmock` is a mock server that enables you to write request mocks in Rust. You can configure an https://crates.io/crates/httpmock[httpmock^] service by using an `HttpMockConfig` value. It is a best practice to return a `Result` from the test function. The Rust crate https://crates.io/crates/anyhow:[anyhow^] Rust crate enables you to return different default error types.
 
-You can configure an https://crates.io/crates/httpmock[httpmock^] by using an `HttpMockConfig` value. `httpmock` is
-a mock server that allows to write request mocks in plain Rust.
-It is a good practice to return a `Result` from the test function. The Rust crate https://crates.io/crates/anyhow:[anyhow]
-enables you to return different error types.
+To configure an `httpmock` service, see the following code example:
 
 [source,rust]
 ----
@@ -177,10 +175,11 @@ async fn say_hello() -> anyhow::Result<()> {
 }
 ----
 
-NOTE: If the Docker engine is properly configured, this test passes. Run `make test` to ensure everything is configured correctly.
+NOTE: If the Docker engine is properly configured, this test passes. Run `make test` to ensure proper configuration.
 
-=== Getting service instances
-Every configured service instance in the composite has a handle for custom interaction. Typically, the handle returns the sockets
+=== Get Service Instances
+
+Every configured service instance in the composite has a handle for custom interaction. The handle returns the sockets
 where the service endpoints are available.
 
 [source,rust]
@@ -191,15 +190,15 @@ use pdk_test::services::httpmock::{HttpMock, HttpMockConfig};
 #[pdk_test]
 async fn say_hello() -> anyhow::Result<()> {
 
-    // Configure HttpMock service
+    // Configure HTTPMock service
     let backend_config = HttpMockConfig::builder()
         .hostname("backend")
         .build();
 
-    // Register HTTPBin service and start the docker network
+    // Register HTTPMock service and start the docker network
     let composite = TestComposite::builder()
         .with_service(backend_config)
-        .port(80) // Port where the service will accept requests
+        .port(80) // Port where the service accepts requests
         .build()
         .await?;
 
@@ -209,15 +208,18 @@ async fn say_hello() -> anyhow::Result<()> {
     Ok(())
 }
 ----
-NOTE: If the `httpmock` instance is properly configured this test should not fail. Run `make test` to ensure everything is working fine.
 
-=== Endpoint assertions
+NOTE: If the `httpmock` instance is properly configured, this test passes. Run `make test` to ensure proper configuration.
 
-To assert on endpoints, make requests to the endpoint with an HTTP client.
+=== HTTP Endpoint Requests
+
+To mock endpoints, use the https://docs.rs/httpmock/latest/httpmock/#whenthen-api[httpmock When/Then API^].
+
+After mocking the endpoint, use an HTTP client to make endpoint requests.
 
 The https://crates.io/crates/reqwest/[reqwest^] crate offers the most comprehensive and flexible Rust HTTP client.
 
-Mock endpoints using the https://docs.rs/httpmock/latest/httpmock/#whenthen-api[httpmock When/Then API^].
+To mock endpoints and make requests, see the following code example:
 
 [source,rust]
 ----
@@ -264,54 +266,33 @@ async fn say_hello() -> anyhow::Result<()> {
 }
 ----
 
-NOTE: Run `make test` to ensure everything is working fine.
+NOTE: Run `make test` to ensure proper configuration.
 
-=== Service Logs
+=== Configure a Flex Service Instance
 
-After an intergration test fails, you can view the service logs to find the erros. To improve the debugging experience, there is a dedicated service log in test folder, 
+Configure a `Flex` service by registering a `FlexConfig` in the `TestComposite`.
 
-service
-logs are dumped in a dedicated file that is placed at `<root-directory>/target/pdk-test/<module-name>/<test>/<service>.log`.
-For the previous example, the directory structure could be:
-
-[source,]
-----
-<root-directory>
-├── Cargo.lock
-├── Cargo.toml
-├── playground
-├── src
-├── tests
-└── target
-    └── pdk-test
-        └── requests
-            └── say_hello
-                └── <service>.log
-----
-
-=== Configuring Flex Service
-
-A `Flex` service can be configured by registering a `FlexConfig` in the `TestComposite`.
-Flex service configurable properties are:
+`Flex` services have the following configurable properties are:
 
 [cols="1,1"]
 |===
 |Property |Content
 
 |`version`
-|Flex version to test.
+|Flex Gateway version to test.
 
 |`hostname`
-|Hostname of the Flex service. By default, "local-flex".
+|Hostname of the `Flex` service. By default, "local-flex".
 
 |`config_mounts`
-|A map of local directories where the Flex service will look up for configuration files.
-`POLICY_DIR` and `COMMON_CONFIG_DIR` constants are defined in `common.rs` module when the project is created.
-Usually you will add the directory with the specific configuration for the actual test function. For the example it will be set
-into `SAY_HELLO_CONFIG_DIR`.
+|A map of local directories where the `Flex` service finds configuration files.
+`POLICY_DIR` and `COMMON_CONFIG_DIR` constants are defined in `common.rs` module when the project is created. +
+Add the directory with the specific configuration for the actual test function, for example, the `hello` test uses `SAY_HELLO_CONFIG_DIR`.
 |`ports`
-|A List of ports where the Flex service is waiting for requests. It must coincide with the ports configured at
+|A List of ports where the `Flex` service is listening for requests. It must coincide with the ports configured in the `spec.address` property in the `api.yaml` configuration file.
 |===
+
+To configure a `Flex` service instance, see the following code example:
 
 [source,rust]
 ----
@@ -349,11 +330,13 @@ async fn say_hello() -> anyhow::Result<()> {
         .await?;
 }
 ----
-NOTE: Run `make test` to ensure everything is working fine.
 
-=== Hit on Flex endpoints
-Flex endpoints are exposed with external base URLs depending on what port must be hit. To access those URLs, the
-Flex service instance handle offers an `external_url()` method indexed by port.
+NOTE: Run `make test` to ensure proper configuration.
+
+=== Flex Service Endpoint Requests
+
+`Flex` service expose endpoints with external base URLs dependant on the port. To access those URLs, the
+Flex service instance handle provides `external_url()` method indexed by port, for example:
 
 [source,rust]
 ----
@@ -386,9 +369,10 @@ async fn say_hello() -> anyhow::Result<()> {
 ----
 
 === Putting all services working together
-Usually a PDK integration test will include a Flex service and at least one backend service.
-Mocks are configured for backend and a request to Flex service is hit for assertions.
-The next code is the default test generated by the Anypoint CLI PDK Plugin.
+
+Usually a PDK integration test includes a `Flex` service and at least one backend service.
+
+The following code is the default test generated when the custom policy is created:
 
 [source,rust]
 ----
@@ -467,23 +451,28 @@ async fn hello() -> anyhow::Result<()> {
 }
 ----
 
-=== Supported Services
-The 3 types of services supported by PDK Test library:
+== Review Service Logs
 
-[cols="1,1"]
-|===
-|Service |Description
+After an integration test fails, you can view the service logs to find errors. To improve the debugging experience, there is a dedicated service log in each test folder at `<root-directory>/target/pdk-test/<module-name>/<test>/<service>.log`.
 
-|`Flex`
-|Flex service instance.
+For the example, the `say_hello` tests has the following service log:
 
-|`httpmock`
-|Service binding to the Rust's https://crates.io/crates/httpmock:[httpmock] server.
+[source,]
+----
+<root-directory>
+├── Cargo.lock
+├── Cargo.toml
+├── playground
+├── src
+├── tests
+└── target
+    └── pdk-test
+        └── requests
+            └── say_hello
+                └── <service>.log
+----
 
-|`httpbin`
-|Service binding to the https://httpbin.org/[HTTPBin] server.
-|===
+== See Also
 
-=== Limitations
-Currently, it is not possible to define more types of service. Ideally the offered service types should cover the majority of use-cases for
-integration testing.
+* xref:policies-pdk-debug-local.adoc[]
+* xref:policies-pdk-troubleshooting.adoc[]
