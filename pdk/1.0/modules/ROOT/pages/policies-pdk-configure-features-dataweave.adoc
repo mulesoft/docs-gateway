@@ -120,95 +120,15 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-NOTE: This policy uses the `#[attributes.remoteAddress]` variable, which is useful for rate limiting.
-
-== DefaultBindings
-
-If you don't require custom bindings in your DataWeave expression, simplify your code by using the `DefaultBindings` object provided by PDK. The `DefaultBindings` object wraps the evaluator and transforms the methods to simplify the resolution of the script.
-
-`DefaultBindings` requires you to expose the following methods to bind different pieces of data before evaluating the Script:
-
-[source,rust]
-----
-fn bind_vars<K: IntoValue>(&mut self, name: &str, value: K)
-
-fn bind_headers(&mut self, binding: &dyn HeadersHandler)
-
-fn bind_payload(&mut self, binding: &dyn PayloadBinding)
-
-fn bind_http_client_response(&mut self, binding: &HttpClientResponse)
-
-fn bind_authentication(&mut self)
-----
-
-For example, to solve the script in <<example-evaluator-code>>, the code needed to inject the `StreamProperties` and `Authentication` parameters. PDK provides these parameters in the `DefaultBindings` object. Given the parameters used in the schema definition from <<example-evaluator-code>>, the expression can be evaluated by using `DefaultBindings` as shown in this Rust snippet:
-
-
-[source,rust]
-----
-// Copyright 2023 Salesforce, Inc. All rights reserved.
-mod generated;
-use anyhow::Result;
-
-
-use crate::generated::config::Config;
-use pdk::logger::info;
-use pdk::hl::*;
-use pdk::script::{DefaultBindings, Value};
-
-
-async fn request_filter(state: RequestState, bindings: DefaultBindings, config: &Config) {
-   let mut evaluator = bindings.evaluator(&config.token_extractor);
-   evaluator.bind_vars("myVar", "myVal");
-
-
-   evaluator.bind_authentication();
-
-
-   let state = state.into_headers_state().await;
-   evaluator.bind_headers(state.handler());
-
-
-   let state = state.into_body_state().await;
-   evaluator.bind_payload(&state);
-
-
-   if let Ok(value) = evaluator.eval() {
-       match value {
-           Value::Null => info!("value was null!"),
-           Value::Bool(val) => info!("value was Bool: {val}"),
-           Value::Number(val) => info!("value was Number: {val}"),
-           Value::String(val) => info!("value was String: {val}"),
-           Value::Array(val) => info!("value was Array: {val:?}"),
-           Value::Object(val) => info!("value was Object: {val:?}"),
-       }
-   }
-}
-
-
-#[entrypoint]
-async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
-   let config: Config = serde_json::from_slice(&bytes)?;
-
-
-   launcher
-       .launch(on_request(|request, bindings| {
-           request_filter(request, bindings, &config)
-       }))
-       .await?;
-   Ok(())
-}
-----
-
 == Validate the Expression was Solved
 
-You may solve some expressions before all values are bound. For example, the expression `#[vars.myVar]` does not require the `attributes`, `payload`, no `authentication` to be solved. 
+You may solve some expressions before all values are bound. For example, the expression `#[vars.myVar]` does not require the `attributes`, `payload`, no `authentication` to be solved.
 
 After one of the binding methods is called, you can confirm the expression was completely solved by calling the method:
 
 [source,rust]
 ----
-evaluator.is_ready() method.
+evaluator.is_ready()
 ----
 
 == See Also
