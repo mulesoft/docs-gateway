@@ -6,29 +6,29 @@ endif::[]
 
 NOTE: To view an example policy project that uses DataWeave expressions, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/query/README.md[Query Policy Example^].
 
-If input DataWeave expression parameter is valid, the policy parses the expression and transforms it into a `pdk::script::Script` expression. To obtain the result of the script:
+If the input DataWeave expression parameter is valid, the policy parses the expression and transforms it into a `pdk::script::Script` expression. To obtain the result of the script:
 
 . Create an evaluator.
-. Call the binding function for each parameter defined in schema definition:
+. Call the binding function for each parameter defined in the schema definition:
 +
 * `vars`: Call the `bind_vars` method for each of the policy's `vars`. After all of `vars` are bound, the evaluator tries to solve the expression. If the expression contains `vars` other than the ones defined in the schema, they resolve to `null`.
-* `attributes`: Call the `bind_attributes` methods with an implementation of the `AttributesBinding` trait. PDK provides a implementation of this trait by instantiating a new `HandlerAttributesBinding` for each `RequestHeaderState`, `RequestHeaderState`, and response of an xref:policies-pdk-configure-features-http-request.adoc[HTTP call].
-* `authentication`: Call the method `bind_authentication` with an implementation of the trait `AuthenticationBinding`. PDK provides an implementation of this trait for `AuthenticationData`. To inject authentication information into your policy, see xref:policies-pdk-configure-features-inject-parameters.adoc#authentication[Inject Authentication Inforamaion].
+* `attributes`: Call the `bind_attributes` method with an implementation of the `AttributesBinding` trait. PDK provides an implementation of this trait by instantiating a new `HandlerAttributesBinding` for each `RequestHeaderState`, `RequestHeaderState`, and response of an xref:policies-pdk-configure-features-http-request.adoc[HTTP call].
+* `authentication`: Call the `bind_authentication` method with an implementation of the trait `AuthenticationBinding`. PDK provides an implementation of this trait for `AuthenticationData`. To inject authentication information into your policy, see xref:policies-pdk-configure-features-inject-parameters.adoc#authentication[Inject Authentication Inforamaion].
 * `payload`: Call the `bind_payload` method with an implementation of the trait `PayloadBinding`. PDK provides an implementation of this trait for `RequestBodyState`, `ResponseBodyState`, and the response of an xref:policies-pdk-configure-features-http-request.adoc[HTTP call].
 +
 [NOTE]
 ====
-You only need to call the methods for the bindings that are defined in the schema definition. For example, if the `attributes` binding is not used, you don't need to call the `bind_attributes` method.
+Call only the methods for the bindings defined in the schema definition. For example, if the `attributes` binding is not used, don't call the `bind_attributes` method.
 
 To learn more about defining DataWeave expressions, see xref:policies-pdk-create-schema-definition.adoc#dataweave-expressions[DataWeave Expressions].
 ====
 
-. After you bind all expression variables, you can obtain the result by calling the `eval` method.
+. After you bind all expression variables, obtain the result by calling the `eval` method.
 
 [[example-evaluator-code]]
 == Example Evaluator Code
 
-For example, the DataWeave expression in the following policy schema definition:
+For example, to evaluate the DataWeave expression in the following policy schema definition:
 
 [source,yaml]
 ----
@@ -59,7 +59,7 @@ spec:
 
 ----
 
-Can be evaluated with this Rust snippet:
+Use the following Rust snippet:
 
 [source,rust]
 ----
@@ -124,7 +124,7 @@ NOTE: This policy uses the `#[attributes.remoteAddress]` variable, which is usef
 
 == DefaultBindings
 
-If you don't require custom bindings in your DataWeave expression, you can simplify your code by using the `DefaultBindings` object provided by PDK. The `DefaultBindings` object that wraps the evaluator and transforms the methods to simplify the resolution of the script.
+If you don't require custom bindings in your DataWeave expression, simplify your code by using the `DefaultBindings` object provided by PDK. The `DefaultBindings` object wraps the evaluator and transforms the methods to simplify the resolution of the script.
 
 For example, to solve the script in <<example-evaluator-code>>, the code needed to inject the `StreamProperties` and `Authentication` parameters. PDK provides these parameters in the `DefaultBindings` object. 
 

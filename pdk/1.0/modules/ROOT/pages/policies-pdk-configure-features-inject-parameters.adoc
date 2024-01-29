@@ -7,14 +7,14 @@ endif::[]
 PDK provides the following parameters that you can inject into the `#[entrypoint]` configuration function:
 
 * `Configuration`: Provides the policy's configuration parameters. For information about how to define configuration parameters, see xref:policies-pdk-create-schema-definition.adoc[].
-* `Metadata`: Provides metadata about the Policy, the Flex instance, the API instance and the Anypoint Organization. For more information about the metadata provided, see <<metadata>>.
+* `Metadata`: Provides metadata about the Policy, the Flex instance, the API instance, and the Anypoint Organization. For more information about the metadata provided, see <<metadata>>.
 * `HttpClient`: Enables the policy to make HTTP calls. For more information about how to make HTTP calls from the policy, see xref:policies-pdk-configure-features-http-request.adoc[].
 * `CacheBuilder`: Provides the caching features of the policy. For more information about caching, see xref:policies-pdk-configure-features-caching.adoc[].
 * `StreamProperties`: Provides a structure to share properties with other policies that process the same request. For more information about sharing information between policies, see <<streamproperties>>.
 
 You can also directly inject the `HttpClient` and `StreamProperties` parameter into the `on_request` or `on_response` wrapped functions. For example, if you need to perform an HTTP call inside the `on_request` function, inject `HTTPClient` directly into that function. 
 
-For best practice, inject the parameters only where they must be used. However, if the parameters require initialization steps that only need to be performed once when the policy is applied, it is best to inject the parameters into the `#[entrypoint]` to complete the configuration steps to increase the performance of the wrapped functions.
+For best practice, inject the parameters only where they must be used. However, if the parameters require initialization steps that need to be executed only one time when the policy is applied, it is best to inject the parameters into the `#[entrypoint]` to complete the configuration steps to increase the performance of the wrapped functions.
 
 == on_request and on_response Wrapped Functions
 
@@ -78,7 +78,7 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 [[metadata]]
 == Metadata
 
-PDK exposes a `Metadata` injectable that provides metadata about the Policy, the Flex instance, the API instance and the Anypoint Organization. The `Metadata` struct is as follows:
+PDK exposes a `Metadata` injectable that provides metadata about the Policy, the Flex instance, the API instance, and the Anypoint Organization. The `Metadata` struct is as follows:
 
 [source,Rust]
 ----
