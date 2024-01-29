@@ -255,7 +255,10 @@ pub enum ClaimValidator {
 }
 ----
 
-The `mandatory` parameter defines if the claim must be present. If `mandatory: true`, the claim must be present and valid. If `mandatory: false`, the claim is not required. However, if the claim is present, it must be valid. 
+The `mandatory` parameter defines if the claim must be present:  
+
+* `mandatory: true`, the claim is required. 
+* `mandatory: false`, the claim is not required. If the claim is present, it must be valid. 
 
 The `ClaimValidator` implements the `ClaimValidation` trait:
 
@@ -498,7 +501,7 @@ To instantiate a `ScriptClaimValidator` and use it to perform custom validations
 # [...]
 ----
 
-. Initialize the `ScriptClaimValidator` in the entrypoint function using the configured DataWeave expression a the claim rule and inject the validator into the wrapped function:
+. Initialize the `ScriptClaimValidator` in the `#[entrypoint]` function using the configured DataWeave expression a the claim rule and inject the validator into the wrapped function:
 +
 [source,rust]
 ----
