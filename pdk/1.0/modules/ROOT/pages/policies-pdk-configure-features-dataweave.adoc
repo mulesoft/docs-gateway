@@ -126,8 +126,6 @@ NOTE: This policy uses the `#[attributes.remoteAddress]` variable, which is usef
 
 If you don't require custom bindings in your DataWeave expression, simplify your code by using the `DefaultBindings` object provided by PDK. The `DefaultBindings` object wraps the evaluator and transforms the methods to simplify the resolution of the script.
 
-For example, to solve the script in <<example-evaluator-code>>, the code needed to inject the `StreamProperties` and `Authentication` parameters. PDK provides these parameters in the `DefaultBindings` object. 
-
 `DefaultBindings` requires you to expose the following methods to bind different pieces of data before evaluating the Script:
 
 [source,rust]
@@ -143,7 +141,7 @@ fn bind_http_client_response(&mut self, binding: &HttpClientResponse)
 fn bind_authentication(&mut self)
 ----
 
-Given the parameters used in the schema definition from <<example-evaluator-code>>, the expression can be evaluated by using `DefaultBindings` as shown in this Rust snippet:
+For example, to solve the script in <<example-evaluator-code>>, the code needed to inject the `StreamProperties` and `Authentication` parameters. PDK provides these parameters in the `DefaultBindings` object. Given the parameters used in the schema definition from <<example-evaluator-code>>, the expression can be evaluated by using `DefaultBindings` as shown in this Rust snippet:
 
 
 [source,rust]
