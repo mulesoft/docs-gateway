@@ -35,7 +35,44 @@ To check for implementation updates, see xref:exchange::manage-versions.adoc#upd
 
 For Flex Gateway running in Local Mode, you apply custom policies using xref:gateway::flex-local-configuration-reference-guide.adoc[local declarative configuration files]. You specify the location of these configuration files when you first run Flex Gateway.
 
-To apply a custom policy in Local Mode, use either xref:gateway::flex-local-secure-api-with-basic-auth-policy.adoc[] or xref:gateway::flex-local-secure-api-with-auto-policy.adoc[] as an example. Replace the example configuration with your policy's configuration parameters.
+To create the local declarative files:
+
+. In the `target/wasm32-wasi/release` directory, copy both of the following files:
++
+* `<your_custom_policy>_definition.yaml`
+* `<your_custom_policy>_implementation.yaml`
++
+. Paste the two files in the `/etc/mulesoft/flex-gateway/conf.d/` Flex Gateway configuration directory.
++
+. Create a policy binding configuration file with a `.yaml` file extension to bind the policy to an API instance:
++
+* Give the file a custom name.
+* Save the file in the Flex Gateway configuration directory `/etc/mulesoft/flex-gateway/conf.d/custom`. This directory can contain multiple configuration files.
+. Copy and paste the following YAML snippet into the file, substituting your values where indicated::
++
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: <custom-policy-id>
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: <your-api-instance>
+  policyRef:
+    kind: Extension
+    name: <your_custom_policy>-implementation
+  config:
+    <custom-cofiguration-parameters>: "your parameter"
+----
++
+* `metadata.name`: Contains the custom policy instance name.
+* `spec.targetRef.name`: Contains the name of the API instance on which to apply the custom policy. The API instance must already have been defined and applied.
+* `spec.policyRef.name`: Contains the custom policy implementation to apply.
+* `spec.config`: Contains policy configuration data.
++
+. Save the file. The gateway automatically refreshes the configuration.
 
 == Reorder Custom Policies
 
@@ -51,3 +88,8 @@ For example, policies ordered:
 . Policy Y
 
 Execute Policy X then Policy Y on the request, and Policy Y then Policy X on the response.
+
+== See Also
+
+* xref:policies-custom-flex-implement-rust.adoc[]
+* xref:flex-local-configuration-reference-guide.adoc[]
