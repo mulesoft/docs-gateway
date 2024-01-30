@@ -126,7 +126,7 @@ NOTE: This policy uses the `#[attributes.remoteAddress]` variable, which is usef
 
 If you don't require custom bindings in your DataWeave expression, simplify your code by using the `DefaultBindings` object provided by PDK. The `DefaultBindings` object wraps the evaluator and transforms the methods to simplify the resolution of the script.
 
-`DefaultBindings` requires you to expose the following methods to bind different pieces of data before evaluating the Script:
+`DefaultBindings` requires you to expose the following methods to bind different pieces of data before evaluating the script:
 
 [source,rust]
 ----
@@ -141,7 +141,7 @@ fn bind_http_client_response(&mut self, binding: &HttpClientResponse)
 fn bind_authentication(&mut self)
 ----
 
-For example, to solve the script in <<example-evaluator-code>>, the code needed to inject the `StreamProperties` and `Authentication` parameters. PDK provides these parameters in the `DefaultBindings` object. Given the parameters used in the schema definition from <<example-evaluator-code>>, the expression can be evaluated by using `DefaultBindings` as shown in this Rust snippet:
+For example, to resolve the script in <<example-evaluator-code>>, you must inject the `StreamProperties` and `Authentication` parameters. PDK provides these parameters in the `DefaultBindings` object. Given the parameters used in the schema definition from <<example-evaluator-code>>, the expression can be evaluated by using `DefaultBindings` as shown in this Rust snippet:
 
 
 [source,rust]
@@ -200,11 +200,11 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-== Validate the Expression was Solved
+== Validate the Expression was Resolved
 
-You may solve some expressions before all values are bound. For example, the expression `#[vars.myVar]` does not require the `attributes`, `payload`, no `authentication` to be solved. 
+You can resolve some expressions before all values are bound. For example, the expression `#[vars.myVar]` does not require the `attributes`, `payload`, no `authentication` to be resolved. 
 
-After one of the binding methods is called, you can confirm the expression was completely solved by calling the method:
+After one of the binding methods is called, you can confirm the expression was completely resolved by calling the method:
 
 [source,rust]
 ----

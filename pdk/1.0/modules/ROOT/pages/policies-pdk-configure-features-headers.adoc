@@ -1,4 +1,4 @@
-= Reading and Writing to Request Headers and Body
+= Reading and Writing Request Headers and Bodies
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -12,7 +12,7 @@ PDK enables you to both:
 [[read-and-write-headers]]
 == Read and Write Request Headers
 
-To access the headers in both the request and the response, transform the `RequestState` or `ResponseState` to a header state by calling the method `into_headers_state()` and awaiting it. After calling either method, access and manipulate the headers by calling the functions of the `HeadersHandler` trait.
+To access the headers in both the request and the response, transform the `RequestState` or `ResponseState` to a header state by calling the method `into_headers_state()` and awaiting it. After calling the method, access and manipulate the headers by calling the functions of the `HeadersHandler` trait.
 
 [source,Rust]
 ----
@@ -51,7 +51,7 @@ async fn response_filter(response_state: ResponseState, _config: &Config) {
 }
 ----
 
-Envoy handles the method, scheme, path, authority, and status codes as headers. Modify the headers by accessing the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status`. PDK provides methods for ease of access:
+Envoy handles the method, scheme, path, authority, and status codes as headers. Modify the headers by accessing the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status`. PDK provides methods for access:
 
 [source,Rust]
 ----

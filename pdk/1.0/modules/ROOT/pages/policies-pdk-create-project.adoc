@@ -52,7 +52,7 @@ For additional information about this flag, see xref:policies-pdk-troubleshootin
 |===
 
 [[setup-the-pdk-build-environment]]
-== Setup the PDK Build Environment
+== Set Up the PDK Build Environment
 
 After you <<create-a-new-policy-project, create a new policy project>>, you must run the `setup` command:
 
@@ -64,7 +64,7 @@ make setup
 [[project-structure]]
 == Project Structure
 
-After running the setup command, the policy's root directory contains the following directories and files shown in the directory tree: 
+After running the `setup` command, the policy's root directory contains the following directories and files shown in the directory tree: 
 
 ----
 ├─ definition/  # Contains the files that describe the Policy Definition
@@ -96,7 +96,7 @@ To configure the `gcl.yaml` file, see xref:policies-pdk-create-schema-definition
 
 === Cargo.toml
 
-Custom policies for Flex Gateway are developed in the Rust Programming language and compiled to a WebAssembly binary. 
+Custom policies for Flex Gateway are developed in the Rust programming language and compiled to a WebAssembly binary. 
 
 The `Cargo.toml` is the Rust project manifest. Its `[package]` section contains the basic information about the policy implementation. The version specified in `Cargo.toml` matches the policy asset version. You can manage the policy version by editing the version number in `Cargo.toml`. The version follows the format `<major-version>.<minor-version>.<patch-version>`.
 
@@ -104,13 +104,13 @@ The `Cargo.toml` is the Rust project manifest. Its `[package]` section contains 
 
 The `src` directory contains the policy's source code:
 
-* `lib.rs`: Contains a set of methods that implement the behavior of the policy. These methods are the API our development kit offers to implement custom policies behavior. For additional information about these methods, see xref:policies-pdk-configure-features.adoc[]. For complete policy examples, see xref:policies-pdk-policy-templates.adoc[].
+* `lib.rs`: Contains a set of methods that implement the behavior of the policy. PDK includes these methods to implement custom policies behavior. For additional information about these methods, see xref:policies-pdk-configure-features.adoc[]. For complete policy examples, see xref:policies-pdk-policy-templates.adoc[].
 
 * `generated/config.rs` and `generated/mod.rs`: Auto-generated modules that make the policy configuration, as defined in the `gcl.yaml`, available for use in the `lib.rs` and any of the policy source files.
 
 === Makefile
 
-The Makefile contains all the callable actions, `make` commands, required for the policy development lifecycle. Execute all `make` commands at the root level of your custom policy directory directory:
+The Makefile contains all the callable actions, such as `make` commands, required for the policy development lifecycle. Execute all `make` commands at the root level of your custom policy directory directory:
 
 * `make setup`: Installs the PDK internal dependencies for the rest of the Makefile goals. 
 +
