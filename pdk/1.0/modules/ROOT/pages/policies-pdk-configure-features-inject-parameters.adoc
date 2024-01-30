@@ -7,7 +7,7 @@ endif::[]
 PDK provides the following parameters that you can inject into the `#[entrypoint]` configuration function:
 
 * `Configuration`: Provides the policy's configuration parameters. For information about how to define configuration parameters, see xref:policies-pdk-create-schema-definition.adoc[].
-* `Metadata`: Provides metadata about the Policy, the Flex instance, the API instance, and the Anypoint Organization. For more information about the metadata provided, see <<metadata>>.
+* `Metadata`: Provides metadata about the Policy, the Flex Gateway instance, the API instance, and the Anypoint Organization. For more information about the metadata provided, see <<metadata>>.
 * `HttpClient`: Enables the policy to make HTTP calls. For more information about how to make HTTP calls from the policy, see xref:policies-pdk-configure-features-http-request.adoc[].
 * `CacheBuilder`: Provides the caching features of the policy. For more information about caching, see xref:policies-pdk-configure-features-caching.adoc[].
 * `StreamProperties`: Provides a structure to share properties with other policies that process the same request. For more information about sharing information between policies, see <<streamproperties>>.
@@ -25,7 +25,7 @@ The wrapped functions accept the following parameters:
 * `RequestState`: Provides access to the different stages of request filtering to operate over the incoming requests headers and body. `RequestState` is only available in `on_request` functions. To read and write to the headers and body in the`RequestState`, see xref:policies-pdk-configure-features-headers.adoc[].
 * `ResponseState`: Provides access to the different stages of request filtering to operate over the upstream responses headers and body. `ResponseState` is only available in `on_response` functions. To read and write to the headers and body in the `ResponseState`, see xref:policies-pdk-configure-features-headers.adoc[].
 * `RequestData`: Share data between the `on_request` and`on_response` functions. `RequestData` is only available in `on_response` functions. To learn more about `RequestData`, see xref:policies-pdk-configure-features-share-data.adoc[].
-* `DefaultBindings`: Provides an easy way to bind relevant information to Dataweave evaluators. To learn more about `DefaultBindings`, see xref:policies-pdk-configure-features-dataweave.adoc#defaultbindings[DefaultBindings].
+* `DefaultBindings`: Provides an easy way to bind relevant information to DataWeave evaluators. To learn more about `DefaultBindings`, see xref:policies-pdk-configure-features-dataweave.adoc#defaultbindings[DefaultBindings].
 * `Authentication`: Provides access to read authentication data or share it with other policies. To learn more about `Authentication`, see <<authentication>>.
 
 If your wrapped functions only receive these parameters, the lambda is not required in the wrapper. For example, if the signature of the function is:
@@ -160,7 +160,7 @@ async fn configure(launcher: Launcher, metadata: Metadata) -> Result<()> {
 
 === Inject Metadata into the Wrapped Functions
 
-You can not directly inject metadata into the wrapped functions. To use metadata in the wrapped functions, first inject the data into the `#[entrypoint]` function and then the wrapped function:
+You cannot directly inject metadata into the wrapped functions. To use metadata in the wrapped functions, first inject the data into the `#[entrypoint]` function and then the wrapped function:
 
 [source,Rust]
 ----

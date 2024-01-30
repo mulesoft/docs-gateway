@@ -6,7 +6,7 @@ endif::[]
 
 Similar to the policies listed in the xref:gateway::policies-included-directory.adoc[], custom policies have configuration parameters. Use the configuration parameters to improve the usability of your custom policy and support a wider range of API configurations.
 
-To define custom configuration parameters, edit the `definition/gcl.yaml` file. The `gcl.yaml` file is written in Gateway Configuration Language (GCL). However, you do not need prior GCL knowledge to use this tutorial.
+To define custom configuration parameters, edit the `definition/gcl.yaml` file. The `gcl.yaml` file is written in the Gateway Configuration Language (GCL). However, you do not need prior GCL knowledge to use this tutorial.
 
 The configuration parameters you define in the `gcl.yaml` appear as variables in the `src/generated/config.rs` file after you run the `build-asset-file` command. You set any user input you need for implementing the Rust source code in the `gcl.yaml` file.
 
@@ -60,7 +60,7 @@ For example:
 ----
 metadata:
     labels:
-        title: Json Threat Protection
+        title: JSON Threat Protection
         description: Protects against malicious JSON in API requests.
         category: Security
 ----
@@ -122,9 +122,9 @@ required:
     - password
 ----
 
-If you don't set a value for a required property when applying a policy, the property uses the default value.
+If you do not set a value for a required property when applying a policy, the property uses the default value.
 
-For non-required properties, the API Manager UI suggests the configured default value for properties. If you don't specify the value for non-required properties, the property is not configured.
+For non-required properties, the API Manager UI suggests the configured default value for properties. If you do not specify the value for non-required properties, the property is not configured.
 
 In the following configuration table, if the policy was applied in API Manager, `user2` would appear as a suggested value for `username` but does not affect if the value is configured:
 
@@ -161,7 +161,7 @@ When applying the policy, the input value to the sensitive parameter is not visi
 
 image:sensitive-data.png[The character inputs to the key parameter appear as black dots.]
 
-Toggling *Show* reveals any new data currently being entered. However, you cannot reveal previously stored data. For example, if a user configures the example *Key* parameter and applies the policy, they cannot view the parameter if they edit the policy's configuration in the future.
+Toggling *Show* reveals any new data currently being entered. However, you cannot reveal previously stored data. For example, if you configure the example *Key* parameter and apply the policy, you cannot view the parameter if you edit the policy's configuration in the future.
 
 === Define Supported Types
 
@@ -185,9 +185,9 @@ The `string` type also supports enables you to configure a `format` type.
 The supported formating types are:
 +
 * `dataweave`: Specifies the input parameter is a DataWeave variable and notifies Flex Gateway to transform the input. For more information about DataWeave expressions, see <<dataweave-expressions>>.
-* `service`: Specifies the input parameter is an URI and automatically creates a Flex Gateway service to enable HTTP calls from the policy.
-* `ip-range`: Specifies the expected text is a range or IPs and provides additional validation on the input.
-* `uri`: Specifies the expected text is an URI and provides additional validation on the input. Only use `uri` when the uri is not a service making HTTP calls from the policy.
+* `service`: Specifies the input parameter is a URI and automatically creates a Flex Gateway service to enable HTTP calls from the policy.
+* `ip-range`: Specifies the expected text is a range of IPs and provides additional validation on the input.
+* `uri`: Specifies the expected text is a URI and provides additional validation on the input. Only use `uri` when the URI is not a service making HTTP calls from the policy.
 +
 The following yaml snippet demonstrates all string formats:
 +
@@ -395,12 +395,8 @@ Use one of the following validation examples to ensure the parameter is present:
 
 For example, the following `gcl.yaml` files produces the following `struct` in `config.rs`:
 
-[cols="a,a", options="header"]
-|===
-| gcl.yaml
-| config.rs
-
-|
+. `gcl.yaml`:
++
 [source, yaml]
 ----
 properties:
@@ -416,7 +412,8 @@ properties:
     - tokenExtractor
 ----
 
-|
+. `config.rs`:
++
 [source, rust]
 ----
 pub struct Config {
@@ -428,7 +425,6 @@ pub struct Config {
     pub token_extractor: pdk::script::Script,
 }
 ----
-|===
 
 
 For example, you can access the values in `struct Config` with the following `.operators` in the `entrypoint` function:

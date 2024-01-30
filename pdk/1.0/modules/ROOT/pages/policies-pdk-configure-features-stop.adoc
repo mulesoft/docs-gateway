@@ -39,7 +39,7 @@ async fn request_filter(request_state: RequestState) -> Flow<()> {
 
 [IMPORTANT]
 ====
-Due to the streaming nature of `proxy wasm`, it is possible for an early request to partially reach the upstream service while awaiting the `headers_state.into_body_state` function. The only way to avoid this is by not awaiting the body. However, that is not possible for all policies. Configure your upstream to ignore partial requests if the policy must read the body.
+Due to the streaming nature of `proxy wasm`, it is possible for an early request to partially reach the upstream service while awaiting the `headers_state.into_body_state` function. Avoid this is by not awaiting the body. However, this is not possible for all policies. Configure your upstream to ignore partial requests if the policy must read the body.
 
 To avoid early responses reaching the client, see xref:policies-pdk-configure-features-share-data.adoc[].
 ====
