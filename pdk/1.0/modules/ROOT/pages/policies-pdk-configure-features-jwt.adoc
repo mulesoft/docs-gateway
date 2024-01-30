@@ -182,18 +182,16 @@ The following code example shows how to initialize the `SignatureValidator` and 
 use anyhow::Result;
 use pdk::hl::*;
 use pdk::jwt::*;
-use pdk::script::HandlerAttributesBinding;
 // [...]
 
 async fn filter(
     state: RequestState,
     signature_validator: &SignatureValidator,
-    token_provider: &TokenProvider,
 ) -> Flow<()> {
     let headers_state = state.into_headers_state().await;
 
     // Extract token
-    let token = token_provider.provide(&HandlerAttributesBinding::partial(headers_state.handler()));
+    let token = TokenProvider::bearer(headers_state.handler())?;
 
     if token.is_err() {
         return Flow::Break(Response::new(401).with_body("Bearer not found"));
@@ -215,14 +213,12 @@ async fn configure(launcher: Launcher, Configuration(configuration): Configurati
     let signature_validator = SignatureValidator::new(
         model::SigningAlgorithm::Hmac,
         model::SigningKeyLength::Len256,
-        config.clone().secret,
+        config.secret.clone(),
     )?;
-
-    let token_provider = TokenProvider::CustomProvider { expression: config.token_extractor.clone() };
 
     launcher
         .launch(on_request(|request| {
-            filter(request, &signature_validator, &token_provider)
+            filter(request, &signature_validator)
         }))
         .await?;
     Ok(())
