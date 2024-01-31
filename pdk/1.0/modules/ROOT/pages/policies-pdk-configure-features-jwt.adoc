@@ -10,7 +10,7 @@ JSON Web Token (JWT) is a URL-secure method of representing claims to be transfe
 
 PDK's JWT library provides a set of tools to validate the JWT signatures and to extract and validate the claims of all incoming requests.
 
-== Token extraction
+== Extract a JWT Token
 
 To extract the JWT token, the library provides a `TokenProvider` enum that has two variants:
 
@@ -37,7 +37,7 @@ pub trait TokenProvision {
 }
 ----
 
-=== Bearer Provider
+=== Extract a Bearer Provider Token
 
 The following example demonstrates how to extract tokens using the `BearerProvider`:
 
@@ -59,7 +59,7 @@ async fn filter(
 // [...]
 ----
 
-=== Custom Provider
+=== Extract a Custom Provider Token
 
 To extract a custom token:
 
@@ -124,7 +124,7 @@ async fn configure(launcher: Launcher, Configuration(configuration): Configurati
 NOTE: The `#[entrypoint]` function initializes `TokenProvider` and then passes is as parameter to the `on_request` wrapped function where the token is extracted.
 
 [[signature-validation]]
-== Signature Validation
+== Validate a JWT Signature
 
 The JWT library provides a helper for performing signature validation of the incoming requests authorization tokens. Depending on the algorithm used by the policy, initialize a `SignatureValidator` with the corresponding configuration:
 
@@ -229,7 +229,7 @@ Because, the `SignatureValidator` confirms that the policy configurations are co
 
 After initialization, the policy passes the `SignatureValidator` to the `on_request` wrapped function to perform `validate` method on incoming requests.
 
-== Claim Validation
+== Validate Claims
 
 Because JWT tokens typically contain a set of standard claims that can be validated, the JWT library provides a set of claim validators in the `ClaimValidator` enum:
 
@@ -267,7 +267,7 @@ pub trait ClaimValidation {
 
 Each variant of the enum has its own behavior for the validate function. 
 
-=== Aud (Audience) Claim Validation
+=== Validate Aud (Audience) Claims
 
 `ClaimValidator::Aud` validates the JWT token's audience by:
 
@@ -351,7 +351,7 @@ async fn filter(
 }
 ----
 
-=== Exp (Expiration) Claim Validation
+=== Validate Exp (Expiration) Claims
 
 `ClaimValidator::Exp` validates the JWT token is not expired:
 
@@ -396,7 +396,7 @@ async fn filter(
 }
 ----
 
-=== Nb (Not Before) Claim Validation
+=== Validate Nb (Not Before) Claims
 
 `ClaimValidator::Nb` is very similar to `ClaimValidator::Exp`. To test validity `ClaimValidator::Nb` compares the `nb` claim value with the parametrized `current_time` to verify if the `current_time` is equal to or later than the `nb` claim value.
 
@@ -432,7 +432,7 @@ async fn filter(
 }
 ----
 
-== Custom Claim Validation
+== Validate Custom Claims
 
 To validate custom claims contained in JWT tokens or to validate standard JWT claims that the JWT does not provide a default validator for, the JWT library provides an API to perform custom validations using DataWeave expressions. Use the `ScriptClaimValidator` struct to perform custom validations:
 
@@ -566,7 +566,7 @@ async fn filter(
 }
 ----
 
-== Accessing Claims and Propagating to Headers
+== Access Claims and Propagating to Headers
 
 After the <<signature-validation, signature validation>> executes, the result contains the parsed JWT claims from the JWT token. 
 

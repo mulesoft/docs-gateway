@@ -20,8 +20,8 @@ For best practice, inject the parameters only where they must be used. However, 
 
 The wrapped functions accept the following parameters:
 
-* `StreamProperties`
-* `HttpClient`
+* `HttpClient`: Enables the policy to make HTTP calls. For more information about how to make HTTP calls from the policy, see xref:policies-pdk-configure-features-http-request.adoc[].
+* `StreamProperties`: Provides a structure to share properties with other policies that process the same request. For more information about sharing information between policies, see <<streamproperties>>.
 * `RequestState`: Provides access to the different stages of request filtering to operate over the incoming requests headers and body. `RequestState` is only available in `on_request` functions. To read and write to the headers and body in the`RequestState`, see xref:policies-pdk-configure-features-headers.adoc[].
 * `ResponseState`: Provides access to the different stages of request filtering to operate over the upstream responses headers and body. `ResponseState` is only available in `on_response` functions. To read and write to the headers and body in the `ResponseState`, see xref:policies-pdk-configure-features-headers.adoc[].
 * `RequestData`: Share data between the `on_request` and`on_response` functions. `RequestData` is only available in `on_response` functions. To learn more about `RequestData`, see xref:policies-pdk-configure-features-share-data.adoc[].
@@ -36,7 +36,7 @@ async fn request_filter(state: RequestState) -> RequestData<String>;
 async fn response_filter(state: ResponseState, RequestData(path): RequestData<String>);
 ----
 
-Instead of a function definition of:
+Instead of a function definition of defining the lambda as in the following example:
 
 [source,Rust]
 ----

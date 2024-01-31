@@ -105,7 +105,7 @@ required:
     - password
 ----
 
-In this configuration example, applying a policy without a password results in a failed configuration.
+In the above configuration example, applying a policy without a password results in a failed configuration.
 
 The following example defines a default value for each property:
 
@@ -126,7 +126,7 @@ If you do not set a value for a required property when applying a policy, the pr
 
 For non-required properties, the API Manager UI suggests the configured default value for properties. If you do not specify the value for non-required properties, the property is not configured.
 
-In the following configuration table, if the policy was applied in API Manager, `user2` would appear as a suggested value for `username` but does not affect if the value is configured:
+In the following configuration table, if the policy was applied in API Manager, `user2` would appear as a suggested value for `username` but is not configured if the value is left blank:
 
 [a,a,a]
 |===
@@ -330,11 +330,11 @@ bindings:
 
 * `attributes`: Attributes, such as headers, of the incoming request. Set `attributes` to `true` to enable the policy to read the attributes of the incoming request. By default, `attributes` is set to `true`.
 * `authentication`: Authentication information of the incoming request. Set `authentication` to `true` to enable the policy to read authentication details of the incoming request. By default, `authentication` is set to `false`.
-* `vars`: Specifies the names of the variables that are available for the policy to use. By default, `vars` is empty. If the user inputs a variable that is not defined in the schema, the policy evaluates the variable as `null`.
+* `vars`: Specifies the names of the variables that are available for the policy to use. By default, `vars` is empty. When the policy is applied, if the user inputs a variable that is not defined in the schema, the policy evaluates the variable as `null`.
 
 For more information about the supported expression bindings, see xref:dataweave::dataweave-variables-context.adoc[].
 
-If the user's expression contains bindings that are not defined in the policy's schema, policy configuration fails. For example, if the user expression is `[authentication.principal]` and `authentication` is not set to `true`, an error similar to the following occurs:
+If the user's expression contains bindings that are not defined in the policy's schema when applying the policy, the policy configuration fails. For example, if the user expression is `[authentication.principal]` and `authentication` is not set to `true`, an error similar to the following occurs:
 
 ----
 test-local-flex-1  | [flex-gateway-envoy][error] wasm log main: [policy: ingress-http-jwt-auth-v1-0-impl-1.default][api: ingress-http.default.svc] Launcher problem: Failed to parse configuration '{"dw":"P[[\".\", \"0-24\", [\":ref\", \"0-14\", \"authentication\"], [\":str\", \"15-24\", \"principal\"]], \"#[authentication.principal]\"]"}'. Cause: Error compiling expression: Unknown symbol `authentication` at line 1 column 141
