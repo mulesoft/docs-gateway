@@ -21,7 +21,7 @@ Before you can create a custom policy project, ensure that you have installed al
 [[create-a-new-policy-project]]
 == Create a New Policy Project
 
-To create a custom policy project, run the PDK CLI `create` command, replacing `<my-custom-policy>` with the name of your new policy:
+To create a custom policy project, run the PDK CLI `make create` command, replacing `<my-custom-policy>` with the name of your new policy:
 
 [source,ssh]
 ----
@@ -30,13 +30,13 @@ anypoint-cli-v4 pdk policy-project create --name <my-custom-policy>
 
 NOTE: If you receive a prompt requesting your group ID, see xref:policies-pdk-troubleshooting.adoc#group-id-error[Troubleshooting Group ID].
 
-Running the `create` command creates a custom policy project with the specified name. The project appears in a new directory or a directory specified using the `--output-dir` flag. The following tutorials refer to this as your project's root directory.
+Running the `make create` command creates a custom policy project with the specified name. The project appears in a new directory or a directory specified using the `--output-dir` flag. The following tutorials refer to this as your project's root directory.
 
 The `assetID` of the new policy is the policy's name in lower case with the spaces amended together with a `-`. For example, a policy with the name `My Header Injection Policy` has the `assetID` of `my-header-injection-policy`. 
 
 The `groupID` of the new policy is the ID of the organization configured in Anypoint CLI.
 
-The `create` command supports the following flags:
+The `make create` command supports the following flags:
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
@@ -54,7 +54,7 @@ For additional information about this flag, see xref:policies-pdk-troubleshootin
 [[setup-the-pdk-build-environment]]
 == Set Up the PDK Build Environment
 
-After you <<create-a-new-policy-project, create a new policy project>>, you must run the `setup` command:
+After you <<create-a-new-policy-project, create a new policy project>>, you must run the `make setup` command to download additional software dependencies:
 
 [source,ssh]
 ----
@@ -64,12 +64,12 @@ make setup
 [[project-structure]]
 == Project Structure
 
-After running the `setup` command, the policy's root directory contains the following directories and files shown in the directory tree: 
+After running the `make setup` command, the policy's root directory contains the following directories and files shown in the directory tree: 
 
 ----
-├─ definition/  # Contains the files that describe the Policy Definition
+├─ definition/  # Contains the files that describe the policy Definition
 │  ├── target/  # Contains the build definition asset files
-│  └── gcl.yaml # GCL file managed by the developer that describes the Policy Definition
+│  └── gcl.yaml # GCL file managed by the developer that describes the policy Definition
 ├─ target/      # Contains the implementation asset files and the output of the policy build
 ├─ src/         # Contains the implementation source code
 ├─ playground/  # Contains the artifacts required for running the policy locally
