@@ -16,6 +16,10 @@ To extract the JWT token, PDK provides a `TokenProvider` struct that has the `be
 
 [source,Rust]
 ----
+// [...]
+use pdk::jwt::*;
+// [...]
+
 async fn filter(
     state: RequestState,
 ) -> Flow<()> {
@@ -26,9 +30,7 @@ async fn filter(
 // [...]
 ----
 
-To extract JWT tokens from a different source or with a different format, you can implement Rust logic to get any other part of the request. 
-
-In case this wants to be parameterized in the configuration, you can use Dataweave.
+If you are using a JWT token from a different source or with a different format, you can implement Rust logic to get any other part of the request. Use a DataWeave parameter to configure extraction to create a policy where you can dynamically change the JWT format.
 
 [[signature-validation]]
 == Validate a JWT Signature
@@ -241,7 +243,7 @@ The following code example validates that the JWT token:
 
 * Is not expired by validating the `exp` claim. 
 * Has the correct audience value by validating the `aud` claim.
-* Has the correct custom `role` claim by using a Datweave expression.
+* Has the correct custom `role` claim by using a custom validator configured as DataWeave expression policy parameter.
 
 [source,Rust]
 ----
