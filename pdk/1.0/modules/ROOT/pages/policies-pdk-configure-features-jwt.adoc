@@ -26,14 +26,9 @@ async fn filter(
 // [...]
 ----
 
-Both providers implement the `TokenProvision` trait:
+To extract JWT tokens from a different source or with a different format, you can implement Rust logic to get any other part of the request. 
 
-[source,Rust]
-----
-pub trait TokenProvision {
-    fn provide(&self, handler: &dyn AttributesBinding) -> Result<String, JWTError>;
-}
-----
+In case this wants to be parameterized in the configuration, you can use Dataweave.
 
 [[signature-validation]]
 == Validate a JWT Signature
@@ -315,7 +310,7 @@ async fn configure(launcher: Launcher, Configuration(configuration): Configurati
 }
 ----
 
-The DataWeave expression used to validate the custom `role` claim, is defined in `gcl.yaml` schema definition as follows:
+The the above example, the custom `role` claim is defined by a DataWeave expression configured as an input parameter in the `gcl.yaml` schema definition as follows:
 
 [source,yaml]
 ----
