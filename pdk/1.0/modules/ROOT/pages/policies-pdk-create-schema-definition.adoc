@@ -8,7 +8,7 @@ Similar to the policies listed in the xref:gateway::policies-included-directory.
 
 To define custom configuration parameters, edit the `definition/gcl.yaml` file. The `gcl.yaml` file is written in the Gateway Configuration Language (GCL). However, you do not need prior GCL knowledge to use this tutorial.
 
-The configuration parameters you define in the `gcl.yaml` appear as variables in the `src/generated/config.rs` file after you run the `build-asset-file` command. You set any user input you need for implementing the Rust source code in the `gcl.yaml` file.
+The configuration parameters you define in the `gcl.yaml` appear as variables in the `src/generated/config.rs` file after you run the `make build-asset-file` command. You set any user input you need for implementing the Rust source code in the `gcl.yaml` file.
 
 Configuration parameters appear in the API Manager UI when applying a policy to Flex Gateway running in Connected Mode. When applying the policy to Flex Gateway running in Local Mode, it is your responsibility to distribute a configuration `yaml` file for your policy.
 
@@ -52,7 +52,7 @@ The supported labels are:
 
 * `title`: The policy name that appears in the UI.
 * `description`: A brief explanation of the policy's behavior.
-* `category`: The category the policy appears under. Supported values are: `security`, `compliance`, `transformation`, `quality of service`, and `troubleshooting`.
+* `category`: The category the of the policy. The possible categories are `security`, `compliance`, `transformation`, `quality of service`, and `troubleshooting`.
 
 For example:
 
@@ -105,7 +105,7 @@ required:
     - password
 ----
 
-In this configuration example, applying a policy without a password results in a failed configuration.
+In the above configuration example, applying a policy without a password results in a failed configuration.
 
 The following example defines a default value for each property:
 
@@ -126,7 +126,7 @@ If you do not set a value for a required property when applying a policy, the pr
 
 For non-required properties, the API Manager UI suggests the configured default value for properties. If you do not specify the value for non-required properties, the property is not configured.
 
-In the following configuration table, if the policy was applied in API Manager, `user2` would appear as a suggested value for `username` but does not affect if the value is configured:
+In the following configuration table, if the policy was applied in API Manager, `user2` would appear as a suggested value for `username` but is not configured if the value is omitted:
 
 [a,a,a]
 |===
@@ -299,7 +299,7 @@ properties:
 ----
 
 [[dataweave-expressions]]
-=== DataWeave Expressions
+=== Define DataWeave Expressions
 
 The `dataweave` format for `string` type parameters specifies the input parameter as a DataWeave expression.
 
@@ -330,11 +330,11 @@ bindings:
 
 * `attributes`: Attributes, such as headers, of the incoming request. Set `attributes` to `true` to enable the policy to read the attributes of the incoming request. By default, `attributes` is set to `true`.
 * `authentication`: Authentication information of the incoming request. Set `authentication` to `true` to enable the policy to read authentication details of the incoming request. By default, `authentication` is set to `false`.
-* `vars`: Specifies the names of the variables that are available for the policy to use. By default, `vars` is empty. If the user inputs a variable that is not defined in the schema, the policy evaluates the variable as `null`.
+* `vars`: Specifies the names of the variables that are available for the policy to use. By default, `vars` is empty. When the policy is applied, if the user inputs a variable that is not defined in the schema, the policy evaluates the variable as `null`.
 
 For more information about the supported expression bindings, see xref:dataweave::dataweave-variables-context.adoc[].
 
-If the user's expression contains bindings that are not defined in the policy's schema, policy configuration fails. For example, if the user expression is `[authentication.principal]` and `authentication` is not set to `true`, an error similar to the following occurs:
+If the user's expression contains bindings that are not defined in the policy's schema when applying the policy, the policy configuration fails. For example, if the user expression is `[authentication.principal]` and `authentication` is not set to `true`, an error similar to the following occurs:
 
 ----
 test-local-flex-1  | [flex-gateway-envoy][error] wasm log main: [policy: ingress-http-jwt-auth-v1-0-impl-1.default][api: ingress-http.default.svc] Launcher problem: Failed to parse configuration '{"dw":"P[[\".\", \"0-24\", [\":ref\", \"0-14\", \"authentication\"], [\":str\", \"15-24\", \"principal\"]], \"#[authentication.principal]\"]"}'. Cause: Error compiling expression: Unknown symbol `authentication` at line 1 column 141
@@ -347,21 +347,23 @@ For more information about DataWeave support for Flex Gateway, see xref:gateway:
 [[use-custom-parameters-in-rust-source-code]]
 == Use Custom Parameters in Rust Source Code
 
-After you modify the `gcl.yaml` file, run the `build-asset-files` command to propagate the changes to the `src/generated/config.rs` rust file and the JSON schema for the UI:
+After you modify the `gcl.yaml` file, run one of the following commands to propagate the changes to the `src/generated/config.rs` rust file and the JSON schema for the API Manager UI:
 
+* `make build-asset-files` only propagates the changes to `src/generated/config.rs`.
++
 [source,cmd]
 ----
 make build-asset-files
 ----
 
-Additionally, compiling the project with the `build` command also propagates the changes:
-
+* `make build` propagates the changes to `src/generated/config.rs` and generates the policy's target files. Do not run `make build` if you do not want to override your policy's target file:
++
 [source,cmd]
 ----
 make build
 ----
-
-The `build` command also generates the policy's target files. For more information about compiling your policy, see xref:policies-pdk-compile-policies.adoc[].
++  
+For more information about compiling your policy, see xref:policies-pdk-compile-policies.adoc[].
 
 Properties defined in the `gcl.yaml` files are mapped to the Rust data types in the `config.rs` Rust file as follows:
 

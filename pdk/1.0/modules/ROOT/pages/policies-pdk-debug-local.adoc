@@ -1,14 +1,14 @@
-= Debugging Custom Policies Locally with PDK
+= Debugging Custom Policies with the PDK Debugging Playground
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-To test the functionality of your policy, Policy Development Kit (PDK) provides a pre-configured API instance located in the `<root-directory>/playground/config` directory.
+To test the functionality of your policy, Flex Gateway Policy Development Kit (PDK) provides a pre-configured API instance located in the `<root-directory>/playground/config` directory.
 
-After you successfully xref:policies-pdk-compile-policies.adoc[compile your custom policy project] and add a <<register, Flex Gateway registration file>> to the configuration directory, you can use the `run` command to deploy the API instance and your policy to begin testing.
+The PDK Debugging Playground only supports Flex Gateway running in Local Mode in a Docker container. If you plan to deploy or policy to Flex Gateway running in Connected Mode or to a different platform, you should still first test your policy in PDK by using Flex Gateway running in Local Mode in a Docker container.
 
-PDK only supports Flex Gateways running in a Docker container.
+IMPORTANT: You can run Flex Gateway in Local Mode on Docker in Windows only to develop and test your policies. However, Flex Gateway does not support Windows in production environments.
 
 To test your policy, complete the following tasks:
 
@@ -22,18 +22,23 @@ To test your policy, complete the following tasks:
 
 Ensure that you have:
 
-* https://www.docker.com/[Installed Docker^]
+* https://www.docker.com/[Installed Docker^].
+* xref:policies-pdk-compile-policies.adoc[Compiled your custom policy project]. 
 
 [[register]]
 == Register a Flex Gateway Instance in Local Mode
 
-To begin using the `run` command to debug your custom policy, register a Flex Gateway in Local Mode. 
+To begin using the `make run` command to debug your custom policy, register a Flex Gateway in Local Mode. 
 
 For the `run` command to work, a Flex Gateway `registration.yaml` file must exist in the `<root-directory>/tests/common` directory. Create this file by running the registration command in the directory, or move a `registration.yaml` file of a previously registered Flex Gateway to the directory.
 
-The `run` command only supports Flex Gateways running in Local Mode in a Docker Container. To register Flex Gateway, see xref:gateway::flex-local-reg-run.adoc#docker[]
+The `make run` command only supports Flex Gateways running in Local Mode in a Docker Container. To register Flex Gateway, see:
 
-IMPORTANT: Run only the registration command. Do not run the Docker start command because the `run` command completes this step.
+* xref:gateway::flex-local-reg-run-up.adoc#docker[Register and Run with a Username and Password in a Docker Container]
+* xref:gateway::flex-local-reg-run-app.adoc#docker[Register and Run with a Connected App in a Docker Container]
+* xref:gateway::flex-local-reg-run-token.adoc#docker[Register and Run with a Token in a Docker Container]
+
+IMPORTANT: Run only the registration command. Do not run the Docker start command because the `make run` command completes this step.
 
 Create a different registration file on each device testing the policy.
 
@@ -117,7 +122,7 @@ However, your custom policy under development must be the first policy specified
 
 == Deploy the Policy with PDK
 
-After you complete the previous steps, run the `run` command from the policy's root directory to deploy policy:
+After you complete the previous steps, run the `make run` command from the policy's root directory to deploy policy:
 
 [source,cmd]
 ----
@@ -141,9 +146,9 @@ curl --location --request POST 'http://0.0.0.0:8081/some/route' \
 
 The backend service returns an echo response including the requests’s route, body, and headers sent with any modification performed by the custom policy or additional policies. Any logs included in the custom policy's source code are visible in the terminal running the containers.
 
-== Loglevel
+== Configure the Loglevel
 
-By default, the PDK debugging environment enables logs with the `debug` `loglevel` configured.
+By default, PDK's debugging environment enables logs with the `debug` `loglevel` configured.
 
 To change the `loglevel`, edit the `logging.runtimeLogs.logLevel` value in `<root-directory>/playground/config/logging.yaml`.
 
@@ -157,5 +162,5 @@ To debug Rust code in VS Code, you must install the https://marketplace.visualst
 
 == See Also
 
-* policies-pdk-integration-tests.adoc[]
+* xref:policies-pdk-integration-tests.adoc[]
 * xref:policies-pdk-troubleshooting.adoc[]

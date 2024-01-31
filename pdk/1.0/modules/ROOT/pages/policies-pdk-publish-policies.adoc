@@ -6,6 +6,8 @@ endif::[]
 
 During the custom policy development cycle, you can upload your policy to Exchange to create a new Exchange asset to manage the policy's version and to distribute it to other users. For more information about Exchange, see xref:exchange::index.adoc[].
 
+For custom policies running in Local Mode, it is not required to publish your policy to Exchange. However, Exchange is a useful version control tool. It is your responsibility to distribute custom policies for Local Mode use.
+
 When uploading your policy to Exchange, you can choose to either:
 
 * <<publish, Publish a Custom Policy>> +
@@ -15,7 +17,7 @@ Release the policy to create a definitive version of the policy. After releasing
 
 Every time you publish or release a policy, you create a new `stable` asset in Exchange. For more information about `stable` state assets, see xref:exchange::lifecycle.adoc#stablet-state[Stable State Assets].
 
-After you upload your policy to Exchange, xref:policies-pdk-apply-policies.adoc[apply your policy to a Flex Gateway].
+After you upload your policy to Exchange, see xref:policies-pdk-apply-policies.adoc[].
 
 == Before You Begin
 
@@ -25,7 +27,7 @@ After you upload your policy to Exchange, xref:policies-pdk-apply-policies.adoc[
 [[publish]]
 == Publish a Custom Policy
 
-To publish a custom policy, run the `publish` command from the policy's root folder:
+To publish a custom policy, run the `make publish` command from the policy's root folder:
 
 [source,ssh]
 ----
@@ -52,7 +54,7 @@ Rerunning the publish command creates a new version of the policy asset with an 
 [[release]]
 == Release a Custom Policy
 
-To release a custom policy, run the `release` command from the policy's root folder:
+To release a custom policy, run the `make release` command from the policy's root folder:
 
 [source,ssh]
 ----
@@ -69,7 +71,7 @@ Released policies do not have `-dev` appended to their *assetID*.
 +
 Released policies do not have a timestamp appended to their *assetID*.
 
-After releasing the asset, rerunning the `release` command results in a conflict error.
+After releasing the asset, rerunning the `make release` command results in a conflict error.
 
 To begin working on the next version of your policy, update the version number in the `Cargo.toml` file.
 
@@ -83,4 +85,5 @@ version = "1.1.0"
 
 == See Also
 
+* xref:policies-pdk-apply-policies.adoc[]
 * xref:policies-pdk-troubleshooting.adoc[]

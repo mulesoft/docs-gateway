@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-If you use a network proxy to connect to the internet, you might have to define the network proxy for the PDK tools. Besides Docker, all tools downloaded in xref:policies-pdk-prerequisites.adoc[PDK prerequisites] accept the `HTTP_PROXY` and `HTTPS_PROXY` environment variables. 
+If you use a network proxy to connect to the internet, you might have to define the network proxy for the software tools used by Flex Gateway Policy Development Kit (PDK). Besides Docker, all tools downloaded in xref:policies-pdk-prerequisites.adoc[PDK prerequisites] accept the `HTTP_PROXY` and `HTTPS_PROXY` environment variables. 
 
 To configure your environment variable, refer to <<configure-a-network-proxy>>.
 
@@ -15,7 +15,14 @@ NOTE: Depending on your network proxy, you might have to define the domains the 
 [[configure-a-network-proxy]]
 == Configure a Network Proxy
 
-Configure the environment variables by running following command after replacing the variables with your information:
+Configure your `HTTP_PROXY` or `HTTPS_PROXY` environment variables by running one of the following commands after replacing the variable values with your information:
+
+* `HTTP_PROXY`:
++
+[source,ssh]
+----
+export HTTP_PROXY=<proxy-method>://<proxy-server>:<proxy-port>
+----
 
 * `HTTPS_PROXY`:
 +
@@ -23,20 +30,13 @@ Configure the environment variables by running following command after replacing
 ----
 export HTTPS_PROXY=<proxy-method>://<proxy-server>:<proxy-port>
 ----
-* `HTTP_PROXY`:
+
+* If your network proxy requires authentication, use the following command:
 +
-[source,ssh]
-----
-export HTTPS_PROXY=<proxy-method>://<proxy-server>:<proxy-port>
-----
-
-If your network proxy requires authentication, use the following command:
-
 [source,ssh]
 ----
 export HTTPS_PROXY=<proxy-method>://<username>:<password>@<proxy-server>:<proxy-port>
 ----
-
 
 [[configure-a-network-proxy-for-docker]]
 == Configure a Network Proxy for Docker

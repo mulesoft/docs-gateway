@@ -12,7 +12,7 @@ If the input DataWeave expression parameter is valid, the policy parses the expr
 . Call the binding function for each parameter defined in the schema definition:
 +
 * `vars`: Call the `bind_vars` method for each of the policy's `vars`. After all of `vars` are bound, the evaluator tries to solve the expression. If the expression contains `vars` other than the ones defined in the schema, they resolve to `null`.
-* `attributes`: Call the `bind_attributes` method with an implementation of the `AttributesBinding` trait. PDK provides an implementation of this trait by instantiating a new `HandlerAttributesBinding` for each `RequestHeaderState`, `RequestHeaderState`, and response of an xref:policies-pdk-configure-features-http-request.adoc[HTTP call].
+* `attributes`: Call the `bind_attributes` method with an implementation of the `AttributesBinding` trait. Flex Gateway Policy Development Kit (PDK) provides an implementation of this trait by instantiating a new `HandlerAttributesBinding` for each `RequestHeaderState`, `RequestHeaderState`, and response of an xref:policies-pdk-configure-features-http-request.adoc[HTTP call].
 * `authentication`: Call the `bind_authentication` method with an implementation of the trait `AuthenticationBinding`. PDK provides an implementation of this trait for `AuthenticationData`. To inject authentication information into your policy, see xref:policies-pdk-configure-features-inject-parameters.adoc#authentication[Inject Authentication Inforamaion].
 * `payload`: Call the `bind_payload` method with an implementation of the trait `PayloadBinding`. PDK provides an implementation of this trait for `RequestBodyState`, `ResponseBodyState`, and the response of an xref:policies-pdk-configure-features-http-request.adoc[HTTP call].
 +
@@ -26,9 +26,9 @@ To learn more about defining DataWeave expressions, see xref:policies-pdk-create
 . After you bind all expression variables, obtain the result by calling the `eval` method.
 
 [[example-evaluator-code]]
-== Example Evaluator Code
+== Evaluate DataWeave Expressions
 
-For example, to evaluate the DataWeave expression in the following policy schema definition:
+For example, to evaluate the `tokenExtractor` DataWeave expression in the following policy schema definition:
 
 [source,yaml]
 ----
@@ -63,7 +63,7 @@ Use the following Rust snippet:
 
 [source,rust]
 ----
-// Copyright 2023 Salesforce, Inc. All rights reserved.
+// Copyright 2024 Salesforce, Inc. All rights reserved.
 mod generated;
 
 

@@ -4,29 +4,28 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-PDK provides the following parameters that you can inject into the `#[entrypoint]` configuration function:
+Flex Gateway Policy Development Kit (PDK) provides the following parameters that you can inject into the `#[entrypoint]` configuration function:
 
 * `Configuration`: Provides the policy's configuration parameters. For information about how to define configuration parameters, see xref:policies-pdk-create-schema-definition.adoc[].
-* `Metadata`: Provides metadata about the Policy, the Flex Gateway instance, the API instance, and the Anypoint Organization. For more information about the metadata provided, see <<metadata>>.
+* `Metadata`: Provides metadata about the policy, the Flex Gateway instance, the API instance, and the Anypoint Organization. For more information about the metadata provided, see xref:policies-pdk-configure-features-metadata.adoc[].
 * `HttpClient`: Enables the policy to make HTTP calls. For more information about how to make HTTP calls from the policy, see xref:policies-pdk-configure-features-http-request.adoc[].
 * `CacheBuilder`: Provides the caching features of the policy. For more information about caching, see xref:policies-pdk-configure-features-caching.adoc[].
-* `StreamProperties`: Provides a structure to share properties with other policies that process the same request. For more information about sharing information between policies, see <<streamproperties>>.
+* `StreamProperties`: Provides a structure to share properties with other policies that process the same request. For more information about sharing information between policies, see xref:policies-pdk-configure-features-streamproperties.adoc[].
 
 You can also directly inject the `HttpClient` and `StreamProperties` parameter into the `on_request` or `on_response` wrapped functions. For example, if you need to perform an HTTP call inside the `on_request` function, inject `HTTPClient` directly into that function. 
 
 For best practice, inject the parameters only where they must be used. However, if the parameters require initialization steps that need to be executed only one time when the policy is applied, it is best to inject the parameters into the `#[entrypoint]` to complete the configuration steps to increase the performance of the wrapped functions.
 
-== on_request and on_response Wrapped Functions
+== Inject Parameters into the on_request and on_response Wrapped Functions
 
 The wrapped functions accept the following parameters:
 
-* `StreamProperties`
-* `HttpClient`
+* `HttpClient`: Enables the policy to make HTTP calls. For more information about how to make HTTP calls from the policy, see xref:policies-pdk-configure-features-http-request.adoc[].
+* `StreamProperties`: Provides a structure to share properties with other policies that process the same request. For more information about sharing information between policies, see xref:policies-pdk-configure-features-streamproperties.adoc[].
 * `RequestState`: Provides access to the different stages of request filtering to operate over the incoming requests headers and body. `RequestState` is only available in `on_request` functions. To read and write to the headers and body in the`RequestState`, see xref:policies-pdk-configure-features-headers.adoc[].
 * `ResponseState`: Provides access to the different stages of request filtering to operate over the upstream responses headers and body. `ResponseState` is only available in `on_response` functions. To read and write to the headers and body in the `ResponseState`, see xref:policies-pdk-configure-features-headers.adoc[].
 * `RequestData`: Share data between the `on_request` and`on_response` functions. `RequestData` is only available in `on_response` functions. To learn more about `RequestData`, see xref:policies-pdk-configure-features-share-data.adoc[].
-* `DefaultBindings`: Provides an easy way to bind relevant information to DataWeave evaluators. To learn more about `DefaultBindings`, see xref:policies-pdk-configure-features-dataweave.adoc#defaultbindings[DefaultBindings].
-* `Authentication`: Provides access to read authentication data or share it with other policies. To learn more about `Authentication`, see <<authentication>>.
+* `Authentication`: Provides access to read authentication data or share it with other policies. To learn more about `Authentication`, see xref:policies-pdk-configure-features-authentication.adoc[].
 
 If your wrapped functions only receive these parameters, the lambda is not required in the wrapper. For example, if the signature of the function is:
 
@@ -36,7 +35,7 @@ async fn request_filter(state: RequestState) -> RequestData<String>;
 async fn response_filter(state: ResponseState, RequestData(path): RequestData<String>);
 ----
 
-Instead of a function definition of:
+The following example demonstrates defining the lambda of a function definition:
 
 [source,Rust]
 ----
@@ -44,7 +43,7 @@ let filter = on_request(|request_state| request_filter(request_state))
     .on_response(|response_state, request_data| response_filter(response_state, request_data));
 ----
 
-You can use the following function definition:
+Instead of defining the lambda, you can use the following function definition:
 
 [source,Rust]
 ----
@@ -73,231 +72,6 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 
     Ok(())
 }
-----
-
-[[metadata]]
-== Metadata
-
-PDK exposes a `Metadata` injectable that provides metadata about the Policy, the Flex instance, the API instance, and the Anypoint Organization. The `Metadata` struct is as follows:
-
-[source,Rust]
-----
-pub struct Metadata {
-    pub flex_metadata: FlexMetadata,
-    pub policy_metadata: PolicyMetadata,
-    pub api_metadata: ApiMetadata,
-    pub platform_metadata: PlatformMetadata,
-}
-----
-
-The `Metadata` struct references the following structures:
-
-* `FlexMetadata`:
-+
-[source,Rust]
-----
-pub struct FlexMetadata {
-    pub flex_name: String,
-    pub flex_version: String,
-}
-----
-
-* `PolicyMetadata`:
-+
-[source,Rust]
-----
-pub struct PolicyMetadata {
-    pub policy_name: String,
-    pub policy_namespace: String,
-}
-----
-
-* `ApiMetadata`:
-+
-[source,Rust]
-----
-pub struct ApiMetadata {
-    pub id: Option<String>,
-    pub name: Option<String>,
-    pub version: Option<String>,
-    pub slas: Option<Vec<ApiSla>>, // API SLA tiers in the platform
-}
-
-// Each ApiSla contains the limits for each SLA. 
-pub struct ApiSla {
-    pub id: String,
-    pub tiers: Vec<Tier>, // Limits within an API SLA tier in the platform
-}
-----
-
-* `PlatformMetadata`:
-+
-[source,Rust]
-----
-pub struct PlatformMetadata {
-    pub organization_id: String,
-    pub environment_id: String,
-    pub root_organization_id: String,
-}
-----
-
-=== Inject Metadata into the #[entrypoint]
-
-To inject metadata into the `#[entrypoint]` configuration function, see the following code snippet: 
-
-[source,Rust]
-----
-#[entrypoint]
-async fn configure(launcher: Launcher, metadata: Metadata) -> Result<()> {
-    logger::info!("Flex instance name is: {}", metadata.flex_metadata.flex_name.to_string());
-
-    launcher
-        .launch(on_request(filter))
-        .await?;
-    Ok(())
-}
-----
-
-=== Inject Metadata into the Wrapped Functions
-
-You cannot directly inject metadata into the wrapped functions. To use metadata in the wrapped functions, first inject the data into the `#[entrypoint]` function and then the wrapped function:
-
-[source,Rust]
-----
-#[entrypoint]
-async fn configure(launcher: Launcher, metadata: Metadata) -> Result<()> {
-    launcher
-        .launch(on_request(|r| request_filter(r, &metadata)))
-        .await?;
-    Ok(())
-}
-
-async fn request_filter(_: RequestState, metadata: &Metadata) -> Flow<()> {
-    let mut vec = Vec::new();
-    let headers = &mut vec;
-    headers.push((
-        "flex_name".to_string(),
-        metadata.flex_metadata.flex_name.to_string(),
-    ));
-    headers.push((
-        "policy_name".to_string(),
-        metadata.policy_metadata.policy_name.to_string(),
-    ));
-
-    Flow::Break(Response::new(201).with_headers(vec))
-}
-----
-
-[[streamproperties]]
-== StreamProperties
-
-The `StreamProperties` injectable provides an interface to:
-
-* Consume properties set by other policies that are processing the same request.
-* Broadcast properties so that the other policies can consume them. 
-
-To share data, `StreamProperties` implements the `PropertyAccessor` trait:
-
-[source,Rust]
-----
-pub trait PropertyAccessor {
-    fn read_property(&self, path: &[&str]) -> Option<Bytes>;
-    fn set_property(&self, path: &[&str], value: Option<&[u8]>);
-}
-----
-
-The following example shows a simple filter that reads a property from the stream and then writes another parameter to it:
-
-[source,Rust]
-----
-async fn request_filter(stream: StreamProperties) -> Flow<()> {
-    let incoming = String::from_utf8(stream.read_property(&["incoming_property"]).unwrap_or_default()).unwrap_or_default();
-
-    logger::info!("Recieved incoming prop {}", incoming);
-
-    let outgoing = "outgoing".as_bytes();
-
-    stream.set_property(&["outgoing_property"], Some(outgoing));
-
-    Flow::Continue(())
-}
-
-#[entrypoint]
-async fn configure(launcher: Launcher) -> Result<()> {
-    let filter = on_request(|stream| request_filter(stream));
-    launcher.launch(filter).await?;
-    Ok(())
-}
-----
-
-[[authentication]]
-== Authentication
-
-Similar to `StreamProperties`, the `Authentication` injectable provides an interface to:
-
-* Propagate authentication data for consumption by other policies.
-* Consume authentication data already set by another policy. 
-
-To share data, `Authentication` implements the `AuthenticationHandler` trait:
-
-[source,Rust]
-----
-pub trait AuthenticationHandler {
-    fn authentication(&self) -> Option<AuthenticationData>;
-    fn set_authentication(&self, authentication: Option<&AuthenticationData>);
-}
-----
-
-The `AuthenticationData` struct contains the following authentication data:
-
-[source,Rust]
-----
-pub struct AuthenticationData {
-    pub principal: Option<String>,
-    pub client_id: Option<String>,
-    pub client_name: Option<String>,
-    pub properties: Value,
-}
-----
-
-For example, the following code reads the `Authentication` data and modifies it by overriding the `client_id` and `client_name`:
-
-[source,Rust]
-----
-async fn request_filter(state: RequestState, authentication: Authentication) -> Flow<()> {
-    let state = state.into_headers_state().await;
-    let header_handler = state.handler();
-
-    let auth = authentication.authentication().unwrap_or_default();
-
-    let properties = auth.properties.as_object().cloned().unwrap_or_default();
-
-    let client_id = header_handler
-        .header("custom_client_id_header")
-        .unwrap_or_default();
-    let client_name = header_handler
-        .header("custom_client_name_header")
-        .unwrap_or_default();
-
-    let auth = AuthenticationData::new(
-        auth.principal,
-        Some(client_id),
-        Some(client_name),
-        properties
-    );
-
-    authentication.set_authentication(Some(&auth));
-
-    Flow::Continue(())
-}
-
-#[entrypoint]
-async fn configure(launcher: Launcher) -> Result<()> {
-    let filter = on_request(|rs, auth| request_filter(rs, auth));
-    launcher.launch(filter).await?;
-    Ok(())
-}
-
 ----
 
 == See Also

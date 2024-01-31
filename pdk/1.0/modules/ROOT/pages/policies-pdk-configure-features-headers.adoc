@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-PDK enables you to both:
+Flex Gateway Policy Development Kit (PDK) enables you to both:
 
 * <<read-and-write-headers>>
 * <<read-and-write-request-bodies>>
@@ -51,7 +51,7 @@ async fn response_filter(response_state: ResponseState, _config: &Config) {
 }
 ----
 
-Envoy handles the method, scheme, path, authority, and status codes as headers. Modify the headers by accessing the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status`. PDK provides methods for access:
+Envoy handles the method, scheme, path, authority, and status codes as headers. PDK provides the following methods to access and modify the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status` Envoy headers:
 
 [source,Rust]
 ----
@@ -73,7 +73,14 @@ async fn response_filter(response_state: ResponseState, _config: &Config) {
 [[read-and-write-request-bodies]]
 == Read and Write Request Bodies
 
-To access the body in both the request and the response, transform the `RequestState` or `ResponseState` to a body state by calling the method `into_body_state()` and awaiting it. If the original state was already transformed into a header state, transform the state into a body state by calling the same function, for example:
+To access the body in both the request and the response, transform the `RequestState` or `ResponseState` to a body state by calling the method `into_body_state()` and awaiting it:
+
+[source,Rust]
+----
+let body_state = request_state.into_body_state().await;
+----
+
+If the original state was already transformed into a header state, transform the state into a body state by calling the same function, for example:
 
 [source,Rust]
 ----
@@ -95,11 +102,7 @@ Because Envoy uses the same buffer to share data from the headers and the body, 
 . Read the headers and save the necessary values in a variable.
 . Read the body.
 
-You can read the headers and then the body in both the response and request.
-
-You cannot modify headers after reading the body. Complete all header modification before reading the body.
-
-For example:
+You can read the headers and then the body in both the response and request. However, you cannot modify headers after reading the body. Complete all header modification before reading the body, for example:
 
 [source,Rust]
 ----
@@ -108,6 +111,9 @@ async fn request_filter(request_state: RequestState) {
     let headers_handler = headers_state.handler();
 
     let agent = headers_handler.header("User-Agent").unwrap_or_else(|| "Undefined".to_string());
+
+    // Removing old content length header before manipulating body
+    headers_handler.remove_header("content-length");
 
     let body_state = headers_state.into_body_state().await;
     let body_handler = body_state.handler();
@@ -119,6 +125,8 @@ async fn request_filter(request_state: RequestState) {
     body_handler.set_body(&new_body);
 }
 ----
+
+NOTE: This code removes the `content-length` header. This is required to modify the body.
 
 == See Also
 
