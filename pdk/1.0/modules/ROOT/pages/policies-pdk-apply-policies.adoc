@@ -15,7 +15,7 @@ To learn more about defining configuration parameters, see xref:policies-pdk-cre
 * xref:policies-pdk-compile-policies.adoc[Compile your custom policy].
 * If applying your policy to Flex Gateway running in Local Mode, xref:policies-pdk-publish-policies.adoc[upload your custom policy to exchange].
 
-== Connected Mode
+== Apply Policies in Connected Mode
 
 When you apply a custom policy in Connected Mode, the configuration parameters and metadata defined in `gcl.yaml` appear in the API Manager UI.
 
@@ -30,13 +30,14 @@ To update a custom policy in API Manager, you can either:
 +
 To check for implementation updates, see xref:exchange::manage-versions.adoc#update-policy-implementations[Update Policy Implementations].
 
-== Local Mode
+[[apply-policies-in-local-mode]]
+== Apply Policies in Local Mode
 
 For Flex Gateway running in Local Mode, you apply custom policies using xref:gateway::flex-local-configuration-reference-guide.adoc[local declarative configuration files]. You specify the location of these configuration files when you first run Flex Gateway.
 
 To create the local declarative files:
 
-. In the `target/wasm32-wasi/release` directory, copy both of the following files:
+. In the `target/wasm32-wasi/release` PDK directory, copy both of the following files:
 +
 * `<your_custom_policy>_definition.yaml`
 * `<your_custom_policy>_implementation.yaml`
@@ -72,6 +73,13 @@ spec:
 * `spec.config`: Your policy configuration data.
 +
 . Save the file. The gateway automatically refreshes the configuration.
+
+=== Update Policies in Local Mode
+
+To update a custom policy for Flex Gateway running in Local Mode:
+
+* If you didn't edit the configuration parameters, replace your old `<your_custom_policy>_implementation.yaml` in you Flex Gateway configuration directory with the implementation file from your `target/wasm32-wasi/release` PDK directory.
+* If you did edit the configuration parameters, repeat the steps in <<apply-policies-in-local-mode>> to update your configuration parameters.
 
 == Reorder Custom Policies
 
