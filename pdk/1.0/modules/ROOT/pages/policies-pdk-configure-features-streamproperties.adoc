@@ -1,0 +1,48 @@
+= Injecting the StreamProperties Parameter
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+The `StreamProperties` injectable provides an interface to:
+
+* Consume properties set by other policies that are processing the same request.
+* Broadcast properties so that the other policies can consume them. 
+
+To share data, `StreamProperties` implements the `PropertyAccessor` trait:
+
+[source,Rust]
+----
+pub trait PropertyAccessor {
+    fn read_property(&self, path: &[&str]) -> Option<Bytes>;
+    fn set_property(&self, path: &[&str], value: Option<&[u8]>);
+}
+----
+
+The following example shows a simple filter that reads a property from the stream and then writes another parameter to it:
+
+[source,Rust]
+----
+async fn request_filter(stream: StreamProperties) -> Flow<()> {
+    let incoming = String::from_utf8(stream.read_property(&["incoming_property"]).unwrap_or_default()).unwrap_or_default();
+
+    logger::info!("Recieved incoming prop {}", incoming);
+
+    let outgoing = "outgoing".as_bytes();
+
+    stream.set_property(&["outgoing_property"], Some(outgoing));
+
+    Flow::Continue(())
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher) -> Result<()> {
+    let filter = on_request(|stream| request_filter(stream));
+    launcher.launch(filter).await?;
+    Ok(())
+}
+----
+
+== See Also
+
+* xref:policies-pdk-configure-features-inject-parameters.adoc[]
