@@ -14,8 +14,9 @@ To test your policy, complete the following tasks:
 . Review <<structure>>.
 . <<register>>.
 . <<configure-your-custom-policy>>.
+. <<create-a-test-function>>.
 . <<run-integration-test>>.
-. <<write-an-integration-test>>.
+. <<configure-services-for-integration-testing>>.
 . <<review-service-logs>>.
 
 [[before-you-begin]]
@@ -62,7 +63,11 @@ To begin using the `make test` command to debug your custom policy, register a F
 
 For the `make test` command to work, a Flex Gateway `registration.yaml` file must exist in the `<root-directory>/tests/common` directory. Create this file by running the registration command in the directory, or move a `registration.yaml` file of a previously registered Flex Gateway to the directory.
 
-The `make test` command only supports Flex Gateways running in Local Mode in a Docker Container. To register a Flex Gateway, see xref:gateway::flex-local-reg-run.adoc#docker[]
+To register Flex Gateway, see:
+
+* xref:gateway::flex-local-reg-run-up.adoc#docker[Register and Run with a Username and Password in a Docker Container]
+* xref:gateway::flex-local-reg-run-app.adoc#docker[Register and Run with a Connected App in a Docker Container]
+* xref:gateway::flex-local-reg-run-token.adoc#docker[Register and Run with a Token in a Docker Container]
 
 IMPORTANT: Run only the registration command. Do not run the Docker start command because the `make test` command completes this step.
 
@@ -101,29 +106,8 @@ To find your configuration parameters, see the `gcl.yaml` file.
 
 . Copy and past the `api.yaml` into the resource folders of your other test functions.
 
-[[run-integration-test]]
-== Run an Integration Test
-
-To run the integrations tests modules in the `/tests` folder, execute the `make test` command:
-
-[source,ssh]
-----
-make test
-----
-
-Run this test as you add additional features to your integration test to ensure proper configuration.
-
-NOTE: The `make test` command compiles the policy before running the integration tests.
-
-[[write-an-integration-test]]
-== Write an Integration Test
-
-PDK integration tests contain a composite of services running inside a Docker network. You can register service instances in a `TestComposite` object. Every service has a configuration, hostname, and instance.
-
-The `pdk-test` crate contains all the functionality for writing integration tests for custom policies in PDK and is included in the `[dev-dependencies]` section of the `Cargo.toml` file.
-
 [[create-a-test-function]]
-=== Create a Test Function
+== Create a Test Function
 
 Add a new test module by placing a new test function in an existing test module, for example `/tests/requests.rs`.
 
@@ -140,6 +124,27 @@ async fn say_hello() {
 ----
 
 NOTE: Because the body is empty, this test function never fails. Run `make test` to ensure everything is working fine.
+
+[[run-integration-test]]
+== Run an Integration Test
+
+To run the integrations tests modules in the `/tests` folder, execute the `make test` command:
+
+[source,ssh]
+----
+make test
+----
+
+Run this test as you add additional features to your integration test to ensure proper configuration.
+
+NOTE: The `make test` command compiles the policy before running the integration tests.
+
+[[configure-services-for-integration-testing]]
+== Configure Services for Integration Testing
+
+PDK integration tests contain a composite of services running inside a Docker network. You can register service instances in a `TestComposite` object. Every service has a configuration, hostname, and instance.
+
+The `pdk-test` crate contains all the functionality for writing integration tests for custom policies in PDK and is included in the `[dev-dependencies]` section of the `Cargo.toml` file.
 
 [[supported-services]]
 === Supported Services
