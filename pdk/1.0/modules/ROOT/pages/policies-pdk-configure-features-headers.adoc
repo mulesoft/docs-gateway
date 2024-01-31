@@ -51,7 +51,7 @@ async fn response_filter(response_state: ResponseState, _config: &Config) {
 }
 ----
 
-Envoy handles the method, scheme, path, authority, and status codes as headers. PDK provides the following methods to access and modify the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status` headers:
+Envoy handles the method, scheme, path, authority, and status codes as headers. PDK provides the following methods to access and modify the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status` Envoy headers:
 
 [source,Rust]
 ----
@@ -125,6 +125,8 @@ async fn request_filter(request_state: RequestState) {
     body_handler.set_body(&new_body);
 }
 ----
+
+NOTE: This code removes the `content-length` header. This is required to modify the body.
 
 == See Also
 
