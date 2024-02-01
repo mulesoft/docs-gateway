@@ -7,7 +7,6 @@ endif::[]
 When using Flex Gateway Policy Development Kit (PDK), you might encounter issues with PDK itself. See the following sections to help you resolve these issues:
 
 * <<cargo-generate>>
-* <<cargo-generate-compilation>>
 * <<cli-credential>>
 * <<group-id-error>>
 * <<authorization-error>>
@@ -55,30 +54,6 @@ rustflags = [
   "-C", "link-arg=dynamic_lookup",
 ]
 ----
-
-[[cargo-generate-compilation]]
-== Cargo-Generate Installation Error
-
-When installing Cargo Generate, you might receive a `E0405` or `E0433` error:
-
-[source,ssh]
-----
-$ cargo install cargo-generate
-[...]
-Updating crates.io index
-  Installing cargo-generate v0.19.0
-    Updating crates.io index
-   Compiling rhai v1.16.3
-error[E0405]: cannot find trait `PluginFunc` in this scope
-----
-
-These errors occur when transitive dependencies auto update while installing Cargo Generate. Avoid this by locking the dependency versions used during the installation. Use the following command to lock the dependencies and install Cargo Generate:
-
-[source,ssh]
-----
-cargo install --locked cargo-generate
-----
-
 
 [[cli-credential]]
 == Anypoint CLI Credentials Error
