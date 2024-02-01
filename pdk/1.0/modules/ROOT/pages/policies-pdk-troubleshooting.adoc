@@ -55,6 +55,29 @@ rustflags = [
 ]
 ----
 
+[[cargo-generate-compilation]]
+== Cargo-Generate Compilation
+While installing cargo generate you may tumble with error E0405 or E0433
+
+[source,ssh]
+----
+$ cargo install cargo-generate
+[...]
+Updating crates.io index
+  Installing cargo-generate v0.19.0
+    Updating crates.io index
+   Compiling rhai v1.16.3
+error[E0405]: cannot find trait `PluginFunc` in this scope
+----
+
+The failure originates from transitive dependencies auto updating on the installation moment. This can be avoided by locking the versions used in cargo generate 
+
+[source,ssh]
+----
+cargo install --locked cargo-generate@0.18.2
+----
+
+
 [[cli-credential]]
 == Anypoint CLI Credentials Error
 
