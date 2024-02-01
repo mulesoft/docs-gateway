@@ -1,5 +1,89 @@
-= Upgrading Your Policy to Java 17
+= Configuring the Java Version of a Custom Policy
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :keywords: policy, endpoint
+
+
+== Before you Begin
+
+Before upgrading your the Java version of your policy, you must ensure all dependencies are compatible with that Java version.
+
+If your policy is using a custom connector, please check the Customer Connector Upgrade Guide CX guide to check on how to upgrade them.
+
+If your policy uses a connector provided by Mule API Gateway, then check the following table to determine the first Java 17 compatible version of the connector. All later 
+
+[width="100%", cols="a,a"]
+|===
+| Extension artifact ID | First Java 17 compatible version
+| mule-client-id-enforcement-extension | 1.2.0
+| mule-cors-extension | 1.3.0
+| mule-event-authentication-extension | 1.1.0
+| mule-federation-extension | 1.4.0
+| mule-http-policy-transform | 3.2.0
+| mule-http-proxy-extension | 1.2.0
+| mule-ip-filter-extension | 2.1.0
+| mule-json-threat-protection-extension | 1.2.0
+| mule-jwt-extension | 1.3.0
+| mule-rest-validator-extension | 2.3.0
+| mule-soap-fault | 2.1.0
+| mule-throttling-extension | 3.1.0
+| mule-tokenization-extension | 1.2.0
+| mule-wsdl-functions-extension | 1.2.0
+| mule-xml-threat-protection-extension | 1.2.0
+|===
+
+== Configure the Java Version of Your Policy
+
+For upgrading the policy, the related metadata must be modified to include the supported Java versions, which must be compatible with the intersection of the compatible java versions of all dependencies.
+For this, the supportedJavaVersions field must be added. We’ll use the OOTB Basic Authentication policy as an example.
+
+== Split Model Policies
+
+In the case of split model policies, this must be added to the metadata YAML file related to the policy implementation. For example:
+
+[source,yaml]
+----
+#%Policy Implementation 1.0
+name: Basic Authentication - Simple - Mule4
+technolog
+y: mule4supportedJavaVersions: ["8", "11", "17"]
+minRuntimeVersion: 4.1.0
+releaseNotes: |
+  * Java 17 compatibility.
+----
+
+== Non-Split Model Policies
+
+For legacy model policies, those which are not split model, the file to be modified is the YAML which is named exactly as the policy and has the whole configuration model. For example:
+
+[source,yaml]
+----
+id: basic-authentication-simple
+name: Basic authentication - Simple
+supportedPoliciesVersions: '>=v1'
+description: Enforces HTTP Basic authentication according to the details configured in the policy.
+category: Security
+violationCategory: authentication
+type: system
+resourceLevelSupported: true
+encryptionSupported: true
+standalone: true
+supportedJavaVersions: ["8", "11", "17"]
+requiredCharacteristics: []
+providedCharacteristics:
+  - Requires authentication
+configuration:
+  - propertyName: username
+    name: User Name
+    type: string
+    optional: false
+    sensitive: false
+    allowMultiple: false
+  - propertyName: password
+    name: User Password
+    type: string
+    optional: false
+    sensitive: true
+    allowMultiple: false
+----
