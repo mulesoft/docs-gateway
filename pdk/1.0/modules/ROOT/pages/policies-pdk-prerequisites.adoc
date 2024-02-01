@@ -1,0 +1,117 @@
+= Reviewing PDK Prerequisites
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+To begin using Flex Gateway Policy Development Kit (PDK), ensure you have the following prerequisites installed.
+
+== Flex Gateway
+
+Your Flex Gateway version must be v1.6.1 or later to support PDK policies.
+
+PDK tutorials assume that you have xref:gateway::index.adoc[downloaded Flex Gateway] and have some prior knowledge of the product.
+
+[[rust-requirements]]
+== Rust Requirements for Using PDK
+
+. Git
++
+To download and install, see https://git-scm.com/book/en/v2/Getting-Started-Installing-Git[Installing Git^].
+
+. Rust programming language {rust-ver-var} or later
++
+To install or update Rust, run the following curl command:
++
+[source,ssh]
+----
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+----
++
+NOTE: If you do not have curl installed, see https://curl.se/download.html[Install curl^].
+
+. Rust WebAssembly System Interface (WASI) Crate
++
+To install or update Rust WASI, run the following command:
++
+[source,ssh]
+----
+rustup target add wasm32-wasi
+----
+
+. Cargo Generate
++
+To install or update Cargo Generate, run the following command:
++
+[source,ssh]
+----
+cargo install cargo-generate
+----
+
+
+== Supported Operating Systems
+
+* macOS 
+* Ubuntu
++ 
+To use Ubuntu, execute the following commands to install the required packages after installing the <<rust-requirements>>:
++
+[source,ssh]
+----
+sudo apt install -y build-essential
+sudo apt install -y pkg-config
+sudo apt install -y libssl-dev
+----
+* Windows
++
+IMPORTANT: PDK supports Windows to develop and test you custom policy. However, Flex Gateway does not support Windows in production environments.
++
+To execute the `make` commands included in PDK, install:
++
+. https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.3[PowerShell on Windows ^]
+. Make, with either:
+** https://gnuwin32.sourceforge.net/packages/make.htm[Make for Windows^]
+** Chocolatey: 
++
+[source,ssh]
+----
+choco install make
+----
+
+[[cli]]
+== Anypoint CLI 
+
+To configure the Anypoint CLI for PDK:
+
+. xref:4.x@anypoint-cli::install.adoc[Install Anypoint CLI 4.x v1.4.4 or later].
++
+NOTE: To find your Anypoint CLI 4.x version, see xref:4.x@anypoint-cli::install.adoc#verify-installation[Verify the Core Package Version].
+. xref:4.x@anypoint-cli::auth.adoc[Authenticate to the Anypoint Platform CLI] using a xref:access-management::connected-apps-overview.adoc[Connected App].
++
+Authenticate with a Connected App by providing the app's client ID and client secret.
++
+NOTE: In addition to the `View Organization` and `View Environment` scopes required to authenticate to Anypoint Platform, to complete xref:policies-pdk-publish-policies.adoc[], the Connected App must have the `Exchange Contributor` scope applied.
+
+. Run the following command to install or update the Anypoint CLI PDK Plugin:
++
+[source,ssh]
+----
+anypoint-cli-v4 plugins:install anypoint-cli-pdk-plugin
+----
+
+== Docker 
+
+Docker is required to use the xref:policies-pdk-debug-local.adoc[local debugging environment] and the xref:policies-pdk-integration-tests.adoc[integration testing framework] provided with PDK. You can still build and publish policies without docker.
+
+To install Docker, see https://docs.docker.com/get-docker/[Install Docker^].
+
+IMPORTANT: You can run Flex Gateway in Local Mode on Docker in Windows only to develop and test your policies. However, Flex Gateway does not support Windows in production environments.
+
+== Visual Studio (Suggested IDE)
+
+You can use PDK in any IDE or text editor, such as https://code.visualstudio.com/[Microsoft Visual Studio^] with the https://code.visualstudio.com/docs/languages/rust[Rust in Visual Studio Code Plugin^] installed.
+
+== See Also
+
+* xref:policies-pdk-architecture.adoc[]
+* xref:policies-pdk-develop-custom-policies.adoc[]
