@@ -1,0 +1,37 @@
+= Flow Cancellation
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Even though custom policies runs on a single-threaded environment, every request or response `async` function runs actually as a concurrent task.
+This implies that a single policy instance will handle multiple requests concurrently. For supporting this behaviour, every `.await`
+is a potential task interruption point. When a `.await` is invoked, the underlying async runtime is able to send the current task
+to sleep for a moment, and awake another task that still has not finished.
+The async runtime is allowed to cancel a task in some situations, and never run code that comes after the last `.await` invocation.
+Most common situation for task cancellation is when a request function waiting for a body and an upstream policy returns an early response:
+
+[source,Rust]
+----
+
+// Request function for upstream policy
+async fn upstream_request(state: RequestState) -> Response {
+    Response::new(404)
+}
+
+// Request function for downstream policy
+async fn downstream_request(state: RequestState) {
+
+    // Request function will be cancelled after this .await point.
+    let body_state = state.into_body_state().await;
+
+    // Code here will never be executed
+}
+
+----
+
+In request and response filters should ever be assumed that `.await` invocations are potential cancellation points.
+
+== See Also
+
+* xref:policies-pdk-configure-features-share-data.adoc[]

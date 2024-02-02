@@ -4,34 +4,10 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-To share a status between the request and the response functions, the request function must return a `RequestData` object for the request function to receive, for example:
-
-[source,Rust]
-----
-async fn request_filter(state: RequestState) -> RequestData<String> {
-    let state = state.into_headers_state().await;
-    RequestData(state.path())
-}
-
-async fn response_filter(state: ResponseState, RequestData(path): RequestData<String>) {
-    let state = state.into_headers_state().await;
-    logger::info!("Path: {path}, Status: {}", state.status_code());
-}
-
-#[entrypoint]
-async fn configure(launcher: Launcher) -> Result<()> {
-    let filter = on_request(request_filter)
-        .on_response(response_filter);
-
-    launcher
-        .launch(filter)
-        .await?;
-
-    Ok(())
-}
-----
-
-Returning `RequestData` prevents a response from reaching a client early.`Flow::Continue` enum has a template parameter that enables you to pass data between the request and the response. Implement this by adding an `on_response` wrapped function to the `Flow` example used in xref:policies-pdk-configure-features-stop.adoc[]:
+To share a status between the request and the response functions, the request function must return `Flow::Continue` enum variant, with a parameter that enables you to pass data between the request and the response. 
+The response function must receive a `RequestData` parameter, containing the request function final status. 
+If the request function ended with a `Flow::Continue` and was not xref:policies-pdk-configure-features-flow-cancellation.adoc[cancelled] by upstream policies, the `RequestData::Continue` variant will contain the value sent by the request function.
+Implement this by adding an `on_response` wrapped function to the `Flow` example used in xref:policies-pdk-configure-features-stop.adoc[]:
 
 [source,Rust]
 ----
@@ -52,12 +28,24 @@ async fn request_filter(state: RequestState) -> Flow<String> {
     }
 }
 
-async fn response_filter(state: ResponseState, RequestData(path): RequestData<String>) {
+async fn response_filter(state: ResponseState, request_data: RequestData<String>) {
+    // Handle only completed requests
+    if let RequestData::Continue(path) = request_data else {
+        return;
+    };
+
     let state = state.into_headers_state().await;
     logger::info!("Path: {path}, Status: {}", state.status_code());
 }
 ----
 
+`RequestData` type is an enum that represents the 3 possible final statuses of request functions:
+
+    * `RequestData::Continue(data)`: The request function ended with `Flow::Continue(data)`.
+    * `RequestData::Break` : The request function ended with `Flow::Break`.
+    * `RequestData::Cancel`: The request function was xref:policies-pdk-configure-features-flow-cancellation.adoc[cancelled].
+
 == See Also
 
 * xref:policies-pdk-configure-features.adoc[]
+* xref:policies-pdk-configure-features-flow-cancellation.adoc[]
