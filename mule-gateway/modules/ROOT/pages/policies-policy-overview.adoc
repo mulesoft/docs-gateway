@@ -60,8 +60,17 @@ Some policies, such as the Token Enforcement policy, allow propagation of header
 
 The size of a policy varies based on its dependencies. The first time, Mule polls for policies takes longer to fetch. However, after policies are retrieved, they are cached on the file system. This ensures offline availability and also reduces latency.
 
-//Add more information about the policy size. we have two options here, either hide the policy size, or clarify that this doesn't happen for cloudhub or runtime fabric--chirag
+=== Cached Policy Assets Deletion
 
+Downloading policy jars can be an expensive operation, specially for policies that have a large size. Therefore, the policy assets, jar and yaml, are never deleted, not even when the policy is unapplied in API Manager.
+
+However, starting from releases and monthly versions released after February 1, 2024, a new configuration property was introduced to automatically delete unused cached files on runtime start up.
+
+The feature can be enabled by adding the following entry in the `wrapper.conf` file:
+
+`anypoint.platform.delete_unused_templates_on_start=true`
+
+This is disabled by default.
 
 == Policies and SLAs
 
