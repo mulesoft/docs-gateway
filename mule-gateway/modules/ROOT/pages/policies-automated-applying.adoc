@@ -29,17 +29,22 @@ You can configure any provided policies for Mule 4 as an automated policy. +
 See the xref:api-manager::policies-ootb-landing-page.adoc[list of available Provided Policies] to learn how to configure each one of them, or the xref:api-manager::policy-mule3-creating-custom-policy.adoc[Creating a Custom Policy] article to learn how to create one.
 +
 When configuring an automated policy, at the bottom of the policy configuration page, there is a *Rule of Applications* sub-section. This dictates the set of runtimes that will be affected by the policy:
-
-* *Apply to all supported runtimes (4.1.1 and above)*. +
-All API proxies based on Mule 4.1.1 and later will be affected by the policy.
-* *Apply to a specific set of runtimes*. +
-You can configure a range of runtime versions to inherit the automated policy. +
-For example, if the input From is 4.1.2 and the To value is 4.1.4, the automated policy will be applied to all deployed APIs inside this range. An API deployed on 4.1.5 won’t be affected by the policy.
 +
-You can include values such as `4.1.x`. For example, adding a range from 4.1.1 to 4.1.x covers all runtime patch releases. An API Proxy based on 4.1.0 will not be included in this range, because it's lower than the 4.1.1 "from value."
+* *All runtimes*: Applies the policy to every API instance regardless of runtime.
+* *Flex Gateways only*: Applies the policy to all Flex Gateway API instances.
+* *Mule Gateways only*: Applies the policy to all Mule Gateway API instances running on Mule 4.1.1 and later. When applying to Mule Gateways only, configure the following parameters:
 +
-If you are configuring a type of policy that also exists as a provided policy in an API proxy affected by your rule of application, you'll need to solve the conflict before continuing. Refer to the <<Conflict Management>> section below for more information on how to solve them.
-. Click *Apply*
+** Version Range +
+You can configure a range of Mule runtime versions to inherit the automated policy. +
+For example, if the input *From Version* is 4.1.2 and the *To* is 4.1.4, the automated policy is applied to all deployed APIs inside this range. An API deployed on 4.1.5 is not be affected by the policy.
++
+You can include values such as `4.1.x`. For example, adding a range from 4.1.1 to 4.1.x covers all runtime patch releases. An API Proxy based on 4.1.0 is not included in this range, because it's lower than the 4.1.1.
++
+If you are configuring a type of policy that also exists as a provided policy in an API proxy affected by your rule of application, you must solve the conflict before continuing. Refer to the <<Conflict Management>> section below for more information on how to solve them.
++
+** *Java versions* +
+Select to apply the policy to *All Java versions* or *Choose specific Java versions*. If you choose to apply the policies to specific Java versions, chose either *Java 8*, *Java 17*, or both.
+. Click *Apply*.
 
 [TIP]
 It’s recommended to apply an automated policy in a lower environment before applying in a production environment and ensure to review that an automated policy doesn't affect the existing API contracts.
