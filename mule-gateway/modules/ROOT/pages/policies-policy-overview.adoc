@@ -62,15 +62,14 @@ The size of a policy varies based on its dependencies. The first time, Mule poll
 
 === Cached Policy Assets Deletion
 
-Downloading policy jars can be an expensive operation, specially for policies that have a large size. Therefore, the policy assets, jar and yaml, are never deleted, not even when the policy is unapplied in API Manager.
+By default, Mule Gateway never deletes the JAR and YAML policy asset files, not even when the policy is unapplied in API Manager.
 
-However, starting from releases and monthly versions released after February 1, 2024, a new configuration property was introduced to automatically delete unused cached files on runtime start up.
+For Mule Runtime versions 4.6.0 or later, automatically delete unused cached files when the runtime starts by adding the following entry to the `wrapper.conf` file:
 
-The feature can be enabled by adding the following entry in the `wrapper.conf` file:
-
+[source,conf]
+----
 `anypoint.platform.delete_unused_templates_on_start=true`
-
-This is disabled by default.
+----
 
 == Policies and SLAs
 
