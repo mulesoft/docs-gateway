@@ -4,16 +4,26 @@ include::_attributes.adoc[]
 endif::[]
 :keywords: policy, endpoint
 
+Mule Gateway custom policies can support different Java versions. To upgrade your custom policy to a newer version of Java, ensure that all policy dependencies support the new Java version and add the new Java version to your policy's implementation metadata YAML file. 
+
+After you upgrade the policy:
+
+. xref:policies-custom-package.adoc[Package the custom policy].
+. xref:policies-custom-upload-to-exchange[Publish the custom policy to Exchange].
+. xref:general::upgrade-policies-proxies.adoc[Upgrade your applied policies to the new policy version].
 
 [[before-you-begin]]
 == Before you Begin
 
-Before upgrading your the Java version of your policy, ensure all dependencies are compatible with that Java version.
+Before upgrading your the Java version of your policy, ensure all dependencies are compatible with that Java version:
 
-If your policy is using custom connectors, see xref:general::customer-connector-upgrade.adoc[] to upgrade them.
+* If your policy is using custom connectors, see xref:general::customer-connector-upgrade.adoc[] to upgrade them.
 
-If your policy uses extensions provided by Mule API Gateway, see the following table to find the first Java 17 compatible version of the extension. All versions support still support Java 8:
-
+* If your policy uses extensions provided by Mule API Gateway, update the version of the dependency in you `pom.xml` file to a version that supports your new Java version.
++
+For an example of how to use extensions in your custom policy, see xref:policies-custom-http-transform.adoc[].
+To find the first Java 17 compatible version of the extension, see the following table. All versions support support Java 8:
++
 [width="100%", cols="a,a"]
 |===
 | Extension artifact ID | First Java 17 compatible version
@@ -33,6 +43,7 @@ If your policy uses extensions provided by Mule API Gateway, see the following t
 | mule-wsdl-functions-extension | 1.2.0
 | mule-xml-threat-protection-extension | 1.2.0
 |===
+
 
 == Configure the Java Version of Your Policy
 
