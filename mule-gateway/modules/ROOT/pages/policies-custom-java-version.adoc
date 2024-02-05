@@ -13,21 +13,21 @@ After you upgrade the policy:
 . xref:general::upgrade-policies-proxies.adoc[Upgrade your applied policies to the new policy version].
 
 [[before-you-begin]]
-== Before you Begin
+== Before You Begin
 
-Before upgrading your the Java version of your policy, ensure all dependencies are compatible with that Java version:
+Before upgrading the Java version of your policy, ensure all dependencies are compatible with that Java version:
 
 * If your policy is using custom connectors, see xref:general::customer-connector-upgrade.adoc[] to upgrade them.
 
-* If your policy uses extensions provided by Mule API Gateway, update the version of the dependency in you `pom.xml` file to a version that supports your new Java version.
+* If your policy uses extensions provided by Mule API Gateway, update the version of the dependency in your `pom.xml` file to a version that supports your new Java version.
 +
 For an example of how to use extensions in your custom policy, see xref:policies-custom-http-transform.adoc[].
 +
-To find the first Java 17 compatible version of the extension, see the following table. All versions support support Java 8:
+To find the first Java 17-compatible version of the extension, see the following table. All versions support Java 8:
 +
 [width="100%", cols="a,a"]
 |===
-| Extension artifact ID | First Java 17 compatible version
+| Extension artifact ID | First Java 17-compatible version
 | mule-client-id-enforcement-extension | 1.2.0
 | mule-cors-extension | 1.3.0
 | mule-event-authentication-extension | 1.1.0
@@ -48,9 +48,9 @@ To find the first Java 17 compatible version of the extension, see the following
 
 == Configure the Java Version of Your Policy
 
-For your policy to support different Java versions, you must modify the implementation metadata file to include the `supportedJavaVersions` field. The `supportedJavaVersions` supports the java versions `8`, `11`, and `17`. If you do not include the `supportedJavaVersions` field, your policy supports only Java 8. As specified in <<before-you-begin>>, all policy dependencies must also support the listed Java versions.
+For your policy to support different Java versions, you must modify the implementation metadata file to include the `supportedJavaVersions` field. The `supportedJavaVersions` supports the Java versions `8`, `11`, and `17`. If you do not include the `supportedJavaVersions` field, your policy supports only Java 8. As specified in <<before-you-begin>>, all policy dependencies must also support the listed Java versions.
 
-For newer custom policies, your implementation metadata file and definition metadata file are split into two seperate `YAML` files. However, for older policies, your implementation metadata file and definition metadata file might be included in the same `YAML` file. See the following sections the add the `supportedJavaVersions` to your relevant file structure:
+For newer custom policies, your implementation metadata file and definition metadata file are split into two separate `YAML` files. However, for older policies, your implementation metadata file and definition metadata file might be included in the same `YAML` file. See the following sections the add the `supportedJavaVersions` to your relevant file structure:
 
 * <<split-model-policies>>
 * <<non-split-model-policies>>
@@ -75,7 +75,7 @@ releaseNotes: |
 [[non-split-model-policies]]
 === Non-Split Model Policies
 
-For older policies where implementation and definition metadata are found in the same `YAML` file, add `supportedJavaVersions` as follows:
+For older policies where implementation and definition metadata are found in the same `YAML` file, add the `supportedJavaVersions` field as follows:
 
 [source,yaml]
 ----
