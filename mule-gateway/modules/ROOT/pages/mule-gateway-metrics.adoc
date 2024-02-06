@@ -18,6 +18,28 @@ Even though no sensitive information is collected using this configuration, you 
 
 `anypoint.platform.metrics_enabled=false`
 
+[[log-analytics-event-data]]
+== Log Analytics Event Data
+
+Mule Gateway provides `INFO` API analytics event logging to capture data about incoming API requests. 
+
+NOTE: API analytics event logging is only supported in Mule runtime versions 4.4.x and 4.5.x released after Feb 1, 2024 and Mule runtime versions 4.6.0 and later.
+
+By default, `anypoint.platform.log_analytics_events=false`. Enable event logging by adding the following entry to the `wrapper.conf` file:
+
+[source,conf]
+----
+anypoint.platform.log_analytics_events=true
+----
+
+IMPORTANT: Due to additional log generation, events logging might affect the performance of the request processing.
+
+Logs appear in the following format:
+
+----
+com.mulesoft.mule.runtime.gw.analytics.logger.AnalyticsHttpEventsLogger: {"api_id":XX,"api_version_id":XX,"org_id":"XXX","host_id":"XXXX","client_id":XXX,"transaction_id":XXX,"received_ts":"XXX","replied_ts":"XXX","client_ip":"XX","verb":"GET","path":"/backend","status_code":200,"user_agent":"XXX","request_bytes":0,"response_bytes":150,"request_disposition":"XXX","policy_violation":null,"event_id":"XXX","deployment_type":null}
+----
+
 == Manage Logs and Troubleshoot
 
 If an error occurs during the metrics collection process, your Mule application’s ability to complete other tasks is not affected. Additionally, all entries related to the metrics collection is logged as `DEBUG` in the following packages to avoid cluttering the log files:
