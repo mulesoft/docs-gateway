@@ -181,6 +181,20 @@ Each response header has information about the current state of the request:
 
 By default, the X-RateLimit headers are disabled in the response. You can enable these headers by selecting *Expose Headers* when you configure the policy.
 
+
+[NOTE]
+====
+When on distributed mode, the X-Ratelimit-Remaining header is not perfectly synchronized with all the replicas.  With multiple replicas on distributed mode, the X-Ratelimit-Remaining header is an estimation of how much quota the replica has available for itself. It does not represent the actual value of the remaining quota available for the API.
+
+The following describes a valid scenario:
+
+* Created a SLA tier name "Titanium" having rate limit of "999999999 req per 10 min"
+* Sent 1 request to replica 1 -> x-ratelimit-remaining : 999999998
+* Sent 1 request to replica 2 -> x-ratelimit-remaining : 899999998
+
+This does not mean that the quota will be surpassed.
+====
+
 *When should I use Rate Limiting instead of Rate-Limiting SLA or Spike Control?*
 
 Use Rate Limiting and Rate-Limiting SLA policies for accountability and to enforce a hard limit to a group (using the identifier in Rate Limiting) or to a client application (using Rate Limiting-SLA). If you want to protect your backend, use the Spike Control policy instead.
