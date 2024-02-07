@@ -162,23 +162,26 @@ See xref:exchange::to-create-an-asset#create-custom-policy-definition-asset[Crea
 == Create Implementation Files
 The policy implementation files that are required to make the policy available in a runtime are a metadata file and a binary file. The metadata file describes what technology the binary file applies to and from which runtime version. The metadata file must be a YAML file. The binary file contains the policy logic and manages the runtime execution. The file can be a JAR file for Mule 4 runtime.
 
-=== Create Metadata YAML File
+=== Create the Implementation Metadata YAML File
 The metadata YAML file provides details about the specific implementation of the policy definition. A single policy definition can have several implementations. Each an independent asset in Exchange or different versions of the same Exchange asset.
 
-The metada YAML file must include the following fields:
+The metadata YAML file must include the following fields:
 
 * Header
 +
-#%Policy Implementation 1.0
+`#%Policy Implementation 1.0`
 * Technology
 +
-Either `mule4` or `flexGateway`.
+`mule4`
 * Name
 +
 Name of the implementation.
-* minRuntimeVersion
+* `minRuntimeVersion`
 +
 A semantic version representing the first runtime version that the implementation binary is compatible with. For example, a mule binary might only be compatible from 4.3.0 onwards.
+* `supportedJavaVersions`
++
+The Java versions supported by the custom policy, either `"8"`, `"11"`, or `"17"`. You can list one or multiple versions. If `supportedJavaVersions` field is not provided, the policy supports only Java 8.
 
 The YAML file can also include `Release notes`.
 
@@ -187,7 +190,7 @@ The following code is an example of a implementation metadata YAML file:
 ----
 #%Policy Implementation 1.0
 minRuntimeVersion: 4.1.1
-maxRuntimeVersion: 4.4.0
+supportedJavaVersions: ["8", "11", "17"]
 technology: mule4
 name: Simple Auth Mule Implementation
 releaseNotes: "<some notes here>"
