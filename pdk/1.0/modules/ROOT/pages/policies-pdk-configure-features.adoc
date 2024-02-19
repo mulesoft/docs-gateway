@@ -148,12 +148,12 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 [[flow-cancellation]]
 == Flow Cancellation
 
-Even though custom policies runs on a single-threaded environment, every filter (i.e. a couple of request and response `async` functions) runs actually as a concurrent task.
-This implies that a single policy instance will handle multiple requests concurrently. For supporting this behaviour, every `.await`
-is a potential task interruption point. When an `.await` is invoked, the underlying async runtime is able to send the current task
-to sleep for a moment, and awake another task that still has not finished.
-The async runtime is allowed to cancel a task in some situations, and never run code that comes after the last `.await` invocation.
-Most common situation for task cancellation is when a request function waiting for a body and an upstream policy returns an early response:
+Custom policies runs on a single-threaded environment. However, every set of wrapped functions (a `on_request` and a `on_response` `async` function) run as a concurrent task, meaning that a single policy instance handles multiple requests concurrently. 
+
+To support this behavior, every `.await` is a potential task interruption point. When an `.await` is invoked, the underlying async runtime can set the current task
+to sleep for a moment, and awake another task that has not finished. The async runtime can cancel a task and never run code that comes after the last `.await` invocation. `on_request` and `on_response` functions assume that `.await` invocations are potential cancellation points.
+
+The most common situation, as shown in the following code example, for task cancellation is when a request function waiting for a body and an upstream policy returns an early response:
 
 [source,Rust]
 ----
@@ -173,8 +173,6 @@ async fn downstream_request(state: RequestState) {
 }
 
 ----
-
-In request and response filters should ever be assumed that `.await` invocations are potential cancellation points.
 
 [[provided-rust-source-code]]
 == Discover PDK features with Provided Rust Source Code
