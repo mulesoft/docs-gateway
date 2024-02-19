@@ -6,7 +6,7 @@ endif::[]
 
 Flex Gateway Policy Development Kit (PDK) provides the `RequestData` enum to pass data between the request and the response.
 
-To share a status between the request and the response functions, the request function must return a `Flow::Continue` enum variant with a parameter that that you wish to pass to the response function. The response function must receive the `RequestData` parameter that contains the request function's final status and the data that was passed.
+To share a status between the request and the response functions, the request function must return a `Flow::Continue` enum variant with a data parameter that that you wish to pass to the response function. The response function must receive the `RequestData` parameter that contains the request function's final status and the data parameter that was passed.
 
 The `RequestData` enum has the following possible final status:
 
@@ -14,8 +14,8 @@ The `RequestData` enum has the following possible final status:
 * `RequestData::Break` : The request function ended with `Flow::Break`.
 * `RequestData::Cancel`: The request function was xref:policies-pdk-configure-features.adoc#flow-cancellation[cancelled].
 
-
 If the request function ended with a `Flow::Continue` and was not xref:policies-pdk-configure-features-flow-cancellation.adoc[cancelled] by upstream policies, the `RequestData::Continue` variant contains the value sent by the request function.
+
 Implement this by adding an `on_response` wrapped function to the `Flow` example used in xref:policies-pdk-configure-features-stop.adoc[]:
 
 [source,Rust]
