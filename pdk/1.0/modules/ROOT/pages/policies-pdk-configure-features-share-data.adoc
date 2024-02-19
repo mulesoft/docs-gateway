@@ -4,9 +4,18 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-To share a status between the request and the response functions, the request function must return `Flow::Continue` enum variant, with a parameter that enables you to pass data between the request and the response. 
-The response function must receive a `RequestData` parameter, containing the request function final status. 
-If the request function ended with a `Flow::Continue` and was not xref:policies-pdk-configure-features-flow-cancellation.adoc[cancelled] by upstream policies, the `RequestData::Continue` variant will contain the value sent by the request function.
+Flex Gateway Policy Development Kit (PDK) provides the `RequestData` enum to pass data between the request and the response.
+
+To share a status between the request and the response functions, the request function must return a `Flow::Continue` enum variant with a parameter that that you wish to pass to the response function. The response function must receive the `RequestData` parameter that contains the request function's final status and the data that was passed.
+
+The `RequestData` enum has the following possible final status:
+
+* `RequestData::Continue(data)`: The request function ended with `Flow::Continue(data)`.
+* `RequestData::Break` : The request function ended with `Flow::Break`.
+* `RequestData::Cancel`: The request function was xref:policies-pdk-configure-features.adoc#flow-cancellation[cancelled].
+
+
+If the request function ended with a `Flow::Continue` and was not xref:policies-pdk-configure-features-flow-cancellation.adoc[cancelled] by upstream policies, the `RequestData::Continue` variant contains the value sent by the request function.
 Implement this by adding an `on_response` wrapped function to the `Flow` example used in xref:policies-pdk-configure-features-stop.adoc[]:
 
 [source,Rust]
@@ -38,12 +47,6 @@ async fn response_filter(state: ResponseState, request_data: RequestData<String>
     logger::info!("Path: {path}, Status: {}", state.status_code());
 }
 ----
-
-`RequestData` type is an enum that represents the 3 possible final statuses of request functions:
-
-    * `RequestData::Continue(data)`: The request function of the current policy ended with `Flow::Continue(data)`.
-    * `RequestData::Break` : The request function of the current policy ended with `Flow::Break`.
-    * `RequestData::Cancel`: The request function was xref:policies-pdk-configure-features.adoc#flow-cancellation[cancelled].
 
 == See Also
 
