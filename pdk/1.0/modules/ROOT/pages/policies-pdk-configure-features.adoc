@@ -148,7 +148,7 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 [[flow-cancellation]]
 == Flow Cancellation
 
-Custom policies runs on a single-threaded environment. However, every set of wrapped functions (a `on_request` and a `on_response` `async` function) run as a concurrent task, meaning that a single policy instance handles multiple requests concurrently. 
+Custom policies run on a single-threaded environment. However, every set of wrapped functions (a `on_request` and a `on_response` `async` function) run as a concurrent task, meaning that a single policy instance handles multiple requests concurrently. 
 
 To support this behavior, every `.await` is a potential task interruption point. When an `.await` is invoked, the underlying async runtime can set the current task
 to sleep for a moment, and awake another task that has not finished. The async runtime can cancel a task and never run code that comes after the last `.await` invocation. `on_request` and `on_response` functions assume that `.await` invocations are potential cancellation points.
