@@ -1,0 +1,111 @@
+= Configuring the Java Version of a Custom Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:keywords: policy, endpoint
+
+Mule Gateway custom policies can support different Java versions. To upgrade your custom policy to a newer version of Java, ensure that all policy dependencies support the new Java version and add the new Java version to your policy's implementation metadata YAML file. 
+
+After you upgrade the policy:
+
+. xref:policies-custom-package.adoc[Package the custom policy].
+. xref:policies-custom-upload-to-exchange.adoc[Republish the custom policy to Exchange].
+. xref:general::upgrade-policies-proxies.adoc[Upgrade your applied policies to the new policy version].
+
+[[before-you-begin]]
+== Before You Begin
+
+Before upgrading the Java version of your policy, ensure all dependencies are compatible with that Java version:
+
+* If your policy is using custom connectors, see xref:general::java-support.adoc#custom-connectors[Custom Connectors Java Support] to upgrade them.
+* If your policy uses extensions provided by Mule API Gateway, update the version of the dependency in your `pom.xml` file to a version that supports your new Java version.
++
+For an example of how to use extensions in your custom policy, see xref:policies-custom-http-transform.adoc[].
++
+To find the first Java 17-compatible version of the extension, see the following table. All versions support Java 8:
++
+[width="100%", cols="a,a"]
+|===
+| Extension artifact ID | First Java 17-compatible version
+| mule-client-id-enforcement-extension | 1.2.0
+| mule-cors-extension | 1.3.0
+| mule-event-authentication-extension | 1.1.0
+| mule-federation-extension | 1.4.0
+| mule-http-policy-transform | 3.2.0
+| mule-http-proxy-extension | 1.2.0
+| mule-ip-filter-extension | 2.1.0
+| mule-json-threat-protection-extension | 1.2.0
+| mule-jwt-extension | 1.3.0
+| mule-rest-validator-extension | 2.3.0
+| mule-soap-fault | 2.1.0
+| mule-throttling-extension | 3.1.0
+| mule-tokenization-extension | 1.2.0
+| mule-wsdl-functions-extension | 1.2.0
+| mule-xml-threat-protection-extension | 1.2.0
+|===
+
+== Configure the Java Version of Your Policy
+
+For your policy to support different Java versions, you must modify the implementation metadata file to include the `supportedJavaVersions` field. The `supportedJavaVersions` supports the Java versions `8`, `11`, and `17`. If you do not include the `supportedJavaVersions` field, your policy supports only Java 8. As specified in <<before-you-begin>>, all policy dependencies must also support the listed Java versions.
+
+For newer custom policies, your implementation metadata file and definition metadata file are split into two separate `YAML` files. However, for older policies, your implementation metadata file and definition metadata file might be included in the same `YAML` file. See the following sections the add the `supportedJavaVersions` to your relevant file structure:
+
+* <<split-model-policies>>
+* <<non-split-model-policies>>
+
+[[split-model-policies]]
+=== Split Model Policies
+
+For split model policies, add the `supportedJavaVersions` field to the implementation metadata `YAML`, for example:
+
+[source,yaml]
+----
+#%Policy Implementation 1.0
+name: Basic Authentication - Simple - Mule4
+technology: mule4
+supportedJavaVersions: ["8", "11", "17"]
+minRuntimeVersion: 4.1.0
+releaseNotes: |
+  * Java 17 compatibility.
+----
+
+[[non-split-model-policies]]
+=== Non-Split Model Policies
+
+For older policies where implementation and definition metadata are found in the same `YAML` file, add the `supportedJavaVersions` field as follows:
+
+[source,yaml]
+----
+id: basic-authentication-simple
+name: Basic authentication - Simple
+supportedPoliciesVersions: '>=v1'
+description: Enforces HTTP Basic authentication according to the details configured in the policy.
+category: Security
+violationCategory: authentication
+type: system
+resourceLevelSupported: true
+encryptionSupported: true
+standalone: true
+supportedJavaVersions: ["8", "11", "17"]
+requiredCharacteristics: []
+providedCharacteristics:
+  - Requires authentication
+configuration:
+  - propertyName: username
+    name: User Name
+    type: string
+    optional: false
+    sensitive: false
+    allowMultiple: false
+  - propertyName: password
+    name: User Password
+    type: string
+    optional: false
+    sensitive: true
+    allowMultiple: false
+----
+
+== See Also
+
+* xref:general::java-support.adoc[]
+* xref:general::upgrade-policies-proxies.adoc[]
