@@ -4,34 +4,19 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-To share a status between the request and the response functions, the request function must return a `RequestData` object for the request function to receive, for example:
+Flex Gateway Policy Development Kit (PDK) provides the `RequestData` enum to pass data between the request and the response.
 
-[source,Rust]
-----
-async fn request_filter(state: RequestState) -> RequestData<String> {
-    let state = state.into_headers_state().await;
-    RequestData(state.path())
-}
+To share a status between the request and the response functions, the request function must return a `Flow::Continue` enum variant with a data parameter that that you wish to pass to the response function. The response function must receive the `RequestData` parameter that contains the request function's final status and the data parameter that was passed.
 
-async fn response_filter(state: ResponseState, RequestData(path): RequestData<String>) {
-    let state = state.into_headers_state().await;
-    logger::info!("Path: {path}, Status: {}", state.status_code());
-}
+The `RequestData` enum has the following possible final status:
 
-#[entrypoint]
-async fn configure(launcher: Launcher) -> Result<()> {
-    let filter = on_request(request_filter)
-        .on_response(response_filter);
+* `RequestData::Continue(data)`: The request function ended with `Flow::Continue(data)`.
+* `RequestData::Break` : The request function ended with `Flow::Break`.
+* `RequestData::Cancel`: The request function was xref:policies-pdk-configure-features.adoc#flow-cancellation[cancelled].
 
-    launcher
-        .launch(filter)
-        .await?;
+If the request function ended with a `Flow::Continue` and was not xref:policies-pdk-configure-features-flow-cancellation.adoc[cancelled] by upstream policies, the `RequestData::Continue` variant contains the value sent by the request function.
 
-    Ok(())
-}
-----
-
-Returning `RequestData` prevents a response from reaching a client early.`Flow::Continue` enum has a template parameter that enables you to pass data between the request and the response. Implement this by adding an `on_response` wrapped function to the `Flow` example used in xref:policies-pdk-configure-features-stop.adoc[]:
+Implement this by adding an `on_response` wrapped function to the `Flow` example used in xref:policies-pdk-configure-features-stop.adoc[]:
 
 [source,Rust]
 ----
@@ -52,7 +37,12 @@ async fn request_filter(state: RequestState) -> Flow<String> {
     }
 }
 
-async fn response_filter(state: ResponseState, RequestData(path): RequestData<String>) {
+async fn response_filter(state: ResponseState, request_data: RequestData<String>) {
+    // Handle only completed requests
+    if let RequestData::Continue(path) = request_data else {
+        return;
+    };
+
     let state = state.into_headers_state().await;
     logger::info!("Path: {path}, Status: {}", state.status_code());
 }
