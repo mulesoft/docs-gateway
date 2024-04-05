@@ -1,0 +1,131 @@
+= External Authorization Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: external authorization, authorization, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s|Policy name | External Authorization
+>s|Summary | Authenticates requests with an external gRPC or HTTP authorization service
+>s|Category | Security
+>s| First Flex Gateway version available | v1.6.0
+>s| Returned Status Codes | 403 - Forbidden, invalid client application credentials
+|===
+
+== Summary
+
+The External Authorization policy forwards incoming client HTTP requests to an external gRPC of HTTP authorization service to determine if the client HTTP request is authorized to access the upstream service. In the request is authorized, Flex Gateway allows the request to pass to the upstream service. For unauthorized accesses, Flex Gateway returns a `403` forbidden request error. 
+
+To forward request headers, such as an authorization token header, to the authorization service, use the *Allowed Headers* parameter to configure which headers from the client HTTP requests to send to the authorization service.
+
+When using a gRPC external authorization service, the External Authorization policy can also modify the client HTTP requests header with additional information returned from the authorization service. If the authorization service returns headers with the authorization response, Flex Gateway either appends these headers to the client HTTP request or overwrites the header if it is already present in the client HTTP request. For example, if an authorized user makes a request with an access token header that corresponds to a username, the authorization service can return a `username` header for Flex Gateway to append to the client HTTP request. When using the policy with an HTTP external authorization service, the policy cannot modify the client HTTP request.
+
+The External Authorization policy is an extension of the External Authorization filter native to Envoy. To learn more about the External Authorization filter, see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_authz_filter[External Authorization Filter^]. Not all External Authorization filter parameters are available to the External Authorization policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>. 
+
+NOTE: If other policies modify the incoming HTTP request, ensure that you order the policies depending on if these modification should be present when the request is sent to the authorization service. For more information about ordering policies, see xref:policies-reorder.adoc[].
+
+== Configuring Policy Parameters
+
+To configure your policy parameters, see the following parameter references for the mode your Flex Gateway is running in:
+
+* <<local-mode>>
+* <<connected-mode>>
+
+[[local-mode]]
+=== Flex Gateway Local Mode
+
+In Local Mode, you apply the External Authorization policy to your API instance via YAML configuration files. Refer to the following policy definition and table of parameters:
+
+[source,yaml]
+----
+- policyRef:
+    name: native-ext-authz-flex
+  config:
+    uri: <string> // REQUIRED
+    serverType: <string> // REQUIRED, default "grpc"
+    serverVersion: <string> // REQUIRED, default `v3`
+    includePeerCertificate: <boolean> // REQUIRED, default `false`
+    allowedHeaders: <array> // OPTIONAL
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+
+|Parameter | Required or Optional | Default Value | Description
+
+| `uri`
+| Required
+| NA
+| External authorization service URI. With a gRPC type server, define the URI by using this format: `h2://<ext.authz.com>:<port>`.
+
+| `serverType`
+| Required
+| `grpc`
+| Type of external server. Supported values are `grpc` and `http`.
+
+| `serverVersion`
+| Optional
+| `v3`
+| Transport protocol API version. Supported values are `v3` and `v2`.
+
+| `includePeerCertificate`
+| Optional
+| `false`
+| If `true`, includes peer certificates in the authorization server request. Supported values are `true` and `false`.
+
+| `allowedHeaders`
+| Optional
+| NA
+| By default, requests sent to gRPC servers include all client headers and requests sent to HTTP servers don't include any client headers. If you list allowed headers for either server type, requests include only the listed headers.
+
+|===
+
+NOTE: Leaving a required value blank configures the parameter as the default value. No value is configured for optional values left blank.
+
+=== Resource Configuration Example
+
+In the following configuration, a gRPC authorization service receives a request that includes the peer certificates and authorization token header:
+
+[source,yaml]
+----
+- policyRef:
+    name: native-ext-authz-flex
+  config:
+    uri: h2://ext-authz-grpc-service:9001
+    serverType: "grpc"
+    includePeerCertificate: "true"
+    allowedHeaders:
+      - access-token
+----
+
+[[connected-mode]]
+=== Flex Gateway Connected Mode
+
+When you apply the policy to your API instance from the UI, the following parameters are displayed:
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| *Parameter* | *Description*
+|External authorization service URI  | External authorization service URI. With a gRPC type server, define the URI as `\h2://<ext.authz.com>:<port>`.
+|External authorization server type  | Type of external server.
+|Transport protocol API version  | Transport protocol API version.
+|Include peer certificates in the authorization server request | Includes peer certificates in the authorization server request.
+|Allowed headers | By default, requests sent to gRPC servers include all client headers and requests sent to HTTP servers don't include any client headers. If you list allowed headers for either server type, requests include only the listed headers.
+|===
+
+== How This Policy Works
+
+The following diagram demonstrates the order in which requests and responses flow when the External Authorization policy is applied:
+
+image:ext-auth-policy.png[80%,80%,align="center"]
+
+. The client makes an HTTP request to the API instance exposed by Flex Gateway.
+. Flex Gateway forwards the request consisting of the client's request and headers to the authorization service.
+. The authorization services sends a response back to Flex Gateway. The response indicates whether the client HTTP request is authorized and also indicates which headers to append or to edit:
+** If the request isn't authorized, Flex Gateway returns a `403` forbidden access code to the client.
+** If the request is authorized, Flex Gateway appends the header data to the client request, if necessary, and allows the request to pass to the upstream service.
+. Flex Gateway returns the response as normal.
+
+include::partial$envoy-policy-limitations.adoc[]
