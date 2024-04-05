@@ -20,6 +20,11 @@ The External Authorization policy forwards incoming client HTTP requests to an e
 
 To forward request headers, such as an authorization token header, to the authorization service, use the *Allowed Headers* parameter to configure which headers from the client HTTP requests to send to the authorization service. For policies with an HTTP Authorization server, you can add headers not included in the client request to the authorization request by defining the headers in the *Headers to add* parameter.
 
+[IMPORTANT]
+====
+Flex Gateway send headers to the authorization service encoded in bytes. To send headers encoded in utf8, set the environment variable `FLEX_HEADER_RAW_VALUE_ENABLE=false`.
+====
+
 The External Authorization policy can also modify the client HTTP request and response headers with additional information returned from the authorization service. For example, if an authorized user makes a request with an access token header that corresponds to a username, the authorization service can return a `username` header for Flex Gateway to append to the client HTTP request.
 For gRPC authorization servers, if the authorization service returns headers with the authorization response, Flex Gateway either appends these headers to the client HTTP request or overwrites the header if it is present in the client request. For HTTP authorization servers, you can configure what headers are appended, overwritten, or ignored.
 
