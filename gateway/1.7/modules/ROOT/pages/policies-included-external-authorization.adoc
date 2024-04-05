@@ -16,11 +16,11 @@ endif::[]
 
 == Summary
 
-The External Authorization policy forwards incoming client HTTP requests to an external gRPC of HTTP authorization service to determine if the client HTTP request is authorized to access the upstream service. In the request is authorized, Flex Gateway allows the request to pass to the upstream service. For unauthorized accesses, Flex Gateway returns a `403` forbidden request error. 
+The External Authorization policy forwards incoming client HTTP requests to an external gRPC of HTTP authorization service to determine if the client HTTP request is authorized to access the upstream service. If the request is authorized, Flex Gateway allows the request to pass to the upstream service. For unauthorized accesses, Flex Gateway returns a `403` forbidden request error. 
 
-To forward request headers, such as an authorization token header, to the authorization service, use the *Allowed Headers* parameter to configure which headers from the client HTTP requests to send to the authorization service.
+The External Authorization policy can forward request headers, such as an authorization token header, to the authorization service. Use provided parameters to configure which headers from the client HTTP requests to send to the authorization service.
 
-The External Authorization policy can also modify the client HTTP requests header with additional information returned from the authorization service. If the authorization service returns headers with the authorization response, Flex Gateway either appends these headers to the client HTTP request or overwrites the header if it is already present in the client HTTP request. For example, if an authorized user makes a request with an access token header that corresponds to a username, the authorization service can return a `username` header for Flex Gateway to append to the client HTTP request.
+The External Authorization policy can also modify the client HTTP requests headers with additional information returned from the authorization service. If the authorization service returns headers with the authorization response, Flex Gateway either appends these headers to the client HTTP request or overwrites the header. For example, if an authorized user makes a request with an access token header that corresponds to a username, the authorization service can return a `username` header for Flex Gateway to append to the client HTTP request. Policies using an HTTP response server can also modify the client response headers.
 
 The External Authorization policy is an extension of the External Authorization filter native to Envoy. To learn more about the External Authorization filter, see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_authz_filter[External Authorization Filter^]. Not all External Authorization filter parameters are available to the External Authorization policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>. 
 
@@ -46,6 +46,12 @@ In Local Mode, you apply the External Authorization policy to your API instance 
     uri: <string> // REQUIRED
     serverType: <string> // REQUIRED, default "grpc"
     serverVersion: <string> // REQUIRED, default `v3`
+    serviceRequestHeadersToAdd: <array> // OPTIONAL
+    serviceResponseUpstreamHeaders: <array> // OPTIONAL
+    serviceResponseUpstreamHeadersToAppend: <array> // OPTIONAL
+    serviceResponseClientHeaders: <array> // OPTIONAL
+    serviceResponseClientHeadersOnSuccess: <array> // OPTIONAL
+    requestTimeout: <number> // REQUIRED, default `5000`
     includePeerCertificate: <boolean> // REQUIRED, default `false`
     allowedHeaders: <array> // OPTIONAL
 ----
@@ -75,10 +81,41 @@ In Local Mode, you apply the External Authorization policy to your API instance 
 | `false`
 | If `true`, includes peer certificates in the authorization server request. Supported values are `true` and `false`.
 
+| `serviceRequestHeadersToAdd`
+| Optional
+| NA
+| Specifies the headers from the client request to include in the authorization service request. This parameter is only available for `HTTP` type serves.
+
+| `serviceResponseUpstreamHeaders`
+| Optional
+| NA
+| Specifies the headers from the authorization response to add to the client request to the upstream service. Flex Gateway overwrites coexisting headers. This parameter is only available for `HTTP` type serves.
+
+| `serviceResponseUpstreamHeadersToAppend`
+| Optional
+| NA
+| Specifies the headers from the authorization response to add to the client request to the upstream service. Flex Gateway appends coexisting headers. This parameter is only available for `HTTP` type serves.
+
+| `serviceResponseClientHeaders`
+| Optional
+| NA
+| Specifies the headers from the authorization response to add to the client response returned from the upstream service. Flex Gateway overwrites existing headers. This parameter is only available for `HTTP` type serves.
+
+
+| `serviceResponseClientHeadersOnSuccess`
+| Optional
+| NA
+| Specifies the headers from the authorization response to add to the client response returned from the upstream service if the request is successfully authorized. Flex Gateway overwrites existing headers. This parameter is only available for `HTTP` type serves.
+
+| `requestTimeout`
+| Optional
+| `5000`
+| Maximum time in milliseconds the policy waits for a response from the authentication service.
+
 | `allowedHeaders`
 | Optional
 | NA
-| By default, requests sent to gRPC servers include all client headers and requests sent to HTTP servers don't include any client headers. If you list allowed headers for either server type, requests include only the listed headers.
+| Specifies the headers sent By default, requests sent to gRPC servers include all client headers.
 
 |===
 
@@ -112,6 +149,7 @@ When you apply the policy to your API instance from the UI, the following parame
 |External authorization server type  | Type of external server.
 |Transport protocol API version  | Transport protocol API version.
 |Include peer certificates in the authorization server request | Includes peer certificates in the authorization server request.
+|Request timeout | Maximum time in milliseconds the policy waits for a response from the authentication service. By default, the request timeout is 5000 milliseconds.
 |Allowed headers | By default, requests sent to gRPC servers include all client headers and requests sent to HTTP servers don't include any client headers. If you list allowed headers for either server type, requests include only the listed headers.
 |===
 
