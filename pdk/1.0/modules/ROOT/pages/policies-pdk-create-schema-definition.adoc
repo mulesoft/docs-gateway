@@ -163,6 +163,33 @@ image:sensitive-data.png[The character inputs to the key parameter appear as bla
 
 Toggling *Show* reveals any new data currently being entered. However, you cannot reveal previously stored data. For example, if you configure the example *Key* parameter and apply the policy, you cannot view the parameter if you edit the policy's configuration in the future.
 
+=== Define Conditional Fields
+
+Make policy configuration render dynamically by establishing conditions to make fields visible:
+
+[source,yaml]
+----
+properties:
+    conditionant:
+        type: string
+        enum: ["show", "hide"]
+        default: "show"
+    conditioned:
+        type: string
+        "@rendering":
+            "@visibleOn":
+                - property: conditionant
+                  value: "show"
+----
+
+When applying the policy, the fields will be hidden or visible depending on other property values. Required properties that are conditionally rendered must have a default value specified.
+
+The following restrictions apply to conditional properties:
+- Enum fields cannot be conditionally renders, they are always visible
+- A single condition can be specified per field.
+- Only root-level properties can be conditioned. Inner properties of arrays or objects do not support conditional rendering. 
+
+
 === Define Supported Types
 
 Define a supported data type for each policy parameter to ensure the policy receives the correct data.
