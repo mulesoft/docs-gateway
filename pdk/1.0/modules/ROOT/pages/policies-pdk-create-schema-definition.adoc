@@ -189,6 +189,8 @@ The supported formating types are:
 * `ip-range`: Specifies the expected text is a range of IPs and provides additional validation on the input.
 * `uri`: Specifies the expected text is a URI and provides additional validation on the input. Only use `uri` when the URI is not a service making HTTP calls from the policy.
 +
+* `enum`: Specifies the input as an Enum parameters. In the API Manager UI, Enum parameters appear as radio buttons when there are three or less Enum values and as a drop-down selection when there are more than three Enum values.
++
 The following yaml snippet demonstrates all string formats:
 +
 [source,yaml]
@@ -210,7 +212,13 @@ properties:
         type: string
         format: uri
         default: "https://anypoint.mulesoft.com/login"
-
+    enumProperty:
+      type: string
+      default: valueOne
+      enum:
+        - valueOne
+        - valueTwo
+        - valueThree
 ----
 +
 Number::
@@ -374,7 +382,8 @@ Properties defined in the `gcl.yaml` files are mapped to the Rust data types in 
 | `string` | `String`
 | `uri` string | `String`
 | `ip-range` string | `String`
-| `dataveave` string | `pdk::script::Script`
+| `enum` string | `enum`
+| `dataweave` string | `pdk::script::Script`
 | `number` | `f64`
 | `integer` | `i64`
 | `boolean` | `bool`
@@ -402,6 +411,12 @@ For example, the following `gcl.yaml` files produces the following `struct` in `
 [source, yaml]
 ----
 properties:
+    JWTOrigin:
+      type: string
+      default: Bearer
+      enum:
+        - Bearer
+        - CustomExpression
     tokenExtractor:
       type: string
       format: dataweave
@@ -423,8 +438,14 @@ pub struct Config {
     pub max_chars: Option<f64>,
     #[serde(alias = "reject_missing_tokens")]
     pub reject_missing_tokens: Option<bool>,
+    pub enum JWTOrigin {
+        #[serde(alias = "httpBearerAuthenticationHeader")]
+        Bearer,
+        #[serde(alias = "customExpression")]
+        CustomExpression,
+    }
     #[serde(alias = "tokenExtractor")]
-    pub token_extractor: pdk::script::Script,
+    pub token_extractor: pdk::script::Script, 
 }
 ----
 
