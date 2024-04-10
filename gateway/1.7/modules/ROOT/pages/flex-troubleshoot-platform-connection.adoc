@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-When configuring Flex Gateway in either mode, it is possible for the Flex Replica's `registration.yaml` to get lost or for the replica to lose connection to Anypoint Platform.
+When configuring Flex Gateway in either mode, it is possible for the Flex Replica's `registration.yaml` to not be present or for the replica to lose connection to Anypoint Platform.
 
 To troubleshoot if a registration file is present and if Flex Gateway can make platform connections, Flex Gateway provides the following command:
 
@@ -13,19 +13,31 @@ To troubleshoot if a registration file is present and if Flex Gateway can make p
 flexctl check connections
 ----
 
-The `flexctl check connections` first ensures a `registration.yaml` file is present, and then checks if the replica can connect to the URLs defined in the registration file. 
+The `flexctl check connections` first ensures a `registration.yaml` file is present, and then checks if the replica can connect to the URLs defined in the registration file. If the command is successful, it returns the following `info` message:
 
-`flexctl check connections` returns one of the following messages dependent on connection status:
+----
+$ flectl check connections
+[flexctl][info] Connection to platform endpoints successful.
+----
 
-* No registration file found:
-+
+== No Registration File Found
+
+If the `registration.yaml` file is not found, Flex Gateway returns the following error message:
+
 ----
 $ flexctl check connections
 Error: no registration config
 ----
 
-* Flex Gateway cannot connect to a specific URL:
-+
+To troubleshoot an absent registration file, check your Flex Replica configuration folder. To learn more about registering a Flex Gateway, see following section for your relevant mode:
+
+* xref:flex-conn-reg-run.adoc[]
+* xref:flex-local-reg-run.adoc[]
+
+== Failed Connection
+
+If Flex Gateway cannot to a specific URL, it returns the following error message and the status code of the connection request:
+
 ----
 $ flexctl check connections
 Error: failed connecting to https://arm-mcm2-service.kstg.msap.io.
@@ -33,9 +45,9 @@ Status: 404
 Response: <html><body><h1>Resource not found</h1></body></html>
 ----
 
-* Flex Gateway can connect to all platform endpoints:
-+
-----
-$ flectl check connections
-[flexctl][info] Connection to platform endpoints successful.
-----
+How you troubleshoot a failed connection is dependent on what connection failed and what status code was returned.
+
+== See Also
+
+* xref:flex-troubleshoot-reg.adoc[]
+* xref:flex-troubleshoot-requests.adoc[]
