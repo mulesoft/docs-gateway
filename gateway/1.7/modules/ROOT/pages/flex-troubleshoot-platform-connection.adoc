@@ -15,4 +15,27 @@ flexctl check connections
 
 The `flexctl check connections` first ensures a `registration.yaml` file is present, and then checks if the replica can connect to the URLs defined in the registration file. 
 
+`flexctl check connections` returns one of the following messages dependent on connection status:
 
+* No registration file found:
++
+----
+$ flexctl check connections
+Error: no registration config
+----
+
+* Flex Gateway cannot connect to a specific URL:
++
+----
+$ flexctl check connections
+Error: failed connecting to https://arm-mcm2-service.kstg.msap.io.
+Status: 404
+Response: <html><body><h1>Resource not found</h1></body></html>
+----
+
+* Flex Gateway can connect to all platform endpoints:
++
+----
+$ flectl check connections
+[flexctl][info] Connection to platform endpoints successful.
+----
