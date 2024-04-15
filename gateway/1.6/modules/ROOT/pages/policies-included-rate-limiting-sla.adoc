@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 :keywords: rate-limiting sla, api gateway, flex gateway, gateway, policy
-:page-aliases: api-manager::rate-limiting-sla-policy.adoc, api-manager::rate-limiting-and-throttling-sla-based-policies.adoc, api-manager::tutorial-manage-an-api.adoc, policies::policies-included-rate-limiting-sla.adoc
+// :page-aliases: api-manager::rate-limiting-sla-policy.adoc, api-manager::rate-limiting-and-throttling-sla-based-policies.adoc, api-manager::tutorial-manage-an-api.adoc, policies::policies-included-rate-limiting-sla.adoc
 
 [%autowidth.spread,cols="a,a"]
 |===
@@ -180,19 +180,6 @@ Each response header has information about the current state of the request:
 * X-Ratelimit-Reset: The remaining time, in milliseconds, until a new window starts
 
 By default, the X-RateLimit headers are disabled in the response. You can enable these headers by selecting *Expose Headers* when you configure the policy.
-
-[NOTE]
-====
-When on distributed mode, the X-Ratelimit-Remaining header is not perfectly synchronized with all the replicas.  With multiple replicas on distributed mode, the X-Ratelimit-Remaining header is an estimation of how much quota the replica has available for itself. It does not represent the actual value of the remaining quota available for the API.
-
-The following describes a valid scenario:
-
-* Created a SLA tier name "Titanium" having rate limit of "999999999 req per 10 min"
-* Sent 1 request to replica 1 -> x-ratelimit-remaining : 999999998
-* Sent 1 request to replica 2 -> x-ratelimit-remaining : 899999998
-
-This does not mean that the quota will be surpassed.
-====
 
 *When should I use Rate Limiting instead of Rate-Limiting SLA or Spike Control?*
 

@@ -1,0 +1,148 @@
+= External Processing Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: external processing, processing, flex gateway, gateway, policy
+
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | External Processing
+>s|Summary | Sends the incoming HTTP requests or outgoing HTTP responses requests to an external gRPC service for additional processing
+>s|Category | Transformation
+>s|First Flex Gateway version available | v1.6.0
+.1+>.^s| Returned Status Codes
+| 403 - IP is rejected
+|===
+
+== Summary
+
+The External Processing policy forwards the incoming HTTP request or outgoing HTTP response to an external gRPC service to modify the headers, trailers, body, or any combination of the three. You can also configure this policy to process either the request, response, or both.
+
+Additionally, the external processing service can request different parts of the HTTP request or response after the initial gRPC request was sent by Flex Gateway to the external processing server. This enables you to send the minimum amount of data necessary. For example, Flex Gateway can initially send only the HTTP requests headers. Then, after some processing, the external processor can request the HTTP request body or trailers from Flex Gateway. 
+
+The parameters you set for sending the HTTP headers, trailers, and body only configure what is initially sent. The external processing service has access to all parts of the HTTP request or response regardless of what is configured. Configure the parameters to send all of the information that the processing service needs for every incoming HTTP request or response. For example, if the processing service needs the headers for every request but only needs the body for some of the requests, depending on the information found in the header, only configure the parameters to send the headers.
+
+The External Processing policy is an extension of the External Processing filter native to Envoy. To learn more about the External Processing filter, see https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_proc/v3/ext_proc.proto[External Processing Filter^]. Not all External Processing filter parameters are available for the External Processing policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>. 
+
+NOTE: If other policies modify the HTTP request or response, ensure that you order the policies depending on if these modification should be present when the request is sent to the processing service or upstream service. For more information about ordering policies, see xref:policies-reorder.adoc[].
+
+== Configuring Policy Parameters
+
+=== Flex Gateway Local Mode
+
+In Local Mode, you apply the External Processing policy to your API instance via declarative configuration files. Refer to the following policy definition and table of parameters:
+
+[source,yaml]
+----
+- policyRef:
+    name: native-ext-proc-flex
+  config: 
+    uri: <string> // REQUIRED
+    messageTimeout: <integer> // OPTIONAL
+    requestHeaderMode: <string> // REQUIRED, default: "send"
+    responseHeaderMode: <string> // REQUIRED, default: "send"
+    requestBodyMode: <string> // REQUIRED, default: "none"
+    responseBodyMode: <string> // REQUIRED, default: "none"
+    requestTrailerMode: <string> // OPTIONAL, default: "send"
+    responseTrailerMode: <string> // OPTIONAL, default: "send"
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+
+|Parameter | Required or Optional | Default Value | Description
+
+| `uri`
+| Required
+| NA
+| External processing server URI. For gRPC type servers, define the URI as `\h2://<ext.authz.com>:<port>`.
+
+| `messageTimeout`
+| Required
+| `1000`
+| Message timeout for the processing server in milliseconds.
+
+| `requestHeaderMode`
+| Required
+| `send`
+| Whether the HTTP requests headers are sent to the processing service. Supported values are `send` and `skip`.
+
+| `responseHeaderMode`
+| Required
+| `send`
+| Whether the HTTP response headers are sent to the processing service. Supported values are `send` and `skip`.
+
+| `requestBodyMode`
+| Required
+| `none`
+| Mode that the HTTP request body is sent in. Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`. Selecting `none` does not send the request body.
+
+| `responseBodyMode`
+| Required
+| `none`
+| Mode that the HTTP response body is sent in. Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`. Selecting `none` does not send the request body.
+
+| `requestTrailerMode`
+| Required
+| `send`
+| Whether the HTTP requests' trailer headers are sent to the processing service. Supported values are `send` and `skip`.
+
+| `responseTrailerMode`
+| Required
+| `send`
+| Whether the HTTP response trailer headers are sent to the processing service. Supported values are `send` and `skip`.
+
+|===
+
+NOTE: Leaving a required value blank configures the parameter with the default value. No value is set for optional values left blank.
+
+==== Resource Configuration Example
+
+This configuration streams the request headers, trailers, and body to the external processing server. This configuration does not send any part of the response to the external processing server.
+
+[source,yaml]
+----
+- policyRef:
+    name: native-ext-proc-flex
+  config: 
+    uri: h2://<ext.authz.com>:<port>
+    messageTimeout: <integer> // OPTIONAL
+    responseHeaderMode: skip
+    requestBodyMode: streamed
+    responseTrailerMode: skip
+----
+
+=== Flex Gateway Connected Mode
+
+When you apply the External Processing policy to your API from the UI, configure the following parameters:
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Parameter | Description
+|External processing server URI | External processing server URI. For gRPC type servers, define the URI as `\h2://<ext.authz.com>:<port>`.
+|Message timeout | Message timeout for the processing server in milliseconds.
+|Request header processing mode | Whether the requests headers are sent to the processing service.
+|Response header processing mode  | Whether the response headers are sent to the processing service.
+|Request body processing mode | Mode that the request body is sent in.
+|Response body processing mode | Mode that the response body is sent in.
+|Request trailer processing mode | Whether the requests trailers are sent to the processing service.
+|Response trailer processing mode | Whether the response trailers are sent to the processing service.
+|===
+
+== How This Policy Works
+
+The following diagram demonstrates the order in which requests and responses flow when the External Processing policy is applied:
+
+image:ext-processing-policy.png[80%,80%,align="center"]
+
+. The client makes an HTTP request to Flex Gateway.
+. Flex Gateway forwards the initial parts of the client HTTP request that you configure to the external processing service. At this point, the external processing service can request additional parts of the request.
+. After Flex Gateway receives the modified HTTP request, Flex Gateway sends the HTTP request to the upstream API service.
+. Flex Gateway receives the HTTP response from the upstream API service and forwards the initial parts of the HTTP response that you configure to the external processing service. At this point, the external processing service can request additional parts of the HTTP response.
+. Flex Gateway returns the modified HTTP response from the external processing service to the client.
+
+By default, if Flex Gateway cannot establish a connection to the gRPC service or if the gRPC service returns an error, the policy fails. 
+
+ 
