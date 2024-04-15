@@ -1,0 +1,50 @@
+= Troubleshooting Linux Permissions
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+In Linux, to limit access to information about a Flex Gateway, the following `flexctl` commands require that user belong to the `flex` user group or to be the root user to execute them:
+
+* `flexctl dump`
+* `flexctl version`
+* `flexctl check connections`
+* `flexctl probe`
+* `flexctl registration inspect` (when used without the --file flag)
+
+There are two options to execute these commands:
+
+* <<add-user-to-flex-group>>
+* <<run-as-root-user>>
+
+[add-user-to-flex-group]
+== Add the User to the Flex User Group
+
+Execute the following command to add the current user to the Flex user group:
+
+[source,ssh]
+----
+sudo usermod -a -G flex $USER
+----
+
+After running the command, the user must re-login to the VM to being using the `flexctl` commands as normal.
+
+== Run as the Root User
+
+Execute the `sudo` command with your `flexctl` command:
+
+[source,ssh]
+----
+sudo flexctl <command>
+----
+
+Executing the `sudo` command with your `flexctl` command is the quickest way to access Flex Gateway information. However, you must execute the `sudo` command everytime you run a `flexctl` command.
+
+When running the `flexctl dump` command, the root user is the owner of the created dump file. If the current user is not the root user, the user cannot view it. Execute the following command to change the owner to view file:
+
+[source,ssh]
+----
+sudo chown $USER *.json
+----
+
+== See Also
