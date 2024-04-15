@@ -18,7 +18,7 @@ endif::[]
 
 The External Authorization policy forwards incoming client HTTP requests to an external gRPC or HTTP authorization service to determine if the client HTTP request is authorized to access the upstream service. If the request is authorized, Flex Gateway allows the request to pass to the upstream service. For unauthorized accesses, Flex Gateway returns a `403` forbidden request error. 
 
-To forward request headers, such as an authorization token header, to the authorization service, use the *Allowed Headers* parameter to configure which headers from the client HTTP requests to send to the authorization service. For HTTP authorization servers, inject new headers into the authorization request by using the *Headers to add* parameter.
+To forward request headers, such as an authorization token header, from the client HTTP request to the authorization service, configure the *Allowed Headers* parameter. Additionally, for HTTP authorization servers, use the *Headers to add* parameter to inject new headers into the authorization request.
 
 [IMPORTANT]
 ====
@@ -29,11 +29,11 @@ The External Authorization policy can also modify the client HTTP request and re
 
 For gRPC authorization servers, if the authorization service returns headers with the authorization response, Flex Gateway either appends these headers to the client HTTP request or overwrites the header if it is present in the client request. 
 
-For HTTP authorization servers, you can configure what headers are appended, overwritten, or ignored. Policies with an HTTP server configured can also modify the client response returned from the upstream service. 
+For HTTP authorization servers, you can configure what headers to append, overwrite, or ignore. Policies with an HTTP server configured can also modify the client response returned from the upstream service. 
 
 The External Authorization policy is an extension of the External Authorization filter native to Envoy. To learn more about the External Authorization filter, see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_authz_filter[External Authorization Filter^]. Not all External Authorization filter parameters are available to the External Authorization policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>. 
 
-NOTE: If other policies modify the incoming HTTP request, ensure that you order the policies depending on if these modification should be present when the request is sent to the authorization service. For more information about ordering policies, see xref:policies-reorder.adoc[].
+NOTE: If other policies modify the incoming HTTP request, ensure that you order the policies depending on if these modification must be present before sending the request to the authorization service. For more information about ordering policies, see xref:policies-reorder.adoc[].
 
 == Configuring Policy Parameters
 
@@ -74,7 +74,7 @@ In Local Mode, you apply the External Authorization policy to your API instance 
 
 | `uri`
 | Required
-| NA
+| N/A
 | External authorization service URI. With a gRPC type server, define the URI by using this format: `h2://<ext.authz.com>:<port>`.
 
 | `serverType`
@@ -94,38 +94,38 @@ In Local Mode, you apply the External Authorization policy to your API instance 
 
 | `serviceRequestHeadersToAdd`
 | Optional
-| NA
+| N/A
 | Defines custom headers and their value to inject into the authorization service request. This parameter is available for `HTTP` type serves.
 
 | `serviceRequestHeadersToAdd.key`
 | Optional
-| NA
+| N/A
 | Name of the new header to add.
 
 | `serviceRequestHeadersToAdd.value`
 | Optional
-| NA
+| N/A
 | Value of the new header to add.
 
 | `serviceResponseUpstreamHeaders`
 | Optional
-| NA
+| N/A
 | Specifies the headers from the authorization response to add to the client request to the upstream service. Flex Gateway overwrites coexisting headers. This parameter is available for `HTTP` type serves.
 
 | `serviceResponseUpstreamHeadersToAppend`
 | Optional
-| NA
+| N/A
 | Specifies the headers from the authorization response to add to the client request to the upstream service. Flex Gateway appends coexisting headers. This parameter is available for `HTTP` type serves.
 
 | `serviceResponseClientHeaders`
 | Optional
-| NA
+| N/A
 | Specifies the headers from the authorization response to add to the client response returned from the upstream service. Flex Gateway overwrites existing headers. This parameter is available for `HTTP` type serves.
 
 
 | `serviceResponseClientHeadersOnSuccess`
 | Optional
-| NA
+| N/A
 | Specifies the headers from the authorization response to add to the client response returned from the upstream service if the request is successfully authorized. Flex Gateway overwrites existing headers. This parameter is available for `HTTP` type serves.
 
 | `requestTimeout`
@@ -135,7 +135,7 @@ In Local Mode, you apply the External Authorization policy to your API instance 
 
 | `allowedHeaders`
 | Optional
-| NA
+| N/A
 | Specifies the headers from the client HTTP request to propagate to authorization request. By default, requests sent to gRPC servers include all client headers. Requests sent to HTTP servers don't include any client headers. If you list allowed headers for either server type, requests include only the listed headers.
 
 |===
@@ -176,13 +176,13 @@ When you apply the policy to your API instance from the UI, the following parame
 
 == How This Policy Works
 
-The following diagram demonstrates the order in which requests and responses flow when the External Authorization policy is applied:
+The following diagram demonstrates the order in which requests and responses flow during the External Authorization policy execution:
 
 image:ext-auth-policy.png[80%,80%,align="center"]
 
 . The client makes an HTTP request to the API instance exposed by Flex Gateway.
 . Flex Gateway forwards the request consisting of the client's request and headers to the authorization service.
-. The authorization services sends a response back to Flex Gateway. The response indicates whether the client HTTP request is authorized and also indicates which headers to append or to edit:
+. The authorization services sends the authorization response back to Flex Gateway:
 ** If the request isn't authorized, Flex Gateway appends any necessary headers and returns a `403` forbidden access code to the client.
 ** If the request is authorized, Flex Gateway appends the header data to the client request, if necessary, and allows the request to pass to the upstream service.
 . Flex Gateway appends any necessary headers and returns the response as normal.
