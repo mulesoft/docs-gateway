@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-In Linux, to limit access to information about a Flex Gateway, the following `flexctl` commands require that user belong to the `flex` user group or to be the root user to execute them:
+To help limit access to information about a Flex Gateway, the following `flexctl` commands can be executed on Linux only by the root user and by users in the `flex` user group:
 
 * `flexctl dump`
 * `flexctl version`
@@ -27,7 +27,7 @@ Execute the following command to add the current user to the `flex` user group:
 sudo usermod -a -G flex $USER
 ----
 
-After running the command, the user must log in to the VM again to begin using the `flexctl` commands as normal.
+After running the command, the user must log in to the VM again to begin using the `flexctl` commands.
 
 [[run-as-root-user]]
 == Run as the Root User
@@ -41,7 +41,7 @@ sudo flexctl <command>
 
 Executing the `sudo` command with your `flexctl` command is the quickest way to access Flex Gateway information. However, you must execute the `sudo` command everytime you run a `flexctl` command.
 
-When running the `flexctl dump` command, the root user is the owner of the created dump files. If the current user is not the root user, the user cannot view the dumped files. To view the files, execute the following command to change the owner of the files:
+When the `sudo flexctl dump` command is executed, the root user is the owner of the created dump files. If the current user is not the root user, the user cannot view the dumped files. To view the files, execute the following command to change the owner of the files:
 
 [source,ssh]
 ----
