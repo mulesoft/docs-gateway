@@ -6,7 +6,7 @@ endif::[]
 
 When configuring and running Flex Gateway, you might encounter connection issues. 
 
-By making direct requests, you can troubleshoot both the outbound connection between the upstream service and Flex Gateway and the inbound connection between Flex Gateway and the client. Making direct requests isolates Flex Gateway connections allowing you to localize the issue. 
+To troubleshoot these issues, use the `flexctl check http` command. This command makes direct requests to both the outbound connection between the upstream service and Flex Gateway and the inbound connection between Flex Gateway and the client. Making direct requests isolates Flex Gateway connections, which allows you to localize the issue. 
 
 The following diagram demonstrates the difference between inbound and outbound requests. 
 
@@ -46,7 +46,7 @@ kubectl -n <namespace> exec -it <pod-name> -- bash
 +
 [source,ssh]
 ----
-curl -v <http://upstream.domain>
+flexctl check http -X=POST -d='{\"key\": \"value\"}' -H='Authorization:token' <http://upstream.domain>
 ----
 
 == Inbound Requests Between the Client and Flex Gateway
@@ -85,5 +85,5 @@ kubectl -n <namespace> exec -it <pod-name> -- bash
 +
 [source,ssh]
 ----
-curl -v http://localhost:<api-instance-port>/<path>
+flexctl check http -X=POST -d='{\"key\": \"value\"}' -H='Authorization:token' http://localhost:<api-instance-port>/<path>
 ----
