@@ -1,0 +1,83 @@
+= Performing an HTTP Call
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+NOTE: To view an example policy project that makes HTTP calls, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/simple-oauth-2-validation/README.md[Simple OAuth 2.0 Validation Policy Example^].
+
+To interact with external services, the policy must use HTTP calls. You can only make HTTP calls from the request filter or the response filter. 
+
+To perform an HTTP call, either inject the `HTTPClient` into the `[entrypoint]` function or the wrapper functions:
+
+* Injecting the client parameters into the `[entrypoint]` function enables you to make calls in both the request and the response filter:
++
+[source,Rust]
+----
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration, client: HttpClient) -> Result<()> {
+    let config: Config = serde_json::from_slice(&bytes).unwrap();
+
+    // Both request and the response handlers will use the client   
+    let filter = on_request(|request_state| request_filter(request_state, &config, &client))
+        .on_response(|response_state, request_data| {
+            response_filter(response_state, request_data, &config, &client)
+        });
+
+    launcher.launch(filter).await?;
+    Ok(())
+}
+----
+
+* Injecting the client parameters into one of the `on_request` or `on_response` wrapper functions enables you to only make calls in that function:
++
+[source,Rust]
+----
+// Handler with the logic for incoming requests
+​​async fn request_filter(state: RequestState, conf: &Config, client: HttpClient) {
+ ...
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
+    let config: Config = serde_json::from_slice(&bytes).unwrap();
+
+    // For incoming request events, using the on_request wrapper, inject the client and pass it to the request_filter handler
+    launcher
+        .launch(on_request(|request, client| {
+            request_filter(request, &config, client)
+        }))
+        .await?;
+    Ok(())
+}
+----
+
+You must define your service as a parameter in your schema definition to make HTTP requests. To learn more about defining parameters, see xref:policies-pdk-create-schema-definition.adoc[]
+
+The following code snippet provides an example schema definition for an external service:
+
+[source,yaml]
+----
+properties:
+      externalService:
+          type: string
+          format: service
+      endpointPath:
+          type: string
+----
+
+In the policy's Rust source code, you can access the defined external service in the `Config` struct. To perform requests, call the HTTP client in your policy, for example:
+
+[source,rust]
+----
+let response = client
+    .request(&config.external_service)
+    .path(&config.endpoint_path)
+    .headers(vec![("Content-Type", "application/json")])
+    .body(r#"{"key": "value"}"#.as_bytes())
+    .put().await?;
+----
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]

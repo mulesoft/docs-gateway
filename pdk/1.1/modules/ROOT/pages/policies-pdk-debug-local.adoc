@@ -1,0 +1,166 @@
+= Debugging Custom Policies with the PDK Debugging Playground
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+To test the functionality of your policy, Flex Gateway Policy Development Kit (PDK) provides a pre-configured API instance located in the `<root-directory>/playground/config` directory.
+
+The PDK Debugging Playground only supports Flex Gateway running in Local Mode in a Docker container. If you plan to deploy or policy to Flex Gateway running in Connected Mode or to a different platform, you should still first test your policy in PDK by using Flex Gateway running in Local Mode in a Docker container.
+
+IMPORTANT: You can run Flex Gateway in Local Mode on Docker in Windows only to develop and test your policies. However, Flex Gateway does not support Windows in production environments.
+
+To test your policy, complete the following tasks:
+
+. <<before-you-begin>>
+. <<register>>
+. <<configure-the-policy>>
+. <<add-additional-policies>> if necessary
+. <<deploy-the-policy-with-pdk>>
+
+== Before You Begin
+
+Ensure that you have:
+
+* https://www.docker.com/[Installed Docker^].
+* xref:policies-pdk-compile-policies.adoc[Compiled your custom policy project]. 
+
+[[register]]
+== Register a Flex Gateway Instance in Local Mode
+
+To begin using the `make run` command to debug your custom policy, register a Flex Gateway in Local Mode. 
+
+For the `run` command to work, a Flex Gateway `registration.yaml` file must exist in the `<root-directory>/playground/config` directory. Create this file by running the registration command in the directory, or move a `registration.yaml` file of a previously registered Flex Gateway to the directory.
+
+The `make run` command only supports Flex Gateways running in Local Mode in a Docker Container. To register Flex Gateway, see:
+
+* xref:gateway::flex-local-reg-run-up.adoc#docker[Register and Run with a Username and Password in a Docker Container]
+* xref:gateway::flex-local-reg-run-app.adoc#docker[Register and Run with a Connected App in a Docker Container]
+* xref:gateway::flex-local-reg-run-token.adoc#docker[Register and Run with a Token in a Docker Container]
+
+IMPORTANT: Run only the registration command. Do not run the Docker start command because the `make run` command completes this step.
+
+Create a different registration file on each device testing the policy.
+
+The registration file is ignored for storage in remote repositories and is listed in the `.gitignore` file located at the root of the project directory.
+
+
+== Configure the Policy
+
+Depending on the configurations listed in the `definition/gcl.yaml` file you configured in xref:policies-pdk-create-schema-definition.adoc[], you may have to configure some parameters before running the policy locally.
+
+For example, if the `gcl.yaml` file is as follows:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com.v1alpha1
+kind: Extension
+metadata:
+  labels:
+    title: my-custom-policy
+    category: Security 
+spec:
+  extends:
+    - name: extension-definition
+  properties: 
+    user:
+      type: string
+      default: user1
+    password:
+      type: string
+    description:
+      type: string
+  required:
+    - user
+    - password
+  
+----
+
+Update the `/playground/config/api.yaml` file with your configuration value:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: ingress-http
+spec:
+  address: http://0.0.0.0:8081
+  services:
+    upstream:
+      address: http://backend
+      routes:
+        - config:
+            destinationPath: /anything/echo/
+  policies:
+    - policyRef:
+        name: my-custom-policy
+      config:
+        password: 12345678
+
+---- 
+
+In this example, the `user` is set to the default value `user1`, the `password` is set to `12345678`, and no description is provided.
+
+== Add Additional Policies
+
+You can also apply additional policies to the test API instance to test your custom policies behavior alongside other policies.
+
+However, your custom policy under development must be the first policy specified, for example:
+
+[source,yaml]
+----
+  policies:
+    - policyRef:
+        name: my-custom-policy
+      config:
+        password: 12345678
+    - policyRef:
+        name: additional-policy
+      config: 
+----
+
+== Deploy the Policy with PDK
+
+After you complete the previous steps, run the `make run` command from the policy's root directory to deploy policy:
+
+[source,cmd]
+----
+make run
+----
+
+This command starts the two Docker containers in the `<root-directory>/playground/docker-compose.yaml` file:
+
+* `Local-flex`: The Flex Gateway instance Docker container that executes the custom policy. This Flex Gateway listens for requests made to `localhost:8081`.
+* `Backend`: The Docker Container that runs the backend service for the Flex Gateway instance. This backend service echoes any request it receives.
+
+NOTE: To stop the Docker containers, press `Cmd+c` or `Ctrl+c` depending on your device from the terminal running the containers.
+
+Once the containers are running, you can make requests to the API instance, for example:
+
+[source,cmd]
+----
+curl --location --request POST 'http://0.0.0.0:8081/some/route' \
+--header 'Token: mytoken'
+----
+
+The backend service returns an echo response including the requests’s route, body, and headers sent with any modification performed by the custom policy or additional policies. Any logs included in the custom policy's source code are visible in the terminal running the containers.
+
+== Configure the Loglevel
+
+By default, PDK's debugging environment enables logs with the `debug` `loglevel` configured.
+
+To change the `loglevel`, edit the `logging.runtimeLogs.logLevel` value in `<root-directory>/playground/config/logging.yaml`.
+
+To learn more about editing a Flex Gateway's logging configuration file, see xref:gateway::flex-local-third-party-logs-config.adoc[].
+
+== Use the Rust Debugger
+
+Visual Studio Code (VS Code) includes a Rust debugger that can run unit tests. You cannot use the VS Code Debugger while the policy is deployed on a Flex Gateway. To create the API mocking, you must use unit tests for the specific logic you need to debug.
+
+To debug Rust code in VS Code, you must install the https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb[CodeLLDB Debugger Extension^] or a different VS Code extension with the same functionality. To learn more about debugging Rust in VS Code, see https://code.visualstudio.com/docs/languages/rust#_debugging[Rust in Visual Studio Code^].
+
+== See Also
+
+* xref:policies-pdk-integration-tests.adoc[]
+* xref:policies-pdk-troubleshooting.adoc[]
