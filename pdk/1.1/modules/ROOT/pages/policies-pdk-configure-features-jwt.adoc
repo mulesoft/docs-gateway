@@ -1,0 +1,339 @@
+= Using JWT Library Functions
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+NOTE: To view an example policy project that uses Flex Gateway Policy Development Kit (PDK)'s JWT Library, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/jwt-validation/README.md[JWT Validation Policy Example^].
+
+JSON Web Token (JWT) is a URL-secure method of representing claims to be transferred between two parties. The JWT token contains claims encoded in a JSON object as either the payload of a JSON Web Signature (JWS) or as a JSON web encryption (JWE) structure in plain text, which enables the claims to be digitally signed and protected with a message authentication code (MAC). Because the token is signed, you can trust the information and its source.
+
+PDK's JWT library provides a set of tools to validate the JWT signatures and to extract and validate the claims of all incoming requests.
+
+[[extract-a-jwt-token]]
+== Extract a JWT Token
+
+PDK provides a `TokenProvider` struct that has the `bearer` function to extract JWT tokens that have the format `Bearer <token>` in the authorization header. The following code demonstrates how to use the `bearer` function:
+
+[source,Rust]
+----
+// [...]
+use pdk::jwt::*;
+// [...]
+
+async fn filter(
+    state: RequestState,
+) -> Flow<()> {
+    let headers_state = state.into_headers_state().await;
+
+    // Extract token
+    let token = TokenProvider::bearer(headers_state.handler())?;
+// [...]
+----
+
+If you are using a JWT token from a different source or with a different format, you can implement Rust logic to get any other part of the request. Use a DataWeave parameter to configure extraction to create a policy where you can dynamically change the JWT source.
+
+[[signature-validation]]
+== Validate a JWT Signature
+
+The JWT library provides a helper for performing signature validation of the incoming requests authorization tokens. Depending on the algorithm used by the policy, initialize a `SignatureValidator` with the corresponding configuration:
+
+[source,Rust]
+----
+pub fn new(algorithm: SigningAlgorithm, key_length: SigningKeyLength, key: String) -> Result<SignatureValidator, JWTError>
+----
+
+PDK supports the following signing algorithms and key lengths:
+
+[%autowidth.spread,cols="a,a"]
+|===
+| Signing Algorithm | Signing Key Length
+| RSA | 256, 384 and 512
+| HMAC | 256, 384 and 512
+| ES | 256 and 384
+|===
+
+The `SigningAlgorithm` enum defines the available signing algorithms:
+
+[source,Rust]
+----
+pub enum SigningAlgorithm {
+    Rsa,
+    Hmac,
+    Es,
+}
+----
+
+The `SigningKeyLength` enum defines the available signing key lengths:
+
+[source,Rust]
+----
+pub enum SigningKeyLength {
+    Len256,
+    Len384,
+    Len512,
+}
+----
+
+A `SignatureValidator` instance implements the `SignatureValidation` trait. This `SignatureValidation` trait exposes a `validate` function that accepts tokens as `String` parameters and returns a `Result` that contains the parsed `JWTClaims` or a `JWTError` in the event of an error:
+
+[source,Rust]
+----
+pub trait SignatureValidation {
+    fn validate(&self, token: String) -> Result<JWTClaims, JWTError>;
+}
+----
+
+The following code example shows how to initialize the `SignatureValidator` and validate an incoming token signed with a 256-byte HMAC algorithm:
+
+[source,Rust]
+----
+use anyhow::Result;
+use pdk::hl::*;
+use pdk::jwt::*;
+// [...]
+
+async fn filter(
+    state: RequestState,
+    signature_validator: &SignatureValidator,
+) -> Flow<()> {
+    let headers_state = state.into_headers_state().await;
+
+    // Extract token
+    let token = TokenProvider::bearer(headers_state.handler())?;
+
+    if token.is_err() {
+        return Flow::Break(Response::new(401).with_body("Bearer not found"));
+    }
+
+    // Validating signature
+    let claims = signature_validator.validate(token.unwrap());
+
+    if claims.is_err() {
+        return Flow::Break(Response::new(401).with_body("Invalid token"));
+    }
+    // [...]
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(configuration): Configuration) -> Result<()> {
+    let config: Config = serde_json::from_slice(&configuration)?;
+
+    let signature_validator = SignatureValidator::new(
+        model::SigningAlgorithm::Hmac,
+        model::SigningKeyLength::Len256,
+        config.secret.clone(),
+    )?;
+
+    launcher
+        .launch(on_request(|request| {
+            filter(request, &signature_validator)
+        }))
+        .await?;
+    Ok(())
+}
+----
+
+Because, the `SignatureValidator` confirms that the policy configurations are correct during initialization, initializing the `SignatureValidator` in the `#[entrypoint]` function throws an early error when the policy is applied rather than when the API receives a request.
+
+After initialization, the policy passes the `SignatureValidator` to the `on_request` wrapped function to perform `validate` method on incoming requests.
+
+
+[[access-claims]]
+== Access Claims and Propagating to Headers
+
+After the <<signature-validation, signature validation>> executes, the result contains the parsed JWT claims from the JWT token. 
+
+In case the signature is invalid or you choose not to validate the signature, PDK provides the `JWTClaimsParser` to parse claims. This structure provides a `parse` method that returns `Result<JWTClaims, JWTError>`.
+
+[source,rust]
+----
+// Being "token" a String that contains a JWT token
+let parsed_claims = JWTClaimsParser::parse(token);
+
+if claims.is_err() {
+    return Flow::Break(Response::new(401).with_body("Invalid token"));
+}
+----
+
+After you run the signature validation or the parsing method, use the following methods exposed by the `JWTClaims` struct to access the JWT claims:
+
+[source,rust]
+----
+pub fn audience(&self) -> Option<Result<Vec<String>, JWTError>>
+
+pub fn not_before(&self) -> Option<DateTime<Utc>>
+
+pub fn expiration(&self) -> Option<DateTime<Utc>>
+
+pub fn issued_at(&self) -> Option<DateTime<Utc>>
+
+pub fn issuer(&self) -> Option<String>
+
+pub fn jti(&self) -> Option<String>
+
+pub fn nonce(&self) -> Option<String>
+
+pub fn subject(&self) -> Option<String>
+
+pub fn has_claim(&self, name: &str) -> bool
+
+pub fn get_claim<T>(&self, name: &str) -> Option<T> where T: ValueRetrieval,
+
+pub fn has_header(&self, name: &str) -> bool 
+
+pub fn get_header(&self, name: &str) -> Option<String>
+
+pub fn get_claims(&self) -> pdk_script::Value
+
+pub fn get_headers(&self) -> pdk_script::Value
+----
+
+The provided methods are designed to return each one of the standard JWT claims. 
+
+The `get_claim` method can return any standard or custom claim. Because `get_claim` supports different target variable types, the user must specify the output type. `get_claim` supports `String`, `f64`, `Vec<String>`, `chrono::DateTime<chono::Utc>`, and `serde_json::Value` output types. Because the claim might not exist in the token, you must wrap the type with an `Option`, for example:
+
+[source,rust]
+----
+let some_custom_claim: Option<String> = claims.get_claim("username");
+----
+
+The following example shows how to parse a JWT token, get a custom claim, and propagate it to the request headers from a wrapped function:
+
+[source,rust]
+----
+async fn filter(
+    state: RequestState,
+) -> Flow<()> {
+
+    let headers_state = state.into_headers_state().await;
+
+    // Extract token
+    let token = TokenProvider::bearer(headers_state.handler())?;
+
+    if token.is_err() {
+        return Flow::Break(Response::new(401).with_body("Bearer not found"));
+    }
+
+    // Being "token" a String that contains a JWT token
+    let parsed_claims = JWTClaimsParser::parse(token.unwrap());
+
+    if claims.is_err() {
+        return Flow::Break(Response::new(401).with_body("Invalid token"));
+    }
+
+    let claims = claims.unwrap();
+
+    let username: Option<String> = claims.get_claim("username");
+
+    if let Some(custom_claim) = some_custom_claim {
+        headers_state
+            .handler()
+            .set_header("username", custom_claim.as_str());
+    }
+    
+    Flow::Continue(())
+}
+----
+
+[[validate-claims]]
+== Validate Claims
+
+JWT tokens typically contain a set of standard and non-standard claims that you can validate. Use the methods from <<access-claims>> to retrieve the claims present in the JWT tokens’s header or payload. Once retrieved, validate the value of the claims.
+
+The following code example validates that the JWT token:
+
+* Is not expired by validating the `exp` claim. 
+* Has the correct audience value by validating the `aud` claim.
+* Has the correct custom `role` claim by using a custom validator configured as a DataWeave expression policy parameter.
+
+[source,Rust]
+----
+use chrono::Utc;
+use pdk::hl::*;
+use pdk::jwt::*;
+use pdk::logger::info;
+use pdk::script::Evaluator;
+
+async fn filter(
+    state: RequestState,
+    mut custom_validator: Evaluator<'_>,
+) -> Flow<()> {
+    let headers_state = state.into_headers_state().await;
+    let token = TokenProvider::bearer(headers_state.handler());
+
+    if token.is_err() {
+        return Flow::Break(Response::new(400).with_body("Bearer not found"));
+    }
+
+    // Being "token" a String that contains a JWT token
+    let parsed_claims = JWTClaimsParser::parse(token.unwrap());
+
+    if claims.is_err() {
+        return Flow::Break(Response::new(401).with_body("Invalid token"));
+    }
+
+    let claims = claims.unwrap();
+
+    // Validating token expiration
+    if let Some(exp) = claims.expiration() {
+        if exp < Utc::now() {
+            return Flow::Break(Response::new(400).with_body("token expired"));
+        }
+    } else {
+        return Flow::Break(Response::new(400).with_body("token missing exp claim"));
+    }
+
+    // Validating audience
+    if let Some(aud) = claims.audience() {
+         if !aud_value.iter_mut().any(|a| a == "myAudience") {
+            return Flow::Break(Response::new(400).with_body("token does not have the expected audience"));
+        }
+    }
+
+    // Custom claim validation
+    custom_validator.bind_vars("claimSet", claims.get_claims());
+    let result = custom_validator_role_claim.eval();
+    if !result.ok().and_then(|value| value.as_bool()).unwrap_or_default() {
+        return Flow::Break(Response::new(400).with_body("custom token validations failed."));
+    }
+
+    Flow::Continue(())
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(configuration): Configuration) -> Result<()> {
+    let config: Config = serde_json::from_slice(&configuration)?;
+
+    launcher
+        .launch(on_request(|request| {
+            filter(request, config.custom_validator_role.evaluator())
+        }))
+        .await?;
+    Ok(())
+}
+----
+
+In the above example, the custom `role` claim is defined by a DataWeave expression configured as an input parameter in the `gcl.yaml` schema definition as follows:
+
+[source,yaml]
+----
+# [...]
+spec:
+  extends:
+    - name: extension-definition
+      namespace: default
+  properties:
+    customValidatorRole:
+      type: string
+      format: dataweave
+      default: "#[vars.claimSet.role == 'superRole']"
+      # [...]
+  required:
+    - customValidatorRole
+----
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]
+
