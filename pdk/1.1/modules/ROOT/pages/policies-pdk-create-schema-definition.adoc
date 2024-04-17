@@ -165,27 +165,27 @@ Toggling *Show* reveals any new data currently being entered. However, you canno
 
 === Define Conditional Parameters
 
-Make policy configuration render dynamically by establishing conditions to make fields visible:
+Render policy configuration parameters dynamically by establishing conditions to make fields visible. In the following code example, the `encryptionKey` parameter only appears if `encryptBody` is `true`:
 
 [source,yaml]
 ----
 properties:
-    conditionant:
-        type: string
-        default: "show"
-    conditioned:
+    encryptBody:
+        type: boolean
+        default: false
+    encryptionKey:
         type: string
         "@rendering":
             "@visibleOn":
-                - property: conditionant
-                  value: "show"
+                - property: encryptBody
+                  value: "true"
 ----
 
-When applying the policy, the fields will be hidden or visible depending on other property values. Required properties that are conditionally rendered must have a default value specified.
-
 The following restrictions apply to conditional properties:
-- A single condition can be specified per field.
-- Only root-level properties can be conditioned. Inner properties of arrays or objects do not support conditional rendering. 
+
+* You can only define single condition per parameter.
+* Required properties that are conditionally rendered must have a default value defined.
+* Only root-level parameters support conditional rendering. Inner properties of arrays or objects do not support conditional rendering.
 
 === Define Supported Types
 
