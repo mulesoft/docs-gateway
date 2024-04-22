@@ -4,6 +4,51 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
+PDK provides the `Clock` injectable to build timers to enable periodical, synchronous, and delayed functions.
+
+Each timer provides the following two functions:
+
+[source,rust]
+----
+pub async fn next_tick(&self) -> bool;
+pub async fn sleep(&self, interval: Duration) -> bool;
+----
+
+* `next_tick`: Sleeps for one timer tick
+* `sleep`: Sleeps for the specified number (`Duration`) of timer ticks, for example, `Duration::from_secs(1) ` sleeps for 10 seconds
+
+Both functions return true when the specified time has passed or false if the policy is being shutdown.
+
+
+== Configure the Timer
+
+To inject a `timer` in your policy, insert a `Clock` into your policy configuration function and configure the time period:
+
+[source,rust]
+----
+#[entrypoint]
+async fn configure(
+   launcher: Launcher,
+   Configuration(bytes): Configuration,
+   clock: Clock, // Inject the clock to be able to launch async tasks.
+   client: HttpClient,
+) -> Result<()> {
+
+
+   // set the period between ticks of the timer.
+   let timer = clock.period(Duration::from_secs(10));
+----
+
+After you inject the timer, share a reference of the `timer` with the `on_request` and `on_response` functions:
+
+[source,rust]
+----
+    launcher
+        .launch(on_request(|rs| request_filter(rs, &timer, &config)))
+        .await?;
+----
+
+
 
 == See Also
 
