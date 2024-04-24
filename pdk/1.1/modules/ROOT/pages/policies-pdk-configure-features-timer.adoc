@@ -1,4 +1,4 @@
-= Configuring Delayed and Periodic Functions
+= Configuring Delayed, Periodic, and Synchronous Functions
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -14,15 +14,16 @@ pub async fn next_tick(&self) -> bool;
 pub async fn sleep(&self, interval: Duration) -> bool;
 ----
 
-* `next_tick`: Sleeps for one timer tick
-* `sleep`: Sleeps for the specified number (`Duration`) of timer ticks, for example, `Duration::from_secs(1) ` sleeps for 10 seconds
+* `next_tick`: Sleeps for the minimum amount of time the timer is capable of distinguishing.
+* `sleep`: Sleeps for an amount of ticks where the elapsed time is greater or equal than the provided `Duration`. For example, if you configure the period of the clock to 10 seconds, calling `timer.sleep(Duration::from_secs(1))` sleeps for 10 seconds.
 
-Both functions return true when the specified time has passed or false if the policy is being shutdown.
-
+Both functions return `true` when the specified time has passed or false if the policy is unapplied or edited during execution.
 
 == Configure the Timer
 
-To inject a `timer` in your policy, insert a `Clock` into your policy configuration function and configure the time period:
+NOTE: To view an example policy project that users the timer, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/spike/README.md[Spike Policy Example].
+
+To inject a `timer` in your policy, insert a `Clock` into your policy configuration function and define a timer with a interval period:
 
 [source,rust]
 ----
@@ -39,7 +40,7 @@ async fn configure(
    let timer = clock.period(Duration::from_secs(10));
 ----
 
-After you inject the timer, share a reference of the `timer` with the `on_request` and `on_response` functions:
+After you inject the timer, share a reference of the `timer` with the `on_request` and `on_response` functions to begin creating delayed functions:
 
 [source,rust]
 ----
@@ -48,7 +49,101 @@ After you inject the timer, share a reference of the `timer` with the `on_reques
         .await?;
 ----
 
+You can now await timer functions in `on_request` and `on_response` functions, for example:
 
+[source,rust]
+----
+    let slept = timer.sleep(duration).await;
+    let tick = timer.next_tick().await;
+----
+
+NOTE: To view an example policy project that launches delayed functions, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/spike/README.md[Spike Policy Example].
+
+== Launch Asynchronous Tasks
+
+Use the timer to execute tasks independent of the request flow. To execute asynchronous tasks:
+
+. Define your task inside an `async` function.
+. In the policy configuration function call your function but don't await the returned future.
+. In the policy configuration function call the launch function with your filter but don't await the returned future.
+. Use the `join!` macro to await both futures at the same time. 
++
+Note: To use the `join` macro, add the ‘futures’ crates as dependency in your `cargo.toml` file.
+
+Each worker executes a copy of the task, and the tasks execute until it is completed. Configure a loop inside the function to execute periodic tasks. For example, the following code example awaits both functions:
+
+[source,rust]
+----
+let task = my_async_task(&timer, &config);
+let launched = launcher.launch(filter);
+let joined = join!(launched, task);
+----
+
+Add a loop to the `my_async_task` function creates periodic tasks, for example:
+
+[source,rust]
+----
+async fn my_async_task(timer: &Timer, config: &Config) {
+    // While the policy is still running.
+    // Wait for the next cycle.
+    while timer.next_tick().await {
+        // Execute periodic task
+    }
+}
+
+----
+
+NOTE: To view an example policy project that launches asynchronous periodic tasks, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/metrics/README.md[Metrics Policy Example^].
+
+== Synchronize Asynchronous Tasks Between Workers
+
+PDK provides the `LockBuilder` to synchronize workers. A scenario this is useful is where a policy consumes an HTTP service that has usage limits. A single worker can fetch data and then share the data with other workers to reduce service requests. The lock ensures that only one worker is completing a task in a time period. To configure the lock:
+
+. Inject the `LockBuilder` into your policy configuration function:
+
+[source,rust]
+----
+#[entrypoint]
+async fn configure(
+    launcher: Launcher,
+    Configuration(bytes): Configuration,
+    clock: Clock,        // Inject the clock to be able to launch async tasks.
+    lock: LockBuilder,   // Inject the lock to be able to synchronize the workers.
+) -> Result<()> {
+----
+
+. Configure the lock and share a reference to it with your asynchronous function:
+
+[source,rust]
+----
+    let lock = lock
+        .new(ID.to_string())
+        .expiration(Duration::from_secs(20))
+        .build();
+    let task = my_async_task(&timer, &lock);
+----
++
+If the asynchronous task that executes `async` function calls, configure the `expiration` of the lock to a value bigger than the total time needed to complete the nested `async` function calls.
+
+. Inside the asynchronous function, acquire the lock before executing the desired task. If no other worker has the lock, the lock is acquired. Otherwise, you must omit the execution of the task and wait for the next task loop, for example:
++
+[source,rust]
+----
+async fn my_async_task(
+    timer: &Timer,
+    lock: &TryLock,
+) {
+   while timer.next_tick().await {
+     if let Some(acquired) = lock.try_lock() {
+       // execute task.
+     }
+   }
+}
+----
++
+After obtaining the lock, if you execute code that requires you ‘await’ a result, you must call the `refresh_lock` function to ensure the lock hasn’t expired. If the lock has expired, the worker is considered unresponsive. Abort the execution of your task as another worker has begun the same task execution
+
+NOTE: To view an example policy project that synchronizes asynchronous periodic tasks and shares information between workers, see https://github.com/mulesoft/pdk-custom-policy-examples/tree/main/block/README.md[Block Policy Example].
 
 == See Also
 
