@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-PDK provides the `Clock` injectable to build timers to enable delayed, periodic, and synchronous functions.
+PDK provides the `Clock` injectable to build a timer to enable delayed, periodic, and synchronous functions. Each policy only supports one timer.
 
 Each timer provides the following two functions:
 
@@ -63,8 +63,8 @@ Use the timer to execute tasks independent of the request flow. To execute async
 
 . Define your task inside an `async` function.
 . In the policy configuration function call your function but don't await the returned future.
-. In the policy configuration function call the `launch` function with the `on_response` filer functions but don't await the returned future.
-. Use the `join!` macro to await both futures at the same time. 
+. In the policy configuration function call the `launch` function with the `on_request` and `on_response` filter functions but don't await the returned future.
+. Use the `join!` macro to await both futures of your task function and `launch` function at the same time. 
 +
 Note: To use the `join` macro, add the ‘futures’ crates as dependency in your `cargo.toml` file.
 
