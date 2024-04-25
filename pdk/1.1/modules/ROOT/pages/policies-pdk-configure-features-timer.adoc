@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-PDK provides the `Clock` injectable to build a timer to enable delayed, periodic, and synchronous functions. Each policy supports only one timer.
+Anypoint Flex Gateway Policy Development Kit (PDK) provides the `Clock` injectable to build a timer to enable delayed, periodic, and synchronous functions. Each policy supports only one timer.
 
 Each timer provides the following two functions:
 
@@ -66,7 +66,7 @@ Use the timer to execute tasks independent of the request flow. To execute async
 . In the policy configuration function, call the `launch` function with the `on_request` and `on_response` filter functions but don't await the returned future.
 . Use the `join!` macro to await both futures of your task function and `launch` function at the same time. 
 +
-NOTE: To use the `join` macro, add the ‘futures’ crates as dependency in your `cargo.toml` file.
+NOTE: To use the `join` macro, add the ‘futures’ crate as dependency in your `cargo.toml` file.
 
 Each worker executes a copy of the task. Configure a loop inside the function to execute periodic tasks. For example, the following code example awaits both functions:
 
@@ -104,7 +104,7 @@ NOTE: To view an example policy project that launches asynchronous periodic task
 
 == Sync Asynchronous Tasks between Workers
 
-PDK provides the `LockBuilder` to sync workers. The lock ensures that only one worker is completing a task in a time period. Each policy supports multiple locks.
+Use the PDK `LockBuilder` to sync workers. The lock ensures that only one worker is completing a task in a time period. Each policy supports multiple locks.
 
 Locks are useful when a policy consumes an HTTP service that has usage limits. A single worker can fetch data and then share the data with other workers to reduce service requests.
 
