@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-PDK provides the `Clock` injectable to build a timer to enable delayed, periodic, and synchronous functions. Each policy only supports one timer.
+PDK provides the `Clock` injectable to build a timer to enable delayed, periodic, and synchronous functions. Each policy supports only one timer.
 
 Each timer provides the following two functions:
 
@@ -17,7 +17,7 @@ pub async fn sleep(&self, interval: Duration) -> bool;
 * `next_tick`: Sleeps for the minimum amount of time the timer is capable of distinguishing.
 * `sleep`: Sleeps for an amount of ticks where the elapsed time is greater or equal than the provided `Duration`. For example, if you configure the period of the clock to 10 seconds, calling `timer.sleep(Duration::from_secs(1))` sleeps for 10 seconds.
 
-Both functions return `true` when the specified time has passed or false if the policy is unapplied or edited during execution.
+Both functions return `true` when the specified time has passed or `false` if the policy is unapplied or edited during execution.
 
 == Configure the Timer
 
@@ -62,8 +62,8 @@ NOTE: To view an example policy project that launches delayed functions, see htt
 Use the timer to execute tasks independent of the request flow. To execute asynchronous tasks:
 
 . Define your task inside an `async` function.
-. In the policy configuration function call your function but don't await the returned future.
-. In the policy configuration function call the `launch` function with the `on_request` and `on_response` filter functions but don't await the returned future.
+. In the policy configuration function, call your function but don't await the returned future.
+. In the policy configuration function, call the `launch` function with the `on_request` and `on_response` filter functions but don't await the returned future.
 . Use the `join!` macro to await both futures of your task function and `launch` function at the same time. 
 +
 NOTE: To use the `join` macro, add the ‘futures’ crates as dependency in your `cargo.toml` file.
@@ -77,7 +77,7 @@ let launched = launcher.launch(filter);
 let joined = join!(launched, task);
 ----
 
-Add a loop to the `my_async_task` function creates periodic tasks, for example:
+Adding a loop to the `my_async_task` function creates periodic tasks, for example:
 
 [source,rust]
 ----
@@ -152,7 +152,7 @@ async fn my_async_task(
 }
 ----
 +
-After obtaining the lock, if you execute code that requires you ‘await’ a result, you must call the `refresh_lock` function to ensure the lock hasn’t expired. If the lock has expired, the worker is considered unresponsive. Abort the execution of your task as another worker has begun the same task execution
+After obtaining the lock, if you execute code that requires you ‘await’ a result, you must call the `refresh_lock` function to ensure the lock hasn’t expired. If the lock has expired, the worker is considered unresponsive. Abort the execution of your task because another worker is running the same task execution.
 
 NOTE: To view an example policy project that synchronizes asynchronous periodic tasks and shares information between workers, see https://github.com/mulesoft/pdk-custom-policy-examples/tree/main/block/README.md[Block Policy Example].
 
