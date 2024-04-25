@@ -93,9 +93,9 @@ async fn my_async_task(timer: &Timer, config: &Config) {
 
 NOTE: To view an example policy project that launches asynchronous periodic tasks, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/metrics/README.md[Metrics Policy Example^].
 
-== Synchronize Asynchronous Tasks Between Workers
+== Sync Asynchronous Tasks Between Workers
 
-PDK provides the `LockBuilder` to synchronize workers. The lock ensures that only one worker is completing a task in a time period. This is useful is when a policy consumes an HTTP service that has usage limits. A single worker can fetch data and then share the data with other workers to reduce service requests. 
+PDK provides the `LockBuilder` to sync workers. The lock ensures that only one worker is completing a task in a time period. This is useful is when a policy consumes an HTTP service that has usage limits. A single worker can fetch data and then share the data with other workers to reduce service requests. 
 
 To configure the lock:
 
@@ -125,7 +125,7 @@ async fn configure(
 +
 If the asynchronous task that executes `async` function calls, configure the `expiration` of the lock to a value bigger than the total time needed to complete the nested `async` function calls.
 
-. Inside the asynchronous function, acquire the lock before executing the desired task. If no other worker has the lock, the lock is acquired. Otherwise, you must omit the execution of the task and wait for the next task loop, for example:
+. Inside the asynchronous function, acquire the lock before executing the desired task. If no other worker has the lock, the current worker acquires the lock. Otherwise, you must omit the execution of the task and wait for the next task loop, for example:
 +
 [source,rust]
 ----
