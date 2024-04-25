@@ -134,7 +134,7 @@ async fn configure(
     let task = my_async_task(&timer, &lock);
 ----
 +
-If the asynchronous task that executes `async` function calls, configure the `expiration` of the lock to a value bigger than the total time needed to complete the nested `async` function calls.
+If the asynchronous task executes additional `async` function calls inside the task, configure the `expiration` of the lock to a duration longer than the total time needed to complete the nested `async` function calls.
 
 . Inside the asynchronous function, acquire the lock before executing the desired task. If no other worker has the lock, the current worker acquires the lock. Otherwise, you must omit the execution of the task and wait for the next task loop, for example:
 +
