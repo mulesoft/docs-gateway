@@ -95,10 +95,12 @@ NOTE: To view an example policy project that launches asynchronous periodic task
 
 == Synchronize Asynchronous Tasks Between Workers
 
-PDK provides the `LockBuilder` to synchronize workers. A scenario this is useful is where a policy consumes an HTTP service that has usage limits. A single worker can fetch data and then share the data with other workers to reduce service requests. The lock ensures that only one worker is completing a task in a time period. To configure the lock:
+PDK provides the `LockBuilder` to synchronize workers. The lock ensures that only one worker is completing a task in a time period. This is useful is when a policy consumes an HTTP service that has usage limits. A single worker can fetch data and then share the data with other workers to reduce service requests. 
+
+To configure the lock:
 
 . Inject the `LockBuilder` into your policy configuration function:
-
++
 [source,rust]
 ----
 #[entrypoint]
@@ -111,7 +113,7 @@ async fn configure(
 ----
 
 . Configure the lock and share a reference to it with your asynchronous function:
-
++
 [source,rust]
 ----
     let lock = lock
