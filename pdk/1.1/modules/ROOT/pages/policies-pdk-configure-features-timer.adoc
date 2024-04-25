@@ -68,7 +68,7 @@ Use the timer to execute tasks independent of the request flow. To execute async
 +
 NOTE: To use the `join` macro, add the ‘futures’ crates as dependency in your `cargo.toml` file.
 
-Each worker executes a copy of the task, and the tasks execute until it is completed. Configure a loop inside the function to execute periodic tasks. For example, the following code example awaits both functions:
+Each worker executes a copy of the task. Configure a loop inside the function to execute periodic tasks. For example, the following code example awaits both functions:
 
 [source,rust]
 ----
@@ -93,7 +93,7 @@ async fn my_async_task(timer: &Timer, config: &Config) {
 
 NOTE: To view an example policy project that launches asynchronous periodic tasks, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/metrics/README.md[Metrics Policy Example^].
 
-== Sync Asynchronous Tasks Between Workers
+== Sync Asynchronous Tasks between Workers
 
 PDK provides the `LockBuilder` to sync workers. The lock ensures that only one worker is completing a task in a time period. This is useful is when a policy consumes an HTTP service that has usage limits. A single worker can fetch data and then share the data with other workers to reduce service requests. 
 
