@@ -88,16 +88,27 @@ async fn my_async_task(timer: &Timer, config: &Config) {
         // Execute periodic task
     }
 }
+----
 
+To launch multiple asynchronous tasks, send a reference of the timer to your `async` functions and join them with the `launch` task, for example:
+
+[source,rust]
+----
+let task1 = my_async_task1(&timer, &config);
+let task2 = my_async_task2(&timer, &config);
+let launched = launcher.launch(filter);
+let joined = join!(launched, task1, task2);
 ----
 
 NOTE: To view an example policy project that launches asynchronous periodic tasks, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/metrics/README.md[Metrics Policy Example^].
 
 == Sync Asynchronous Tasks between Workers
 
-PDK provides the `LockBuilder` to sync workers. The lock ensures that only one worker is completing a task in a time period. This is useful is when a policy consumes an HTTP service that has usage limits. A single worker can fetch data and then share the data with other workers to reduce service requests. 
+PDK provides the `LockBuilder` to sync workers. The lock ensures that only one worker is completing a task in a time period. Each policy supports multiple locks.
 
-To configure the lock:
+Locks are useful when a policy consumes an HTTP service that has usage limits. A single worker can fetch data and then share the data with other workers to reduce service requests.
+
+To configure a lock:
 
 . Inject the `LockBuilder` into your policy configuration function:
 +
