@@ -1,0 +1,228 @@
+= Update Pod Settings for a Flex Gateway Deployment Through a Helm Chart
+
+Change requirements for a Pod that contains a Flex Gateway deployment. The example in this guide sets the following CPU and memory requirements in the Helm chart for a Flex Gateway deployment:
+
+* `resources.limits.cpu=1500m`
+* `resources.limits.memory=2048Mi`
+* `resources.requests.cpu=260m`
+* `resources.requests.memory=384Mi`
+
+Use this example as a guide to updating values in the Helm chart for your Flex Gateway deployment. 
+
+Find the default Helm chart settings for Flex Gateway through one of the following methods:
+
+* Open the *flex-gateway* page in https://artifacthub.io/packages/helm/flex-gateway/flex-gateway[ArtifactHUB^]
+* Run `helm show values &lt;repository-name&gt;/&lt;chart-name&gt;` from a terminal window, for example, `helm show values flex-gateway/flex-gateway`.
+
+For details about CPU and memory resource settings, see the https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/[Kubernetes documentation^]. 
+
+== Before You Begin
+
+Register and deploy Flex Gateway to a Kubernetes cluster. For guidance, see xref:flex-gateway-set-up.adoc[] or xref:flex-gateway-k8-getting-started.adoc[].
+
+[[update-cpu-memory-example]]
+== Check the Current Settings of Your Helm Chart
+
+Before updating settings for a Pod that contains a Flex Gateway deployment, check the Pod's settings for the current deployment.
+
+. Ensure that your Helm repository is up and available by running the following command from a terminal window:
++
+[source,helm]
+----
+helm repo up
+----
++
+//TODO: Link to troubleshooting info for this once it's moved to the Troubleshooting section (from getting started for k8).
+
+. Find the `REVISION` number of the latest deployment.
++
+The following example requests the history of the `ingress` release in the `gateway` namespace:
++
+[source,helm]
+----
+helm history ingress -n gateway
+----
++
+The command returns a result similar to this one:
++
+----
+REVISION  UPDATED                 	STATUS    	CHART             	APP VERSION	DESCRIPTION     
+1         Mon Mar 27 09:36:20 2023	superseded	flex-gateway-1.4.2	1.4.2      	Upgrade complete
+2         Mon Mar 27 11:40:56 2023	deployed  	flex-gateway-1.4.2	1.4.2      	Upgrade complete
+----
+
+. Check for `USER-SUPPLIED VALUES` settings for `resources` in the currently deployed revision:
++
+.Command Syntax:
+----
+helm get values --revision=<version-number> <release-name> -n <namespace>
+----
++
+.Example:
+[source,helm]
+----
+helm get values --revision=2 ingress -n gateway
+----
++
+
+The following example shows the `resources` settings for the Pod's CPU and memory below the Pod's `registration` data:
++
+----
+USER-SUPPLIED VALUES:
+registration:
+  ...
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2024Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+----
++
+This example displays settings from `REVISION` number `2`. The output displays only revised settings. If your chart has never revised the default Helm chart values, _no_ revisions appear in the output. 
+
+. Use one of the following procedures to change settings in the Helm chart for your Flex Gateway deployment: 
+
+* <<use-helm-set-option>> uses `--set` options in a `helm upgrade` command. The command allows multiple `--set` options. 
+* <<use-helm-f-option>> passes a configuration file with multiple settings though the `-f` option to `helm upgrade`. The command allows multiple `-f` options.
+
+[[use-helm-set-option]]
+== Modify Settings for Your Helm Chart
+
+After following the steps in <<update-cpu-memory-example>>, use the `--set` option to pass new values individually to the Helm chart for your Flex Gateway deployment. Alternatively, follow the procedure in <<use-helm-f-option>>.
+
+. Change the `cpu` and `memory` values by using the `helm upgrade` command.
++
+.Syntax:
+----
+helm -n <namespace> upgrade <release-name> \
+--wait \
+--reuse-values \
+<repository-name>/<chart-name> \
+--set <key-to-update>=<new-value> 
+--set <next-key-to-update>=<new-value> 
+...
+----
++
+.Example:
+[source,helm]
+----
+helm -n gateway upgrade ingress \
+--wait \
+--reuse-values \
+flex-gateway/flex-gateway \
+--set resources.limits.cpu=1500m \
+--set resources.limits.memory=2048Mi \
+--set resources.requests.cpu=260m \
+--set resources.requests.memory=384Mi
+----
++
+When successful, the command returns output similar to this:
++
+----
+Release "ingress" has been upgraded. Happy Helming!
+NAME: ingress
+LAST DEPLOYED: Mon Mar 27 11:58:36 2023
+NAMESPACE: gateway
+STATUS: deployed
+REVISION: 3
+TEST SUITE: None
+----  
+
+. Using the new `REVISION` value, check the `resources` settings, for example:
++
+[source,helm]
+----
+helm get values --revision=3 ingress -n gateway
+----
++
+The output displays the new `resources` settings for the Pod:
++
+----
+USER-SUPPLIED VALUES:
+registration:
+  ...
+resources:
+  limits:
+    cpu: 1500m
+    memory: 2048Mi
+  requests:
+    cpu: 260m
+    memory: 384Mi
+----
+
+[[use-helm-f-option]]
+== Provide a File with Modified Settings for Your Helm Chart
+
+After following the steps in <<update-cpu-memory-example>>, use the `-f` option with `helm upgrade` to identify the file that contains new Helm chart settings for your Flex Gateway deployment. Alternatively, follow the procedure in <<use-helm-set-option>>.
+
+. Create a configuration file that contains your new settings.
++
+For example, create a YAML file named `my-config-file.yaml` that contains the new `cpu` and `memory` values:
++
+[source,yaml]
+----
+resources:
+  limits:
+    cpu: 1500m
+    memory: 2048Mi
+  requests:
+    cpu: 260m
+    memory: 384Mi
+----
+
+. Pass the new values from your configuration file to your Helm chart, for example:
++
+.Syntax:
+----
+helm -n <namespace> upgrade <release-name> \
+--wait \
+--reuse-values \
+<repository-name>/<chart-name> \
+-f <your-settings-config-file>
+----
++
+.Example:
+[source,helm]
+----
+helm -n gateway upgrade ingress \
+--wait \
+--reuse-values \
+flex-gateway/flex-gateway \
+-f my-config-file.yaml
+----
++
+When successful, the command returns output similar to this:
++
+----
+Release "ingress" has been upgraded. Happy Helming!
+NAME: ingress
+LAST DEPLOYED: Mon Mar 27 16:38:07 2023
+NAMESPACE: gateway
+STATUS: deployed
+REVISION: 4
+TEST SUITE: None
+----
+
+. Using your Helm repository and chart names, verify the update to your chart, for example:
++
+[source,helm]
+----
+helm get values --revision=4 ingress -n gateway
+----
++
+The output displays the new `resources` settings for the Pod:
++
+----
+USER-SUPPLIED VALUES:
+registration:
+  ...
+resources:
+  limits:
+    cpu: 1500m
+    memory: 2048Mi
+  requests:
+    cpu: 260m
+    memory: 384Mi
+----
