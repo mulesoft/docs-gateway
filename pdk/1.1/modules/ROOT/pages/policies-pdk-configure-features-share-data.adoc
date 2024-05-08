@@ -1,0 +1,53 @@
+= Sharing Data Between Requests and Responses
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Flex Gateway Policy Development Kit (PDK) provides the `RequestData` enum to pass data between the request and the response.
+
+To share a status between the request and the response functions, the request function must return a `Flow::Continue` enum variant with a data parameter that that you wish to pass to the response function. The response function must receive the `RequestData` parameter that contains the request function's final status and the data parameter that was passed.
+
+The `RequestData` enum has the following possible final status:
+
+* `RequestData::Continue(data)`: The request function ended with `Flow::Continue(data)`.
+* `RequestData::Break` : The request function ended with `Flow::Break`.
+* `RequestData::Cancel`: The request function was xref:policies-pdk-configure-features.adoc#flow-cancellation[cancelled].
+
+If the request function ended with a `Flow::Continue` and was not xref:policies-pdk-configure-features-flow-cancellation.adoc[cancelled] by upstream policies, the `RequestData::Continue` variant contains the value sent by the request function.
+
+Implement this by adding an `on_response` wrapped function to the `Flow` example used in xref:policies-pdk-configure-features-stop.adoc[]:
+
+[source,Rust]
+----
+async fn request_filter(state: RequestState) -> Flow<String> {
+    let state = state.into_headers_state().await;
+    let handler = state.handler();
+    if handler.header("authorization").is_some() {
+        Flow::Continue(state.path())
+    } else {
+        Flow::Break(
+            Response::new(401)
+                .with_headers(vec![(
+                    "WWW-Authenticate".to_string(),
+                    "Bearer realm=\"oauth2\"".to_string(),
+                )])
+                .with_body(r#"{ "error": "token was not present"}"#),
+        )
+    }
+}
+
+async fn response_filter(state: ResponseState, request_data: RequestData<String>) {
+    // Handle only completed requests
+    if let RequestData::Continue(path) = request_data else {
+        return;
+    };
+
+    let state = state.into_headers_state().await;
+    logger::info!("Path: {path}, Status: {}", state.status_code());
+}
+----
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]
