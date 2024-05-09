@@ -31,15 +31,15 @@ In Local Mode, you apply the HTTP Caching policy to your API via declarative con
 - policyRef:
     name: http-caching-flex
   config:
-    httpCachingKey: <string> // OPTIONAL, default: "#[attributes.requestPath]"
-    maxCacheEntries: <int> // OPTIONAL, default: 10000
-    ttl: <int> // OPTIONAL, default: 600
-    useHttpCacheHeaders: <bool> // OPTIONAL, default: true
+    httpCachingKey: <string> // REQUIRED, default: "#[attributes.requestPath]"
+    maxCacheEntries: <int> // REQUIRED, default: 10000
+    ttl: <int> // REQUIRED, default: 600
+    useHttpCacheHeaders: <bool> // REQUIRED, default: true
     invalidationHeader: <string> // OPTIONAL, default: ""
     requestExpression: <string> // OPTIONAL, default: "#[attributes.method == 'GET' or attributes.method == 'HEAD']"
     responseExpression: <string> // OPTIONAL, default: "#[[200, 203, 204, 206, 300, 301, 404, 405, 410, 414, 501] contains attributes.statusCode]"
-    distributed: <bool> // OPTIONAL, default: false
-    persistCache: <bool> // OPTIONAL, default: false
+    distributed: <bool> // REQUIRED, default: false
+    persistCache: <bool> // REQUIRED, default: false
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -48,22 +48,22 @@ In Local Mode, you apply the HTTP Caching policy to your API via declarative con
 |Parameter | Required or Optional | Default Value | Description
 
 | `httpCachingKey`
-| Optional
+| Required
 | `#[attributes.requestPath]`
 | A DataWeave expression
 
 | `maxCacheEntries`
-| Optional
+| Required
 | 10000
 | Specifies the maximum number of entries that can be stored in the cache at any given time
 
 | `ttl`
-| Optional
+| Required
 | 600
 | Specifies the amount of time (in seconds) after which a single entry expires from the cache
 
 | `useHttpCacheHeaders`
-| Optional
+| Required
 | true
 | Enables the use of Cache-Control header directives
 
@@ -83,16 +83,18 @@ In Local Mode, you apply the HTTP Caching policy to your API via declarative con
 | The DataWeave expression that is used to decide which responses are to be cached (caches the response only if the condition is true)
 
 | `distributed`
-| Optional
+| Required
 | false
 | Configures the cache to be distributed among different nodes in a cluster
 
 | `persistCache`
-| Optional
+| Required
 | false
 | Configures the cache to persist between different restarts of the replica
 
 |===
+
+NOTE: Leaving a required value blank configures the parameter as the default value. No value is configured for optional values left blank.
 
 ==== Resource Configuration Example
 
