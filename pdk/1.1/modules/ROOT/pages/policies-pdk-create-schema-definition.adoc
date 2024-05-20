@@ -339,6 +339,58 @@ properties:
       default: {"id": "1", "name": "John Doe"}
 ----
 
+[[enum-values]]
+=== Define Enumerated Values
+By defining the `enum` node in your property, you can limit the values that the user can input into it.
+Depending on the amount of options listed and the field type, the UI will render it as a radio button or a dropdown field.
++
+For example:
++
+[source,yaml]
+----
+  properties:
+    signingMethod:
+      type: string
+      enum:
+        - rsa
+        - hmac
+----
+
+Enums properties cannot be annotated with the @visibleOn tag as specified in the section <<define-conditional-parameters>>.
+Nevertheless, you can wrap the enums in an object or an array and hide it on demand.
++
+For example:
++
+[source,yaml]
+----
+  properties:
+    signingMethod:
+      type: string
+      title: Signing Method
+      enum:
+        - rsa
+        - hmac
+    rsaConfig:
+      title: Rsa Configuration
+      type: object
+      "@rendering":
+        "@visibleOn":
+            - property: signingMethod
+              value: "rsa"
+      properties:
+        length:
+          type: string
+          enum:
+            - "512"
+            - "256"
+      required:
+        - length
+      default: { "length": "512"}
+  required:
+    - signingMethod
+    - rsaConfig
+----
+
 [[dataweave-expressions]]
 === Define DataWeave Expressions
 
