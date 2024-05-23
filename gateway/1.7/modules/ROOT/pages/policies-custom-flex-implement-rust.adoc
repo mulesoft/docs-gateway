@@ -1,0 +1,342 @@
+= Implement a Flex Gateway Custom Policy in Rust
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:page-aliases: policies::policies-custom-flex-implement-rust.adoc
+
+include::partial$pdk-banner.adoc[tag="pdk"]
+
+== Summary
+
+You can implement custom policies via WebAssembly (WASM) extensions that run on Envoy as custom filters. You implement these policies using the https://github.com/proxy-wasm/proxy-wasm-rust-sdk[WebAssembly for Proxies (Rust SDK)^]. The following examples assume knowledge about Rust and related tools.
+
+== Lifecycle Events
+
+Custom policies are based on https://github.com/proxy-wasm/spec[proxy-wasm ABI^], an event-driven, Envoy-agnostic, low-level interface for L4/L7 proxies. This interface specifies how a WASM extension and its host interact, and it includes listenable lifecycle events: HTTP request lifecycle events and also WASM filter lifecycle events.
+
+The SDK exposes a method to retrieve information related to each lifecycle event. For example, data retrieved from the `on_http_request_headers` event can be used to perform related custom policy logic, which can then inform the runtime if the request should be processed.
+
+=== HTTP Request Lifecycle Events
+
+* `on_http_request_headers`
++
+Triggered when the endpoint receives the complete set of HTTP request headers.
+
+* `on_http_request_body`
++
+Triggered when the endpoint receives the first bytes of the HTTP request.
+
+* `on_http_response_headers`
++
+Triggered when the endpoint receives the complete set of HTTP response headers.
+
+* `on_http_response_body`
++
+Triggered when the endpoint receives the first bytes of the HTTP response body.
+
+=== Filter Lifecycle Events
+
+* `on_configure`
++
+Triggered when the WASM filter starts with an available configuration.
++
+Flex Gateway serializes policy configuration into JSON, which is used to configure the Envoy WASM filter. You can deserialize and parse this JSON into data that will be used by your custom policy.
+
+=== Example Lifecycle Events Implementation
+
+The following Envoy filter template demonstrates how to implement lifecycle events:
+
+----
+use proxy_wasm::traits::*;
+use proxy_wasm::types::*;
+
+proxy_wasm::main! {{
+    proxy_wasm::set_log_level(LogLevel::Trace);
+    proxy_wasm::set_root_context(|_| -> Box<dyn RootContext> {
+        Box::new(HttpConfigHeaderRoot {
+            header_content: String::new(),
+        })
+    });
+}}
+
+struct HttpConfigHeader {
+    header_content: String,
+}
+
+impl Context for HttpConfigHeader {}
+
+impl HttpContext for HttpConfigHeader {
+    fn on_http_request_headers(&mut self, _num_headers: usize, _end_of_stream: bool) -> Action {
+        Action::Continue
+    }
+
+    fn on_http_request_body(&mut self, _body_size: usize, _end_of_stream: bool) -> Action {
+        Action::Continue
+    }
+
+    fn on_http_response_headers(&mut self, _num_headers: usize, _end_of_stream: bool) -> Action {
+        Action::Continue
+    }
+
+    fn on_http_response_body(&mut self, _body_size: usize, _end_of_stream: bool) -> Action {
+        Action::Continue
+    }
+}
+
+struct HttpConfigHeaderRoot {
+    header_content: String,
+}
+
+impl Context for HttpConfigHeaderRoot {}
+
+impl RootContext for HttpConfigHeaderRoot {
+    fn on_configure(&mut self, _: usize) -> bool {
+        if let Some(config_bytes) = self.get_plugin_configuration() {
+            self.header_content = String::from_utf8(config_bytes).unwrap()
+        }
+        true
+    }
+
+    fn create_http_context(&self, _: u32) -> Option<Box<dyn HttpContext>> {
+        Some(Box::new(HttpConfigHeader {
+            header_content: self.header_content.clone(),
+        }))
+    }
+
+    fn get_type(&self) -> Option<ContextType> {
+        Some(ContextType::HttpContext)
+    }
+}
+----
+
+== Custom Authentication Header Policy Example
+
+The following tutorial describes how to create an example policy implementation for a xref:policies-custom-flex-getting-started.adoc#create-policy-definition-files[Policy Definition] that has already been published in Exchange.
+The example policy blocks requests whose `x-custom-auth` header does not match a user-configured value.
+
+During the policy development process, you complete the following steps:
+
+. Create the policy definition JSON file.
+. Set up the project.
+. Develop the custom policy.
+
+=== Create the Policy Definition JSON File
+
+Example policy implementations require a policy definition JSON file. Flex Gateway passes policy configuration as JSON with that policy definition structure to the Envoy WASM filter.
+
+The example authentication header policy has only one parameter: the value that needs to be passed in the header. The policy definition JSON file should match the following:
+
+----
+{
+  "title": "Custom Auth Header",
+  "type": "object",
+  "description": "Enforces HTTP authentication matching x-custom-auth value to what is configured in the policy.",
+  "properties": {
+    "secret-value": {
+      "title": "Custom Auth Header Password",
+      "type": "string",
+      "@context": {
+        "@characteristics": [
+          "security:sensitive"
+        ]
+      }
+    }
+  },
+  "required": [
+    "secret-value"
+  ],
+  "unevaluatedProperties": false,
+  "@context": {
+    "@vocab": "anypoint://vocabulary/policy.yaml#",
+    "security": "anypoint://vocabulary/policy.yaml#"
+  },
+  "$id": "custom-auth-header-simple",
+  "$schema": "https://json-schema.org/draft/2019-09/schema"
+}
+----
+
+=== Set Up the Project
+
+. Create the Rust project via the following command:
++
+----
+cargo new flex_custom_policy_example --lib
+----
++
+This creates a `flex_custom_policy_example` directory.
+
+. Copy the following into `Cargo.toml`, located in the `flex_custom_policy_example` directory:
++
+----
+[package]
+name = "flex_custom_policy_example"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib"]
+name="flex_custom_policy_example"
+path="src/lib.rs"
+
+[dependencies]
+proxy-wasm = { git = "https://github.com/proxy-wasm/proxy-wasm-rust-sdk.git", tag = "v0.2.0" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[profile.release]
+opt-level = "z"
+lto = "fat"
+----
+
+=== Develop the Custom Policy
+
+. Add the following policy bootstrapping code to a new Rust source file:
++
+----
+use proxy_wasm::traits::*;
+use proxy_wasm::types::*;
+use serde::Deserialize;
+
+proxy_wasm::main! {{
+    proxy_wasm::set_log_level(LogLevel::Trace);
+    proxy_wasm::set_root_context(|_| -> Box<dyn RootContext> {
+        Box::new(CustomAuthRootContext {
+            config: CustomAuthConfig::default(),
+        })
+    });
+}}
+----
++
+The code is required to deploy your WASM filter to Envoy. The `main` block sets the root context, which is an Envoy entity used to generate the child context for each incoming HTTP request.
+
+. Add the following root context implementation code:
++
+----
+struct CustomAuthRootContext {
+    config: CustomAuthConfig,
+}
+
+impl Context for CustomAuthRootContext {}
+
+impl RootContext for CustomAuthRootContext {
+
+    fn create_http_context(&self, _: u32) -> Option<Box<dyn HttpContext>> {
+        Some(Box::new(CustomAuthHttpContext {
+            config: self.config.clone(),
+        }))
+    }
+
+    fn get_type(&self) -> Option<ContextType> {
+        Some(ContextType::HttpContext)
+    }
+}
+----
++
+Each Envoy filter is required to provide a root context implementation. The `RootContext` trait contains useful methods you can implement. In this example, HTTP filters implement `create_http_context` and `get_type` so that Envoy can generate the child contexts.
+
+. Add the following `Struct` to enable parsing this JSON:
++
+----
+#[derive(Default, Clone, Deserialize)]
+struct CustomAuthConfig {
+
+    #[serde(alias = "secret-value")]
+    secret_value: String,
+}
+----
++
+Flex Gateway configures your policy with JSON defined in the policy definition. The JSON that needs to be parsed contains a single field called `secret-value`.
++
+. Deserialize the configuration:
++
+After creating the basic policy configuration structure, you must implement the `RootContext` `on_configure` method in order to deserialize it.
++
+Within the implementation of `RootContext` for `CustomAuthRootContext`, add the `on_configure` method, like the following snippet.
++
+----
+impl RootContext for CustomAuthRootContext {
+
+    fn on_configure(&mut self, _: usize) -> bool {
+        if let Some(config_bytes) = self.get_plugin_configuration() {
+            self.config = serde_json::from_slice(config_bytes.as_slice()).unwrap();
+        }
+
+        true
+    }
+
+    // Other implemented methods
+    // ...
+}
+----
+
+. Add the following HTTP context code:
++
+----
+struct CustomAuthHttpContext {
+    pub config: CustomAuthConfig,
+}
+
+impl Context for CustomAuthHttpContext {}
+
+impl HttpContext for CustomAuthHttpContext {}
+----
++
+Each incoming request creates a new `CustomAuthHttpContext`, and this `CustomAuthHttpContext` lives as long as the HTTP request lives. This enables you to store request-related state data (but not inter-request state data.)
+
+. Add the following core policy functionality logic:
++
+----
+impl HttpContext for CustomAuthHttpContext {
+    fn on_http_request_headers(&mut self, _num_headers: usize, _end_of_stream: bool) -> Action {
+
+        if let Some(value) = self.get_http_request_header("x-custom-auth") {
+            if self.config.secret_value == value {
+                return Action::Continue;
+            }
+        }
+
+        self.send_http_response(401, Vec::new(), None);
+
+        Action::Pause
+    }
+}
+----
++
+The `proxy-wasm` ABI retrieves the header value of the incoming request and then compares the value against `secret-value`. If `secret-value` matches the header, the implementation returns an `Action::Continue`. Otherwise, it returns `Action::Pause`, and the filter itself emits a response to the calling client using `send_http_response`.
++
+Note: The Rust SDK contains an issue reading non-UTF-8 values with `get_http_request_header`. To work around the issue, use the `get_http_request_headers_bytes` method and read the bytes using the `from_utf8` https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8[method^]. For example:
++
+----
+let header = self.get_http_request_header_bytes("x-custom-auth").map(String::from_utf8).and_then(Result::ok);
+----
+
+. Enable compilation by adding `wasm32` as a target:
++
+----
+rustup target add wasm32-wasi
+----
++
+All third-party libraries included in your policy must be compatible with the `wasm32-wasi` Rust compilation target.
++
+[IMPORTANT]
+====
+Some libraries might compile properly to the wasm32-wasi target but might not work properly when deployed to Flex Gateway. Example deployment errors when this happens are:
+
+* `Failed to load Wasm module due to a missing import`
+* `Wasm VM failed to initialize Wasm code`
+* `Plugin configured to fail closed failed to load`
+
+To resolve these issues, contact the owners of the third-party library or use a different library.
+====
+
+. Compile your custom policy via the following command:
++
+----
+cargo build --target wasm32-wasi --release
+----
++
+Compilation outputs a binary `.wasm` file into the `./target/wasm32-wasi/release` directory.
++
+For more information on pushing custom policies to Exchange, refer to xref:policies-custom-flex-getting-started.adoc[Publish a Flex Gateway or Mule 4 Custom Policy].
