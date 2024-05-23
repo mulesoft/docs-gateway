@@ -204,6 +204,59 @@ Conditional parameters have the following restrictions:
 * Required properties that are conditionally rendered must have a default value defined. In the above examples, if `encryptionKey` is required, it requires a default value.
 * Only root-level parameters support conditional rendering. Inner properties of arrays or objects do not support conditional rendering.
 
+[[define-enumerated-variables]]
+=== Define Enumerated Parameters
+
+Limit user's input values by defining parameters with the `enum` property, for example:
+
+[source,yaml]
+----
+  properties:
+    signingMethod:
+      type: string
+      enum:
+        - rsa
+        - hmac
+----
+
+In the API Manager UI, `enum` parameters render as radio buttons for three or fewer enumerated values and as a dropdown field for more. For Flex Gateway running in Local Mode, the user must configure the parameter as one of the enumerated values or the policy configuration fails.
+
+Enumerated parameters don't support the `@visibleOn` tag. To render `enum` parameters dynamically, you must wrap the `enum` parameter in an object or an array that has the `@visibleOn` tag, for example:
+
+[source,yaml]
+----
+  properties:
+    signingMethod:
+      type: string
+      title: Signing Method
+      enum:
+        - rsa
+        - hmac
+    rsaConfig:
+      title: Rsa Configuration
+      type: object
+      "@rendering":
+        "@visibleOn":
+            - property: signingMethod
+              value: "rsa"
+      properties:
+        length:
+          type: string
+          enum:
+            - "512"
+            - "256"
+      required:
+        - length
+      default: { "length": "512"}
+  required:
+    - signingMethod
+    - rsaConfig
+----
+
+To learn more about how to render variables dynamically, see <<define-conditional-parameters>>.
+
+
+[[define-supported-types]]
 === Define Supported Types
 
 Define a supported data type for each policy parameter to ensure the policy receives the correct data.
