@@ -1,0 +1,47 @@
+= Troubleshooting Linux Services
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+The following topics provide possible causes for service issues and describe how to troubleshoot:
+
+* <<flex-gateway-service-failed-to-run,Flex Gateway Service Failed to Run>>
+* <<other-services-failed-to-run,Other Services Failed to Run>>
+
+
+[[flex-gateway-service-failed-to-run]]
+== Flex Gateway Service Failed to Run
+
+The `flex-gateway.service` status displays `failed` after running the `systemctl list-units flex-gateway*` command.
+
+=== Diagnose
+
+To diagnose the service failure, run the following command:
+
+[source,ssh]
+----
+journalctl -u flex-gateway
+----
+
+====  Error 1: “Panic: could not read platform configuration” 
+
+If the output of the `journalctl` command includes this line: 
+
+[source,ssh]
+----
+flex-agent[3253]: panic: could not read platform configuration: open : no such file or directory
+----
+
+The problem can be resolved by running `chmod` on the files created during registration.
+
+[[other-services-failed-to-run]]
+== Other Services Failed to Run
+
+If your error does not appear, attempt to restart Flex Gateway:
+
+[source,ssh]
+----
+sudo ldconfig
+sudo systemctl restart flex-gateway
+---- 
