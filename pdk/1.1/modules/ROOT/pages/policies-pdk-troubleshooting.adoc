@@ -10,6 +10,7 @@ When using Flex Gateway Policy Development Kit (PDK), you might encounter issues
 * <<cli-credential>>
 * <<group-id-error>>
 * <<authorization-error>>
+* <<network-exists>>
 
 To debug issues with your custom policy, see:
 
@@ -113,6 +114,26 @@ make: *** [install-cargo-anypoint] Error 101
 This error occurs when your version of Rust is not {rust-ver-var} or later.
 
 To solve this error, refer to xref:policies-pdk-prerequisites.adoc#rust-requirements[Rust Requirements for Using PDK] to ensure your Rust software meets the required version.
+
+[[network-exists]]
+== 409 Network with Same Name Already Exists
+
+When running the integration testing framework, the following error might occur:
+
+[source,ssh]
+----
+Error: Low level Docker problem: Docker responded with status code 409: network with name flex-test-network already exists
+
+Caused by:
+    Docker responded with status code 409: network with name flex-test-network already exists
+----
+
+To troubleshoot this error, run the following command:
+
+[source,ssh]
+----
+docker network rm flex-test-network
+----
 
 == See Also
 
