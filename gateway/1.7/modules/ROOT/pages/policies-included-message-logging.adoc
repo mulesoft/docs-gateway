@@ -58,22 +58,22 @@ In Local Mode, you apply the Message Logging policy to your API via declarative 
 | `loggingConfiguration.itemName`
 | Required
 | N/A
-| Configuration name
+| Configuration name.
 
 | `loggingConfiguration.itemData.message`
 | Required
 | N/A
-| DataWeave expression that resolves to the message log
+| DataWeave expression that resolves to the message log. To learn more about supported DataWeave expressions, see <<dataweave-support>>.
 
 | `loggingConfiguration.itemData.conditional`
 | Optional
 | `true`
-| DataWeave expression that resolves to whether the message should be logged
+| DataWeave expression that resolves to whether the message should be logged. To learn more about supported DataWeave expressions, see <<dataweave-support>>.
 
 | `loggingConfiguration.itemData.category`
 | Optional
 | Default category
-| Log message prefix that indicates the package and class where the log is executed
+| Log message prefix that indicates the package and class where the log is executed.
 
 | `loggingConfiguration.itemData.level`
 | Required
@@ -84,12 +84,12 @@ For more information, see <<severity-levels>>.
 | `loggingConfiguration.itemData.firstSection`
 | Optional
 | `false`
-| Boolean that indicates if messages are logged before the API endpoint is called, taking into account the order in which this policy is applied
+| Boolean that indicates if messages are logged before the API endpoint is called, taking into account the order in which this policy is applied.
 
 | `loggingConfiguration.itemData.secondSection`
 | Optional
 | `false`
-| Boolean that indicates if messages are logged after the API endpoint is called, taking into account the order in which this policy is applied
+| Boolean that indicates if messages are logged after the API endpoint is called, taking into account the order in which this policy is applied.
 
 |===
 
@@ -123,14 +123,14 @@ image::apim-message-logging-policy-ui.png[Message Logging Policy UI]
 [%header%autowidth.spread]
 |===
 |Parameter |Description | Required?
-|Message |A DataWeave expression to use for extracting the message to be logged
+|Message |A DataWeave expression to use for extracting the message to be logged. To learn more about supported DataWeave expressions, see <<dataweave-support>>.
 |Required
-|Conditional |A DataWeave Boolean expression used to specify whether a message is to be logged |Optional
+|Conditional |A DataWeave Boolean expression used to specify whether a message is to be logged. To learn more about supported DataWeave expressions, see <<dataweave-support>>. |Optional
 |Category |A prefix in the log message that indicates the package and class where the log is executed. |Optional
 |Level |The level of message to log: INFO, WARN, ERROR, or DEBUG. + 
 For more information, see <<severity-levels>>.|Required
-|Before Calling API |Set to cause your logging policy to log messages before the API endpoint is called, taking into account the order in which this policy is applied |Optional
-|After Calling API |Set to cause your logging policy to log messages after the API endpoint is called, taking into account the order in which this policy is applied |Optional
+|Before Calling API |Set to cause your logging policy to log messages before the API endpoint is called, taking into account the order in which this policy is applied. |Optional
+|After Calling API |Set to cause your logging policy to log messages after the API endpoint is called, taking into account the order in which this policy is applied. |Optional
 |===
 
 ==== Example of Message Logging Policy Configured from the UI
@@ -241,6 +241,7 @@ To customize the log messages based on the event and the action performed, Les V
 
 `#['User ' ++ authentication.clientId ++ ' performed action ' ++ attributes.method ++ ' on ' ++ attributes.requestPath ++ ' with Payload: ' ++ payload]`
 
+[[dataweave-support]]
 == DataWeave Expressions Support
 
 The Message Logging policy supports the xref:policies-flex-dataweave-support.adoc[standard DataWeave Expressions supported by Flex Gateway policies] and the following additional xref:dataweave::dataweave-variables-context.adoc[`vars`] DataWeave expressions. Format the following expressions `#[vars.<expressions>]`:
