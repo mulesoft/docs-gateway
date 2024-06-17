@@ -241,6 +241,33 @@ To customize the log messages based on the event and the action performed, Les V
 
 `#['User ' ++ authentication.clientId ++ ' performed action ' ++ attributes.method ++ ' on ' ++ attributes.requestPath ++ ' with Payload: ' ++ payload]`
 
+== DataWeave Expressions Support
+
+The Message Logging policy supports the xref:policies-flex-dataweave-support.adoc[standard DataWeave Expressions supported by Flex Gateway policies] and the following additional xref:dataweave::dataweave-variables-context.adoc[`vars`] DataWeave expressions. Format the following expressions `#[vars.<expressions>]`:
+
+* `orgId`
+* `masterOrgId`
+* `envId`
+* `apiId`
+* `apiName`
+* `apiInstanceName`
+* `apiVersion`
+* `receivedTs` (rfc3339)
+* `repliedTs` (rfc3339, available only during response)
+* `runtimeVersion` (eg `v1.7.0`)
+* `hostId` (eg `my-host`)
+* `remoteAddress`
+* `method`
+* `requestPath`
+* `reqId` (traceId)
+* `requestDisposition` (`PROCESSED` or `VIOLATION`, available only during response)
+* `request.headers` (all request headers)
+* `violation.clientId` (available only during response)
+* `violation.clientName` (available only during response)
+* `violation.policyName` (available only during response)
+* `violation.violationType` (`VIOLATION` or `ERROR`, available only during response)
+
+
 == How This Policy Works
 
 Logging a policy consists of the following sequence:
