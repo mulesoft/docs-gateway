@@ -1,0 +1,55 @@
+= Upgrading PDK
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Flex Gateway Policy Development Kit (PDK) is composed of the following separate versioned components:
+
+* Anypoint CLI PDK Plugin
+* 
+Pdk library
+
+Cargo anypoint plugin
+
+== Upgrade the Anypoint CLI PDK Plugin
+
+To upgrade your Anypoint CLI PDK Plugin to the latest version, execute the following command:
+
+[source,ssh]
+----
+anypoint-cli-v4 plugins:install anypoint-cli-pdk-plugin
+----
+
+To verify your current plugin version, execute the following command:
+
+[source,ssh]
+----
+anypoint-cli-v4 plugins
+----
+
+For example, the following PDK plugin version is `1.1.0`:
+
+[source,ssh]
+----
+anypoint-cli-pdk-plugin 1.1.0
+├─ anypoint-cli-command 1.5.2
+│  └─ @oclif/plugin-help 5.1.12
+└─ @oclif/plugin-version 1.0.4
+----
+
+
+== Upgrade the PDK Library
+
+To upgrade the PDK RUST code libraries, modify the versions used for the `pdk` `dependency` and `pdk-test` `dev-dependency` in the `cargo.toml` file of the custom policy you wish to upgrade. The `pdk` and `pdk-test` versions must match and your Anypoint CLI PDK Plugin must support the specified version.
+
+In the following example, both dependency versions are `1.0.0`. Modify it to your desired version:
+
+[source,toml]
+----
+[dependencies]
+pdk = { version = "1.0.0", registry = "anypoint" }
+
+[dev-dependencies]
+pdk-test = { version = "1.0.0", registry = "anypoint" }
+----
