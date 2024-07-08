@@ -7,12 +7,19 @@ endif::[]
 Flex Gateway Policy Development Kit (PDK) is composed of the following separate versioned components:
 
 * Anypoint CLI PDK Plugin
-* 
-Pdk library
+* PDK Rust Libraries
+* Anypoint Cargo Plugin
 
-Cargo anypoint plugin
+Each PDK release contains a new component version with the same version number of each component.
 
+When you create a new custom policy project, the PDK Rust Libraries and Anypoint Cargo Plugin versions are the same as the Anypoint CLI PDK Plugin used to create the project.
+
+To upgrade a custom policy project created with an earlier version, you must upgrade your Anypoint CLI PDK Plugin to the latest version. Then, you must modify the relevant files in your custom policy directory to upgrade the PDK Rust Libraries and Anypoint Cargo Plugin.
+
+[[anypoint-cli-pdk-plugin]]
 == Upgrade the Anypoint CLI PDK Plugin
+
+Your Anypoint CLI PDK Plugin is used across all your PDK custom policies. When editing a custom policy created with an earlier plugin version, ensure your <<pdk-rust-libraries, PDK Rust Libraries>> <<anypoint-cargo-plugin, Anypoint Cargo Plugin>> match you Anypoint CLI PDK Plugin version.
 
 To upgrade your Anypoint CLI PDK Plugin to the latest version, execute the following command:
 
@@ -38,10 +45,12 @@ anypoint-cli-pdk-plugin 1.1.0
 └─ @oclif/plugin-version 1.0.4
 ----
 
+[[pdk-rust-libraries]]
+== Upgrade the PDK Rust Libraries
 
-== Upgrade the PDK Library
+The PDK Library is the Rust Code Library used by a specific custom policy. Different custom policy might use different PDK Library versions.
 
-To upgrade the PDK RUST code libraries, modify the versions used for the `pdk` `dependency` and `pdk-test` `dev-dependency` in the `cargo.toml` file of the custom policy you wish to upgrade. The `pdk` and `pdk-test` versions must match and your Anypoint CLI PDK Plugin must support the specified version.
+To upgrade the PDK RUST code libraries, modify the versions used for the `pdk` `dependency` and `pdk-test` `dev-dependency` in the `cargo.toml` file of the custom policy. The `pdk` and `pdk-test` versions must match and your Anypoint CLI PDK Plugin must support the specified version.
 
 In the following example, both dependency versions are `1.0.0`. Modify it to your desired version:
 
@@ -53,3 +62,38 @@ pdk = { version = "1.0.0", registry = "anypoint" }
 [dev-dependencies]
 pdk-test = { version = "1.0.0", registry = "anypoint" }
 ----
+
+[[anypoint-cargo-plugin]]
+== Upgrade the Anypoint Cargo Plugin
+
+. Open the `Makefile` of your custom policy.
+. Find the `install-cargo-anypoint` target, for example:
++
+----
+install-cargo-anypoint:
+	cargo install cargo-anypoint@1.0.0 --registry anypoint --config .cargo/config.toml
+----
+
+. Modify the version after the `@` character with the desired version.
+. Save the `Makefile`.
+. Execute the `make setup` command:
++
+[source,ssh]
+----
+make setup
+----
++
+[NOTE]
+----
+Executing the `make setup` command for a certain policy installs that policy's Anypoint Cargo Plugin version.
+----
+. Execute the following command to verify the correct version is installed:
+[source,ssh]
+----
+cargo anypoint --version
+----
+
+
+
+
+
