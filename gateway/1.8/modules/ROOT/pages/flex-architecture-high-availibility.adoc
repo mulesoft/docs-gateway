@@ -4,3 +4,63 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
+Flex must be installed in a multi-availability Zone mode to ensure live failover. Standard Kubernetes Availability Zone (AZ) distribution policies can be used to distribute Flex replicas across zones.
+
+== Scenario 1: Customer wants to establish High Availability with same APIs on two regions
+
+=== Scenario 1A: Cross-regional Flex Gateway
+
+In this approach a single Flex Gateway runtime has replicas distributed across more than one region. +
+In the following diagram, Runtimes in different regions have distinct Kubernetes deployments, but they are seen as a single Flex Runtime in Anypoint Platform.
+
+image:Flex-Gateway-DR-1.png["A detailed view of scenario1A, which contains the necessary services to support High Availability in different regions  Flex Gateway runtimes."]
+
+In this implementation: 
+
+* The runtime is registered only once in Anypoint platform.
+* APIs deployed to this runtime are available in all regions. 
+* Configuration for these APIs including upstreams and policy settings is the same for all regions. Upstreams need to be region-agnostic (either the DNS is local or it lacks any reference to the region).
+* Cross-region replication of the Redis cluster is strongly recommended. Redis shared storage can also be used.  
+* The only cross-regional traffic is the Redis synchronization.
+* Logs and metrics are consolidated in Anypoint Platform for all regions in the single runtime or API. 
+* The DNS service is configured for active-active failover, so traffic is directed to any region at all times.
+
+=== Scenario 1B: Region-specific Flex Gateway
+
+In this approach each region has a distinct Flex Gateway runtime with all resources as independent entities. +
+In the following diagram, Runtimes in different regions are seen as distinct in Anypoint Platform. All APIs are duplicated, but they don't need to have identical setups.
+
+
+image:Flex-Gateway-DR-2.png["A detailed view of scenario 1B, which contains the necessary services to support High Availability in region-specific Flex Gateway runtimes."]
+
+In this implementation:
+
+* There is no cross-regional traffic.
+* It registers one Flex Runtime per region.
+* Shared storage can be used, and synchronization is not required. 
+* API deployments are specific to the Flex Runtime that they have been deployed to. For each intended API there will be as many API instances as regions are supported. 
+* Logs and metrics are specific to the corresponding region because they are distinct entities in Anypoint Platform.
+* If contracts (access requests) are to be shared across regions, then API Groups can be used to manage requests for APIs in all regions.
+
+== Scenario 2: Customer wants enable Disaster Recovery for APIs
+
+In this approach Redis replication is not required, as the standby region won't be using it. The DNS service is configured as active-passive, so the traffic is only redirected to the standby region if the primary region becomes unhealthy. +
+In the following diagram, Runtimes in different regions have distinct Kubernetes deployments, but they are seen as a single Flex Runtime in Anypoint Platform.
+
+image:Flex-Gateway-DR-3.png["A detailed view of scenario 2, which contains the necessary services to enable Disaster Recovery for APIs on Flex Gateway."]
+
+== Scenario 3: Customer wants to direct traffic to the most convenient region
+
+=== Scenario 3A: direct traffic using the same policies
+
+The customer wants one API served in two regions using the same policies.
+This scenario is achieved with an approach similar to the one in scenario 2, adding  routing control layers offered by the service provider to direct traffic to the nearest data center.
+
+=== Scenario 3B: direct traffic using different
+
+The customer wants one API served in two regions using different policies.
+To achieve this scenario, deploy region specific gateways and then apply the corresponding distinct policies. 
+
+NOTE: if you want to apply SLA based rate limiting across all regions, then the rate limits must be the same for all regions. Use API groups to consolidate the contracts. 
+
+
