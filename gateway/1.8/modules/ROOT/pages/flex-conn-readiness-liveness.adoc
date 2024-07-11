@@ -25,6 +25,8 @@ When Flex Gateway is started, its readiness state is `false`. The state changes 
 
 The readiness state is not impacted when you apply configuration changes to a running gateway instance. This enables error-free scaling.
 
+Refer to the following for information about configuring readiness probes for specific environments:
+
 [tabs]
 ====
 Kubernetes and OpenShift::
@@ -64,7 +66,7 @@ readinessProbe:
 |===
 +
 [discrete]
-=== Configure Error Tolerance
+==== Configure Error Tolerance
 +
 The default readiness probe is configured to be error-tolerant. If a configuration error occurs (for example, if you misconfigure a policy), the readiness state still changes to `true` once the API instances and policies are deployed. This enables Flex Gateway to scale even though there might be configuration errors.
 +
@@ -73,9 +75,9 @@ You can also configure the readiness probe to be error-intolerant, meaning that 
 To configure the Helm chart for error intolerance, remove the following flags from the chart: `allow-api-errors`, `allow-envoy-errors`, and `allow-policy-errors`. In deployments that query the readiness state through HTTP requests, use query parameters: `allowEnvoyErrors=false`, `allowAPIErrors=false`, and `allowPolicyErrors=false`.
 +
 [discrete]
-=== Configure External Components
+==== Configure External Components
 +
-You configure your external components to query the readiness state. For example, in AWS virtual machines that run behind a Load Balancer, configure the readiness query as a “health check”. To expose the readiness API to external components, apply the following configuration to the Flex Gateway instance:
+You configure your external components to query the readiness state. For example, in AWS virtual machines that run behind a load balancer, configure the readiness query as a “health check”. To expose the readiness API to external components, apply the following configuration to the Flex Gateway instance:
 +
 [source,yaml]
 ----
@@ -89,11 +91,9 @@ spec:
    port: 3000
 ----
 
-
+Docker, Podman, and Linux::
+// TODO: what are the implications for Docker and Linux?
 ====
-
-
-
 
 [[configure-a-liveness-probe]]
 == Configure a Liveness Probe
@@ -108,6 +108,8 @@ flexctl probe --check=liveness
 If the Flex Gateway instance is operational, the command returns an exit code of `0`. Otherwise the command returns an exit code of `1`.
 
 You can either run the liveness probe command manually, or configure the command to run automatically. By default, Flex Gateway Kubernetes deployments have an automatic liveness probe configured. This probe periodically runs the liveness probe command and automatically restarts the Flex Gateway pod after a specified number of failures.
+
+Refer to the following for information about configuring liveness probes for specific environments:
 
 [tabs]
 ====
