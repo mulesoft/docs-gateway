@@ -43,6 +43,8 @@ In Local Mode, you apply the Rate Limiting policy to your API via declarative co
     keySelector: <string> // OPTIONAL
     exposeHeaders: <bool> // OPTIONAL, default: false
     clusterizable: <bool> // OPTIONAL, default: true
+    distributionMode: <string> // OPTIONAL, default: remaining
+    distributionPercentage: <string> // OPTIONAL, default: 0.1
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -79,7 +81,17 @@ For example, `#[attributes.queryParams['identifier']]` creates an independent co
 | `clusterizable`
 | Optional
 | `true`
-| Distributed: When using interconnected runtimes with this flag enabled, quota will be shared among all nodes
+| Distributed: When using interconnected runtimes with this flag enabled, quota will be shared among all nodes. Distributed rate limiting requires shared storage to be enabled. For more information about shared storage, refer to xref:flex-local-shared-storage-config.adoc[].
+
+| `distributionMode`
+| Optional
+| `remaining`
+| Mode of request quota distribution. Sets the distribution algorithm to either service a percentage of the total quota or a percentage of the remaining quota. Supported values are `remaining` `total`.
+
+| `distributionPercentage`
+| Optional
+| `0.1`
+| Percentage distributed to each Flex Replica. Either a percentage of the total quota or the remaining quota. If left blank and `clusterizable` is `true`, each replica services `0.1` of the total or remaining quota.
 
 |===
 
@@ -103,9 +115,11 @@ The following example defines a rate limit of three requests every six seconds:
 
 The `#[attributes.method]` DataWeave expression creates one group for each available method in HTTP, for example, the policy rate-limits GET requests independently of POST requests.
 
-==== Distributed Rate Limit Resource Configuration Example
+==== Distributed Rate Limiting Policy Resource Configuration Example
 
-Distributed Rate Limit requires Shared Storage to be enabled. For more information about Shared Storage, refer to xref:flex-conn-shared-storage-config.adoc[Configuring Shared Storage for Flex Gateway in Connected Mode].
+Distributed rate limiting requires shared storage to be enabled. For more information about shared storage, refer to xref:flex-local-shared-storage-config.adoc[].
+
+The following configuration reference file configures both shared storage and the a distributed Rate Limiting policy: 
 
 ----
 
@@ -132,6 +146,8 @@ spec:
     keySelector: "#[attributes.method]"
     exposeHeaders: true
     clusterizable: true
+    distributionMode: remaining
+    distributionPercentage: 0.1
 ----
 
 === Flex Gateway Connected Mode
@@ -145,7 +161,9 @@ When you apply the Rate Limiting policy to your API from the UI, you can configu
 |Number of Reqs | The quota available per window | A positive number
 |Time Period | The amount of time for which the quota is to be applied | A positive number
 |Time Unit | The time in milliseconds, seconds, minutes, or hours | Minutes
-|Distributed | When using interconnected runtimes with this flag enabled, quota will be shared among all nodes. | checked or unchecked
+|Distributed | When using multiple Flex Replicas with this flag enabled, the request quota is shared among all nodes. Distributed rate limiting requires shared storage to be enabled. For more information about shared storage, refer to xref:flex-local-shared-storage-config.adoc[]. | checked or unchecked
+|Distribution options | Mode of request quota distribution. Sets the distribution algorithm to either service a percentage of the total quota or a percentage of the remaining quota. | *Remaining* or *Total*
+|Distribution percentage | Percentage distributed to each Flex Replica. Either a percentage of the total quota or the remaining quota. If left blank and *Distributed* is selected, each replica services `0.1` of the total or remaining quota. | 0.1
 | Expose Headers| The option that defines whether to expose the  <<response-header,x-ratelimit headers>> as part of the response | checked or unchecked
 |===
 
