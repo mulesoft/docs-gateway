@@ -83,12 +83,12 @@ For example, `#[attributes.queryParams['identifier']]` creates an independent co
 | `true`
 | Distributed: When using interconnected runtimes with this flag enabled, quota will be shared among all nodes. Distributed rate limiting requires shared storage to be enabled. For more information about shared storage, refer to xref:flex-local-shared-storage-config.adoc[].
 
-| `distributionMode`
+| `fineTuning.distributionMode`
 | Optional
 | `remaining`
 | Mode of request quota distribution. Sets the distribution algorithm to either service a percentage of the total quota or a percentage of the remaining quota. Supported values are `remaining` `total`.
 
-| `distributionPercentage`
+| `fineTuning.distributionPercentage`
 | Optional
 | `0.1`
 | Percentage distributed to each Flex Replica. Either a percentage of the total quota or the remaining quota. If left blank and `clusterizable` is `true`, each replica services `0.1` of the total or remaining quota.
@@ -146,8 +146,9 @@ spec:
     keySelector: "#[attributes.method]"
     exposeHeaders: true
     clusterizable: true
-    distributionMode: remaining
-    distributionPercentage: 0.1
+    fineTuning:
+      distributionMode: remaining
+      distributionPercentage: 0.1
 ----
 
 === Flex Gateway Connected Mode
