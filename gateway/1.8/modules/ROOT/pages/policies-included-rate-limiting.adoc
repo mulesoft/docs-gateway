@@ -22,10 +22,8 @@ The Rate Limiting policy enables you to control the incoming traffic to an API b
 
 When you configure the Rate Limiting policy, you can specify any number of pairs of quota (number of requests) and time window (time period) values.
 
-[NOTE]
-====
-A Rate Limiting policy applied to a Flex Gateway API is scoped to replicas, not the gateway. Enable distributed rate limiting to share the request quota across Flex Replicas.
-====
+A Rate Limiting policy applied to a Flex Gateway API is scoped to replicas, not the gateway. Enable distributed rate limiting to share the request quota across Flex Replicas. Configure the distributed rate limiting algorithm to define how many requests each replica handles at a time.
+
 
 == Configuring Policy Parameters
 
@@ -92,7 +90,7 @@ For example, `#[attributes.queryParams['identifier']]` creates an independent co
 | `fineTuning.distributionPercentage`
 | Optional
 | `0.1`
-| Percentage distributed to each Flex Replica. Either a percentage of the total quota or the remaining quota. If left blank and `clusterizable` is `true`, each replica services `0.1` of the total or remaining quota.
+| Percentage distributed to each Flex Replica. Either a percentage of the total quota or the remaining quota. If left blank and `clusterizable` is `true`, each replica services `0.1` of the total or remaining quota. Enter `0` for each Flex Replica to service one api request at a time rather than a percentage of the quota.
 
 |===
 
@@ -165,7 +163,7 @@ When you apply the Rate Limiting policy to your API from the UI, you can configu
 |Time Unit | The time in milliseconds, seconds, minutes, or hours | Minutes
 |Distributed | When using multiple Flex Replicas with this flag enabled, the request quota is shared among all nodes. Distributed rate limiting requires shared storage to be enabled. For more information about shared storage, refer to xref:flex-conn-shared-storage-config.adoc[]. | Checked or unchecked
 |Distribution Mode | Mode of request quota distribution. Sets the distribution algorithm to either service a percentage of the total quota or a percentage of the remaining quota. | *Remaining* or *Total*
-|Distribution Percentage | Percentage distributed to each Flex Replica. Either a percentage of the total quota or the remaining quota. If left blank and *Distributed* is selected, each replica services `0.1` of the total or remaining quota. | 0.1
+|Distribution Percentage | Percentage distributed to each Flex Replica. Either a percentage of the total quota or the remaining quota. If left blank and *Distributed* is selected, each replica services `0.1` of the total or remaining quota. Enter `0` for each Flex Replica to service one api request at a time rather than a percentage of the quota. | 0.1
 | Expose Headers| The option that defines whether to expose the  <<response-header,x-ratelimit headers>> as part of the response | checked or unchecked
 |===
 
