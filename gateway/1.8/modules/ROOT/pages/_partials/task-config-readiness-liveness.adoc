@@ -23,15 +23,15 @@ When Flex Gateway is started, its readiness state is `false`. The state changes 
 * API instances are deployed (at least one API must be configured)
 * Policies are initialized
 
-The readiness state is not impacted when you apply configuration changes to a running gateway instance. This enables error-free scaling.
+The readiness state is not impacted when you apply configuration changes to a running gateway instance. This ensures that the instance continues to receive traffic during configuration updates.
 
-Refer to the following for information about configuring readiness probes for specific environments:
+Refer to the following for information about configuring readiness probes in specific environments:
 
 [tabs]
 ====
 Kubernetes and OpenShift::
 +
-By default, Flex Gateway running on Kubernetes includes a readiness probe configured in the Helm chart. The readiness probe automatically runs `flexctl probe --check=readiness` at an interval of 10 seconds.
+By default, Flex Gateway running on Kubernetes includes a readiness probe configured in the Helm chart. The readiness probe automatically runs `flexctl probe --check=readiness --allow-api-errors --allow-envoy-errors --allow-policy-errors` at an interval of 10 seconds.
 +
 The readiness probe is configured by default with the following values:
 +
@@ -72,11 +72,11 @@ NOTE: In the Helm chart used to deploy Flex Gateway, omit the `--wait` flag when
 [discrete]
 ==== Configure Error Tolerance
 +
-The default readiness probe is configured to be error-tolerant. If a configuration error occurs (for example, if you misconfigure a policy), the readiness state still changes to `true` once the API instances and policies are deployed. This enables Flex Gateway to scale even though there might be configuration errors.
+The default Kubernetes readiness probe is configured to be error-tolerant. If a configuration error occurs (for example, if you misconfigure a policy), the readiness state still changes to `true` once the API instances and policies are deployed. This enables Flex Gateway to scale even though there might be configuration errors.
 +
 You can also configure the readiness probe to be error-intolerant, meaning that misconfigured gateway instances never reach a readiness state of `true`.
 +
-To configure the Helm chart for error intolerance, remove the following flags from the chart: `allow-api-errors`, `allow-envoy-errors`, and `allow-policy-errors`. In deployments that query the readiness state through HTTP requests, use query parameters: `allowEnvoyErrors=false`, `allowAPIErrors=false`, and `allowPolicyErrors=false`.
+To configure the Helm chart for error intolerance, remove the following flags from the readiness probe: `--allow-api-errors`, `--allow-envoy-errors`, and `--allow-policy-errors`. In deployments that query the readiness state through HTTP requests, use query parameters: `allowEnvoyErrors=false`, `allowAPIErrors=false`, and `allowPolicyErrors=false`.
 +
 [discrete]
 ==== Configure External Components
@@ -114,7 +114,7 @@ spec:
 ----
 ====
 
-Flex Gateway uses a readiness probe during shutdown. A `SIGTERM` signal initiates a drain of downstream connections by signaling them to reconnect. The default drain period is 25 seconds, after which Flex Gateway exits gracefully.
+Readiness is also probed during shutdown. A `SIGTERM` signal initiates a drain of downstream connections by signaling them to reconnect. The default drain period is 25 seconds, after which Flex Gateway exits gracefully.
 
 You can modify a drain period via the `FLEX_SERVICE_ENVOY_DRAIN_TIME` environment variable in Docker and Linux, or the `gateway.drainSeconds` option in a Kubernetes Helm chart.
 
@@ -136,7 +136,7 @@ If the Flex Gateway instance is operational, the command returns an exit code of
 
 You can either run the liveness probe command manually, or configure the command to run automatically. By default, Flex Gateway Kubernetes deployments have an automatic liveness probe configured. The default probe periodically runs the liveness probe command and automatically restarts the Flex Gateway pod after a specified number of failures.
 
-Refer to the following for information about configuring liveness probes for specific environments:
+Refer to the following for information about configuring liveness probes in specific environments:
 
 [tabs]
 ====
