@@ -1,0 +1,46 @@
+= Sharing Data Between Workers and Configuring Caching 
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+NOTE: To view an example policy project that uses caching, see https://github.com/mulesoft/pdk-custom-policy-examples/tree/main/data-caching/README.md[Data Caching Policy Example^].
+
+Envoy spawns many workers to increase the policy's capability of handling requests. A single worker handles all the stages of a specific request, including outgoing connections and the response flow. This enables you to track internal status for a specific request, and to create a sequential execution flow despite the underlying event-driven implementation. 
+
+Each worker processes a single request at a given time. To share a global state in a specific worker, use a `RefCell` without any risk of concurrent modification.
+
+Use the provided `Cache` mechanism to create a shared global state for all workers.
+
+After injecting the cache builder, provide an ID for the cache and the maximum number of elements the cache can support. 
+
+The following example configures a cache that can hold ten elements:
+
+[source,Rust]
+----
+#[entrypoint]
+async fn configure(
+    launcher: Launcher,
+    cache_builder: CacheBuilder,
+) -> Result<()> {
+    let cache = cache_builder.new(String::from("caching")).max_entries(10);
+    ...
+----
+
+The cache has the following interface:
+
+[source,Rust]
+----
+pub trait Cache {
+    fn save(&self, key: &str, value: Vec<u8>) -> Result<(), CacheError>;
+    fn get(&self, key: &str) -> Option<Vec<u8>>;
+    fn delete(&self, key: &str) -> Option<Vec<u8>>;
+    fn purge(&self);
+}
+----
+
+IMPORTANT: Because different workers write to the cache concurrently, there is no guarantee that the value overwritten when saving the cache is the same as when it was retrieved.
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]
