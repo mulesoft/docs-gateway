@@ -94,6 +94,10 @@ spec:
    enabled: true
    port: 3000
 ----
++
+Applying the YAML configuration snippet enables the readiness API to respond to `GET` requests:
++
+`\http://<flex-gateway-url>:<port-configured>/probes/readiness?allowEnvoyErrors=<true|false>&allowAPIErrors=<true|false>&allowPolicyErrors=<true|false>`
 
 Docker, Podman, and Linux::
 +
@@ -114,11 +118,11 @@ spec:
 ----
 ====
 
-Readiness is also probed during shutdown. A `SIGTERM` signal initiates a drain of downstream connections by signaling them to reconnect. The default drain period is 25 seconds, after which Flex Gateway exits gracefully.
+Readiness is also probed during shutdown, at which point a `Connection: close` header is sent. A `SIGTERM` signal initiates a drain of downstream connections by signaling them to reconnect. The default drain period is 25 seconds, after which Flex Gateway exits gracefully.
 
 You can modify a drain period via the `FLEX_SERVICE_ENVOY_DRAIN_TIME` environment variable in Docker and Linux, or the `gateway.drainSeconds` option in a Kubernetes Helm chart.
 
-Flex Gateway is preconfigured for a graceful shutdown of 30 seconds, which is 5 seconds more than the drain period. When increasing the drain period, also increase the shutdown period using `TimeoutStopSec` in Linux or `terminationGracePeriodSeconds` in Kubernetes.
+Flex Gateway is preconfigured for a graceful shutdown of 30 seconds, which is 5 seconds more than the drain period. When increasing the drain period, also increase the shutdown period using `TimeoutStopSec` in Linux or `terminationGracePeriodSeconds` in Kubernetes. The shutdown period should exceed the drain period.
 
 The default readiness probe in Kubernetes runs every 10 seconds with a failure threshold of 2, allowing shutdown detection within 20 seconds. This ensures that no new traffic is sent to the instance shutting down. Similar configurations should be used with readiness probes in other environments like AWS Load Balancer.
 
