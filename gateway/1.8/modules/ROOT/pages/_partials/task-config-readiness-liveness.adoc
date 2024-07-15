@@ -67,16 +67,7 @@ readinessProbe:
 +
 To modify the default parameters, you must update your Helm chart. You can modify these parameters during or after the initial installation of the Helm chart. For more information about how to update a Helm chart, see xref:flex-gateway-k8-change-helm-settings.adoc[].
 +
-NOTE: In the Helm chart used to deploy Flex Gateway, omit the `--wait` flag when using a readiness probe. Not doing so results in a readiness failure because Helm waits for a readiness state of `true`.
-+
-[discrete]
-==== Configure Error Tolerance
-+
-The default Kubernetes readiness probe is configured to be error-tolerant. If a configuration error occurs (for example, if you misconfigure a policy), the readiness state still changes to `true` once the API instances and policies are deployed. This enables Flex Gateway to scale even though there might be configuration errors.
-+
-You can also configure the readiness probe to be error-intolerant, meaning that misconfigured gateway instances never reach a readiness state of `true`.
-+
-To configure the Helm chart for error intolerance, remove the following flags from the readiness probe: `--allow-api-errors`, `--allow-envoy-errors`, and `--allow-policy-errors`. In deployments that query the readiness state through HTTP requests, use query parameters: `allowEnvoyErrors=false`, `allowAPIErrors=false`, and `allowPolicyErrors=false`.
+NOTE: NOTE: When using a readiness probe in Kubernetes (or Openshift) and Connected Mode, omit the `--wait` flag in the Helm chart used to deploy Flex Gateway. Not doing so might result in an installation failure because Helm waits for a readiness state of `true`. If there is no API deployed to your Flex Gateway instance, the readiness state is `false`. This is not an issue with custom readiness probe configurations or gateways that have an API configured.
 +
 [discrete]
 ==== Configure External Components
@@ -98,6 +89,15 @@ spec:
 Applying the YAML configuration snippet enables the readiness API to respond to `GET` requests:
 +
 `\http://<flex-gateway-url>:<port-configured>/probes/readiness?allowEnvoyErrors=<true|false>&allowAPIErrors=<true|false>&allowPolicyErrors=<true|false>`
++
+[discrete]
+==== Configure Error Tolerance
++
+The default Kubernetes readiness probe is configured to be error-tolerant. If a configuration error occurs (for example, if you misconfigure a policy), the readiness state still changes to `true` once the API instances and policies are deployed. This enables Flex Gateway to scale even though there might be configuration errors.
++
+You can also configure the readiness probe to be error-intolerant, meaning that misconfigured gateway instances never reach a readiness state of `true`.
++
+To configure the Helm chart for error intolerance, remove the following flags from the readiness probe: `--allow-api-errors`, `--allow-envoy-errors`, and `--allow-policy-errors`. In deployments that query the readiness state through HTTP requests, use query parameters: `allowEnvoyErrors=false`, `allowAPIErrors=false`, and `allowPolicyErrors=false`.
 
 Docker, Podman, and Linux::
 +
