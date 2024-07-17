@@ -2,7 +2,7 @@
 
 Flex Gateway supports two methods for ensuring reliability and efficiency.
 
-* Readiness probes test whether a gateway instance is configured correctly and ready for incoming traffic. This ensures that end-users are not affected by unstable or partially started services. For information, refer to <<configure-a-readiness-probe>>.
+* Readiness probes test whether a gateway instance is configured correctly and ready for incoming traffic. This ensures that end-users are not affected by partially configured APIs. For information, refer to <<configure-a-readiness-probe>>.
 
 * Liveness probes test whether a gateway instance is operational. This minimizes downtime due to crashes or other failures. For information, refer to <<configure-a-liveness-probe>>.
 
@@ -61,7 +61,7 @@ readinessProbe:
 | `--allow-policy-errors`| The flag to allow policy configuration errors
 | `initialDelaySeconds` | The time in seconds to wait after startup before executing the first readiness probe
 | `periodSeconds` | The period in seconds between each readiness probe
-| `failureThreshold` | The number of failed readiness probes before the Kubernetes pod is restarted
+| `failureThreshold` | The number of failed readiness probes before the Kubernetes readiness status is set to `false`
 | `timeoutSeconds` | The time in seconds before the readiness probe times out
 |===
 +
@@ -72,7 +72,7 @@ NOTE: When using a readiness probe in Kubernetes (or Openshift) and Connected Mo
 [discrete]
 ==== Configure External Components
 +
-You configure your external components to query the readiness state. For example, in AWS virtual machines that run behind a load balancer, configure the readiness query as a “health check." To expose the readiness API to external components, apply the following configuration to the Flex Gateway instance:
+You configure your external components to query the readiness state. For example, in AWS virtual machines that run behind a load balancer, configure the readiness query as a health check. To expose the readiness API to external components, apply the following configuration to the Flex Gateway instance:
 +
 [source,yaml]
 ----
