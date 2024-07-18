@@ -118,7 +118,7 @@ spec:
 ----
 ====
 
-Readiness is also probed during shutdown, at which point a `Connection: close` header is sent. A `SIGTERM` signal initiates a drain of downstream connections by signaling them to reconnect. The default drain period is 25 seconds, after which Flex Gateway exits gracefully.
+Readiness is also probed during shutdown, when the gateway sends a `Connection: close` header. A `SIGTERM` signal initiates a drain of downstream connections by signaling them to reconnect. The default drain period is 25 seconds, after which Flex Gateway exits gracefully.
 
 You can modify a drain period via the `FLEX_SERVICE_ENVOY_DRAIN_TIME` environment variable in Docker and Linux, or the `gateway.drainSeconds` option in a Kubernetes Helm chart.
 
