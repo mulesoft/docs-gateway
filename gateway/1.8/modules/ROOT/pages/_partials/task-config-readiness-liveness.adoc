@@ -97,7 +97,18 @@ The default Kubernetes readiness probe is configured to be error-tolerant. If a 
 +
 You can configure the readiness probe to be error-intolerant, meaning that misconfigured gateway instances never reach a readiness state of `true`.
 +
-To configure the Helm chart for error intolerance, remove the following flags from the readiness probe: `--allow-api-errors`, `--allow-envoy-errors`, and `--allow-policy-errors`. In deployments that query the readiness state through HTTP requests, use query parameters: `allowEnvoyErrors=false`, `allowAPIErrors=false`, and `allowPolicyErrors=false`.
+To configure the Helm chart for error intolerance, remove the following flags from the readiness probe:
+
++
+* `--allow-api-errors`
+* `--allow-envoy-errors`
+* `--allow-policy-errors`
+
++
+In deployments that query the readiness state through HTTP requests, use these query parameters:
+* `allowEnvoyErrors=false`
+* `allowAPIErrors=false`
+* `allowPolicyErrors=false`
 
 Docker, Podman, and Linux::
 +
