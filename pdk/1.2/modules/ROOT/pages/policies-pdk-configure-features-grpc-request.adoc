@@ -105,8 +105,8 @@ pdk = { version = "1.1.0", registry = "anypoint" }
 protobuf = "3.5.0"
 ----
 
-* Check `protobuf` crate documentation for code generation support.
-Now suppose that `HelloService` gRPC services has two related messages, `HelloMessage` and `HelloResponse`. You can write
+* Check the `protobuf` crate https://crates.io/crates/protobuf[ documentation] for code generation support.
+Now suppose that `HelloService` gRPC service has two related messages, `HelloRequest` and `HelloResponse`. You can write
 a `grpc::GrpcClient` wrapper for encapsulating calls to `HelloService`.
 
 [source,rust]
@@ -124,13 +124,13 @@ impl HelloClient {
       }
    }
 
-   pub fn say_hello(&self, message: &HelloMessage) -> Result<HelloResponse, GrpcClientError> {
+   pub fn say_hello(&self, request: &HelloRequest) -> Result<HelloResponse, GrpcClientError> {
       let response = client
         .request(&self.service)
         .service("HelloService")
         .method("SayHello")
         .protobuf() // enable Protocol Buffers support.
-        .send(message)
+        .send(request)
         .await?
         into_inner();
 
@@ -140,4 +140,5 @@ impl HelloClient {
 
 == See Also
 
+* `protobuf` crate https://crates.io/crates/protobuf[ documentation].
 * xref:policies-pdk-configure-features.adoc[]
