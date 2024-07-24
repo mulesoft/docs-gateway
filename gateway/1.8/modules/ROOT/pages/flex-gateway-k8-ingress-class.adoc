@@ -43,7 +43,7 @@ You can modify the default `IngressClass` parameters during or after the initial
 
 == Creating Ingress Resources
 
-After you xref:flex-local-reg-run-up#install-helm-chart-into-the-namespace[install a Helm chart into a namespace], you can verify your new `IngressClass` resource by running the following command:
+After you xref:flex-local-reg-run-up.adoc#kubernetes[install a Helm chart into a namespace], you can verify your new `IngressClass` resource by running the following command:
 
 [source,helm]
 ----
@@ -52,10 +52,32 @@ kubectl get ingressclasses
 
 To create an ingress routing:
 
-. xref:flex-gateway-publish-apis-local.adoc[Publish an API in Local Mode].
+. xref:flex-local-publish-simple-api.adoc#kubernetes[Publish an API in Local Mode].
 . Define the new API as a Kubernetes Service. +
 For more information about Kubernetes Service definitions, see https://kubernetes.io/docs/concepts/services-networking/service/#defining-a-service[Defining a Service^].
-. Create an `Ingress` resource to define routing rules between the `IngressClass` Flex Gateway and the new Kubernetes Service. +
+. Using `kubectl apply`, create an `Ingress` resource to define routing rules between the `IngressClass` Flex Gateway and the new Kubernetes Service:
++
+[source,ssh]
+----
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: <metadata-name>
+  annotations:
+    flex-gateway.ingress.kubernetes.io/api-instance: <api-instance-name>.<namespace>
+spec:
+  ingressClassName: <ingress-class-name>
+  rules:
+  - http: ...
+EOF
+----
++
+The `annotations` field value must match the API instance name and namespace specified when the API was defined.
++
+Omit the `ingressClassName` field if the gateway instance is configured as the default ingress controller.
++
 For more information about `Ingress` resources, see https://kubernetes.io/docs/concepts/services-networking/ingress/[Kubernetes Ingress^].
 
 
