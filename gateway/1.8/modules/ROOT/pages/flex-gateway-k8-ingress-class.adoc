@@ -64,25 +64,17 @@ cat <<EOF | kubectl apply -f -
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: orders-api
+  name: <metadata-name>
   annotations:
-    flex-gateway.ingress.kubernetes.io/api-instance: ingress-http.gateway
+    flex-gateway.ingress.kubernetes.io/api-instance: <api-instance-name>.<namespace>
 spec:
-  ingressClassName: my-custom-name
+  ingressClassName: <ingress-class-name>
   rules:
-  - http:
-      paths:
-      - path: /api/orders(/.*)
-        pathType: ImplementationSpecific
-        backend:
-          service:
-            name: orders-api
-            port:
-              number: 80
+  - http: ...
 EOF
 ----
 +
-The `annotations` field namespace value must match the namespace specified when the API was defined.
+The `annotations` field value must match the API instance name and namespace specified when the API was defined.
 +
 Omit the `ingressClassName` field if the gateway instance is configured as the default ingress controller.
 +
