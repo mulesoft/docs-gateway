@@ -35,9 +35,6 @@ async fn configure(
 }
 ----
 
-NOTE: All the gRPC client related stuff is placed inside `pdk::hl::grpc` module. If you are following the suggested practice of importing `pdk::hl::*` prelude module, you must refer to gRPC client as `grpc::GrpcClient`.
-
-
 * Injecting the client parameters into one of the `on_request` or `on_response` wrapper functions enables you to only make calls in that function:
 +
 [source,Rust]
@@ -61,7 +58,9 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-Define your service as a parameter in your schema definition to make gRPC requests. To learn more about defining parameters, see xref:policies-pdk-create-schema-definition.adoc[]
+NOTE: The `pdk::hl::grpc` module contains the gRPC client functionality. If you import all PDK modules (`pdk::hl::*`), you must refer to gRPC client as `grpc::GrpcClient`.
+
+Define your gRPC service as a parameter in your schema definition to make gRPC requests. To learn more about defining parameters, see xref:policies-pdk-create-schema-definition.adoc[]
 
 The following code snippet provides an example schema definition for an external service:
 +
@@ -93,10 +92,11 @@ async fn say_hello(config: &Config, client: &GrpcClient, message: &[u8]) -> Resu
 
 NOTE: The message is raw bytes. You must explicitly serialize the message in a serialization format such as JSON.
 
-== Protocol Buffers messages
-The widely suggested format for interacting with gRPC services is Protocol Buffers. `grpc::GrpcClient` comes with builtin support for it.
+== Protocol Buffers Messages
 
-* Add the crate `protobuf` as dependency to your `Cargo.toml` file:
+The `grpc::GrpcClient` includes Protocol Buffers support. To configure Protocol Buffers:
+
+. Add the `protobuf` crate as dependency to your `Cargo.toml` file:
 +
 [source,toml]
 ----
@@ -105,7 +105,8 @@ pdk = { version = "1.1.0", registry = "anypoint" }
 protobuf = "3.5.0"
 ----
 
-* Check the `protobuf` crate https://crates.io/crates/protobuf[ documentation] for code generation support.
+* Ensure the `protobuf` crate https://crates.io/crates/protobuf[ documentation] for code generation support.
+
 Now suppose that `HelloService` gRPC service has two related messages, `HelloRequest` and `HelloResponse`. You can write
 a `grpc::GrpcClient` wrapper for encapsulating calls to `HelloService`.
 
