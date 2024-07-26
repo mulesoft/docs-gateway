@@ -1,4 +1,4 @@
-= Performing a gRPC Call
+= Performing a Unary gRPC Call
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -6,11 +6,11 @@ endif::[]
 
 NOTE: To view an example policy project that makes gRPC calls, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/simple-oauth-2-grpc-validation/README.md[Simple OAuth 2.0 gRPC Validation Policy Example^].
 
-== gRPC one-shot calls
-To interact with external services, the policy must use gRPC calls. You can only make gRPC calls from the request filter or the response filter.
-Only one-shot gRPC calls are supported, gRPC streaming calls are not currently possible.
+To interact with external services, a policy can use gRPC calls. You can only make gRPC calls from the request filter or the response filter.
 
-To perform a gRPC call, either inject the `GrpcClient` into the `#[entrypoint]` function or the wrapper functions.
+Custom policies only support unary gRPC calls. Policies do not support gRPC streaming.
+
+To perform a gRPC call, either inject the `GrpcClient` into the `#[entrypoint]` function or the wrapper functions:
 
 * Injecting the client parameter into the `#[entrypoint]` function enables you to make calls in both the request and response filters:
 +
@@ -61,7 +61,8 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-* Define your service as a parameter in your schema definition to make gRPC requests. To learn more about defining parameters, see xref:policies-pdk-create-schema-definition.adoc[]
+Define your service as a parameter in your schema definition to make gRPC requests. To learn more about defining parameters, see xref:policies-pdk-create-schema-definition.adoc[]
+
 The following code snippet provides an example schema definition for an external service:
 +
 [source,yaml]
@@ -72,8 +73,7 @@ properties:
           format: service
 ----
 
-* In the policy's Rust source code, you can access the defined external service in the `Config` struct.
-Suppose there is a `HelloService` gRPC service with a `SayHello` method, you can invoke it by sending a gRPC message with `grpc::GrpcClient`:
+In the policy's Rust source code, you can access the defined external service in the `Config` struct. For example, the following code snippet defines the `HelloService` gRPC service that has the `SayHello` method. Invoke the method by sending a gRPC message with the `grpc::GrpcClient`:
 
 [source,rust]
 ----
@@ -91,7 +91,7 @@ async fn say_hello(config: &Config, client: &GrpcClient, message: &[u8]) -> Resu
 }
 ----
 
-NOTE: We are sending a message of raw bytes. That message must be explicitly serialized in a selected serialization format such as JSON.
+NOTE: The message is raw bytes. You must explicitly serialize the message in a serialization format such as JSON.
 
 == Protocol Buffers messages
 The widely suggested format for interacting with gRPC services is Protocol Buffers. `grpc::GrpcClient` comes with builtin support for it.
