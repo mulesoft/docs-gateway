@@ -7,30 +7,24 @@ You can configure the Mule Gateway to route traffic through the proxy server to 
 
 Mule Gateway supports Basic, NTLM, and Kerberos v5 (via SPNEGO) authentication schemes for proxied communication.
 
-
+[[configure-the-proxy-server]]
 == Configure the Proxy Server
 
-To configure Mule Gateway to connect through a proxy server, you must set up your proxy server configuration in a `$MULE_HOME/conf/wrapper.conf` file:
-
-
-
-To configure the proxy server in the `$MULE_HOME/conf/wrapper.conf` file, add your proxy server information to the following properties:
+To configure Mule Gateway to connect through a proxy server, you must set up your proxy server configuration in a `$MULE_HOME/conf/wrapper.conf` file. Add your proxy server information to the following properties:
 
 * `wrapper.java.additional.<n>=-Danypoint.platform.proxy_host={hostname}`
 * `wrapper.java.additional.<n>=-Danypoint.platform.proxy_port={port}`
 * `wrapper.java.additional.<n>=-Danypoint.platform.proxy_username={username}`
 * `wrapper.java.additional.<n>=-Danypoint.platform.proxy_password={password}`
 
-[IMPORTANT]
-The parameters are additional options passed to Java during launch. The `<n>` element refers to the number of additional parameters in the configuration. Start from `1` and increment sequentially without skipping numbers. 
+IMPORTANT: The parameters are additional options passed to Java during launch. The `<n>` element refers to the number of additional parameters in the configuration. Start from `1` and increment sequentially without skipping numbers.
 
 With the provided credentials, Mule Gateway prioritizes Basic Authentication over NTLM. If Basic Authentication fails, Mule Gateway attempts to authenticate with NTLM.
 
-For Kerberos authentication, proceed to the next section.
-
 === Using Kerberos for Proxy Authentication
 
-To authenticate using Kerberos, you need to add all the properties described in the previous section, plus the following new properties:
+To authenticate using Kerberos, add the parameters from <<configure-the-proxy-server>> and the following new properties:
+
 * `wrapper.java.additional.<n>=-Danypoint.platform.proxy_kerberos_krb5_path={/path/to/krb5.conf}`
 * `wrapper.java.additional.<n>=-Danypoint.platform.proxy_kerberos_jaas_path={/path/to/kerberos.jaas}`
 
