@@ -25,7 +25,10 @@ To apply the Rate-Limiting SLA policy to an API, you must first create a contrac
 
 Each request must be identified by a client ID and an optional client secret (depending on the policy configuration). To review how to obtain the client credentials of a registered client application, see xref:api-manager::access-client-app-id-task.adoc[Obtaining Client Credentials of a Registered Application].
 
-A Rate Limiting policy applied to a Flex Gateway API is scoped to replicas, not the gateway. Enable distributed rate limiting to share the request quota across Flex Replicas. When configuring distributed rate limiting, each Flex Replica services a portion of the requests until there are no requests to service. Configure the distributed rate limiting algorithm to define how many requests each replica services at a time.
+[NOTE]
+====
+A Rate-Limiting SLA policy applied to a Flex Gateway API is scoped to replicas, not the gateway.
+====
 
 == Configuring Policy Parameters
 
@@ -49,8 +52,6 @@ This example looks for an HTTP header called ‘client_id’ and uses its value.
 This is an optional value.
 Example: `#[attributes.headers['client_secret']]`
 |Distributed | When using interconnected runtimes with this flag enabled, quota will be shared among all nodes
-|Distribution Mode | Mode of request quota distribution. Sets the distribution algorithm to either service a percentage of the total quota or a percentage of the remaining quota. | *Remaining* or *Total*
-|Distribution Percentage | Percentage distributed to each Flex Replica. Either a percentage of the total quota or the remaining quota. If left blank and *Distributed* is selected, each replica services `0.1` of the total or remaining quota. Enter `0` for each Flex Replica to service one API request at a time rather than a percentage of the quota. | 0.1
 | Expose Headers| Defines whether to expose the <<response-header,x-ratelimit headers,>> as part of the response | Checked or unchecked
 |===
 
