@@ -37,12 +37,9 @@ By default, the `<root-directory>/tests` directory contains the following files:
 tests
 ├── common.rs
 ├── requests.rs
-├── common
-│   └── logging.yaml
-│   └── registration.yaml
-└── requests
-    └── hello
-        └── api.yaml
+└── common
+    └── logging.yaml
+    └── registration.yaml
 ----
 
 The `/tests` directory contains the integration tests. By default, the folder contains:
@@ -50,12 +47,9 @@ The `/tests` directory contains the integration tests. By default, the folder co
 * `requests.rs` file: An individual test module and executable.
 * `commons.rs` file: A test module that contains functionalities that must be included in every integration test module.
 
-Each test module has a configuration directory. By default, `/test` includes the following folders: 
+The test module contains a common configuration directory included by default:
 
-* `/requests`
 * `/common`
-
-Every module contains test functions annotated with the `#[pdk_test]` attribute. Each test function also has a configuration subdirectory. For example, the `requests::hello` test function has the corresponding `requests/hello` directory containing all the `hello` test configuration files.
 
 [[register]]
 == Register a Flex Gateway Instance in Local Mode
@@ -79,7 +73,7 @@ The registration file is ignored for storage in remote repositories and is liste
 [[configure-your-custom-policy]]
 == Configure Your Custom Policy
 
-Each test function requires an `api.yaml` file to configure the custom policy for that request. PDK provides the `request/hello/api.yaml` file as an example. You can copy and paste the example file into the resource folders of your test functions.
+Each test function requires the configuration of the api and policies for that request.
 
 To configure the custom policy:
 
@@ -92,20 +86,16 @@ make show-policy-ref-name
 
 . Copy the result.
 
-. Override `{{project-name}}` in `api.yaml` with your policy ID, for example:
+. Override `{{project-name}}` in `commons.rs` with your policy ID, for example:
 +
-[source,yaml]
+[source,rust]
 ----
-    policies:
-    - policyRef:
-        name: <custom-policy-id>
+pub const POLICY_NAME: &str = "<custom-policy-id>";
 ----
 
 . Configure the policy's configuration parameters.
 +
 To find your configuration parameters, see the `gcl.yaml` file.
-
-. Copy and past the `api.yaml` into the resource folders of your other test functions.
 
 [[create-a-test-function]]
 == Create a Test Function
@@ -297,7 +287,7 @@ NOTE: Run `make test` to ensure proper configuration.
 
 Configure a `Flex` service by registering a `FlexConfig` in `TestComposite`.
 
-`Flex` services have the following configurable properties:
+`FlexConfig` can be build using the following properties:
 
 [cols="1,1"]
 |===
@@ -312,10 +302,44 @@ Configure a `Flex` service by registering a `FlexConfig` in `TestComposite`.
 |`config_mounts`
 |A map of local directories where the `Flex` service finds configuration files.
 `POLICY_DIR` and `COMMON_CONFIG_DIR` constants are defined in the `common.rs` module when the project is created. +
-Add the directory with the specific configuration for the actual test function, for example, the `hello` test uses `SAY_HELLO_CONFIG_DIR`.
+If your test requires further configuration you can add a directory with the specific configuration for the test function.
+|`with_api`
+|The `ApiConfiguration` of the api that will be deployed to the flex instance. Can be called multiple times if your test needs multiple apis.
 |`ports`
-|A List of ports where the `Flex` service is listening for requests. It must coincide with the ports configured in the `spec.address` property in the `api.yaml` configuration file.
+|List of ports where the `Flex` service is listening for requests. Use if any of your configuration directories included in `config_mount` directories contains a yaml exposes an API.It must coincide with the ports configured in the `spec.address` property.
 |===
+
+`ApiConfig` can be build using the following properties:
+[cols="1,1"]
+|===
+|Property |Content
+
+|`name`
+|Name of the Api.
+
+|`upstream`
+|The reference to the service to use as an upstream.
+
+|`path`
+|Path to which the requests to the upstream will be sent.
+|`port`
+|Ports where the Api is listening for requests
+|`policies`
+|A List of `PolicyConfig` that will be applied to the api.
+|===
+
+`PolicyConfig` can be build using the following properties:
+[cols="1,1"]
+|===
+|Property |Content
+
+|`name`
+|Policy to apply.
+
+|`configuration`
+|Parameters for the policy.
+|===
+
 
 To configure a `Flex` service instance, see the following code example:
 
@@ -328,29 +352,48 @@ use pdk_test::{pdk_test, TestComposite};
 use pdk_test::port::Port;
 use pdk_test::services::flex::FlexConfig;
 
-// Directory with the configurations for the `say_hello` test.
-const SAY_HELLO_CONFIG_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/requests/say_hello");
-
 // Port where Flex is waiting for requests
 const FLEX_PORT: Port = 8081;
 
 #[pdk_test]
 async fn say_hello() -> anyhow::Result<()> {
 
-    // Configure a Flex service
+    // Configure an upstream service for the api
+    let httpmock_config = HttpMockConfig::builder()
+        .port(80)
+        .version("latest")
+        .hostname("backend")
+        .build();
+
+    // Configure a policy for the api
+    let policy_config = PolicyConfig::builder()
+        .name(POLICY_NAME)
+        .configuration(serde_json::json!({"source": "http://backend/blocked", "frequency": 60}))
+        .build();
+
+    // Configure the api to deploy to the flex
+    let api_config = ApiConfig::builder()
+        .name("ingress-http")
+        .upstream(&httpmock_config)
+        .path("/anything/echo/")
+        .port(FLEX_PORT)
+        .policies([policy_config])
+        .build();
+
+    // Configure the flex service
     let flex_config = FlexConfig::builder()
         .version("1.6.1")
         .hostname("local-flex")
         .config_mounts([
             (POLICY_DIR, "policy"),
-            (COMMON_CONFIG_DIR, "common"),
-            (SAY_HELLO_CONFIG_DIR, "say_hello"),
+            (COMMON_CONFIG_DIR, "common")
         ])
-        .ports([FLEX_PORT])
+        .with_api(api_config)
         .build();
 
     let composite = TestComposite::builder()
         .with_service(flex_config)
+        .with_service(httpmock_config)
         .build()
         .await?;
 }
@@ -423,24 +466,37 @@ const FLEX_PORT: Port = 8081;
 // with a MockServer backend
 #[pdk_test]
 async fn hello() -> anyhow::Result<()> {
-
-    // Configure a Flex service
-    let flex_config = FlexConfig::builder()
-        .version("1.6.1")
-        .hostname("local-flex")
-        .ports([FLEX_PORT])
-        .config_mounts([
-            (POLICY_DIR, "policy"),
-            (COMMON_CONFIG_DIR, "common"),
-            (HELLO_CONFIG_DIR, "hello"),
-        ])
-        .build();
-
     // Configure an HttpMock service
     let httpmock_config = HttpMockConfig::builder()
         .port(80)
         .version("latest")
         .hostname("backend")
+        .build();
+
+    // Configure a policy for the api
+    let policy_config = PolicyConfig::builder()
+        .name(POLICY_NAME)
+        .configuration(serde_json::json!({"source": "http://backend/blocked", "frequency": 60}))
+        .build();
+
+    // Configure the api to deploy to the flex
+    let api_config = ApiConfig::builder()
+        .name("ingress-http")
+        .upstream(&httpmock_config)
+        .path("/anything/echo/")
+        .port(FLEX_PORT)
+        .policies([policy_config])
+        .build();
+
+    // Configure the flex service
+    let flex_config = FlexConfig::builder()
+        .version("1.6.1")
+        .hostname("local-flex")
+        .config_mounts([
+            (POLICY_DIR, "policy"),
+            (COMMON_CONFIG_DIR, "common")
+        ])
+        .with_api(api_config)
         .build();
 
     // Compose the services
