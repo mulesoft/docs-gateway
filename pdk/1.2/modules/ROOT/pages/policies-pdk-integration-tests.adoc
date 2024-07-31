@@ -69,7 +69,7 @@ The registration file is ignored for storage in remote repositories and is liste
 [[configure-your-custom-policy]]
 == Configure Your Custom Policy
 
-Each test function requires the configuration of the api and policies for that request.
+Each test function requires the configuration of the API and policies for that request.
 
 To configure the custom policy:
 
@@ -351,26 +351,26 @@ use pdk_test::{pdk_test, TestComposite};
 use pdk_test::port::Port;
 use pdk_test::services::flex::FlexConfig;
 
-// Port where Flex is waiting for requests
+// Port where Flex listens for requests
 const FLEX_PORT: Port = 8081;
 
 #[pdk_test]
 async fn say_hello() -> anyhow::Result<()> {
 
-    // Configure an upstream service for the api
+    // Configure an upstream service for the API
     let httpmock_config = HttpMockConfig::builder()
         .port(80)
         .version("latest")
         .hostname("backend")
         .build();
 
-    // Configure a policy for the api
+    // Configure a policy for the API
     let policy_config = PolicyConfig::builder()
         .name(POLICY_NAME)
         .configuration(serde_json::json!({"source": "http://backend/blocked", "frequency": 60}))
         .build();
 
-    // Configure the api to deploy to the flex
+    // Configure the API to deploy to the Flex
     let api_config = ApiConfig::builder()
         .name("ingress-http")
         .upstream(&httpmock_config)
@@ -379,7 +379,7 @@ async fn say_hello() -> anyhow::Result<()> {
         .policies([policy_config])
         .build();
 
-    // Configure the flex service
+    // Configure the Flex service
     let flex_config = FlexConfig::builder()
         .version("1.6.1")
         .hostname("local-flex")
@@ -475,13 +475,13 @@ async fn hello() -> anyhow::Result<()> {
         .hostname("backend")
         .build();
 
-    // Configure a policy for the api
+    // Configure a policy for the API
     let policy_config = PolicyConfig::builder()
         .name(POLICY_NAME)
         .configuration(serde_json::json!({"source": "http://backend/blocked", "frequency": 60}))
         .build();
 
-    // Configure the api to deploy to the flex
+    // Configure the API to deploy to the Flex
     let api_config = ApiConfig::builder()
         .name("ingress-http")
         .upstream(&httpmock_config)
@@ -490,7 +490,7 @@ async fn hello() -> anyhow::Result<()> {
         .policies([policy_config])
         .build();
 
-    // Configure the flex service
+    // Configure the Flex service
     let flex_config = FlexConfig::builder()
         .version("1.6.1")
         .hostname("local-flex")
