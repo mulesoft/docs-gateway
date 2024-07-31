@@ -95,8 +95,9 @@ NOTE: We are sending a message of raw bytes. That message must be explicitly ser
 
 == Protocol Buffers messages
 The widely suggested format for interacting with gRPC services is Protocol Buffers. `grpc::GrpcClient` comes with builtin support for it.
+PDK depends on the https://crates.io/crates/protobuf[protobuf crate] for encoding Protocol Buffers messages.
 
-* Add the crate `protobuf` as dependency to your `Cargo.toml` file:
+* Add the `protobuf` crate to the `dependencies` section of your `Cargo.toml` file:
 +
 [source,toml]
 ----
@@ -104,11 +105,68 @@ The widely suggested format for interacting with gRPC services is Protocol Buffe
 pdk = { version = "1.1.0", registry = "anypoint" }
 protobuf = "3.5.0"
 ----
+* To place `.proto` definition files, create a `proto` directory and place an empty `hello.proto` file inside it:
++
+----
+└─ proto/  # Contains the Protocol Buffers definition files.
+   └── hello.proto # Contains the Protocol Buffers definitions for the `hello` package.
+----
 
-* Check the `protobuf` crate https://crates.io/crates/protobuf[ documentation] for code generation support.
-Now suppose that `HelloService` gRPC service has two related messages, `HelloRequest` and `HelloResponse`. You can write
-a `grpc::GrpcClient` wrapper for encapsulating calls to `HelloService`.
+* Open the `hello.proto` file and write these definitions on it:
++
+[source,proto]
+----
+syntax = "proto2";
 
+package hello;
+
+service HelloService {
+  rpc SayHello(HelloRequest) returns (HelloResponse);
+}
+
+message HelloRequest {
+  required string greeting = 1;
+}
+
+message HelloResponse {
+  required string reply = 1;
+}
+----
+
+* For generating the code to support the Protocol Buffers messages in Rust, add `profobuf-codegen` crate to the `build-dependencies`
+section of you `Cargo.toml` file in order to make it available for the `build.rs` file that you will create in the next step:
++
+[source,toml]
+----
+[build-dependencies]
+pdk = { version = "1.1.0", registry = "anypoint" }
+protobuf-codegen = "3.5.0"
+----
+
+* Create a `build.rs` file in the root of your project, to be run automatically by `cargo` when building your project to generate
+the Protocol Buffers support code:
++
+[source,rust]
+----
+fn main() {
+    protobuf_codegen::Codegen::new()
+        .pure() // Use the pure Rust parser for Protocol Buffers.
+        .includes(["proto"]) // Include the `proto` directory in the scan.
+        .input("proto/hello.proto") // Compile the `hello.proto` file.
+        .cargo_out_dir("protos") // Put the generated code into the cargo output dir, inside a `protos` directory.
+        .run_from_script(); // Generate all.
+}
+----
+* Import the generated code as module in the `lib.rs` file.
++
+[source,rust]
+----
+// Make the `hello` module available.
+include!(concat!(env!("OUT_DIR"), "/protos/mod.rs"));
+----
+
+* Now you can write a `grpc::GrpcClient` wrapper for encapsulating calls to `HelloService`.
++
 [source,rust]
 ----
 pub struct HelloClient {
@@ -124,7 +182,7 @@ impl HelloClient {
       }
    }
 
-   pub fn say_hello(&self, request: &HelloRequest) -> Result<HelloResponse, GrpcClientError> {
+   pub fn say_hello(&self, request: &hello::HelloRequest) -> Result<hello::HelloResponse, GrpcClientError> {
       let response = client
         .request(&self.service)
         .service("HelloService")
@@ -138,7 +196,28 @@ impl HelloClient {
    }
 ----
 
+* To use the wrapper, just create and call it from an `async` function, por example `configure()`:
++
+[source,rust]
+----
+#[entrypoint]
+async fn configure(
+    launcher: Launcher,
+    Configuration(bytes): Configuration,
+    client: GrpcClient,
+) -> Result<()> {
+    let config: Config = serde_json::from_slice(&bytes).unwrap();
+
+    let hello_client = HelloClient::new(client, config.service);
+
+    let hello_result = hello_client.say_hello(hello::HelloRequest {
+        greeting: "PDK".to_string()
+    })
+    .await;
+}
+----
+
 == See Also
 
-* `protobuf` crate https://crates.io/crates/protobuf[ documentation].
+* `protobuf` crate https://crates.io/crates/protobuf[documentation].
 * xref:policies-pdk-configure-features.adoc[]
