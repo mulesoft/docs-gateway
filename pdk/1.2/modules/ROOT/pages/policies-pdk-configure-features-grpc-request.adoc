@@ -92,15 +92,12 @@ async fn say_hello(config: &Config, grpc_client: &grpc::GrpcClient, message: &[u
 
 NOTE: The message is raw bytes. You must explicitly serialize the message in a serialization format such as JSON.
 
-== Protocol Buffers messages
-The widely suggested format for interacting with gRPC services is Protocol Buffers. `grpc::GrpcClient` comes with builtin support for it.
-PDK depends on the https://crates.io/crates/protobuf[protobuf crate] for encoding Protocol Buffers messages.
-
-* Add the `protobuf` crate to the `dependencies` section of your `Cargo.toml` file:
-
 == Protocol Buffers Messages
 
-The `grpc::GrpcClient` includes Protocol Buffers support. To configure Protocol Buffers:
+The `grpc::GrpcClient` supports Protocol Buffers. To use Protocol Buffers, you must include the https://crates.io/crates/protobuf[protobuf crate] for encoding Protocol Buffers messages.
+
+
+To configure Protocol Buffers:
 
 . Add the `protobuf` crate as dependency to your `Cargo.toml` file:
 +
@@ -110,14 +107,17 @@ The `grpc::GrpcClient` includes Protocol Buffers support. To configure Protocol 
 pdk = { version = "1.1.0", registry = "anypoint" }
 protobuf = "3.5.0"
 ----
-. To place `.proto` definition files, create a `proto` directory and place an empty `hello.proto` file inside it:
+
+. Create a folder named `proto` to place the `.proto` definition files.
+
+. Create a file named `hello.proto` inside the `proto` folder, for example:
 +
 ----
 └─ proto/  # Contains the Protocol Buffers definition files.
    └── hello.proto # Contains the Protocol Buffers definitions for the `hello` package.
 ----
 
-. Open the `hello.proto` file and write these definitions on it:
+. Open the `hello.proto` file and copy and paste the following definitions into it:
 +
 [source,proto]
 ----
@@ -138,8 +138,7 @@ message HelloResponse {
 }
 ----
 
-. For generating the code to support the Protocol Buffers messages in Rust, add `profobuf-codegen` crate to the `build-dependencies`
-section of you `Cargo.toml` file in order to make it available for the `build.rs` file that you will create in the next step:
+. Add the `profobuf-codegen` crate to the `build-dependencies` section of you `Cargo.toml` file in order to make it available for the `build.rs` file created in the next step:
 +
 [source,toml]
 ----
@@ -148,8 +147,7 @@ pdk = { version = "1.1.0", registry = "anypoint" }
 protobuf-codegen = "3.5.0"
 ----
 
-. Create a `build.rs` file in the root of your project, to be run automatically by `cargo` when building your project to generate
-the Protocol Buffers support code:
+. Create a file named `build.rs` file in the root folder of your project. This following code is populated automatically in the `build.rs` file by `cargo` when your project is built:
 +
 [source,rust]
 ----
@@ -162,7 +160,8 @@ fn main() {
         .run_from_script(); // Generate all.
 }
 ----
-. Import the generated code as module in the `lib.rs` file.
+
+. Add the following line in the `lib.rs` file to import the generated code:
 +
 [source,rust]
 ----
@@ -170,7 +169,7 @@ fn main() {
 include!(concat!(env!("OUT_DIR"), "/protos/mod.rs"));
 ----
 
-. Now you can write a `grpc::GrpcClient` wrapper for encapsulating calls to `HelloService`.
+. Use the following code as an example of how to write a `grpc::GrpcClient` wrapper for encapsulating calls to `HelloService`:
 +
 [source,rust]
 ----
@@ -202,7 +201,7 @@ impl HelloClient {
    }
 ----
 
-. To use the wrapper, just create and call it from an `async` context:
+. Use the wrappers by call them from an `async` context:
 +
 [source,rust]
 ----
