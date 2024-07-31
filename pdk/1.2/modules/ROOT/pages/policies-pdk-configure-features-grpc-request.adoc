@@ -1,4 +1,4 @@
-= Performing a gRPC Call
+= Performing a Unary gRPC Call
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -6,11 +6,11 @@ endif::[]
 
 NOTE: To view an example policy project that makes gRPC calls, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/simple-oauth-2-grpc-validation/README.md[Simple OAuth 2.0 gRPC Validation Policy Example^].
 
-== gRPC one-shot calls
-To interact with external services, the policy must use gRPC calls. You can only make gRPC calls from the request filter or the response filter.
-Only one-shot gRPC calls are supported, gRPC streaming calls are not currently possible.
+To interact with external services, a policy can use gRPC calls. You can only make gRPC calls from the request filter or the response filter.
 
-To perform a gRPC call, either inject the `GrpcClient` into the `#[entrypoint]` function or the wrapper functions.
+Custom policies only support unary gRPC calls. Policies do not support gRPC streaming.
+
+To perform a gRPC call, either inject the `GrpcClient` into the `#[entrypoint]` function or the wrapper functions:
 
 * Injecting the client parameter into the `#[entrypoint]` function enables you to make calls in both the request and response filters:
 +
@@ -35,9 +35,6 @@ async fn configure(
 }
 ----
 
-NOTE: All the gRPC client related stuff is placed inside `pdk::hl::grpc` module. If you are following the suggested practice of importing `pdk::hl::*` prelude module, you must refer to gRPC client as `grpc::GrpcClient`.
-
-
 * Injecting the client parameters into one of the `on_request` or `on_response` wrapper functions enables you to only make calls in that function:
 +
 [source,Rust]
@@ -61,7 +58,10 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-* Define your service as a parameter in your schema definition to make gRPC requests. To learn more about defining parameters, see xref:policies-pdk-create-schema-definition.adoc[]
+NOTE: The `pdk::hl::grpc` module contains the gRPC client functionality. If you import all PDK modules (`pdk::hl::*`), you must refer to gRPC client as `grpc::GrpcClient`.
+
+Define your gRPC service as a parameter in your schema definition to make gRPC requests. To learn more about defining parameters, see xref:policies-pdk-create-schema-definition.adoc[]
+
 The following code snippet provides an example schema definition for an external service:
 +
 [source,yaml]
@@ -72,14 +72,13 @@ properties:
           format: service
 ----
 
-* In the policy's Rust source code, you can access the defined external service in the `Config` struct.
-Suppose there is a `HelloService` gRPC service with a `SayHello` method, you can invoke it by sending a gRPC message with `grpc::GrpcClient`:
+In the policy's Rust source code, you can access the defined external service in the `Config` struct. For example, the following code snippet invokes the `HelloService` gRPC service that has the `SayHello` method:
 
 [source,rust]
 ----
 
-async fn say_hello(config: &Config, client: &GrpcClient, message: &[u8]) -> Result<Vec<u8>, grpc::GrpcClientError> {
-    let response = client
+async fn say_hello(config: &Config, grpc_client: &grpc::GrpcClient, message: &[u8]) -> Result<Vec<u8>, grpc::GrpcClientError> {
+    let response = grpc_client
         .request(&config.external_service)
         .service("HelloService")
         .method("SayHello")
@@ -91,13 +90,19 @@ async fn say_hello(config: &Config, client: &GrpcClient, message: &[u8]) -> Resu
 }
 ----
 
-NOTE: We are sending a message of raw bytes. That message must be explicitly serialized in a selected serialization format such as JSON.
+NOTE: The message is raw bytes. You must explicitly serialize the message in a serialization format such as JSON.
 
 == Protocol Buffers messages
 The widely suggested format for interacting with gRPC services is Protocol Buffers. `grpc::GrpcClient` comes with builtin support for it.
 PDK depends on the https://crates.io/crates/protobuf[protobuf crate] for encoding Protocol Buffers messages.
 
 * Add the `protobuf` crate to the `dependencies` section of your `Cargo.toml` file:
+
+== Protocol Buffers Messages
+
+The `grpc::GrpcClient` includes Protocol Buffers support. To configure Protocol Buffers:
+
+. Add the `protobuf` crate as dependency to your `Cargo.toml` file:
 +
 [source,toml]
 ----
@@ -105,14 +110,14 @@ PDK depends on the https://crates.io/crates/protobuf[protobuf crate] for encodin
 pdk = { version = "1.1.0", registry = "anypoint" }
 protobuf = "3.5.0"
 ----
-* To place `.proto` definition files, create a `proto` directory and place an empty `hello.proto` file inside it:
+. To place `.proto` definition files, create a `proto` directory and place an empty `hello.proto` file inside it:
 +
 ----
 └─ proto/  # Contains the Protocol Buffers definition files.
    └── hello.proto # Contains the Protocol Buffers definitions for the `hello` package.
 ----
 
-* Open the `hello.proto` file and write these definitions on it:
+. Open the `hello.proto` file and write these definitions on it:
 +
 [source,proto]
 ----
@@ -133,7 +138,7 @@ message HelloResponse {
 }
 ----
 
-* For generating the code to support the Protocol Buffers messages in Rust, add `profobuf-codegen` crate to the `build-dependencies`
+. For generating the code to support the Protocol Buffers messages in Rust, add `profobuf-codegen` crate to the `build-dependencies`
 section of you `Cargo.toml` file in order to make it available for the `build.rs` file that you will create in the next step:
 +
 [source,toml]
@@ -143,7 +148,7 @@ pdk = { version = "1.1.0", registry = "anypoint" }
 protobuf-codegen = "3.5.0"
 ----
 
-* Create a `build.rs` file in the root of your project, to be run automatically by `cargo` when building your project to generate
+. Create a `build.rs` file in the root of your project, to be run automatically by `cargo` when building your project to generate
 the Protocol Buffers support code:
 +
 [source,rust]
@@ -157,7 +162,7 @@ fn main() {
         .run_from_script(); // Generate all.
 }
 ----
-* Import the generated code as module in the `lib.rs` file.
+. Import the generated code as module in the `lib.rs` file.
 +
 [source,rust]
 ----
@@ -165,25 +170,26 @@ fn main() {
 include!(concat!(env!("OUT_DIR"), "/protos/mod.rs"));
 ----
 
-* Now you can write a `grpc::GrpcClient` wrapper for encapsulating calls to `HelloService`.
+. Now you can write a `grpc::GrpcClient` wrapper for encapsulating calls to `HelloService`.
 +
 [source,rust]
 ----
 pub struct HelloClient {
-   client: grpc::GrpcClient,
+   grpc_client: grpc::GrpcClient,
    service: Service,
 }
 
 impl HelloClient {
-   pub fn new(client: grpc::GrpcClient, service: Service) -> Self {
+   pub fn new(grpc_client: grpc::GrpcClient, service: Service) -> Self {
       Self {
-        client,
+        grpc_client,
         service,
       }
    }
 
    pub fn say_hello(&self, request: &hello::HelloRequest) -> Result<hello::HelloResponse, GrpcClientError> {
-      let response = client
+      let response = self
+        .grpc_client
         .request(&self.service)
         .service("HelloService")
         .method("SayHello")
@@ -196,25 +202,18 @@ impl HelloClient {
    }
 ----
 
-* To use the wrapper, just create and call it from an `async` function, por example `configure()`:
+. To use the wrapper, just create and call it from an `async` context:
 +
 [source,rust]
 ----
-#[entrypoint]
-async fn configure(
-    launcher: Launcher,
-    Configuration(bytes): Configuration,
-    client: GrpcClient,
-) -> Result<()> {
-    let config: Config = serde_json::from_slice(&bytes).unwrap();
 
-    let hello_client = HelloClient::new(client, config.service);
+let hello_client = HelloClient::new(grpc_client, config.service);
 
-    let hello_result = hello_client.say_hello(hello::HelloRequest {
-        greeting: "PDK".to_string()
-    })
-    .await;
-}
+let hello_response = hello_client.say_hello(&hello::HelloRequest {
+    greeting: "PDK".to_string()
+})
+.await?;
+
 ----
 
 == See Also
