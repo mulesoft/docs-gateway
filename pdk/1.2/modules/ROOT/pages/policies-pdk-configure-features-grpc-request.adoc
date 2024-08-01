@@ -1,64 +1,16 @@
-= Performing a Unary gRPC Call
+= Performing a Unary gRPC Request
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-NOTE: To view an example policy project that makes gRPC calls, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/simple-oauth-2-grpc-validation/README.md[Simple OAuth 2.0 gRPC Validation Policy Example^].
+NOTE: To view an example policy project that makes gRPC requests, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/simple-oauth-2-grpc-validation/README.md[Simple OAuth 2.0 gRPC Validation Policy Example^].
 
-To interact with external services, a policy can use gRPC calls. You can only make gRPC calls from the request filter or the response filter.
+To interact with external services, a policy can use gRPC requests. You can only make gRPC requests from the request filter or the response filter.
 
-Custom policies only support unary gRPC calls. Policies do not support gRPC streaming.
+Custom policies only support unary gRPC requests. Policies do not support gRPC streaming.
 
-Depending on where you inject the `GrpcClient`, you can make calls from the request, response, or both filters.
-
-* To enable calls in the request and response filters, inject the client parameter into the `#[entrypoint]` function:
-+
-[source,Rust]
-----
-#[entrypoint]
-async fn configure(
-    launcher: Launcher,
-    Configuration(bytes): Configuration,
-    client: grpc::GrpcClient,
-) -> Result<()> {
-    let config: Config = serde_json::from_slice(&bytes).unwrap();
-
-    // Both request and the response handlers will use the client   
-    let filter = on_request(|request_state| request_filter(request_state, &config, &client))
-        .on_response(|response_state, request_data| {
-            response_filter(response_state, request_data, &config, &client)
-        });
-
-    launcher.launch(filter).await?;
-    Ok(())
-}
-----
-
-* To enable calls only in the request or the response, inject the client parameters either in the `on_request` or `on_response` wrapper functions:
-+
-[source,Rust]
-----
-// Handler with the logic for incoming requests
-async fn request_filter(state: RequestState, conf: &Config, client: grpc::GrpcClient) {
- ...
-}
-
-#[entrypoint]
-async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
-    let config: Config = serde_json::from_slice(&bytes).unwrap();
-
-    // For incoming request events, using the on_request wrapper, inject the client and pass it to the request_filter handler
-    launcher
-        .launch(on_request(|request, client| {
-            request_filter(request, &config, client)
-        }))
-        .await?;
-    Ok(())
-}
-----
-
-NOTE: The `pdk::hl::grpc` module contains the gRPC client functionality. If you import all PDK modules (`pdk::hl::*`), refer to the gRPC client as `grpc::GrpcClient`.
+== Define the gRPC Service
 
 Define your gRPC service as a parameter in your schema definition to make gRPC requests. To learn more about defining parameters, see xref:policies-pdk-create-schema-definition.adoc[]
 
@@ -91,6 +43,58 @@ async fn say_hello(config: &Config, grpc_client: &grpc::GrpcClient, message: &[u
 ----
 
 NOTE: The message is raw bytes. You must explicitly serialize the message in a serialization format such as JSON.
+
+== Inject the gRPC Client Parameters to Enable Requests
+
+Depending on where you inject the `GrpcClient`, you can make requests from the request, response, or both filters.
+
+* To enable requests in the request and response filters, inject the client parameter into the `#[entrypoint]` function:
++
+[source,Rust]
+----
+#[entrypoint]
+async fn configure(
+    launcher: Launcher,
+    Configuration(bytes): Configuration,
+    client: grpc::GrpcClient,
+) -> Result<()> {
+    let config: Config = serde_json::from_slice(&bytes).unwrap();
+
+    // Both request and the response handlers will use the client   
+    let filter = on_request(|request_state| request_filter(request_state, &config, &client))
+        .on_response(|response_state, request_data| {
+            response_filter(response_state, request_data, &config, &client)
+        });
+
+    launcher.launch(filter).await?;
+    Ok(())
+}
+----
+
+* To enable requests only in the request or the response, inject the client parameters either in the `on_request` or `on_response` wrapper functions:
++
+[source,Rust]
+----
+// Handler with the logic for incoming requests
+async fn request_filter(state: RequestState, conf: &Config, client: grpc::GrpcClient) {
+ ...
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
+    let config: Config = serde_json::from_slice(&bytes).unwrap();
+
+    // For incoming request events, using the on_request wrapper, inject the client and pass it to the request_filter handler
+    launcher
+        .launch(on_request(|request, client| {
+            request_filter(request, &config, client)
+        }))
+        .await?;
+    Ok(())
+}
+----
+
+NOTE: The `pdk::hl::grpc` module contains the gRPC client functionality. If you import all PDK modules (`pdk::hl::*`), refer to the gRPC client as `grpc::GrpcClient`.
 
 == Protocol Buffers Messages
 
@@ -169,7 +173,7 @@ fn main() {
 include!(concat!(env!("OUT_DIR"), "/protos/mod.rs"));
 ----
 
-. Use the following code as an example of how to write a `grpc::GrpcClient` wrapper for encapsulating calls to `HelloService`:
+. Use the following code as an example of how to write a `grpc::GrpcClient` wrapper for encapsulating requests to `HelloService`:
 +
 [source,rust]
 ----
