@@ -10,9 +10,9 @@ To interact with external services, a policy can use gRPC calls. You can only ma
 
 Custom policies only support unary gRPC calls. Policies do not support gRPC streaming.
 
-To perform a gRPC call, either inject the `GrpcClient` into the `#[entrypoint]` function or the wrapper functions:
+Depending on where you inject the `GrpcClient`, you can make calls from the request, response, or both filters.
 
-* Injecting the client parameter into the `#[entrypoint]` function enables you to make calls in both the request and response filters:
+* To enable calls in the request and response filters, inject the client parameter into the `#[entrypoint]` function:
 +
 [source,Rust]
 ----
@@ -35,7 +35,7 @@ async fn configure(
 }
 ----
 
-* Injecting the client parameters into one of the `on_request` or `on_response` wrapper functions enables you to only make calls in that function:
+* To enable calls exclusively in the request or the response, inject the client parameters either in the `on_request` or `on_response` wrapper functions:
 +
 [source,Rust]
 ----
@@ -58,7 +58,7 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-NOTE: The `pdk::hl::grpc` module contains the gRPC client functionality. If you import all PDK modules (`pdk::hl::*`), you must refer to gRPC client as `grpc::GrpcClient`.
+NOTE: The `pdk::hl::grpc` module contains the gRPC client functionality. If you import all PDK modules (`pdk::hl::*`), refer to the gRPC client as `grpc::GrpcClient`.
 
 Define your gRPC service as a parameter in your schema definition to make gRPC requests. To learn more about defining parameters, see xref:policies-pdk-create-schema-definition.adoc[]
 
@@ -94,12 +94,12 @@ NOTE: The message is raw bytes. You must explicitly serialize the message in a s
 
 == Protocol Buffers Messages
 
-The `grpc::GrpcClient` supports Protocol Buffers. To use Protocol Buffers, you must include the https://crates.io/crates/protobuf[protobuf crate] for encoding Protocol Buffers messages.
+The `grpc::GrpcClient` supports Protocol Buffers. To use Protocol Buffers, include the https://crates.io/crates/protobuf[protobuf crate] for encoding Protocol Buffers messages.
 
 
 To configure Protocol Buffers:
 
-. Add the `protobuf` crate as dependency to your `Cargo.toml` file:
+. Add the `protobuf` crate as a dependency to your `Cargo.toml` file:
 +
 [source,toml]
 ----
@@ -201,7 +201,7 @@ impl HelloClient {
    }
 ----
 
-. Use the wrappers by call them from an `async` context:
+. Use the wrappers by calling them from an `async` context:
 +
 [source,rust]
 ----
