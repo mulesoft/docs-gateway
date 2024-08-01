@@ -8,51 +8,9 @@ NOTE: To view an example policy project that makes HTTP calls, see https://githu
 
 To interact with external services, a policy can use HTTP calls. You can only make HTTP calls from the request filter or the response filter. 
 
-To perform an HTTP call, either inject the `HTTPClient` into the `[entrypoint]` function or the wrapper functions:
+== Define the HTTP Service
 
-* Injecting the client parameters into the `[entrypoint]` function enables you to make calls in both the request and the response filter:
-+
-[source,Rust]
-----
-#[entrypoint]
-async fn configure(launcher: Launcher, Configuration(bytes): Configuration, client: HttpClient) -> Result<()> {
-    let config: Config = serde_json::from_slice(&bytes).unwrap();
-
-    // Both request and the response handlers will use the client   
-    let filter = on_request(|request_state| request_filter(request_state, &config, &client))
-        .on_response(|response_state, request_data| {
-            response_filter(response_state, request_data, &config, &client)
-        });
-
-    launcher.launch(filter).await?;
-    Ok(())
-}
-----
-
-* Injecting the client parameters into one of the `on_request` or `on_response` wrapper functions enables you to only make calls in that function:
-+
-[source,Rust]
-----
-// Handler with the logic for incoming requests
-​​async fn request_filter(state: RequestState, conf: &Config, client: HttpClient) {
- ...
-}
-
-#[entrypoint]
-async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
-    let config: Config = serde_json::from_slice(&bytes).unwrap();
-
-    // For incoming request events, using the on_request wrapper, inject the client and pass it to the request_filter handler
-    launcher
-        .launch(on_request(|request, client| {
-            request_filter(request, &config, client)
-        }))
-        .await?;
-    Ok(())
-}
-----
-
-You must define your service as a parameter in your schema definition to make HTTP requests. To learn more about defining parameters, see xref:policies-pdk-create-schema-definition.adoc[]
+Define your service as a parameter in your schema definition to make HTTP requests. To learn more about defining parameters, see xref:policies-pdk-create-schema-definition.adoc[]
 
 The following code snippet provides an example schema definition for an external service:
 
@@ -76,6 +34,52 @@ let response = client
     .headers(vec![("Content-Type", "application/json")])
     .body(r#"{"key": "value"}"#.as_bytes())
     .put().await?;
+----
+
+== Inject the HTTP Client Parameters to Enable Requests
+
+To perform an HTTP call, either inject the `HTTPClient` into the `[entrypoint]` function or the wrapper functions:
+
+* To enable requests in the request and response filters, inject the client parameter into the `#[entrypoint]` function:
++
+[source,Rust]
+----
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration, client: HttpClient) -> Result<()> {
+    let config: Config = serde_json::from_slice(&bytes).unwrap();
+
+    // Both request and the response handlers will use the client   
+    let filter = on_request(|request_state| request_filter(request_state, &config, &client))
+        .on_response(|response_state, request_data| {
+            response_filter(response_state, request_data, &config, &client)
+        });
+
+    launcher.launch(filter).await?;
+    Ok(())
+}
+----
+
+* To enable requests only in the request or the response, inject the client parameters either in the `on_request` or `on_response` wrapper functions:
++
+[source,Rust]
+----
+// Handler with the logic for incoming requests
+​​async fn request_filter(state: RequestState, conf: &Config, client: HttpClient) {
+ ...
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> Result<()> {
+    let config: Config = serde_json::from_slice(&bytes).unwrap();
+
+    // For incoming request events, using the on_request wrapper, inject the client and pass it to the request_filter handler
+    launcher
+        .launch(on_request(|request, client| {
+            request_filter(request, &config, client)
+        }))
+        .await?;
+    Ok(())
+}
 ----
 
 == See Also
