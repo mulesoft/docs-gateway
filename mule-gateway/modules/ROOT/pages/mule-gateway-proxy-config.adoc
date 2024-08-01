@@ -1,0 +1,90 @@
+= Route Mule Gateway Traffic Through a Proxy Server
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+
+You can configure Mule Gateway to route traffic through the proxy server to API Manager if your Mule runtime engine runs inside a firewall that restricts external communication through a proxy server.
+
+Mule Gateway supports Basic, NTLM, and Kerberos v5 (via SPNEGO) authentication schemes for proxied communication.
+
+[[configure-the-proxy-server]]
+== Configure the Proxy Server
+
+To configure Mule Gateway to connect through a proxy server, set up your proxy server configuration by adding the following properties in a `$MULE_HOME/conf/wrapper.conf` file:
+
+* `wrapper.java.additional.<n>=-Danypoint.platform.proxy_host={hostname}`
+* `wrapper.java.additional.<n>=-Danypoint.platform.proxy_port={port}`
+* `wrapper.java.additional.<n>=-Danypoint.platform.proxy_username={username}`
+* `wrapper.java.additional.<n>=-Danypoint.platform.proxy_password={password}`
+
+IMPORTANT: The parameters are additional options passed to Java during launch. The `<n>` element refers to the number of additional parameters in the configuration. Start from `1` and increment sequentially without skipping numbers.
+
+With the provided credentials, Mule Gateway prioritizes Basic Authentication over NTLM. If Basic Authentication fails, Mule Gateway attempts to authenticate with NTLM.
+
+=== Using Kerberos for Proxy Authentication
+
+To authenticate using Kerberos, add the parameters from <<configure-the-proxy-server>> and the following new properties:
+
+* `wrapper.java.additional.<n>=-Danypoint.platform.proxy_kerberos_krb5_path={/path/to/krb5.conf}`
+* `wrapper.java.additional.<n>=-Danypoint.platform.proxy_kerberos_jaas_path={/path/to/kerberos.jaas}`
+
+NOTE: Kerberos authentication is only supported in Mule runtime versions 4.3.x and 4.4.x released after July 2, 2024 and Mule runtime versions 4.6.5, 4.7.1 and later.
+
+==== Kerberos KRB5 Path
+The property `anypoint.platform.proxy_kerberos_krb5_path` specifies the path to the `krb5.conf` file used to locate the KRB5 server. An example of this file is:
+
+[source,text,linenums]
+----
+[libdefaults]
+    kdc_realm = service.ws.apache.org
+    default_realm = service.ws.apache.org
+    udp_preference_limit = 1
+    kdc_tcp_port = 64718
+
+[realms]
+    service.ws.apache.org = {
+        kdc = localhost:64718
+    }
+----
+
+==== Kerberos JAAS Path
+The property `anypoint.platform.proxy_kerberos_jaas_path` specifies the path to the JAAS file for authentication. An example of this file is:
+
+[source,text,linenums]
+----
+alice {
+    com.sun.security.auth.module.Krb5LoginModule required
+    refreshKrb5Config=true
+    useKeyTab=false
+    keyTab="/my/krbwd/alice.keytab"
+    principal="alice";
+};
+com.sun.security.jgss.login {
+  com.sun.security.auth.module.Krb5LoginModule required
+  useKeyTab=true
+  storeKey=true
+  keyTab="/my/krbwd/alice.keytab"
+  principal="alice";
+};
+com.sun.security.jgss.initiate {
+  com.sun.security.auth.module.Krb5LoginModule required
+  useKeyTab=true
+  storeKey=true
+  keyTab="/my/krbwd/alice.keytab"
+  principal="alice";
+};
+com.sun.security.jgss.accept {
+  com.sun.security.auth.module.Krb5LoginModule required
+  useKeyTab=true
+  storeKey=true
+  keyTab="/my/krbwd/alice.keytab"
+  principal="alice";
+};
+----
+
+IMPORTANT:
+Set `useKeyTab` to `false` for the principal being authenticated (in this example, `alice`), so that Mule Gateway uses the credentials specified for `anypoint.platform.proxy_username` and `anypoint.platform.proxy_password`.
+
+== See Also
+
+* https://docs.mulesoft.com/runtime-manager/rtm-agent-proxy-config[Connect the Agent Through a Proxy Server].
