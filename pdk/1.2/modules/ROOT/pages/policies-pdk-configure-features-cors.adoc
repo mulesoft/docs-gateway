@@ -1,0 +1,206 @@
+= Using CORS Library Functions
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+NOTE: To view an example policy project that uses Flex Gateway Policy Development Kit (PDK)'s CORS Library, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/cors-validation/README.md[CORS Validation Policy Example^].
+
+CORS is a mechanism by which a web application can access resources that are defined in another domain. Browsers implement this standard by default.
+PDK CORS library complies with the https://fetch.spec.whatwg.org/[CORS W3C recommendation^] standards and provides a set of tools to validate incoming requests and protect resources.
+
+[[cors-configuration]]
+== CORS Configuration
+
+PDK CORS library is available from the `pdk::cors` module. It provides a `cors::Configuration` struct that defines how to validate an incoming request in order to allow it or not.
+`cors::Configuration` can be initialized with its builder helper. In the same module, also are available the `cors::OriginGroup` and `cors::AllowedMethod` structs with their
+related builder helpers in order to initialize an entire CORS configuration:
+
+[source,Rust]
+----
+use pdk::cors;
+
+let cors_configuration = cors::Configuration::builder()
+    .public_resource(false)
+    .support_credentials(true)
+    .origin_groups(vec![cors::OriginGroup::builder()
+        .origin_group_name("default group".to_string())
+        .plain_origins(vec!["http://www.the-origin-of-time.com".to_string()])
+        .access_control_max_age(60)
+        .headers(vec![
+            "x-allow-origin".to_string(),
+            "x-yet-another-valid-header".to_string(),
+        ])
+        .exposed_headers(vec!["x-forwarded-for".to_string()])
+        .allowed_methods(vec![
+            cors::AllowedMethod::builder()
+                .method_name("POST".to_string())
+                .allowed(true)
+                .build()
+                .unwrap(),
+            cors::AllowedMethod::builder()
+                .method_name("PUT".to_string())
+                .allowed(true)
+                .build()
+                .unwrap(),
+        ])
+        .build()
+        .unwrap()])
+    .build()
+    .unwrap();
+----
+
+=== CORS configurable properties in cors::Configuration struct
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Property | Required or Optional | Default Value | Description
+
+| `origin_groups`
+| Optional
+| Empty `Vec`
+| `Vec` containing groups of origins configurable with `cors::OriginGroup`
+
+| `public_resource`
+| Optional
+| `false`
+| A boolean indicating if the CORS configuration is to be applied as a public resource
+
+| `support_credentials`
+| Optional
+| `false`
+| A boolean indicating if the CORS configuration supports credentials, such as cookies, authorization headers, and TLS client certificates
+
+|===
+
+=== CORS configurable properties in cors::OriginGroup type
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Property | Required or Optional | Default Value | Description
+
+| `plain_origins`
+| Optional
+| Empty `Vec`
+| `Vec` of origins to be included in the group. For example, http://www.the-origin-of-time.com
+
+| `access_control_max_age`
+| Optional
+| 30
+| Duration in seconds that a preflight response can be cached without sending another preflight request
+
+| `allowed_methods`
+| Optional
+| Empty `Vec`
+| `Vec` of Allowed HTTP methods represented configurable with `cors::AllowedMethod`
+
+| `headers`
+| Optional
+| Empty `Vec`
+| `Vec` of HTTP headers used for preflight requests
+
+| `exposed_headers`
+| Optional
+| Empty `Vec`
+| `Vec` of headers that browser JavaScript is allowed to access
+
+|===
+
+=== CORS configurable properties in cors::AllowedMethod type
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+|Property | Required or Optional | Description
+
+
+| `method_name`
+| Required
+| Method name
+
+| `is_allowed`
+| Required
+| A boolean indicating if a method is allowed (one of "CONNECT", "DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT", "TRACE")
+
+|===
+
+[[applying-cors-to-an-incoming-request]]
+== Applying CORS validation
+
+The `cors::Cors` struct has a `check_headers()` method to validate the incoming headers with a provided `cors::Configuration`.
+The `cors::Cors::check_headers()` method returns `Result<cors::Check, cors::CorsError>`.
+The result is `Err` when headers inconsistencies are detected. If the result is `Ok`, the struct `cors::Check` can be evaluated.
+
+=== Methods available in `cors::Check`
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Method | Type | Description
+
+| `response_type()`
+| `cors::ResponseType`
+| Returns an enum containing the type of action that should be taken for the incoming request.
+
+| `headers()`
+| `&[(String, String)]`
+| A list of headers to add to the response.
+|===
+
+=== Values available in `cors::ResponseType` enum
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Value | Description
+
+| `Preflight`
+| The incoming request represents a CORS preflight fetch and the incoming request must be responded early.
+
+| `Main`
+| The incoming request is a main CORS request, and the flow must continue to the upstream.
+|===
+
+
+=== Writing a CORS validation policy
+
+. Write a `configure()` function, where `create_cors_configuration()` is a function that returns the
+`cors::Configuration` defined in the previous section
++
+[source,rust]
+----
+use pdk::*;
+use pdk::cors;
+
+#[entrypoint]
+async fn configure(launcher: Launcher) -> Result<(), LaunchError> {
+
+    let config = create_cors_configuration();
+
+    let filter = on_request(|rs| request_filter(rs, &config))
+        .on_response(response_filter);
+
+    launcher.launch(filter).await
+}
+----
+
+. Write a `request_filter()` function, where the CORS validation is applied to the incoming request:
++
+[source,rust]
+----
+
+async fn request_filter(request_headers_state: RequestHeadersState, config: &cors::Configuration<'_>) -> Flow<> {
+
+    // Create a Cors validator with the provided config
+    let cors = cors::Cors::new(config);
+
+    // Extract the incoming headers
+    let headers = request_headers_state.handler().headers();
+
+    // Apply the CORS validation
+    let result = cors.check_headers(&headers);
+
+}
+----
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]
+
