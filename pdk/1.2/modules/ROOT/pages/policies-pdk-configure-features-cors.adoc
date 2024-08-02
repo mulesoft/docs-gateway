@@ -12,9 +12,9 @@ PDK CORS library complies with the https://fetch.spec.whatwg.org/[CORS W3C recom
 [[cors-configuration]]
 == CORS Configuration
 
-PDK CORS library is available from the `pdk::cors` module. It provides a `cors::Configuration` struct that defines how to validate an incoming request in order to allow it or not.
-`cors::Configuration` can be initialized with its builder helper. In the same module, also are available the `cors::OriginGroup` and `cors::AllowedMethod` structs with their
-related builder helpers in order to initialize an entire CORS configuration. A function to build a hardcoded `cors::Configuration` could be defined as follows:
+PDK CORS library is available from the `pdk::cors` module. It provides a `cors::Configuration` struct that defines how to validate incoming requests in order to allow them or not.
+`cors::Configuration` can be initialized with its builder helper. The `pdk::cors` module also exposes the `cors::OriginGroup` and `cors::AllowedMethod` structs with their
+related builder helpers, in order to initialize an entire CORS configuration. A function to build a hardcoded `cors::Configuration` could be defined as follows:
 
 [source,Rust]
 ----
@@ -75,7 +75,7 @@ fn create_cors_configuration() -> cors:Configuration {
 
 |===
 
-=== CORS configurable properties in cors::OriginGroup type
+=== CORS configurable properties in cors::OriginGroup struct
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
@@ -108,7 +108,7 @@ fn create_cors_configuration() -> cors:Configuration {
 
 |===
 
-=== CORS configurable properties in cors::AllowedMethod type
+=== CORS configurable properties in cors::AllowedMethod struct
 
 [%header%autowidth.spread,cols="a,a,a"]
 |===
@@ -128,9 +128,9 @@ fn create_cors_configuration() -> cors:Configuration {
 [[applying-cors-to-an-incoming-request]]
 == Applying CORS validation
 
-The `cors::Cors` struct has a `check_headers()` method to validate the incoming headers with a provided `cors::Configuration`.
-The `cors::Cors::check_headers()` method returns `Result<cors::Check, cors::CorsError>`.
-The result is `Err` when the validation fails. If the result is `Ok`, the struct `cors::Check` can be evaluated.
+There is a `cors::Cors` struct that contains a `check_headers()` method to validate the incoming headers with a provided `cors::Configuration`.
+The `cors::Cors::check_headers()` method returns a `Result<cors::Check, cors::CorsError>`.
+This result is `Err` when the CORS validation fails. If the result is `Ok`, the struct `cors::Check` can be evaluated.
 
 === Methods available in `cors::Check`
 
@@ -145,6 +145,11 @@ The result is `Err` when the validation fails. If the result is `Ok`, the struct
 | `headers()`
 | `&[(String, String)]`
 | A list of headers to add to the response.
+
+| `into_headers()`
+| `Vec<(String, String)>`
+| Consumes the `cors::Check` struct and returns the list of headers to add to the response.
+
 |===
 
 === Values available in `cors::ResponseType` enum
@@ -161,9 +166,9 @@ The result is `Err` when the validation fails. If the result is `Ok`, the struct
 |===
 
 
-=== Writing a basic CORS validation policy
+== Writing a basic CORS validation policy
 
-. Write a `configure()` function, where `create_cors_configuration()` is the function defined at xref:cors-configuration[] example:
+. Write an `#[entrypoint]` function, where `create_cors_configuration()` is the function defined at xref:cors-configuration[] example:
 +
 [source,rust]
 ----
