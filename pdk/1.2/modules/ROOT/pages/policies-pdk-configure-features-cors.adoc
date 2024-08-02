@@ -14,40 +14,42 @@ PDK CORS library complies with the https://fetch.spec.whatwg.org/[CORS W3C recom
 
 PDK CORS library is available from the `pdk::cors` module. It provides a `cors::Configuration` struct that defines how to validate an incoming request in order to allow it or not.
 `cors::Configuration` can be initialized with its builder helper. In the same module, also are available the `cors::OriginGroup` and `cors::AllowedMethod` structs with their
-related builder helpers in order to initialize an entire CORS configuration:
+related builder helpers in order to initialize an entire CORS configuration. A function to build a hardcoded `cors::Configuration` could be defined as follows:
 
 [source,Rust]
 ----
 use pdk::cors;
 
-let cors_configuration = cors::Configuration::builder()
-    .public_resource(false)
-    .support_credentials(true)
-    .origin_groups(vec![cors::OriginGroup::builder()
-        .origin_group_name("default group".to_string())
-        .plain_origins(vec!["http://www.the-origin-of-time.com".to_string()])
-        .access_control_max_age(60)
-        .headers(vec![
-            "x-allow-origin".to_string(),
-            "x-yet-another-valid-header".to_string(),
-        ])
-        .exposed_headers(vec!["x-forwarded-for".to_string()])
-        .allowed_methods(vec![
-            cors::AllowedMethod::builder()
-                .method_name("POST".to_string())
-                .allowed(true)
-                .build()
-                .unwrap(),
-            cors::AllowedMethod::builder()
-                .method_name("PUT".to_string())
-                .allowed(true)
-                .build()
-                .unwrap(),
-        ])
+fn create_cors_configuration() -> cors:Configuration {
+    cors::Configuration::builder()
+        .public_resource(false)
+        .support_credentials(true)
+        .origin_groups(vec![cors::OriginGroup::builder()
+            .origin_group_name("default group".to_string())
+            .plain_origins(vec!["http://www.the-origin-of-time.com".to_string()])
+            .access_control_max_age(60)
+            .headers(vec![
+                "x-allow-origin".to_string(),
+                "x-yet-another-valid-header".to_string(),
+            ])
+            .exposed_headers(vec!["x-forwarded-for".to_string()])
+            .allowed_methods(vec![
+                cors::AllowedMethod::builder()
+                    .method_name("POST".to_string())
+                    .allowed(true)
+                    .build()
+                    .unwrap(),
+                cors::AllowedMethod::builder()
+                    .method_name("PUT".to_string())
+                    .allowed(true)
+                    .build()
+                    .unwrap(),
+            ])
+            .build()
+            .unwrap()])
         .build()
-        .unwrap()])
-    .build()
-    .unwrap();
+        .unwrap();
+}
 ----
 
 === CORS configurable properties in cors::Configuration struct
@@ -128,7 +130,7 @@ let cors_configuration = cors::Configuration::builder()
 
 The `cors::Cors` struct has a `check_headers()` method to validate the incoming headers with a provided `cors::Configuration`.
 The `cors::Cors::check_headers()` method returns `Result<cors::Check, cors::CorsError>`.
-The result is `Err` when headers inconsistencies are detected. If the result is `Ok`, the struct `cors::Check` can be evaluated.
+The result is `Err` when the validation fails. If the result is `Ok`, the struct `cors::Check` can be evaluated.
 
 === Methods available in `cors::Check`
 
@@ -152,17 +154,16 @@ The result is `Err` when headers inconsistencies are detected. If the result is 
 | Value | Description
 
 | `Preflight`
-| The incoming request represents a CORS preflight fetch and the incoming request must be responded early.
+| The incoming request represents a CORS preflight fetch and must be responded early.
 
 | `Main`
-| The incoming request is a main CORS request, and the flow must continue to the upstream.
+| The incoming request represents a main CORS request, and the flow must continue to the upstream.
 |===
 
 
-=== Writing a CORS validation policy
+=== Writing a basic CORS validation policy
 
-. Write a `configure()` function, where `create_cors_configuration()` is a function that returns the
-`cors::Configuration` defined in the previous section
+. Write a `configure()` function, where `create_cors_configuration()` is the function defined at xref:cors-configuration[] example:
 +
 [source,rust]
 ----
@@ -172,31 +173,75 @@ use pdk::cors;
 #[entrypoint]
 async fn configure(launcher: Launcher) -> Result<(), LaunchError> {
 
-    let config = create_cors_configuration();
+    let cors_configuration = create_cors_configuration();
 
-    let filter = on_request(|rs| request_filter(rs, &config))
+    let filter = on_request(|rs| request_filter(rs, &cors_configuration))
         .on_response(response_filter);
 
     launcher.launch(filter).await
 }
 ----
 
-. Write a `request_filter()` function, where the CORS validation is applied to the incoming request:
+. Write a `request_filter()` function, where the CORS validation is applied to the incoming request. The `Flow` returned
+must contain a `Vec<(String, String)>` to pass the headers returned by `cors::Cors::check_headers()` to the `response_filter()`:
 +
 [source,rust]
 ----
 
-async fn request_filter(request_headers_state: RequestHeadersState, config: &cors::Configuration<'_>) -> Flow<> {
+async fn request_filter(
+    request_headers_state: RequestHeadersState,
+    cors_configuration: &cors::Configuration<'_>,
+) -> Flow<Vec<(String, String)>> {
 
-    // Create a Cors validator with the provided config
-    let cors = cors::Cors::new(config);
+    // Create a new CORS checker.
+    let cors = cors::Cors::new(cors_configuration);
 
-    // Extract the incoming headers
-    let headers = request_headers_state.handler().headers();
+    let request_headers = request_headers_state.handler().headers();
 
-    // Apply the CORS validation
-    let result = cors.check_headers(&headers);
+    let cors_result = cors.check(&request_headers);
 
+    match cors_result {
+
+        // The CORS validation was succesful.
+        Ok(cors_check) => match cors_check.response_type() {
+
+            // A CORS preflight fetch was requested, return an early response.
+            cors::ResponseType::Preflight => {
+                Flow::Break(Response::new(200).with_headers(check.into_headers()))
+            }
+
+            // This is a CORS main request, continue and pass the headers to the response.
+            cors::ResponseType::Main => {
+                logger::info!("Main CORS response.");
+                Flow::Continue(check.into_headers())
+            }
+        },
+
+        // The CORS validation failed. The request must be refused.
+        Err(cors_error) => {
+            Flow::Break(Response::new(200))
+        }
+    }
+}
+----
+
+. Write a `response_filter()` function, where the CORS validation is applied to the response. The headers returned by
+`cors::Cors::check_headers()` will be available from `RequestData`:
++
+[source,rust]
+----
+
+async fn response_filter(state: ResponseHeadersState, data: RequestData<Vec<(String, String)>>) {
+
+    // Take the headers to add from the request data.
+    let RequestData::Continue(headers_to_add) = data else {
+        return;
+    };
+
+    // Add the headers to the response
+    for (name, value) in headers_to_add.iter() {
+        state.handler().set_header(name, value);
+    }
 }
 ----
 
