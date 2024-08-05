@@ -124,11 +124,9 @@ fn create_cors_configuration() -> cors:Configuration {
 [[applying-cors-to-an-incoming-request]]
 == Apply CORS validation
 
-There is a `cors::Cors` struct that contains a `check_headers()` method to validate the incoming headers with a provided `cors::Configuration`.
-The `cors::Cors::check_headers()` method returns a `Result<cors::Check, cors::CorsError>`.
-This result is `Err` when the CORS validation fails. If the result is `Ok`, the struct `cors::Check` can be evaluated.
+The `cors::Cors` struct contains a `check_headers()` method to validate incoming headers against a provided `cors::Configuration` instance. The `cors::Cors::check_headers()` method returns the `Result<cors::Check, cors::CorsError>` struct. The result is `Err` when the CORS validation fails. If the validation passes, the reusust is `Ok` and you can evaluate the `cors::Check` struct.
 
-=== Methods available in `cors::Check`
+=== `cors::Check` Struct Available Methods
 
 [%header%autowidth.spread,cols="a,a,a"]
 |===
@@ -148,7 +146,7 @@ This result is `Err` when the CORS validation fails. If the result is `Ok`, the 
 
 |===
 
-=== Values available in `cors::ResponseType` enum
+=== `cors::ResponseType` Enum Response Values
 
 [%header%autowidth.spread,cols="a,a"]
 |===
@@ -162,9 +160,9 @@ This result is `Err` when the CORS validation fails. If the result is `Ok`, the 
 |===
 
 
-== Write a Basic CORS Validation Policy
+== Write a CORS Validation Policy
 
-. Write an `#[entrypoint]` function, where `create_cors_configuration()` is the function defined at xref:cors-configuration[] example:
+. Write an `#[entrypoint]` function where `create_cors_configuration()` is the function defined in the xref:cors-configuration[] example:
 +
 [source,rust]
 ----
@@ -183,8 +181,7 @@ async fn configure(launcher: Launcher) -> Result<(), LaunchError> {
 }
 ----
 
-. Write a `request_filter()` function, where the CORS validation is applied to the incoming request. The `Flow` returned
-must contain a `Vec<(String, String)>` to pass the headers returned by `cors::Cors::check_headers()` to the `response_filter()`:
+. Write a `request_filter()` function, where the CORS validation is applied to the incoming request. The `Flow` returned must contain a `Vec<(String, String)>` to pass the headers returned by `cors::Cors::check_headers()` to the `response_filter()`:
 +
 [source,rust]
 ----
@@ -226,8 +223,7 @@ async fn request_filter(
 }
 ----
 
-. Write a `response_filter()` function, where the CORS validation is applied to the response. The headers returned by
-`cors::Cors::check_headers()` will be available from `RequestData`:
+. Write a `response_filter()` function, where the CORS validation is applied to the response. The headers returned by `cors::Cors::check_headers()` will be available from `RequestData`:
 +
 [source,rust]
 ----
