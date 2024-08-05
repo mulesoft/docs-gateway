@@ -49,6 +49,7 @@ fn create_cors_configuration() -> cors:Configuration {
 }
 ----
 
+[[configuration-methods]]
 === cors::Configuration Struct Configuration Parameters
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -58,20 +59,21 @@ fn create_cors_configuration() -> cors:Configuration {
 | `origin_groups`
 | Optional
 | Empty `Vec`
-| `Vec` containing groups of origins configurable with `cors::OriginGroup`
+| `Vec` containing groups of origins configurable with `cors::OriginGroup`.
 
 | `public_resource`
 | Optional
 | `false`
-| A boolean indicating if the CORS configuration is to be applied as a public resource
+| A boolean indicating if the CORS configuration is applied as a public resource.
 
 | `support_credentials`
 | Optional
 | `false`
-| A boolean indicating if the CORS configuration supports credentials, such as cookies, authorization headers, and TLS client certificates
+| A boolean indicating if the CORS configuration supports credentials, such as cookies, authorization headers, and TLS client certificates.
 
 |===
 
+[[origin-group-methods]]
 === cors::OriginGroup Struct Configuration Parameters
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -81,30 +83,31 @@ fn create_cors_configuration() -> cors:Configuration {
 | `plain_origins`
 | Optional
 | Empty `Vec`
-| `Vec` of origins to be included in the group. For example, http://www.the-origin-of-time.com
+| `Vec` of origins included in the group, for example, http://www.the-origin-of-time.com.
 
 | `access_control_max_age`
 | Optional
 | 30
-| Duration in seconds that a preflight response can be cached without sending another preflight request
+| Duration in seconds to cache a preflight response before sending another preflight request.
 
 | `allowed_methods`
 | Optional
 | Empty `Vec`
-| `Vec` of Allowed HTTP methods represented configurable with `cors::AllowedMethod`
+| `Vec` of allowed HTTP methods configurable with `cors::AllowedMethod`.
 
 | `headers`
 | Optional
 | Empty `Vec`
-| `Vec` of HTTP headers used for preflight requests
+| `Vec` of HTTP headers for preflight requests.
 
 | `exposed_headers`
 | Optional
 | Empty `Vec`
-| `Vec` of headers that browser JavaScript is allowed to access
+| `Vec` of headers that browser JavaScript can access.
 
 |===
 
+[[allowed-methods]]
 === cors::AllowedMethod Struct Configuration Parameters
 
 [%header%autowidth.spread,cols="a,a,a"]
@@ -113,18 +116,18 @@ fn create_cors_configuration() -> cors:Configuration {
 
 | `method_name`
 | Required
-| Method name
+| Method name.
 
 | `is_allowed`
 | Required
-| A boolean indicating if a method is allowed (one of `CONNECT`, `DELETE`, `GET`, `OPTIONS`, `PATCH`, `POST`, `PUT`, or `TRACE`)
+| A boolean indicating if a method is allowed. Supported values are `CONNECT`, `DELETE`, `GET`, `OPTIONS`, `PATCH`, `POST`, `PUT`, or `TRACE`.
 
 |===
 
 [[applying-cors-to-an-incoming-request]]
 == CORS Validation Methods
 
-The `cors::Cors` struct contains a `check_headers()` method to validate incoming headers against a provided `cors::Configuration` instance. The `cors::Cors::check_headers()` method returns the `Result<cors::Check, cors::CorsError>` struct. The result is `Err` when the CORS validation fails. If the validation passes, the reusust is `Ok` and you can evaluate the `cors::Check` struct.
+The `cors::Cors` struct contains the `check_headers()` method to validate incoming headers against a provided `cors::Configuration` instance. The `cors::Cors::check_headers()` method returns the `Result<cors::Check, cors::CorsError>` struct. The result is `Err` when the CORS validation fails. If the validation passes, the request is `Ok` and you can evaluate the `cors::Check` struct.
 
 === `cors::Check` Struct Available Methods
 
@@ -134,7 +137,7 @@ The `cors::Cors` struct contains a `check_headers()` method to validate incoming
 
 | `response_type()`
 | `cors::ResponseType`
-| Returns an enum containing the type of action that should be taken for the incoming request.
+| Returns an enum containing the type of action needed for the incoming request. For more details about the enum values, see <<enum-response>>.
 
 | `headers()`
 | `&[(String, String)]`
@@ -146,6 +149,7 @@ The `cors::Cors` struct contains a `check_headers()` method to validate incoming
 
 |===
 
+[[enum-response]]
 === `cors::ResponseType` Enum Response Values
 
 [%header%autowidth.spread,cols="a,a"]
@@ -162,7 +166,9 @@ The `cors::Cors` struct contains a `check_headers()` method to validate incoming
 
 == Write a CORS Validation Policy
 
-. Write an `#[entrypoint]` function that defines the `cors::Configuration` instance. `create_cors_configuration()` is the function defined in the xref:cors-configuration[] example:
+To write a CORS validation policy:
+
+. Define an `#[entrypoint]` function that defines the `cors::Configuration` instance. In the following example, `create_cors_configuration()` is the function defined in the xref:cors-configuration[] example:
 +
 [source,rust]
 ----
@@ -181,7 +187,7 @@ async fn configure(launcher: Launcher) -> Result<(), LaunchError> {
 }
 ----
 
-. Write a `request_filter()` function to validate the incoming requests by using the CORS validation methods. The `Flow` returned must contain a `Vec<(String, String)>` to pass the headers returned from `cors::Cors::check_headers()` to the `response_filter()`:
+. Define a `request_filter()` function to validate the incoming requests by using the CORS validation methods. The `Flow` returned must contain a `Vec<(String, String)>` to pass the headers returned from `cors::Cors::check_headers()` to the `response_filter()`:
 +
 [source,rust]
 ----
@@ -223,7 +229,7 @@ async fn request_filter(
 }
 ----
 
-. Write a `response_filter()` function that validates the response by using the CORS validation methods. `RequestData` contains the headers returned by `cors::Cors::check_headers()`:
+. Define a `response_filter()` function that validates the response by using the CORS validation methods. `RequestData` contains the headers returned by `cors::Cors::check_headers()`:
 +
 [source,rust]
 ----
