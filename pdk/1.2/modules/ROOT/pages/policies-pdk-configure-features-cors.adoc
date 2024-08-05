@@ -9,9 +9,9 @@ NOTE: To view an example policy project that uses Flex Gateway Policy Developmen
 CORS is a mechanism for web applications to access resources defined in another domain. Browsers support CORS by default. The PDK CORS library complies with the https://fetch.spec.whatwg.org/[CORS W3C recommendation^] standards and provides a set of tools to validate incoming requests and protect resources.
 
 [[cors-configuration]]
-== Configure CORS
+== Define a CORS Configuration Instance
 
-The CORS library is available from the `pdk::cors` module. The module provides the `cors::Configuration`, `cors::OriginGroup`, and `cors::AllowedMethod` structs and their builders to define how to validate incoming requests. For example, the following code snippet defines a hardcoded `cors::Configuration`:
+The CORS library is available from the `pdk::cors` module. The module provides the `cors::Configuration`, `cors::OriginGroup`, and `cors::AllowedMethod` structs and their builders to define how to validate incoming requests. For example, the following code snippet defines a function that hardcodes `cors::Configuration` instance:
 
 [source,Rust]
 ----
@@ -122,7 +122,7 @@ fn create_cors_configuration() -> cors:Configuration {
 |===
 
 [[applying-cors-to-an-incoming-request]]
-== Apply CORS validation
+== CORS Validation Methods
 
 The `cors::Cors` struct contains a `check_headers()` method to validate incoming headers against a provided `cors::Configuration` instance. The `cors::Cors::check_headers()` method returns the `Result<cors::Check, cors::CorsError>` struct. The result is `Err` when the CORS validation fails. If the validation passes, the reusust is `Ok` and you can evaluate the `cors::Check` struct.
 
@@ -162,7 +162,7 @@ The `cors::Cors` struct contains a `check_headers()` method to validate incoming
 
 == Write a CORS Validation Policy
 
-. Write an `#[entrypoint]` function where `create_cors_configuration()` is the function defined in the xref:cors-configuration[] example:
+. Write an `#[entrypoint]` function that defines the `cors::Configuration` instance. `create_cors_configuration()` is the function defined in the xref:cors-configuration[] example:
 +
 [source,rust]
 ----
@@ -181,7 +181,7 @@ async fn configure(launcher: Launcher) -> Result<(), LaunchError> {
 }
 ----
 
-. Write a `request_filter()` function, where the CORS validation is applied to the incoming request. The `Flow` returned must contain a `Vec<(String, String)>` to pass the headers returned by `cors::Cors::check_headers()` to the `response_filter()`:
+. Write a `request_filter()` function to validate the incoming requests by using the CORS validation methods. The `Flow` returned must contain a `Vec<(String, String)>` to pass the headers returned from `cors::Cors::check_headers()` to the `response_filter()`:
 +
 [source,rust]
 ----
@@ -223,7 +223,7 @@ async fn request_filter(
 }
 ----
 
-. Write a `response_filter()` function, where the CORS validation is applied to the response. The headers returned by `cors::Cors::check_headers()` will be available from `RequestData`:
+. Write a `response_filter()` function that validates the response by using the CORS validation methods. `RequestData` contains the headers returned by `cors::Cors::check_headers()`:
 +
 [source,rust]
 ----
