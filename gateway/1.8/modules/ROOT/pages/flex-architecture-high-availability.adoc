@@ -25,7 +25,7 @@ In this implementation:
 * Logs and metrics for each Flex Gateway are consolidated in Anypoint Platform. 
 * APIs deployed to the Gateway are available in all regions. 
 * API configurations including upstream services and policies are the same for all regions. Upstream services must be region-agnostic meaning either the DNS is local or it lacks any reference to the region.
-* The Redis cluster should be replicated across regions. Redis shared storage can also be used.  
+* The Redis cluster should be replicated across regions or Redis shared storage can be used. Redis replication is required when traffic is not region specific.   
 * The only cross-regional traffic is Redis synchronization.
 * The DNS service is configured for active-active failover to direct traffic to any region at all times.
 
@@ -68,7 +68,7 @@ image:Flex-Gateway-DR-3.png["A detailed view of scenario 2, which contains the n
 In both <<implementation-3a>> and <<implementation-3b>>, Flex Gateway directs traffic to the most convenient region to reduce latency. Choose which implementation dependent on your policy requirements.
 
 [[implementation-3a]]
-=== Implementation 3A: Direct Traffic Using the Same Policies
+=== Implementation 3A: Direct Traffic to APIs With the Same Policies
 
 This implementation is similar to <<implementation-1a>> and has the same considerations. However, Redis replication is not required because requests are sent to specific regions. To have the same API with the same policies served in two regions, use multiple upstreams to direct the traffic to the most convenient region. To learn more about multiple upstreams, see:
 
@@ -76,7 +76,7 @@ This implementation is similar to <<implementation-1a>> and has the same conside
 * xref:flex-local-publish-api-multiple-services.adoc[]
 
 [[implementation-3b]]
-=== Implementation 3B: Direct Traffic Using Different Policies
+=== Implementation 3B: Direct Traffic to APIs With the Different Policies
 
 This implementation is similar to <<implementation-1b>> and has the same considerations. Deploy region specific gateways and apply the necessary policies to the different APIs. 
 
