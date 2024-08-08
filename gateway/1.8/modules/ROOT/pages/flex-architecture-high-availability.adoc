@@ -41,7 +41,8 @@ In this implementation:
 
 * Each region has a distinct Flex Gateway with all resources as independent entities.
 * A separate Flex Gateway is registered for each region.
-* Logs and metrics are specific to their region because each Flex Gateway is a distinct entity in Anypoint Platform.
+* Each region specific API instance has distinct metrics, alerts, and logs in Anypoint Platform.
+* Policies are region specific even if the configuration is similar across regions.
 * The DNS service is configured for active-active failover to direct traffic to any region at all times.
 * API deployments are specific to each Flex Gateway. For each intended API a region supports, you must deploy an API instance to the region's Flex Gateway. 
 * API Groups can share contracts (access requests) across regions.
@@ -74,11 +75,6 @@ In both <<implementation-3a>> and <<implementation-3b>>, Flex Gateway directs tr
 This implementation is similar to <<implementation-1a>> and has the same considerations. However, Redis replication is not required because requests are sent to specific regions. Configure high availability or disaster recovery zones in each region to ensure API availability:
 
 image:Flex-Gateway-DR-4.png["A detailed view of implementation 3A, which contains the necessary services to enable direct customer requests to the closest region."]
-
-To configure the same API with the same policies to two regions, use multiple upstreams to direct the traffic to the most convenient region. To learn more about multiple upstreams, see:
-
-* xref:api-manager::create-instance-task-flex.adoc#traffic-management[Multiple Upstream Services for Flex Gateway Running in Connected Mode]
-* xref:flex-local-publish-api-multiple-services.adoc[]
 
 [[implementation-3b]]
 === Implementation 3B: Direct Traffic to APIs With the Different Policies
