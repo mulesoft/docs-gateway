@@ -208,7 +208,7 @@ include::partial$reference-install-next-steps.adoc[tags=flex-download-install;fl
 
 [[install-rhel-ibm]]
 [discrete]
-==== image:install-ibm-logo.png[4%,4%] Red Hat Enterprise Linux on IBM Power
+==== image:install-rhel-ibm-logo.png[6%,6%] Red Hat Enterprise Linux on IBM Power
 
 .Download and install Flex Gateway as a Red Hat Enterprise Linux service on IBM Power
 [%collapsible]
@@ -250,6 +250,108 @@ enabled=1
 EOF
 
 sudo yum install -y flex-gateway
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-download-install;flex-connected-vs-local]
+====
+
+[[install-suse]]
+[discrete]
+==== image:install-suse-logo.png[2%,2%] SUSE Linux Enterprise
+
+.Download and install Flex Gateway as a SUSE Linux Enterprise service
+[%collapsible]
+====
+
+[discrete]
+===== Software Requirements
+
+Flex Gateway runs on the following Long Term Support (LTS) versions:
+
+* {empty}
+include::partial$prerequisites.adoc[tag=suse]
+
+[discrete]
+===== Before You Begin
+
+Before getting started, ensure that you have installed the following:
+
+* link:https://gnupg.org/[gnupg2^]
+
+[discrete]
+===== Run Installation Commands
+
+To download and install Flex Gateway as a SUSE Linux Enterprise service, run the command block that performs the following actions:
+
+* Adds the Flex Gateway package repository with a reference to its public key
+* Installs the Flex Gateway package
+
+[source,ssh]
+----
+sudo rpm --import https://flex-packages.anypoint.mulesoft.com/suse/pubkey.gpg
+sudo tee /etc/zypp/repos.d/flex-gateway.repo <<\EOF
+[flex-gateway]
+name = Anypoint Flex Gateway
+baseurl = https://flex-packages.anypoint.mulesoft.com/suse/$releasever_major/main
+gpgcheck = 1
+gpgkey = https://flex-packages.anypoint.mulesoft.com/suse/pubkey.gpg
+repo_gpgcheck = 1
+enabled = 1
+EOF
+
+sudo zypper refresh -f flex-gateway
+sudo zypper install -y flex-gateway
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-download-install;flex-connected-vs-local]
+====
+
+[[install-suse-ibm]]
+[discrete]
+==== image:install-suse-ibm-logo.png[6%,6%] SUSE Linux Enterprise on IBM Power
+
+.Download and install Flex Gateway as a SUSE Linux Enterprise service on IBM Power
+[%collapsible]
+====
+
+[discrete]
+===== Software Requirements
+
+Flex Gateway runs on the following Long Term Support (LTS) versions:
+
+* {empty}
+include::partial$prerequisites.adoc[tag=suse-ibm]
+
+[discrete]
+===== Before You Begin
+
+Before getting started, ensure that you have installed the following:
+
+* link:https://gnupg.org/[gnupg2^]
+
+[discrete]
+===== Run Installation Commands
+
+To download and install Flex Gateway as a SUSE Linux Enterprise service on IBM Power, run the command block that performs the following actions:
+
+* Adds the Flex Gateway package repository with a reference to its public key
+* Installs the Flex Gateway package
+
+[source,ssh]
+----
+sudo rpm --import https://flex-packages.anypoint.mulesoft.com/suse/pubkey.gpg
+sudo tee /etc/zypp/repos.d/flex-gateway.repo <<\EOF
+[flex-gateway]
+name = Anypoint Flex Gateway
+baseurl = https://flex-packages.anypoint.mulesoft.com/suse/$releasever_major/main
+gpgcheck = 1
+gpgkey = https://flex-packages.anypoint.mulesoft.com/suse/pubkey.gpg
+repo_gpgcheck = 1
+enabled = 1
+EOF
+
+sudo zypper refresh -f flex-gateway
+sudo zypper install -y flex-gateway
 ----
 
 include::partial$reference-install-next-steps.adoc[tags=flex-download-install;flex-connected-vs-local]
