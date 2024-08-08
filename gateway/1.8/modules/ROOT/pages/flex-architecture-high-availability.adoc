@@ -1,10 +1,10 @@
-= Flex Gateway Disaster Recovery
+= Flex Gateway Multiple Region Deployments
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Install Flex Gateway in a multi-availability zone mode to ensure live failover. You can configure most implementations with either multiple Flex Gateways or multiple Flex Replicas. Dependent on which you chose, there are different considerations for Redis Shared-Storage, policies, and logging. To learn more about Flex Replicas, see xref:index.adoc#replicas[Flex Replicas].
+Install Flex Gateway in multiple regions to reduce latency and ensure live failover. You can configure most implementations with either multiple Flex Gateways or multiple Flex Replicas. Dependent on which you chose, there are different considerations for Redis Shared-Storage, policies, and logging. To learn more about Flex Replicas, see xref:index.adoc#replicas[Flex Replicas].
 
 All the following diagrams show Flex Gateway running in Connected Mode. For Flex Gateway running in Local Mode, the only difference is that Anypoint Platform would not be present in the deployment model. This does not affect how information flows between Flex Gateway and the upstream and downstream services.
 
@@ -20,18 +20,18 @@ Implementation 1 provides high availability for non-region specific traffic. The
 
 In this implementation:
 
-* A single Flex Gateway has Flex Replicas distributed across multiple region:
-* The Flex Gateway is registered once in Anypoint Platform and deployed across multiple regions.
-* Logs and metrics for each Flex Gateway are consolidated in Anypoint Platform. 
-* APIs deployed to the Gateway are available in all regions. 
+* A single Flex Gateway has Flex Replicas distributed across multiple region.
+* The Flex Gateway is registered once in Anypoint Platform and deployed across multiple regions and availability zones.
+* Logs and metrics for each Flex Gateway are consolidated in Anypoint Platform.
+* The DNS service is configured for active-active failover to direct traffic to any region at all times.
+* APIs deployed to the Gateway are available in all regions and availability zones. 
 * API configurations including upstream services and policies are the same for all regions. Upstream services must be region-agnostic meaning either the DNS is local or it lacks any reference to the region.
 * The Redis cluster should be replicated across regions or Redis shared storage can be used. Redis replication is required when traffic is not region specific.   
 * The only cross-regional traffic is Redis synchronization.
-* The DNS service is configured for active-active failover to direct traffic to any region at all times.
 
-In the following diagram, Flex Replicas in different regions have distinct Kubernetes deployments:
+In the following diagram, Flex Replicas in different regions and availability zones have distinct Kubernetes deployments:
 
-image:Flex-Gateway-DR-1.png["A detailed view of scenario 1A, which contains the necessary services to support High Availability in different regions Flex Replicas."]
+image:Flex-Gateway-DR-1.png["A detailed view of implementation 1A, which contains the necessary services to support High Availability in different regions Flex Replicas."]
 
 
 [[implementation-1b]]
@@ -42,6 +42,7 @@ In this implementation:
 * Each region has a distinct Flex Gateway with all resources as independent entities.
 * A separate Flex Gateway is registered for each region.
 * Logs and metrics are specific to their region because each Flex Gateway is a distinct entity in Anypoint Platform.
+* The DNS service is configured for active-active failover to direct traffic to any region at all times.
 * API deployments are specific to each Flex Gateway. For each intended API a region supports, you must deploy an API instance to the region's Flex Gateway. 
 * API Groups can share contracts (access requests) across regions.
 * Shared storage does not require synchronization. 
@@ -49,7 +50,7 @@ In this implementation:
 
 In the following diagram, all APIs are duplicated and do not require identical configurations:
 
-image:Flex-Gateway-DR-2.png["A detailed view of scenario 1B, which contains the necessary services to support High Availability in region-specific Flex Gateways."]
+image:Flex-Gateway-DR-2.png["A detailed view of implementation 1B, which contains the necessary services to support High Availability in region-specific Flex Gateways."]
 
 [[implementation-2]]
 == Implementation 2: Disaster Recovery for APIs
@@ -58,12 +59,12 @@ This implementation is similar to <<implementation-1a>>. However, the DNS servic
 
 Redis replication is not required if a cache loss during failover is acceptable.
 
-In the following diagram, Flex Replicas in different regions have distinct Kubernetes deployments:
+In the following diagram, Flex Replicas in different availability zones have distinct Kubernetes deployments, and Region B provides high availability:
 
-image:Flex-Gateway-DR-3.png["A detailed view of scenario 2, which contains the necessary services to enable Disaster Recovery for APIs on Flex Gateway."]
+image:Flex-Gateway-DR-3.png["A detailed view of implementation 2, which contains the necessary services to enable Disaster Recovery for APIs on Flex Gateway."]
 
 [[implementation-3]]
-== Implementation 3: Direct Traffic to the Most Convenient Region
+== Implementation 3: Direct Traffic to the Closest Region
 
 In both <<implementation-3a>> and <<implementation-3b>>, Flex Gateway directs traffic to the most convenient region to reduce latency. Choose which implementation dependent on your policy requirements.
 
@@ -75,11 +76,19 @@ This implementation is similar to <<implementation-1a>> and has the same conside
 * xref:api-manager::create-instance-task-flex.adoc#traffic-management[Multiple Upstream Services for Flex Gateway Running in Connected Mode]
 * xref:flex-local-publish-api-multiple-services.adoc[]
 
+Configure high availability or disaster recovery zones in each region to ensure API availability:
+
+image:Flex-Gateway-DR-4.png["A detailed view of implementation 3B, which contains the necessary services to enable direct customer requests to the closest region."]
+
 [[implementation-3b]]
 === Implementation 3B: Direct Traffic to APIs With the Different Policies
 
-This implementation is similar to <<implementation-1b>> and has the same considerations. Deploy region specific gateways and apply the necessary policies to the different APIs. 
+This implementation is similar to <<implementation-1b>> and has the same considerations. Deploy region specific gateways and apply the necessary policies to the different APIs. Configure high availability or disaster recovery zones in each region to ensure API availability:
+
+image:Flex-Gateway-DR-5.png["A detailed view of implementation 3B, which contains the necessary services to enable direct customer requests to the closest region."]
 
 NOTE: To apply SLA rate limiting across all regions, the rate limits must be the same for all regions. Use API groups to consolidate the contracts. 
+
+
 
 
