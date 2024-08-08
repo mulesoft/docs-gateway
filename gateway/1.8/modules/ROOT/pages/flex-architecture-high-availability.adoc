@@ -71,14 +71,14 @@ In both <<implementation-3a>> and <<implementation-3b>>, Flex Gateway directs tr
 [[implementation-3a]]
 === Implementation 3A: Direct Traffic to APIs With the Same Policies
 
-This implementation is similar to <<implementation-1a>> and has the same considerations. However, Redis replication is not required because requests are sent to specific regions. To have the same API with the same policies served in two regions, use multiple upstreams to direct the traffic to the most convenient region. To learn more about multiple upstreams, see:
+This implementation is similar to <<implementation-1a>> and has the same considerations. However, Redis replication is not required because requests are sent to specific regions. Configure high availability or disaster recovery zones in each region to ensure API availability:
+
+image:Flex-Gateway-DR-4.png["A detailed view of implementation 3A, which contains the necessary services to enable direct customer requests to the closest region."]
+
+To configure the same API with the same policies to two regions, use multiple upstreams to direct the traffic to the most convenient region. To learn more about multiple upstreams, see:
 
 * xref:api-manager::create-instance-task-flex.adoc#traffic-management[Multiple Upstream Services for Flex Gateway Running in Connected Mode]
 * xref:flex-local-publish-api-multiple-services.adoc[]
-
-Configure high availability or disaster recovery zones in each region to ensure API availability:
-
-image:Flex-Gateway-DR-4.png["A detailed view of implementation 3B, which contains the necessary services to enable direct customer requests to the closest region."]
 
 [[implementation-3b]]
 === Implementation 3B: Direct Traffic to APIs With the Different Policies
