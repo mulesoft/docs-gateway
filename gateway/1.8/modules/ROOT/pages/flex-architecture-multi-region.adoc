@@ -31,7 +31,7 @@ In this implementation:
 
 In the following diagram, Flex Replicas in different regions and availability zones have distinct Kubernetes deployments:
 
-image:Flex-Gateway-DR-1.png["A detailed view of implementation 1A, which contains the necessary services to support High Availability in different regions Flex Replicas."]
+image:Flex-Gateway-DR-1.png["A detailed view of implementation 1A, which contains the necessary services to support high availability in for Flex Replicas deployed in different regions."]
 
 
 [[implementation-1b]]
@@ -44,14 +44,14 @@ In this implementation:
 * Each region-specific API instance has distinct metrics, alerts, and logs in Anypoint Platform.
 * Policies are region specific even if the configuration is similar across regions.
 * The DNS service is configured for active-active failover to direct traffic to any region at all times.
-* API deployments are specific to each Flex Gateway. For each intended API a region supports, you must deploy an API instance to the region's Flex Gateway. 
+* API deployments are specific to each Flex Gateway. For each API a region supports, you must deploy an API instance to the region's Flex Gateway. 
 * API Groups can share contracts (access requests) across regions.
 * Shared storage does not require synchronization. 
 * There is no cross-regional traffic.
 
 In the following diagram, all APIs are duplicated and don't require identical configurations:
 
-image:Flex-Gateway-DR-2.png["A detailed view of implementation 1B, which contains the necessary services to support High Availability in region-specific Flex Gateways."]
+image:Flex-Gateway-DR-2.png["A detailed view of implementation 1B, which contains the necessary services to support high availability for region-specific Flex Gateways."]
 
 [[implementation-2]]
 == Implementation 2: Disaster Recovery for APIs
@@ -62,7 +62,7 @@ Redis replication is not required if a cache loss during failover is acceptable.
 
 In the following diagram, Flex Replicas in different availability zones have distinct Kubernetes deployments, and Region B provides high availability:
 
-image:Flex-Gateway-DR-3.png["A detailed view of implementation 2, which contains the necessary services to enable Disaster Recovery for APIs on Flex Gateway."]
+image:Flex-Gateway-DR-3.png["A detailed view of implementation 2, which contains the necessary services to enable disaster recovery for APIs on Flex Gateway."]
 
 [[implementation-3]]
 == Implementation 3: Direct Traffic to the Closest Region
@@ -74,14 +74,14 @@ In both <<implementation-3a>> and <<implementation-3b>>, Flex Gateway directs tr
 
 This implementation is similar to <<implementation-1a>> and has the same considerations. However, Redis replication is not required because requests are sent to specific regions. Configure high availability or disaster recovery zones in each region to ensure API availability:
 
-image:Flex-Gateway-DR-4.png["A detailed view of implementation 3A, which contains the necessary services to enable direct customer requests to the closest region."]
+image:Flex-Gateway-DR-4.png["A detailed view of implementation 3A, which contains the necessary services to enable route customer requests to the closest region."]
 
 [[implementation-3b]]
 === Implementation 3B: Direct Traffic to APIs With the Different Policies
 
 This implementation is similar to <<implementation-1b>> and has the same considerations. Deploy region-specific gateways and apply the necessary policies to the different APIs. Configure high availability or disaster recovery zones in each region to ensure API availability:
 
-image:Flex-Gateway-DR-5.png["A detailed view of implementation 3B, which contains the necessary services to enable direct customer requests to the closest region."]
+image:Flex-Gateway-DR-5.png["A detailed view of implementation 3B, which contains the necessary services to enable route customer requests to the closest region."]
 
 NOTE: To apply SLA rate limiting across all regions, the rate limits must be the same for all regions. Use API groups to consolidate the contracts. 
 
