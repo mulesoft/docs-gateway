@@ -150,7 +150,18 @@ EOF
 +
 ** Connected Mode:
 +
-...
+To add an API instance in Connected Mode, see xref:api-manager::create-instance-task-flex.adoc[].
++
+Configure API instance with the following downstream parameters:
++
+*** *Protocol*: *HTTP*
+*** *Port*: `8081`
+*** *Base Path*: `/ingress/`
++
+Configure API instance with the following upstream parameters:
++
+*** *Route label*: `productpage`
+*** *Upstream URL*: `http://productpage.bookinfo.svc:9080`
 
 . Create the `flex` Istio Gateway and forward the ingress traffic to Flex using a VirtualService:
 +
@@ -334,6 +345,20 @@ EOF
 ----
 
 ** Connected Mode:
++
+To add an API instance in Connected Mode, see xref:api-manager::create-instance-task-flex.adoc[].
++
+Configure API instance with the following downstream parameters:
++
+*** *Protocol*: *HTTP*
+*** *Port*: `8081`
+*** *Base Path*: `/bookinfo/reviews/`
++
+Configure API instance with the following upstream parameters:
++
+*** *Route label*: `reviews`
+*** *Upstream URL*: `http://reviews.bookinfo.svc:9080`
+
 
 . Intercept the traffic from `productpage` service to `reviews` service and forward it to `flex` service:
 +
