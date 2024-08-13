@@ -13,6 +13,8 @@ Before you begin, install the following prerequisites:
 
 * https://docs.docker.com/get-docker/[Docker^]
 
+* xref:flex-install.adoc#kubernetes[Download Flex Gateway for Use in a Kubernetes Cluster]
+
 * https://k3d.io/v5.0.0/#installation[K3d] to create a kubernetes cluster inside of docker
 
 * https://kubernetes.io/docs/tasks/tools/#kubectl[kubectl] to control the Kubernetes cluster
@@ -21,14 +23,14 @@ Before you begin, install the following prerequisites:
 
 == Setup Environment
 
-. Create the kubernetes cluster used for this demo or skip this step if you already have one:
+. Create a Kubernetes cluster for this demo or skip this step if you already have a cluster you want to use:
 +
 [source,ssh]
 ----
 k3d cluster create demo-istio --k3s-arg "--disable=traefik@server:0" --port '80:80@server:0' --port '443:443@server:0'
 ----
 
-. Add Flex Gateway and Istio helm repo:
+. Add the Flex Gateway and Istio Helm repositories:
 +
 [source,ssh]
 ----
@@ -39,21 +41,21 @@ helm repo add istio https://istio-release.storage.googleapis.com/charts \
 
 . Install Istio:
 +
-.. Install the Istio base chart which contains cluster-wide Custom Resource Definitions (CRDs) which must be installed prior to the deployment of the Istio control plane:
+.. Install the Istio base chart that contains cluster-wide Custom Resource Definitions (CRDs) that must be installed prior to the deployment of the Istio control plane:
 +
 [source,ssh]
 ----
 helm upgrade -i --wait --create-namespace -n istio-system istio-base istio/base --version 1.21.2 --set defaultRevision=default
 ----
 +
-.. Install the Istio discovery chart which deploys the istiod service
+.. Install the Istio discovery chart that deploys the `istiod` service:
 +
 [source,ssh]
 ----
 helm upgrade -i --wait --create-namespace -n istio-system istiod istio/istiod --version 1.21.2
 ----
 +
-.. Install an ingress gateway:
+.. Install an Istio ingress gateway:
 +
 [source,ssh]
 ----
@@ -62,7 +64,7 @@ helm upgrade -i --wait --create-namespace -n istio-system istio-ingress istio/ga
 
 . Install Flex Gateway:
 
-.. Create the namespace and setup de label to enable the sidecar inject:
+.. Create the namespace and setup the label to enable the sidecar injection:
 +
 [source,ssh]
 ----
@@ -82,16 +84,16 @@ helm upgrade -i --wait -n flex --version 1.7.0 flex flex-gateway/flex-gateway \
 --set-file registration.content=registration.yaml
 ----
 +
-.. List all Services and ApiInstances created:
+.. List all services and API instances previously created:
 +
 [source,ssh]
 ----
 kubectl -n flex get svc
 ----
 
-. Install Bookinfo application:
+. Install the `bookinfo` application:
 +
-.. Enable Istio injection label in the default namespace and install bookinfo application on it:
+.. Enable Istio label injection in the default namespace and install the `bookinfo` application:
 +
 [source,ssh]
 ----
@@ -100,16 +102,16 @@ kubectl create ns bookinfo \
 && kubectl -n bookinfo apply -l version!=v2,version!=v3 -f https://raw.githubusercontent.com/istio/istio/release-1.20/samples/bookinfo/platform/kube/bookinfo.yaml
 ----
 +
-.. Check the status of the pods:
+.. Check the pod status:
 +
 [source,ssh]
 ----
 kubectl -n bookinfo get pods 
 ----
 
-. Install `sleep` application:
+. Install the `sleep` application:
 +
-.. Install `sleep` application used to test traffic:
+.. Install `sleep` application to test traffic:
 +
 [source,ssh]
 ----
@@ -127,7 +129,7 @@ kubectl -n test get pods
 
 == Forward Ingress Traffic
 
-.  Create the ingress ApiInstance and forward all incoming traffic to the `productpage` service in the `bookinfo` namespace:
+.  Create the ingress API instance to forward all incoming traffic in the `bookinfo` namespace to the `productpage` service:
 +
 ** Local Mode:
 +
@@ -152,20 +154,20 @@ EOF
 +
 To add an API instance in Connected Mode, see xref:api-manager::create-instance-task-flex.adoc[].
 +
-Configure API instance with the following downstream parameters:
+Configure the API instance with the following downstream parameters:
 +
 *** *Protocol*: *HTTP*
 *** *Port*: `8081`
 *** *Base Path*: `/ingress/`
 +
-Configure API instance with the following upstream parameters:
+Configure the API instance with the following upstream parameters:
 +
 *** *Route label*: `productpage`
 *** *Upstream URL*: `http://productpage.bookinfo.svc:9080`
 
-. Create the `flex` Istio Gateway and forward the ingress traffic to Flex using a VirtualService:
+. Create the `flex` Istio gateway and forward the ingress traffic to Flex Gateway using a istio virtual service:
 +
-.. Create the gateway:
+.. Create the Flex Gateway:
 +
 [source,ssh]
 ----
@@ -208,14 +210,14 @@ spec:
 EOF
 ----
 +
-.. Wait a few seconds (around 10s) and try hit the /api/v1/products/1 page:
+.. Wait a few seconds (approximately 10) and send a test request the `/api/v1/products/1` page:
 +
 [source,ssh]
 ----
 curl -v http://localhost/api/v1/products/1
 ----
 +
-.. Ensure your receive the following output:
+.. Ensure you receive the following output:
 +
 [source,ssh]
 ----
@@ -230,7 +232,7 @@ curl -v http://localhost/api/v1/products/1
 {"id": 2, "author": "William Shakespeare", "year": 1595, "type": "paperback", "pages": 200, "publisher": "PublisherA", "language": "English", "ISBN-10": "1234567890", "ISBN-13": "123-1234567890"}
 ----
 
-. Add basic-auth policy to ingress ApiInstance to protect it:
+. Protect the ingress API instance by adding the Basic Authentication policy:
 +
 .. Add the policy:
 +
@@ -257,16 +259,16 @@ spec:
 EOF
 ----
 +
-.. Wait a few seconds (around 10s) and try hit again:
+.. Wait a few seconds (approximately 10) and send a test request:
 +
 [source,ssh]
 ----
 curl -v http://localhost/
 ----
 +
-.. Ensure you receive a 401 response.
+.. Ensure you receive a `401` response.
 
-. Add the message logging policy to log the traffic:
+. Add the Message Logging policy to log traffic:
 +
 [source,ssh]
 ----
@@ -308,7 +310,7 @@ EOF
 
 == Create a Service to Serve Traffic
 
-. First we need to create the `bookinfo-reviews` ApiInstance to forward the incoming traffic to the `reviews` Service in the `bookinfo` namespace:
+. Create the `bookinfo-reviews` API instance to forward the incoming traffic to the `reviews` service in the `bookinfo` namespace:
 
 ** Local Mode:
 +
@@ -348,19 +350,19 @@ EOF
 +
 To add an API instance in Connected Mode, see xref:api-manager::create-instance-task-flex.adoc[].
 +
-Configure API instance with the following downstream parameters:
+Configure the API instance with the following downstream parameters:
 +
 *** *Protocol*: *HTTP*
 *** *Port*: `8081`
 *** *Base Path*: `/bookinfo/reviews/`
 +
-Configure API instance with the following upstream parameters:
+Configure the API instance with the following upstream parameters:
 +
 *** *Route label*: `reviews`
 *** *Upstream URL*: `http://reviews.bookinfo.svc:9080`
 
 
-. Intercept the traffic from `productpage` service to `reviews` service and forward it to `flex` service:
+. Intercept the traffic between the `productpage` service to the `reviews` service and forward it to `flex` service:
 +
 .. Create the API instance:
 +
@@ -395,22 +397,25 @@ spec:
 EOF
 ----
 +
-.. Now when we hit the `/productpage` page, using user `foo` and pass `bar`:
+.. Send a test request with the `foo` user and `bar` password to the `/productpage`:
 +
 [source,ssh]
 ----
 curl -v -u foo:bar http://localhost/productpage
 ----
 +
-.. Check the logs to ensure the request sent from the productpage service to the reviews service is handled by Flex. The logs should appear as follows:
+.. Check the logs to ensure the request sent from the `productpage` service to the `reviews` service was handled by Flex. The logs appear similar to the following:
 +
 [source,ssh]
 ----
 [flex-gateway-envoy][info] wasm log productpage-message-logging-flex-2.flex.productpage.flex.svc main: [policy: productpage-message-logging-flex-2.flex][api: productpage.flex.svc][req: 6e1f7c32-918d-4b6a-af3f-36a4430f80ae] [accessLog] > HTTP/1.1 GET localhost/ingress/productpage
 [flex-gateway-envoy][info] wasm log bookinfo-reviews-message-logging-flex-1.flex.bookinfo-reviews.flex.svc main: [policy: bookinfo-reviews-message-logging-flex-1.flex][api: bookinfo-reviews.flex.svc][req: b23e9c64-a2aa-4464-8984-d1dd6c18f7ea] [accessLog] > HTTP/1.1 GET reviews:9080/bookinfo/reviews/reviews/0
 ----
++
+NOTE: Use the standard output logs for a quick log check. To learn how to view standard output logs, see xref:flex-local-view-logs.adoc[].
 
-.. Apply the rate-limit policy to all request sent to reviews service to protect it:
+
+.. Apply the Rate Limiting policy to the `bookinfo-reviews` API instance to protect the `reviews` service:
 +
 [source,ssh]
 ----
@@ -476,14 +481,14 @@ spec:
 EOF
 ----
 +
-.. Try to hit the details service, from the test namespace:
+.. Send a test request from the test namespace to the `details` service:
 +
 [source,ssh]
 ----
 kubectl -n test exec -ti -c sleep $(kubectl -n test get pod --no-headers -o=name) -- curl -v details.bookinfo:9080/details/0
 ----
 +
-The following forbidden response returns:
+.. Ensure you receive the following forbidden response:
 +
 [source,ssh]
 ----
@@ -498,14 +503,14 @@ The following forbidden response returns:
 RBAC: access denied
 ----
 +
-.. Check how we can access it from the flex namespace:
+.. Send the following request to the `details` service to see how you access the `bookinfo` service from the flex namespace:
 +
 [source,ssh]
 ----
 kubectl -n flex exec -ti -c app  $(kubectl -n flex get pod --no-headers -o=name) -- flexctl check http http://details.bookinfo:9080/details/0
 ----
 +
-See the following response:
+.. Ensure the following response:
 +
 [source,ssh]
 ----
