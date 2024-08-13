@@ -404,7 +404,7 @@ EOF
 curl -v -u foo:bar http://localhost/productpage
 ----
 +
-.. Check the logs to ensure the request sent from the `productpage` service to the `reviews` service was handled by Flex. The logs appear similar to the following:
+.. Check the Flex Gateway logs to ensure the request sent from the `productpage` service to the `reviews` service was handled by Flex. The logs appear similar to the following:
 +
 [source,ssh]
 ----
@@ -457,7 +457,7 @@ spec:
 EOF
 ----
 
-. Restrict direct access to `bookinfo` services:
+. Restrict direct access to the `bookinfo` service:
 +
 .. Restrict access:
 +
@@ -488,7 +488,7 @@ EOF
 kubectl -n test exec -ti -c sleep $(kubectl -n test get pod --no-headers -o=name) -- curl -v details.bookinfo:9080/details/0
 ----
 +
-.. Ensure you receive the following forbidden response:
+.. Ensure you receive the following `403 forbidden` response:
 +
 [source,ssh]
 ----
@@ -503,7 +503,7 @@ kubectl -n test exec -ti -c sleep $(kubectl -n test get pod --no-headers -o=name
 RBAC: access denied
 ----
 +
-.. Send the following request to the `details` service to see how you access the `bookinfo` service from the flex namespace:
+.. Send the following request to the `details` service to find how to access the `bookinfo` service from the `flex` namespace:
 +
 [source,ssh]
 ----
