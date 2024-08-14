@@ -1,0 +1,148 @@
+= Transport Layer Security Policy - Inbound
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: tls, mtls, transport layer security, inbound tls, api gateway, flex gateway, gateway, policy
+:page-aliases: policies::policies-included-tls.adoc
+
+[%autowidth.spread,cols="a,a"]
+|===
+>s| Policy Name | Transport Layer Security (TLS) - Inbound
+>s|Summary      | Enables authentication between a client and the API proxy
+>s|Category | Security
+>s| First Flex Gateway version available | v1.0.0 (inbound mTLS: v1.3.0)
+.4+>.^s| Returned Status Codes | No return codes exist for this policy.
+[%autowidth.spread,cols="a,a"]
+|
+|===
+
+[NOTE]
+====
+The following document applies only to Flex Gateway running in Local Mode. To configure TLS in Connected Mode, see xref:flex-conn-tls-config.adoc[].
+====
+
+== Summary
+Flex Gateway supports inbound Transport Layer Security (TLS) and inbound mutual authentication TLS (mTLS) in Local Mode.
+
+To apply inbound TLS in Local Mode, use the xref:flex-local-tls-config.adoc[Configuring TLS Context for Flex Gateway in Local Mode] tutorial and refer to the following configuration files in this documentation.
+
+You can configure an inbound TLS context to enable authentication between a client and the API instance (HTTPS) by binding the TLS policy to your API instance or to all instances in your Flex Gateway.
+
+include::partial$task-tls-config.adoc[tags=port-sharing-inbound]
+
+[NOTE]
+====
+TLS policies do not support policy ordering.
+====
+
+== Configuring Policy Parameters
+
+To use HTTPS as your schema
+when creating an API instance using Flex Gateway as your runtime, you must manually configure the TLS context
+in a YAML configuration file.
+
+Refer to the following policy definition and table of parameters:
+
+----
+- policyRef:
+    name: tls
+  config:
+    requireClientCertificate: <boolean> // OPTIONAL
+    trustedCA: <string> // OPTIONAL
+    certificate: // OPTIONAL
+        key: <string> // OPTIONAL
+        crt: <string> // OPTIONAL
+    alpn: <array> // OPTIONAL
+    minversion: <string> // OPTIONAL
+    maxversion: <string> // OPTIONAL
+    ciphers: <array> // OPTIONAL
+----
+
+Not including optional parameters in your configuration file applies the parameters default values to your TLS context.
+
+When configuring the `ciphers` parameter, see <<local-support, TLS Cipher Support on Flex Gateway>> for the supported ciphers.
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Parameter | Required or Optional | Default Value | Description
+
+| `requireClientCertificate`
+| Optional
+| false
+| Enables/disables inbound mTLS
+
+| `trustedCA`
+| Optional, unless `requireClientCertificate` is true
+| N/A
+| The client certificate used in mTLS
+
+| `certificate`
+| Optional
+| N/A
+| A TLS certificate key pair. To comply with security standards, all certificates must be 2048 bits or longer.
+
+| `certificate.key`
+| Optional
+| N/A
+| The private key part of the certificate
+
+| `certificate.crt`
+| Optional
+| N/A
+| The public key part of the certificate
+
+| `alpn`
+| Optional
+| `h2` and `http/1.1`
+| A prioritized list of supported application level protocols; for example, h2, http/1.1, and so forth.
+
+| `minversion`
+| Optional
+| `1.2`
+| The minimum TLS version allowed
+
+| `maxversion`
+| Optional
+| `1.3`
+| The maximum TLS version allowed
+
+| `ciphers`
+| Optional
+| For the default and other supported ciphers, see <<local-support, TLS Cipher Support on Flex Gateway>>.
+| A list of supported TLS ciphers (IANA format). For the supported ciphers, see <<local-support, TLS Cipher Support on Flex Gateway>>.
+
+|===
+
+=== Resource Configuration Examples
+
+You can format the YAML file to configure TLS or mTLS either for a specific API instance or or for all API instances running on your Flex Gateway.
+
+==== Apply TLS Configuration to All API Instances
+
+// sample config applied to all apis on gateway intro
+include::partial$task-tls-config.adoc[tags=sample-config-all-intro]
+//sample config applied to all apis on gateway
+include::partial$task-tls-config.adoc[tags=sample-config-all]
+
+==== Apply TLS Configuration to a Specific API Instance
+
+//sample config applied a specific api intro
+include::partial$task-tls-config.adoc[tags=sample-config-instance-intro]
+//sample config applied to a specific api
+include::partial$task-tls-config.adoc[tags=sample-config-instance]
+
+==== Apply mTLS Inbound Configuration to a Specific API Instance
+
+//sample mtls config applied a specific api intro
+include::partial$task-tls-config.adoc[tags=sample-config-mtls-intro]
+//sample mtls config applied to a specific api
+include::partial$task-tls-config.adoc[tags=sample-config-mtls]
+
+include::partial$flex-tls-cipher.adoc[tags=cipherSupportLocal;local-ciphers]
+
+
+== See Also
+* xref:flex-conn-tls-config.adoc[]
+* xref:flex-local-tls-config.adoc[]
+* xref:policies-included-tls-outbound.adoc[]
