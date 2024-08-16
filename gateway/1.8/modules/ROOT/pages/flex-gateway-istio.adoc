@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Integrate Flex Gateway into your Istio Service Mesh to leverage Flex Gateway policies, metrics, and the Anypoint Platform control plane. Implement Flex Gateway as a ingress gateway to manage incoming north-south cluster traffic and internal east-west traffic inside the cluster.
+Integrate Flex Gateway into your Istio Service Mesh to leverage Flex Gateway policies, metrics, and the Anypoint Platform control plane. Implement Flex Gateway as an ingress gateway to manage incoming north-south cluster traffic and internal east-west traffic inside the cluster.
 
 In the following diagram:
 
@@ -13,15 +13,18 @@ In the following diagram:
 * Flex Gateway protects and monitors the exposed product page service from incoming traffic with an API instance.
 * The Istio sidecar intercepts east-west traffic between the product page service and the reviews service. Flex Gateway acts as an ingress gateway managing incoming traffic to the reviews service.
 
-
-
-between service names spaces is restricted so all traffic must pass through Flex Gateway. If a service does not require Flex Gateway management, you don't need to restrict traffic to it's name space.
-
-
 image:flex-istio-deployment.png["Flex Gateway deployed using Istio sidecars and a Istio Ingress gateway"]
 
 NOTE: In the diagram, Flex Gateway is running in Connected Mode. If Flex gateway was running is local mode, the Anypoint Platform control plane is not present.
 
+To configure the architecture in the previous diagram:
+
+. Review <<before-you-begin>>.
+. <<setup-environment>>.
+. <<forward-ingress-traffic>>.
+. <<create-a-service>>.
+
+[[before-you-begin]]
 == Before You Begin
 
 Before you begin, install the following prerequisites:
@@ -36,6 +39,7 @@ Before you begin, install the following prerequisites:
 
 * https://helm.sh/docs/intro/install/[Helm] to install Flex Gateway and Istio
 
+[[setup-environment]]
 == Setup Environment
 
 . Create a Kubernetes cluster for this demo or skip this step if you already have a cluster you want to use:
@@ -56,7 +60,7 @@ helm repo add istio https://istio-release.storage.googleapis.com/charts \
 
 . Install Istio:
 +
-.. Install the Istio base chart that contains cluster-wide Custom Resource Definitions (CRDs) that must be installed prior to the deployment of the Istio control plane:
+.. Install the Istio base chart that contains the cluster-wide Custom Resource Definitions (CRDs) that must be installed prior to the deployment of the Istio control plane:
 +
 [source,ssh]
 ----
@@ -142,6 +146,7 @@ kubectl create ns test \
 kubectl -n test get pods
 ----
 
+[[forward-ingress-traffic]]
 == Forward Ingress Traffic
 
 .  Create the ingress API instance to forward all incoming traffic in the `bookinfo` namespace to the `productpage` service:
@@ -323,6 +328,7 @@ spec:
 EOF
 ----
 
+[[create-a-service]]
 == Create a Service to Serve Traffic
 
 . Create the `bookinfo-reviews` API instance to forward the incoming traffic to the `reviews` service in the `bookinfo` namespace:
