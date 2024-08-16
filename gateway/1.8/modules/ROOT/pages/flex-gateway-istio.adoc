@@ -8,9 +8,11 @@ Integrate Flex Gateway into your Istio Service Mesh to leverage Flex Gateway pol
 
 In the following diagram:
 
-* Flex Gateway acts as an ingress gateway managing all incoming north-south traffic to the cluster. 
-* Flex Gateway protects and monitors the exposed product page service. 
-* Flex Gateway acts as an ingress gateway managing all east-west traffic to the reviews service.
+* An Istio virtual service forwards all ingress north-south traffic to Flex Gateway. 
+* Flex Gateway protects and monitors the exposed product page service from incoming traffic with an API instance.
+* Flex Gateway acts as an ingress gateway managing all east-west traffic between the product page service and the reviews service.
+* Traffic between service names spaces is restricted so all traffic must pass through Flex Gateway. If a service does not require Flex Gateway management, you don't need to restrict traffic to it's name space.
+
 
 image:flex-istio-deployment.png["Flex Gateway deployed using Istio sidecars and a Istio Ingress gateway"]
 
