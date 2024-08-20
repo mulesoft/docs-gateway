@@ -74,9 +74,9 @@ wrapper.java.additional.100=-Danypoint.platform.client_id=![smzbg+aV2HbiC9Fv8KBs
 --
 
 [NOTE]
-The `![` prefix and  `]` suffix are required because they specify to the Mule Runtime Engine that the enclosed value is encrypted.
+The `![` prefix and  `]` suffix are required because they specify to Mule Runtime Engine that the enclosed value is encrypted.
 
-For the Mule runtime engine to be able to decrypt your secured values, you need to pass your secret key when starting your Mule runtime using the `anypoint.platform.encryption_key` property:
+When starting Mule runtime engine, you must pass your secret key, using the `anypoint.platform.encryption_key` property:
 
 [source]
 --
@@ -110,7 +110,7 @@ When you provide a key, the Mule environment displays the following message:
 An encryption key is present. Policies and API contracts will be encrypted.
 ----
 
-If not, the Mule runtime engine stars with:
+If not, Mule starts with:
 
 ----
 No encryption key provided. Policies and API contracts will not be encrypted.
@@ -158,14 +158,14 @@ Sensitive values in your provided API policies are marked as such in the API Man
 
 == Configuring Policy Encryption
 
-To enable encryption in policies, you need to provide two system properties in your `wrapper.conf` file:
+To enable encryption in policies, you must provide two system properties in your `wrapper.conf` file:
 
 * `anypoint.platform.encryption_key` +
 The encryption key for your policy.
 +
 [CAUTION]
 --
-If you have all your policies encrypted, and then you restart the Mule runtime engine without an encryption key, all policies are downloaded again. However, all sensitive information is not encrypted.
+If you restart Mule without an encryption key, all policies are downloaded again, and sensitive information is not encrypted.
 --
 * `anypoint.platform.policy_encryption_mode` +
 This property key can take two values:
@@ -215,7 +215,7 @@ See xref:policies-custom-getting-started.adoc#setting-up-a-project-with-the-arch
 If you are developing a custom policy manually, or want to add encryption to an existing policy, perform the following steps:
 
 . Add the required dependencies in the policy `pom.xml` file. +
-You need to add the *Secure Configuration Property Module* dependency in your `pom.xml` file:
+You must add the *Secure Configuration Property Module* dependency in your `pom.xml` file:
 +
 [source,XML,linenums]
 --
