@@ -37,7 +37,7 @@ Port sharing is not a concern for outbound TLS. You can apply an outbound TLS co
 //tag::outboundAllInstances[]
 Unlike inbound TLS, it is not suggested to apply the same outbound TLS context to all API instances in your Flex Gateway because your API upstream services might come from different providers. Therefore, no configuration example for outbound TLS on all instances is provided.
 
-Port sharing is not a concern for outbound TLS. You can apply an outbound TLS context for each individual upstream service. 
+Port sharing is not a concern for outbound TLS. You can apply an outbound TLS context for each individual upstream service.
 
 //end::outboundAllInstances[]
 
@@ -145,7 +145,7 @@ metadata:
   name: ingress-https-tls
 spec:
   targetRef:
-    kind: Selector 
+    kind: Selector
     selector:
       kind: ApiInstance
   policyRef:
@@ -279,6 +279,7 @@ metadata:
   name: tls-outbound
 spec:
   targetRef:
+    kind: Service
     name: ingress-test-outbound-upstream
   policyRef:
     name: tls-outbound
@@ -310,6 +311,7 @@ metadata:
   name: mtls-outbound
 spec:
   targetRef:
+    kind: Service
     name: ingress-test-outbound-upstream
   policyRef:
     name: tls-outbound
