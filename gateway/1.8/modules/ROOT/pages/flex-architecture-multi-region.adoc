@@ -58,11 +58,11 @@ image:high-availability-1b.png["A detailed view of implementation 1B, which cont
 
 This implementation is similar to <<implementation-1a>>. However, the DNS service is active-passive, so the standby region only receives traffic if the primary region becomes unhealthy. This implementation is less complex to configure than implementation 1A.
 
-Redis replication is not required if a cache loss during failover is acceptable.
+Redis synchronization is not required if a cache loss during failover is acceptable.
 
-In the following diagram, Flex Replicas in different availability zones have distinct Kubernetes deployments, and Region B provides high availability:
+In the following diagram, Flex Replicas in different availability zones have distinct Kubernetes deployments. Region B provides high availability but only receives traffic is region A is unhealthy:
 
-image:Flex-Gateway-DR-3.png["A detailed view of implementation 2, which contains the necessary services to enable disaster recovery for APIs on Flex Gateway."]
+image:high-availability-2.png["A detailed view of implementation 2, which contains the necessary services to enable disaster recovery for APIs on Flex Gateway."]
 
 [[implementation-3]]
 == Implementation 3: Direct Traffic to the Closest Region
