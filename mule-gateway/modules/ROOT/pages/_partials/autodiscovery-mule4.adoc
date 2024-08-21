@@ -1,0 +1,122 @@
+= Configuring Mule Gateway API Autodiscovery in a Mule 4 Application
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:page-aliases: api-manager::configure-autodiscovery-4-task.adoc, api-manager::api-auto-discovery-new-reference.adoc
+
+//
+// tag::autodiscovery-ref[]
+Use API Manager to manage and retrieve data on an HTTP endpoint in a Mule application. API autodiscovery links the HTTP resource to its API definition in API Manager. 
+
+To use API Discovery, you must pair the Mule Gateway instance embedded in Mule runtime engine with an API in API Manager and provide Mule with Anypoint Platform organization credentials.
+
+See the xref:api-manager::api-auto-discovery-new-concept.adoc[API Autodiscovery] article for more information.
+// end::autodiscovery-ref[]
+//
+
+
+//
+//tag::autodiscovery-intro[]
+Use API autodiscovery to manage API policies and capture analytics data associated with a Mule application that's deployed to CloudHub through an API in API Manager. A xref:mule-gateway/mule-gateway-capabilities-mule4.adoc[Mule Gateway] instance that's embedded within the Mule runtime engine supports policy configuration for the API. With autodiscovery, you can also configure your Mule application to act as its own API proxy.
+
+When autodiscovery is correctly configured in your Mule application, you can say that your application’s API is tracked by (green dot) or paired to API Manager. You can associate an API in a Mule setup with only one autodiscovery instance at a given time. with API Manager to download and manage policies and to generate analytics data. Additionally, with autodiscovery, you can configure your Mule applications to act as their own API proxy.
+
+When autodiscovery is correctly configured in your Mule application, you can say that your application’s API is tracked by (green dot) or paired to API Manager. You can associate an API in a Mule setup with only one autodiscovery instance at a given time.
+
+When you develop and deploy your APIs to Anypoint Platform, it’s important to  set up API Autodiscovery to enable critical features, such as security policies. API Autodiscovery works by linking your Mule application deployed in CloudHub (Runtime Manager) with your API specification in API Manager. You can then enable various policies in API Manager and see those working in real-time on your deployed Mule app.
+
+To configure API Autodiscovery in your Mule 4.x application:
+
+* <<req-api-manager>>
+* <<req-api-manager-config>>
+* <<anypoint-platform-credentials>>
+* <<autodiscovery-config>>
+// end::autodiscovery-intro[]
+//
+
+//[[req-api-in-api-manager]]
+//== Make your API Available in API Manager
+// 
+// tag::req-api-in-api-manager[]
+To pair your API specification with a Mule application, the specification must be available in API Manager. 
+
+Add your API specification with one of the following procedures:
+
+* xref:api-manager::manage-exchange-api-task.adoc[Manage an API from Exchange]: Publish your API specification to Anypoint Exchange, and import the specification from Exchange to API Manager. 
+* xref:api-manager::import-api-task.adoc[Import an API Instance]: Import an API specification to API Manager from your machine. 
+
+API Manager generates an API Instance ID for each imported API specification:
+
+image::api-id.png[align=center]
+
+This API ID is required by the Autodiscovery element to identify the API to which you want to pair your application.
+// end::req-api-in-api-manager[]
+//
+//
+//
+//[[req-api-manager-config]]
+//== Configure API Manager
+//
+// tag::req-api-manager-config[]
+Configure API Manager to use your deployed Mule application as the API proxy:
+
+. For Managing type, select Basic Endpoint.
+. Add the Implementation URI that points to the deployed Mule application.
+. Select the checkmark `Check this box if you are managing this API in Mule 4 or above`.
+// end::req-api-manager-config[]
+//
+//
+//
+//[[anypoint-platform-credentials]]
+//== Configuring Anypoint Platform Organization Credentials in Mule Runtime
+//
+// tag::req-anypoint-platform-credentials[]
+Mule runtime engine must start with pre-configured Anypoint Platform credentials. 
+To configure your organization credentials based on your deployment target, see xref:api-manager::org-credentials-config-mule4.adoc[].
+// end::req-anypoint-platform-credentials[]
+//
+//
+// [[autodiscovery-config]]
+// == Configuring Autodiscovery in a Mule Application
+//
+// tag::autodiscovery-config-intro[]
+// TODO: FUTURE to move existing intro adding ACB (when available)
+// To configure autodiscovery in a Mule application, you must configure the XML element `api-gateway:autodiscovery`. You can configure autodiscovery in through the XML or through the UI:
+// tag::autodiscovery-config-intro[]
+//
+//[[autodiscovery-config-xml]]
+//== Configuring the Autodiscovery Element in Your Mule Application
+//
+// tag::autodiscovery-config-xml[]
+The Autodiscovery element (`api-gateway:autodiscovery`) points to the API specification in API Manager to which you want to pair.
+
+[TIP]
+If you configured a proxy endpoint for your API, your autogenerated proxy will already be correctly configured with the Autodiscovery element.
+
+.XML element
+[source,xml,linenums]
+----
+<api-gateway:autodiscovery
+  apiId="${apiId}" // <1>
+  flowRef="myFlow" /> // <2>
+----
+
+<1> Configure the `apiId` with the API ID that API Manager assigned to your API.
+<2> Set the `flowRef` element to point to the flow that you want to pair to the API in API Manager.
+
+You can either replace `${apiId}` with your specific value, or you can create a `config.properties` file where you define it in a key-value fashion: `apiId=[your-specific-value]` and reference it as `${apiId}` in this configuration.
+// end::autodiscovery-config-xml[]
+
+//
+//
+// tag::autodiscovery-config-outcome[]
+After the element is defined in the application, and the runtime is configured with your Anypoint Platform credentials, Mule runtime will automatically track and keep up to date with the API configuration. defined in API Manager.
+//_COMBAK: Does this need to be deployed for the green dot to show in API Manager?
+// end::autodiscovery-config-outcome[]
+//
+
+//
+// tag::autodiscovery-config-acb-ui
+// TODO: FUTURE - add content WHEN AVAILABLE in ACB
+// end::autodiscovery-config-acb-ui
+//
