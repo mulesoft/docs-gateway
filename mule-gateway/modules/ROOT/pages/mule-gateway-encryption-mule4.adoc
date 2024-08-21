@@ -74,22 +74,22 @@ wrapper.java.additional.100=-Danypoint.platform.client_id=![smzbg+aV2HbiC9Fv8KBs
 --
 
 [NOTE]
-The required `![` prefix and  `]` suffix indicate to Mule runtime engine that the enclosed value is encrypted.
+The required `![` prefix and  `]` suffix indicate to Mule runtime that the enclosed value is encrypted.
 
-When starting Mule runtime engine, you must pass your secret key, using the `anypoint.platform.encryption_key` property:
+When starting Mule runtime, you must pass your secret key, using the `anypoint.platform.encryption_key` property:
 
 [source]
 --
 $MULE_HOME/bin/mule start -M-Danypoint.platform.encryption_key=MyEncryptionKey1
 --
 
-The Mule runtime engine uses the encryption key passed in the `anypoint.platform.encryption_key` property to decrypt the properties.
+Mule runtime uses the encryption key passed in the `anypoint.platform.encryption_key` property to decrypt the properties.
 
 === How It Works
 
 You can encrypt your Anypoint Platform credentials (client ID, client secret, and your proxy password) and add those encrypted values, along with your encryption key to the `wrapper.conf` file of your Mule environment.
 
-When Mule Gateway capability starts, it checks for an encryption key. The client ID and client secret values are then obtained from its `wrapper.conf` file. If any of the values in that file are enclosed within encryption indicators (`![` and `]`), Mule uses the encryption key that it loaded earlier to decrypt the values and use its original content.
+When Mule Gateway capability starts, it checks for an encryption key. The client ID and client secret values are then obtained from its `wrapper.conf` file. If any of the values in that file are enclosed within encryption indicators (`![` and `]`), Mule runtime uses the encryption key that it loaded earlier to decrypt the values and use its original content.
 
 == Debugging Startup Encryption
 
@@ -110,7 +110,7 @@ When you provide a key, the Mule environment displays the following message:
 An encryption key is present. Policies and API contracts will be encrypted.
 ----
 
-If not, Mule starts with:
+If not, Mule runtime starts with:
 
 ----
 No encryption key provided. Policies and API contracts will not be encrypted.
@@ -165,7 +165,7 @@ The encryption key for your policy.
 +
 [CAUTION]
 --
-If you restart Mule without an encryption key, all policies are downloaded again, and sensitive information is not encrypted.
+If you restart Mule runtime without an encryption key, all policies are downloaded again, and sensitive information is not encrypted.
 --
 * `anypoint.platform.policy_encryption_mode` +
 This property key can take two values:
@@ -271,7 +271,7 @@ bb458e566cba4e2ea5a826d27b46031a
 
 . Use the string parameter to encrypt a single value.
 . Set the tool to encrypt the value.
-. Use AES with CBC Mode. This is important because Mule uses this configuration to decrypt the value later.
+. Use AES with CBC Mode. This is important because Mule runtime uses this configuration to decrypt the value later.
 . And finally, specify the encryption key-value pair that you want to encrypt.
 
 See xref:policies-custom-offline-apply.adoc[Applying an Offline Policy] for more information.
