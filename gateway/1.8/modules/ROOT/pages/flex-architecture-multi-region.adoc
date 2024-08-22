@@ -45,7 +45,7 @@ In this implementation:
 * Policies are region specific even if the configuration is similar across regions.
 * The DNS service is configured for active-active failover to direct traffic to any region at all times.
 * API deployments are specific to each Flex Gateway. For each API a region supports, you must deploy an API instance to the region's Flex Gateway. 
-* API Groups can share contracts (access requests) across regions. An API Group may not be required for your configuration.
+* API Groups can share contracts (access requests) across regions. An API Group might not be required for your configuration.
 * Redis shared storage does not require synchronization. 
 * There is no cross-regional traffic.
 
@@ -60,7 +60,7 @@ This implementation is similar to <<implementation-1a>>. However, the DNS servic
 
 Redis synchronization is not required if a cache loss during failover is acceptable.
 
-In the following diagram, Flex Replicas in different availability zones have distinct Kubernetes deployments. Region B provides high availability but only receives traffic is region A is unhealthy:
+In the following diagram, Flex Replicas in different availability zones have distinct Kubernetes deployments. Region B provides high availability but receives traffic only if region A is unhealthy:
 
 image:high-availability-2.png["A detailed view of implementation 2, which contains the necessary services to enable disaster recovery for APIs on Flex Gateway."]
 
