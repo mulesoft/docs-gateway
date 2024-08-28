@@ -1,0 +1,109 @@
+= Applying Custom Policies
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Applying custom policies is the same as applying xref:gateway::policies-included-directory.adoc[included policies].
+
+When applying custom policies, the configuration parameters are defined in `definition/gcl.yaml`.
+
+To learn more about defining configuration parameters, see xref:policies-pdk-create-schema-definition.adoc[].
+
+== Before You Begin
+
+* xref:policies-pdk-compile-policies.adoc[Compile your custom policy].
+* If applying your custom policy to Flex Gateway running in Connected Mode, xref:policies-pdk-publish-policies.adoc[upload your custom policy to Exchange].
+
+== Apply Policies in Connected Mode
+
+When you apply a custom policy in Connected Mode, the configuration parameters and metadata defined in `gcl.yaml` appear in the API Manager UI.
+
+To apply a custom policy in Connected Mode, see xref:gateway::policies-included-apply.adoc[Apply a Policy in Connected Mode]. 
+
+=== Update Policies in Connected Mode
+
+To update a custom policy in API Manager:
+
+. Go to *Anypoint Platform > API Manager*.
+. In *API Administration* click the name of the API to which to apply a policy.
+. From the left navigation menu, click *Policies*.
+. Click the more options button (image:more-options-menu.png[1%,1%]) of the policy you want to update, and then click *Edit configuration*.
+. Select the *latest* version for *Policy version* configuration parameter.
+. Click *Save*.
+. Click the more options button (image:more-options-menu.png[1%,1%]) of the policy you want to update, and then click *Check for implementation updates*.
++
+For more information about implementation updates, see xref:exchange::manage-versions.adoc#update-policy-implementations[Update Policy Implementations].
+. In the confirmation dialog box, click *Update all*.
+
+
+
+[[apply-policies-in-local-mode]]
+== Apply Policies in Local Mode
+
+For Flex Gateway running in Local Mode, you apply custom policies using xref:gateway::flex-local-configuration-reference-guide.adoc[local declarative configuration files]. You specify the location of these configuration files when you first run Flex Gateway.
+
+To create the local declarative files:
+
+. In the `target/wasm32-wasi/release` PDK directory, copy both of the following files:
++
+* `<your_custom_policy>_definition.yaml`
+* `<your_custom_policy>_implementation.yaml`
++
+. Paste the two files in the `/etc/mulesoft/flex-gateway/conf.d/` Flex Gateway configuration directory.
++
+. Create a policy binding configuration file with a `.yaml` file extension to bind the policy to an API instance:
++
+* Give the file a custom name.
+* Save the file in the Flex Gateway configuration directory `/etc/mulesoft/flex-gateway/conf.d/custom`. This directory can contain multiple configuration files.
+. Copy and paste the following YAML snippet into the file, substituting your values where indicated:
++
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: <custom-policy-id>
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: <your-api-instance>
+  policyRef:
+    kind: Extension
+    name: <your_custom_policy>-<version>-impl
+  config:
+    <custom-cofiguration-parameters>: "your parameter"
+----
++
+* `metadata.name`: The custom policy instance name.
+* `spec.targetRef.name`: The name of the API instance of which to apply the custom policy. The API instance must already have been defined and applied.
+* `spec.policyRef.name`: The custom policy implementation ID. To get the policy ID, run the `make show-policy-ref-name` command from the policy's root directory.
+* `spec.config`: Your policy configuration data.
++
+. Save the file. The gateway automatically refreshes the configuration.
+
+=== Update Policies in Local Mode
+
+To update a custom policy for Flex Gateway running in Local Mode:
+
+* If you did not edit the configuration parameters, replace your old `<your_custom_policy>_implementation.yaml` in your Flex Gateway configuration directory with the implementation file from your `target/wasm32-wasi/release` PDK directory.
+* If you did edit the configuration parameters, repeat the steps in <<apply-policies-in-local-mode>> to update your configuration parameters.
+
+== Reorder Custom Policies
+
+Reordering custom policies is the same as reordering included policies.
+
+To reorder policies, see xref:gateway::policies-reorder.adoc[].
+
+Polices execute in order on the request and then in inverse order on the response. However, some policies do not execute on both the request and the response.
+
+For example, policies ordered:
+
+. Policy X
+. Policy Y
+
+Execute Policy X then Policy Y on the request, and Policy Y then Policy X on the response.
+
+== See Also
+
+* xref:gateway::flex-local-configuration-reference-guide.adoc[]
