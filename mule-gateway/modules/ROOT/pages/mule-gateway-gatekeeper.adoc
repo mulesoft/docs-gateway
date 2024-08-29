@@ -22,11 +22,6 @@ Out of the box policies that might require contracts include:
 * xref:policies-included-openid-token-enforcement.adoc[OpenID Connect OAuth 2.0 Token Enforcement Policy]
 * xref:policies-included-oauth-access-token-enforcement.adoc[Mule OAuth 2.0 Access Token Enforcement]
 
-Starting with Mule Runtime 4.8.0 gatekeeper will now be applied between policy editions. This behaviour can be disabled by setting the property
-----
-anypoint.platform.gatekeeper.block_edit=false
-----
-
 == How Gatekeeper Works
 
 The Gatekeeper mechanism is engaged only when you restart the runtime or redeploy a tracked resource that is linked with an API instance when automatically discovered. When Gatekeeper is engaged, each tracked resource is blocked, resulting in a `503 - Service Unavailable` HTTP status code, until all API instance policies are applied in API Manager without errors.
@@ -59,6 +54,12 @@ anypoint.platform.gatekeeper=flexible
 ** `false`
 ** `strict`
 ** `flexible`
+
+For Mule runtime versions 4.8.0 or later. Gatekeeper blocks requests when editing the policy configurations. The Gatekeeper does not block requests when editing policy order. To disable Gatekeeper during editing, set the `anypoint.platform.gatekeeper` property to `false`:
+
+----
+anypoint.platform.gatekeeper.block_edit=false
+----
 
 === Security Level Definitions
 
