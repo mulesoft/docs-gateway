@@ -1,0 +1,76 @@
+= Accessing Request Authentication Information
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+The `Authentication` injectable provides an interface to:
+
+* Propagate authentication data for consumption by other policies.
+* Consume authentication data already set by another policy. 
+
+To share data, `Authentication` implements the `AuthenticationHandler` trait:
+
+[source,Rust]
+----
+pub trait AuthenticationHandler {
+    fn authentication(&self) -> Option<AuthenticationData>;
+    fn set_authentication(&self, authentication: Option<&AuthenticationData>);
+}
+----
+
+The `AuthenticationData` struct contains the following authentication data:
+
+[source,Rust]
+----
+pub struct AuthenticationData {
+    pub principal: Option<String>,
+    pub client_id: Option<String>,
+    pub client_name: Option<String>,
+    pub properties: Value,
+}
+----
+
+For example, the following code reads the `Authentication` data and modifies it by overriding the `client_id` and `client_name`:
+
+[source,Rust]
+----
+async fn request_filter(state: RequestState, authentication: Authentication) -> Flow<()> {
+    let state = state.into_headers_state().await;
+    let header_handler = state.handler();
+
+    let auth = authentication.authentication().unwrap_or_default();
+
+    let properties = auth.properties.as_object().cloned().unwrap_or_default();
+
+    let client_id = header_handler
+        .header("custom_client_id_header")
+        .unwrap_or_default();
+    let client_name = header_handler
+        .header("custom_client_name_header")
+        .unwrap_or_default();
+
+    let auth = AuthenticationData::new(
+        auth.principal,
+        Some(client_id),
+        Some(client_name),
+        properties
+    );
+
+    authentication.set_authentication(Some(&auth));
+
+    Flow::Continue(())
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher) -> Result<()> {
+    let filter = on_request(|rs, auth| request_filter(rs, auth));
+    launcher.launch(filter).await?;
+    Ok(())
+}
+
+----
+
+== See Also
+
+* xref:policies-pdk-configure-features-inject-parameters.adoc[]
