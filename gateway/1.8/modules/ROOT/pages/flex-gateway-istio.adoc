@@ -21,8 +21,8 @@ To configure the architecture:
 
 . <<before-you-begin, Complete Before You Begin>>.
 . <<setup-environment, Set up your environment>>.
-. <<forward-ingress-traffic, Forward ingress traffic>>.
-. <<create-a-service, >>.
+. <<forward-ingress-traffic, Intercept ingress north-south traffic>>.
+. <<create-a-service, Intercept east-west traffic between services>>.
 
 [[before-you-begin]]
 == Before You Begin
@@ -147,7 +147,11 @@ kubectl -n test get pods
 ----
 
 [[forward-ingress-traffic]]
-== Forward Ingress Traffic
+== Intercept Ingress North-South Traffic
+
+Intercept ingress north-south traffic to protect services from external traffic.
+
+To intercept ingress north-south traffic:
 
 . Create the Flex Gateway ingress API instance to forward all ingress north-south traffic in the `bookinfo` namespace to the `productpage` service:
 +
@@ -329,7 +333,11 @@ EOF
 ----
 
 [[create-a-service]]
-== Create a Service to Service Traffic
+== Intercept East-West Traffic Between Services
+
+Use Flex Gateway to intercept East-West traffic between services to protect services with policies.
+
+To intercept east-west traffic:
 
 . Create the `bookinfo-reviews` API instance to forward the east-west traffic to the `reviews` service:
 
