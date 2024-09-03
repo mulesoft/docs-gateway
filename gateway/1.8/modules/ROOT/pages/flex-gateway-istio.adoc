@@ -15,12 +15,12 @@ To deploy this Flex Gateway use case, use the following architecture diagram and
 
 image:flex-istio-deployment.png["A detailed image of the previously described use case."]
 
-NOTE: In the diagram, Flex Gateway is running in Connected Mode. If Flex gateway was running is local mode, the Anypoint Platform control plane is not present.
+NOTE: In the diagram, Flex Gateway is running in Connected Mode. If Flex Gateway runs in local mode, the Anypoint Platform control plane is absent.
 
 To configure the architecture:
 
 . Review <<before-you-begin>>.
-. <<setup-environment>>.
+. <<setup-environment, Set up your environment>>.
 . <<forward-ingress-traffic>>.
 . <<create-a-service>>.
 
@@ -40,7 +40,7 @@ Before you begin, install the following prerequisites:
 * https://helm.sh/docs/intro/install/[Helm] to install Flex Gateway and Istio
 
 [[setup-environment]]
-== Setup Environment
+== Set up Environment
 
 . Create a Kubernetes cluster for this demo or skip this step if you already have a cluster you want to use:
 +
@@ -60,7 +60,7 @@ helm repo add istio https://istio-release.storage.googleapis.com/charts \
 
 . Install Istio:
 +
-.. Install the Istio base chart that contains the cluster-wide Custom Resource Definitions (CRDs) that must be installed prior to the deployment of the Istio control plane:
+.. Install the Istio base chart that contains the cluster-wide Custom Resource Definitions (CRDs) that must be installed before deploying the Istio control plane:
 +
 [source,ssh]
 ----
@@ -83,7 +83,7 @@ helm upgrade -i --wait --create-namespace -n istio-system istio-ingress istio/ga
 
 . Install Flex Gateway:
 
-.. Create the namespace and setup the label to enable the sidecar injection:
+.. Create the namespace and set up the label to enable the sidecar injection:
 +
 [source,ssh]
 ----
@@ -230,14 +230,14 @@ spec:
 EOF
 ----
 +
-.. Wait a few seconds (approximately 10) and send a test request the `/api/v1/products/1` page:
+.. Wait a few seconds (approximately 10) and send a test request to the `/api/v1/products/1` page:
 +
 [source,ssh]
 ----
 curl -v http://localhost/api/v1/products/1
 ----
 +
-.. Ensure you receive the following output:
+.. Ensure you receive this output:
 +
 [source,ssh]
 ----
@@ -286,7 +286,7 @@ EOF
 curl -v http://localhost/
 ----
 +
-.. Ensure you receive a `401` response.
+.. Make sure you receive a `401` response.
 
 . Add the Message Logging policy to log traffic:
 +
@@ -371,19 +371,19 @@ EOF
 +
 To add an API instance in Connected Mode, see xref:api-manager::create-instance-task-flex.adoc[].
 +
-Configure the API instance with the following downstream parameters:
+Configure the API instance with these downstream parameters:
 +
 *** *Protocol*: *HTTP*
 *** *Port*: `8081`
 *** *Base Path*: `/bookinfo/reviews/`
 +
-Configure the API instance with the following upstream parameters:
+Configure the API instance with these upstream parameters:
 +
 *** *Route label*: `reviews`
 *** *Upstream URL*: `http://reviews.bookinfo.svc:9080`
 
 
-. Intercept the traffic between the `productpage` service to the `reviews` service and forward it to `flex` service:
+. Intercept the traffic between the `productpage` service and the `reviews` service and forward it to the `flex` service:
 +
 .. Create the Istio API instance:
 +
@@ -425,7 +425,7 @@ EOF
 curl -v -u foo:bar http://localhost/productpage
 ----
 +
-.. Check the Flex Gateway logs to ensure the request sent from the `productpage` service to the `reviews` service passed through the Flex Gateway. The logs appear similar to the following:
+.. Check the Flex Gateway logs to ensure the request sent from the `productpage` service to the `reviews` service passed through Flex Gateway. The logs appear similar to:
 +
 [source,ssh]
 ----
@@ -509,7 +509,7 @@ EOF
 kubectl -n test exec -ti -c sleep $(kubectl -n test get pod --no-headers -o=name) -- curl -v details.bookinfo:9080/details/0
 ----
 +
-.. Ensure you receive the following `403 forbidden` response:
+.. Make sure you receive this `403 forbidden` response:
 +
 [source,ssh]
 ----
@@ -524,14 +524,14 @@ kubectl -n test exec -ti -c sleep $(kubectl -n test get pod --no-headers -o=name
 RBAC: access denied
 ----
 +
-.. Send the following request to the `details` service to find how to access the `bookinfo` service from the `flex` namespace:
+.. Send this request to the `details` service to find out how to access the `bookinfo` service from the `flex` namespace:
 +
 [source,ssh]
 ----
 kubectl -n flex exec -ti -c app  $(kubectl -n flex get pod --no-headers -o=name) -- flexctl check http http://details.bookinfo:9080/details/0
 ----
 +
-.. Ensure the following response:
+.. Make sure you receive this response:
 +
 [source,ssh]
 ----
