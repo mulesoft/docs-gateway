@@ -4,13 +4,13 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Integrate Flex Gateway into your Istio Service Mesh to leverage Flex Gateway policies, logging, and metrics from the Anypoint Platform control plane. Deploy Flex Gateway as an ingress gateway to manage incoming north-south cluster traffic and internal east-west traffic inside the cluster.
+To leverage Flex Gateway policies, logging, and metrics from the Anypoint Platform control plane, integrate Flex Gateway into your Istio Service Mesh. Deploy Flex Gateway as an ingress gateway to manage ingress north-south cluster traffic and internal east-west traffic inside the cluster.
 
-To deploy this Flex Gateway use case, use the following architecture diagram and tutorial. The use case is a modified version of the https://istio.io/latest/docs/examples/bookinfo/[Istio Bookinfo Application] with Flex Gateway integrated. In the use case:
+To integrate Flex Gateway, use the following architecture diagram and tutorial. The use case is a modified version of the https://istio.io/latest/docs/examples/bookinfo/[Istio Bookinfo Application] with Flex Gateway integrated. In the use case:
 
 * An Istio virtual service forwards all ingress north-south traffic to Flex Gateway.
 * Direct access to the `bookinfo` name space is restricted. All external traffic into the `bookinfo` namespace must come from the `flex` namespace. Istio automatically configures mTLS configuration between the `bookinfo` and `flex`.
-* Flex Gateway protects and monitors the exposed product page service from incoming traffic with an API instance.
+* Flex Gateway protects and monitors the exposed product page service from ingress traffic with an API instance.
 * The Istio sidecar intercepts east-west traffic between the product page service and the reviews service. Flex Gateway acts as an ingress gateway managing incoming traffic to the reviews service.
 
 image:flex-istio-deployment.png["A detailed image of the previously described use case."]
@@ -19,21 +19,21 @@ NOTE: In the diagram, Flex Gateway is running in Connected Mode. If Flex Gateway
 
 To configure the architecture:
 
-. Review <<before-you-begin>>.
+. <<before-you-begin, Complete Before You Begin>>.
 . <<setup-environment, Set up your environment>>.
-. <<forward-ingress-traffic>>.
-. <<create-a-service>>.
+. <<forward-ingress-traffic, Forward ingress traffic>>.
+. <<create-a-service, >>.
 
 [[before-you-begin]]
 == Before You Begin
 
 Before you begin, install the following prerequisites:
 
-* https://docs.docker.com/get-docker/[Docker^]
+* https://docs.docker.com/get-docker/[Docker]
 
 * xref:flex-install.adoc#kubernetes[Download Flex Gateway for Use in a Kubernetes Cluster]
 
-* https://k3d.io/v5.0.0/#installation[K3d] to create a kubernetes cluster inside of docker
+* https://k3d.io/v5.0.0/#installation[K3d] to create a Kubernetes cluster inside of docker
 
 * https://kubernetes.io/docs/tasks/tools/#kubectl[kubectl] to control the Kubernetes cluster
 
@@ -149,7 +149,7 @@ kubectl -n test get pods
 [[forward-ingress-traffic]]
 == Forward Ingress Traffic
 
-.  Create the Flex Gateway ingress API instance to forward all north-south incoming traffic in the `bookinfo` namespace to the `productpage` service:
+. Create the Flex Gateway ingress API instance to forward all ingress north-south traffic in the `bookinfo` namespace to the `productpage` service:
 +
 ** Local Mode:
 +
@@ -185,7 +185,7 @@ Configure the API instance with the following upstream parameters:
 *** *Route label*: `productpage`
 *** *Upstream URL*: `http://productpage.bookinfo.svc:9080`
 
-. Create the `flex` Istio ingress gateway to forward the ingress traffic to Flex Gateway using a istio virtual service:
+. Create the `flex` Istio ingress gateway to forward the ingress traffic to Flex Gateway using a Istio virtual service:
 +
 .. Create the Flex Gateway:
 +
