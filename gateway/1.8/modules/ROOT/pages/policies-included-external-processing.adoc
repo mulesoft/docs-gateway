@@ -45,8 +45,12 @@ In Local Mode, you apply the External Processing policy to your API instance via
     responseHeaderMode: <string> // REQUIRED, default: "send"
     requestBodyMode: <string> // REQUIRED, default: "none"
     responseBodyMode: <string> // REQUIRED, default: "none"
-    requestTrailerMode: <string> // OPTIONAL, default: "send"
-    responseTrailerMode: <string> // OPTIONAL, default: "send"
+    requestTrailerMode: <string> // REQUIRED, default: "send"
+    responseTrailerMode: <string> // REQUIRED, default: "send"
+    failureModeAllow: <boolean> // OPTIONAL, default: false
+    maxMessageTimeout: <integer> // OPTIONAL, default: 0
+    allowModeOverride: <boolean> // OPTIONAL, default: true
+
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -93,6 +97,21 @@ In Local Mode, you apply the External Processing policy to your API instance via
 | Required
 | `send`
 | Whether the HTTP response trailer headers are sent to the processing service. Supported values are `send` and `skip`.
+
+| `failureModeAllow`
+| Optional
+| `false`
+| When true, if the gRPC stream prematurely closes or cannot be open, request processing continues without error.
+
+| `maxMessageTimeout`
+| Optional
+| 0
+| Specifies the upper bound the processing server can override `messageTimeout`.
+
+| `allowModeOverride`
+| Optional
+| `true`
+| Enables the processing server to override the policy's configuration. When true, the server can override the configuration of the `requestHeaderMode`, `responseHeaderMode`, `requestBodyMode`, `responseBodyMode`, `requestTrailerMode`, and `responseTrailerMode` parameters.
 
 |===
 
