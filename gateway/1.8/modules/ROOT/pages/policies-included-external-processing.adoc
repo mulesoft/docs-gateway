@@ -41,12 +41,12 @@ In Local Mode, you apply the External Processing policy to your API instance via
   config: 
     uri: <string> // REQUIRED
     messageTimeout: <integer> // OPTIONAL
-    requestHeaderMode: <string> // REQUIRED, default: "send"
-    responseHeaderMode: <string> // REQUIRED, default: "send"
-    requestBodyMode: <string> // REQUIRED, default: "none"
-    responseBodyMode: <string> // REQUIRED, default: "none"
-    requestTrailerMode: <string> // REQUIRED, default: "send"
-    responseTrailerMode: <string> // REQUIRED, default: "send"
+    requestHeaderMode: <string> // OPTIONAL, default: "send"
+    responseHeaderMode: <string> // OPTIONAL, default: "send"
+    requestBodyMode: <string> // OPTIONAL, default: "none"
+    responseBodyMode: <string> // OPTIONAL, default: "none"
+    requestTrailerMode: <string> // OPTIONAL, default: "send"
+    responseTrailerMode: <string> // OPTIONAL, default: "send"
     failureModeAllow: <boolean> // OPTIONAL, default: false
     maxMessageTimeout: <integer> // OPTIONAL, default: 0
     allowModeOverride: <boolean> // OPTIONAL, default: true
@@ -64,37 +64,37 @@ In Local Mode, you apply the External Processing policy to your API instance via
 | External processing server URI. For gRPC type servers, define the URI as `\h2://<ext.authz.com>:<port>`.
 
 | `messageTimeout`
-| Required
+| Optional
 | `1000`
 | Message timeout for the processing server in milliseconds.
 
 | `requestHeaderMode`
-| Required
+| Optional
 | `send`
 | Whether the HTTP requests headers are sent to the processing service. Supported values are `send` and `skip`.
 
 | `responseHeaderMode`
-| Required
+| Optional
 | `send`
 | Whether the HTTP response headers are sent to the processing service. Supported values are `send` and `skip`.
 
 | `requestBodyMode`
-| Required
+| Optional
 | `none`
 | Mode that the HTTP request body is sent in. Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`. Selecting `none` does not send the request body.
 
 | `responseBodyMode`
-| Required
+| Optional
 | `none`
 | Mode that the HTTP response body is sent in. Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`. Selecting `none` does not send the request body.
 
 | `requestTrailerMode`
-| Required
+| Optional
 | `send`
 | Whether the HTTP requests' trailer headers are sent to the processing service. Supported values are `send` and `skip`.
 
 | `responseTrailerMode`
-| Required
+| Optional
 | `send`
 | Whether the HTTP response trailer headers are sent to the processing service. Supported values are `send` and `skip`.
 
@@ -115,7 +115,7 @@ In Local Mode, you apply the External Processing policy to your API instance via
 
 |===
 
-NOTE: Leaving a required value blank configures the parameter with the default value. No value is set for optional values left blank.
+NOTE: Leaving a value blank configures the parameter with the default value. If a required parameter does not have a default value, you must configure the parameter. 
 
 ==== Resource Configuration Example
 
@@ -152,6 +152,8 @@ When you apply the External Processing policy to your API from the UI, configure
 |Max message timeout | Specifies the upper bound the processing server can override *Message timeout*.
 |Allow mode override | Enables the processing server to override the policy's configuration. When true, the server can override the configuration of the *Request header processing mode*, *Response header processing mode*, *Request body processing mode*, *Response body processing mode*, *Request trailer processing mode*, and *Response trailer processing mode* parameters.
 |===
+
+NOTE: Leaving a value blank configures the parameter with the default value. If a required parameter does not have a default value, you must configure the parameter. 
 
 == How This Policy Works
 
