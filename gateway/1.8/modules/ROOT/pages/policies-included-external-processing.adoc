@@ -101,7 +101,7 @@ In Local Mode, you apply the External Processing policy to your API instance via
 | `failureModeAllow`
 | Optional
 | `false`
-| When true, if the gRPC stream prematurely closes or cannot be open, request processing continues without error.
+| When `true`, if the gRPC stream prematurely closes or can’t be opened, request processing continues without error.
 
 | `maxMessageTimeout`
 | Optional
@@ -111,11 +111,11 @@ In Local Mode, you apply the External Processing policy to your API instance via
 | `allowModeOverride`
 | Optional
 | `true`
-| Enables the processing server to override the policy's configuration. When true, the server can override the configuration of the `requestHeaderMode`, `responseHeaderMode`, `requestBodyMode`, `responseBodyMode`, `requestTrailerMode`, and `responseTrailerMode` parameters.
+| Enables the processing server to override the policy configuration. When `true`, the server can override the configuration of the `requestHeaderMode`, `responseHeaderMode`, `requestBodyMode`, `responseBodyMode`, `requestTrailerMode`, and `responseTrailerMode` parameters.
 
 |===
 
-NOTE: Leaving a value blank configures the parameter with the default value. If a required parameter does not have a default value, you must configure the parameter. 
+NOTE: Leaving a value blank configures the parameter with the default value. If a required parameter doesn’t have a default value, you must configure the parameter. 
 
 ==== Resource Configuration Example
 
@@ -148,12 +148,12 @@ When you apply the External Processing policy to your API from the UI, configure
 |Response body processing mode | Mode that the response body is sent in.
 |Request trailer processing mode | Whether the requests trailers are sent to the processing service.
 |Response trailer processing mode | Whether the response trailers are sent to the processing service.
-|Failure mode allow | When true, if the gRPC stream prematurely closes or cannot be open, request processing continues without error.
+|Failure mode allow | When `true`, if the gRPC stream prematurely closes or can’t be opened, request processing continues without error.
 |Max message timeout | Specifies the upper bound the processing server can override *Message timeout*.
-|Allow mode override | Enables the processing server to override the policy's configuration. When true, the server can override the configuration of the *Request header processing mode*, *Response header processing mode*, *Request body processing mode*, *Response body processing mode*, *Request trailer processing mode*, and *Response trailer processing mode* parameters.
+|Allow mode override | Enables the processing server to override the policy configuration. When `true`, the server can override the configuration of the *Request header processing mode*, *Response header processing mode*, *Request body processing mode*, *Response body processing mode*, *Request trailer processing mode*, and *Response trailer processing mode* parameters.
 |===
 
-NOTE: Leaving a value blank configures the parameter with the default value. If a required parameter does not have a default value, you must configure the parameter. 
+NOTE: Leaving a value blank configures the parameter with the default value. If a required parameter doesn't have a default value, you must configure the parameter. 
 
 == How This Policy Works
 
@@ -167,6 +167,6 @@ image:ext-processing-policy.png[80%,80%,align="center"]
 . Flex Gateway receives the HTTP response from the upstream API service and forwards the initial parts of the HTTP response that you configure to the external processing service. At this point, the external processing service can request additional parts of the HTTP response.
 . Flex Gateway returns the modified HTTP response from the external processing service to the client.
 
-By default, if Flex Gateway cannot establish a connection to the gRPC service or if the gRPC service returns an error, the policy fails. To forward requests regardless of connection or error status, enable the *Failure mode allow* parameter.
+By default, if Flex Gateway can't establish a connection to the gRPC service or if the gRPC service returns an error, the policy fails. To forward requests regardless of connection or error status, enable the *Failure mode allow* parameter.
 
  
