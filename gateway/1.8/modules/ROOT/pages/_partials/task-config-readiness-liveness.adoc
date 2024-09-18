@@ -136,7 +136,30 @@ You can modify a drain period via the `FLEX_SERVICE_ENVOY_DRAIN_TIME` environmen
 Flex Gateway is preconfigured for a graceful shutdown of 30 seconds, which is 5 seconds more than the drain period. When increasing the drain period, also increase the shutdown period using `TimeoutStopSec` in Linux or `terminationGracePeriodSeconds` in Kubernetes. The shutdown period must exceed the drain period.
 
 The default readiness probe in Kubernetes runs every 10 seconds with a failure threshold of 2, allowing shutdown detection within 20 seconds. This ensures that no new traffic is sent to the instance shutting down. Use similar configurations with readiness probes in other environments like AWS Load Balancer.
++
+Applying the YAML configuration snippet enables the readiness API to respond to `GET` requests:
++
+`\http://<flex-gateway-url>:<port-configured>/probes/readiness?allowEnvoyErrors=<true|false>&allowAPIErrors=<true|false>&allowPolicyErrors=<true|false>`
++
+[discrete]
+==== Configure Error Tolerance
++
+The default Kubernetes readiness probe is configured to be error-tolerant. If a configuration error occurs (for example, if you misconfigure a policy), the readiness state changes to `true` after the API instances and policies are deployed. This enables Flex Gateway to scale even though there might be configuration errors.
++
+You can configure the readiness probe to be error-intolerant, meaning that misconfigured gateway instances never reach a readiness state of `true`.
++
+To configure the Helm chart for error intolerance, remove the following flags from the readiness probe:
 
++
+* `--allow-api-errors`
+* `--allow-envoy-errors`
+* `--allow-policy-errors`
+
++
+In deployments that query the readiness state through HTTP requests, use these query parameters:
+* `allowEnvoyErrors=false`
+* `allowAPIErrors=false`
+* `allowPolicyErrors=false`
 [[configure-a-liveness-probe]]
 == Configure a Liveness Probe
 
