@@ -1,0 +1,133 @@
+= Header Injection Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: header injection, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s|Policy name | Header Injection
+>s|Summary      | Adds headers to a request or a response
+>s|Category | Transformation
+>s| First Flex Gateway version available | v1.0.0
+.3+>.^s| Returned Status Codes |
+
+| 500 - The configuration includes an expression that was not evaluated.
+|===
+
+== Summary
+
+The Header Injection policy adds HTTP headers to the request or response of a message. When you configure this policy for your API, you must specify an inbound and outbound map of the headers that you want to add in the message processing in the form of a key-value pair.
+
+image::header-inject-remove-diagram.png[]
+
+You can optionally include DataWeave expressions in the value or name of the header. For example, all headers matching the following configured expression are injected to the message:
+
+`“#[attributes.requestPath]”`
+
+If the injected header already exists in the message attributes, the policy creates a new header without overriding the value of the existing one.
+
+[NOTE]
+====
+Only certain headers are restricted to support multiple values, and they will be overwritten using configured values. These headers are: `access-control-allow-origin`, `content-type`, `content-length`, `transfer-encoding`.
+
+To overwrite any other existing message header, remove it before adding your header. See the xref:policies-included-header-removal.adoc[Header Removal] policy.
+====
+
+== Configuring Policy Parameters
+
+=== Flex Gateway Local Mode
+
+In Local Mode, you apply the Header Injection policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
+
+----
+- policyRef:
+    name: header-injection-flex
+  config:
+    inboundHeaders: <array> // OPTIONAL, default: []
+      - key: <string> // REQUIRED
+        value: <string> // REQUIRED
+    outboundHeaders: <array> // OPTIONAL, default: []
+      - key: <string> // REQUIRED
+        value: <string> // REQUIRED
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+
+|Parameter | Required or Optional | Default Value | Description
+
+| `inboundHeaders`
+| Optional
+| Empty array
+| List of headers to be injected at the beginning of the message processing.
+
+| `inboundHeaders.key`
+| Required
+| N/A
+| A string or DataWeave expression for header name
+
+| `inboundHeaders.value`
+| Required
+| N/A
+| A string or DataWeave expression for header value
+
+| `outboundHeaders`
+| Optional
+| Empty array
+| List of header to be injected at the end of the message processing.
+
+| `outboundHeaders.key`
+| Required
+| N/A
+| A string or DataWeave expression for header name
+
+| `outboundHeaders.value`
+| Required
+| N/A
+| A string or DataWeave expression for header value
+
+|===
+
+[NOTE]
+====
+`inboundHeaders` and `outboundHeaders` can not both be empty.
+====
+
+==== Resource Configuration Example
+
+In the following example, all the headers matching the configured `#[attributes.requestPath]` expression are injected into the message.
+
+----
+- policyRef:
+    name: header-injection-flex
+    config:
+      inboundHeaders:
+        - key: "new-inbound-header"
+          value: "#[attributes.requestPath]"
+      outboundHeaders:
+        - key: "new-outbound-header"
+          value: "#[attributes.requestPath]"
+----
+
+=== Flex Gateway Connected Mode
+
+When you apply the policy to your API from the UI, the following parameters are displayed:
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| *Parameter* | *Description*
+|Inbound Header Map  | List of headers to be injected at the beginning of the message processing.
+|Inbound Header Key  | String or Dataweave expression to be used as header name at the beginning of the message.
+|Inbound Header Value  | String or Dataweave expression to be used as header value at the beginning of the message.
+|Outbound Header Map | List of headers to be injected at the end of the message processing.
+|Outbound Header Key | String or Dataweave expression to be used as header name at the end of the message processing.
+|Outbound Header Value | String or Dataweave expression to be used as header value at the end of the message processing.
+|Method & Resource conditions |The option to add configurations to only a select few or all methods and resources of the API
+|===
+
+[NOTE]
+====
+Header keys should be compliance with https://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html#sec2.2[HTTP 1.1^] standard.
+====
