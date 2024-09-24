@@ -69,6 +69,7 @@ To modify the default parameters, update your Helm chart. You can modify these p
 +
 NOTE: When using a readiness probe in Kubernetes (or Openshift) and Connected Mode, omit the `--wait` flag in the Helm chart used to deploy Flex Gateway. Not doing so might result in an installation failure because Helm waits for a readiness state of `true`. If there's no API deployed to your Flex Gateway instance, the readiness state is `false`. This is not an issue with custom readiness probe configurations or gateways that have an API configured.
 +
+[discrete]
 === Configure External Components
 +
 Configure your external components to query the readiness state. For example, in AWS virtual machines that run behind a load balancer, configure the readiness query as a health check. To expose the readiness API to external components, apply the following configuration to the Flex Gateway instance:
@@ -89,6 +90,7 @@ Applying the YAML configuration snippet enables the readiness API to respond to 
 +
 `\http://<flex-gateway-url>:<port-configured>/probes/readiness?allowEnvoyErrors=<true|false>&allowAPIErrors=<true|false>&allowPolicyErrors=<true|false>`
 +
+[discrete]
 === Configure Error Tolerance
 +
 The default Kubernetes readiness probe is configured to be error-tolerant. If a configuration error occurs (for example, if you misconfigure a policy), the readiness state changes to `true` after the API instances and policies are deployed. This enables Flex Gateway to scale even though there might be configuration errors.
@@ -112,6 +114,7 @@ Docker, Podman, and Linux::
 +
 For Docker and Linux deployments, Flex Gateway doesn't include a pre-configured default readiness probe. However, you can run the readiness probe command manually or configure it for automated use with external third-party services. Besides the Kubernetes readiness probe, MuleSoft doesn't provide support for third-party readiness probes.
 +
+[discrete]
 === Configure External Components
 +
 Configure your external components to query the readiness state. For example, in AWS virtual machines that run behind a load balancer, configure the readiness query as a health check. To expose the readiness API to external components, apply the following configuration to the Flex Gateway instance:
@@ -132,6 +135,7 @@ Applying the YAML configuration snippet enables the readiness API to respond to 
 +
 `\http://<flex-gateway-url>:<port-configured>/probes/readiness?allowEnvoyErrors=<true|false>&allowAPIErrors=<true|false>&allowPolicyErrors=<true|false>`
 +
+[discrete]
 === Configure Error Tolerance
 +
 You can configure the readiness probe to be error-intolerant, meaning that misconfigured gateway instances never reach a readiness state of `true`.
