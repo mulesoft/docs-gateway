@@ -16,16 +16,6 @@ To test whether a Flex Gateway instance is ready for incoming traffic, use the f
 flexctl probe --check=readiness
 ----
 
-The `flexctl probe` accepts the following flags to configure error tolerance:
-
-[cols="1,2"]
-|===
-| Flag | Description
-| `--allow-api-errors`| The flag to allow errors in API instances
-| `--allow-envoy-errors`| The flag to allow Envoy configuration errors
-| `--allow-policy-errors`| The flag to allow policy configuration errors
-|===
-
 If the Flex Gateway instance is ready to receive incoming traffic, the command returns an exit code of `0`. Otherwise, the command returns an exit code of `1`.
 
 When Flex Gateway starts, its readiness state is `false`. The state changes to `true` after the following conditions are met:
@@ -122,7 +112,7 @@ In deployments that query the readiness state through HTTP requests, use these q
 
 Docker, Podman, and Linux::
 +
-For Docker and Linux deployments, Flex Gateway doesn't include a pre-configured default readiness probe. However, you can run the readiness probe command manually or configure it for automated use with third-party services. Besides the Kubernetes readiness probe, MuleSoft doesn't provide support for third-party readiness probes.
+For Docker and Linux deployments, Flex Gateway doesn't include a pre-configured default readiness probe. However, you can run the readiness probe command manually or configure it for automated use with external third-party services. Besides the Kubernetes readiness probe, MuleSoft doesn't provide support for third-party readiness probes.
 +
 [discrete]
 ==== Configure External Components
@@ -147,12 +137,10 @@ Applying the YAML configuration snippet enables the readiness API to respond to 
 +
 [discrete]
 ==== Configure Error Tolerance
-+
-The default Kubernetes readiness probe is configured to be error-tolerant. If a configuration error occurs (for example, if you misconfigure a policy), the readiness state changes to `true` after the API instances and policies are deployed. This enables Flex Gateway to scale even though there might be configuration errors.
-+
+
 You can configure the readiness probe to be error-intolerant, meaning that misconfigured gateway instances never reach a readiness state of `true`.
 +
-To configure the Helm chart for error intolerance, remove the following flags from the readiness probe:
+The `flexctl probe` accepts the following flags to configure error tolerance:
 
 +
 * `--allow-api-errors`
