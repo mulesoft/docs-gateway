@@ -31,7 +31,7 @@ The following table describes the resources you must allocate to your replica no
 | Large | 8-16 cores | 16-32 GB	
 |====
 
-NOTE: For IBM Power10 deployments, a "Large" node is sized 5-16 CPU cores.
+NOTE: For IBM Power10 deployments, allocate 5-16 CPU cores for a "Large" node.
 
 NOTE: Nodes belonging to a cluster must be of the same size.
 
@@ -47,13 +47,13 @@ The following table describes appropriate node and cluster sizes:
 | Large | > 500 | 4 | < 10 ms | < 10000 RPS | Mission-critical clusters
 |====
 
-The figures above are per node. API configurations are replicated to all nodes in the cluster. For example, if you have 10 APIs deployed with 3 policies for each API, it means that the 10 APIs and their policies are deployed to each node in the cluster.
+These sizing figures are per node. API configurations are replicated to all nodes in the cluster. For example, if you have 10 APIs deployed with 3 policies for each API, it means that the 10 APIs and their policies are deployed to each node in the cluster.
 
 The traffic is distributed across all nodes in the cluster. A small cluster node supports up to 500 RPS, but if the cluster has two nodes then the total traffic that the cluster allows is 1000 RPS (500 RPS for each node). Exceeding the recommended traffic per node eventually causes increased CPU usage. To avoid this issue, you must increase the size of all nodes in the cluster or scale horizontally.
 
 High CPU usage can lead to increased latency. In such a case, proceed with horizontal scaling or increase the node size. 
 
-High memory consumption can lead to out-of-memory errors. To solve this issue, increase the memory allocation or the node size. Horizontal scaling might not help solve issues in this situation. Horizontal scaling fails if high memory utilization is the problem. You must increase memory first, and scale horizontally later.
+High memory consumption can lead to out-of-memory errors. To solve this issue, increase the memory allocation or the node size. Horizontal scaling might not help solve issues in this situation. Horizontal scaling fails if high memory use is the problem. You must increase memory first, and scale horizontally later.
 
 The guiding table considers a cluster with an average request size of 1kB and 4 policies implemented. Adjust your parameters depending on your use case. 
 
