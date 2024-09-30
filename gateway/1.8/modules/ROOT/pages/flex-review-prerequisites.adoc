@@ -1,11 +1,11 @@
-= Reviewing Prerequisites
+= Requirements and Limits for Flex Gateway
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :page-aliases: runtime-manager::flex-gateway-permissions.adoc
 :imagesdir: ../assets/images
 
-Before you download and install Anypoint Flex Gateway, ensure that you review and fulfill the following prerequisites.
+Before you download and install Anypoint Flex Gateway, review the following requirements and limits.
 
 == Permission Requirements
 
@@ -27,7 +27,7 @@ To register Flex Gateway using a Connected App, the following scopes are require
 
 == Software Requirements
 
-Flex Gateway is not supported on Windows or in Docker running on Windows.
+Flex Gateway isn't supported on Windows or in Docker running on Windows.
 
 === Software Requirements for Kubernetes and OpenShift Deployments
 
@@ -98,6 +98,31 @@ Additionally, Flex Gateway supports the following container orchestration servic
 A single Flex Gateway can support multiple backend APIs. To support more backend APIs, you can deploy multiple replicas or additional Flex Gateways. For information about sizing, refer to xref:flex-sizing-guide.adoc[].
 
 Flex Gateway requires either an Intel or AMD-64 processor.
+
+[[limits]]
+== Limits
+
+[%header%autowidth.spread,cols="a,>.<a,a"]
+|===
+| Limit | Value | Notes
+| Request header
+| 60 KB
+| Requests that exceed this limit receive a 431 response.
+| Payload
+| 1 MB
+| This limit applies only to buffering the payload (such as logging the payload using message logging). If you're not accessing the payload, there's no limit to payload size.
+
+Payloads that exceed this limit receive a 413 response.
+| APIs per gateway instance
+| {gateway-api-max} 
+| Exceeding this limit doesn't cause errors, but isn't supported.
+| Contracts per API
+| 1,000
+| Exceeding this limit doesn't cause errors, but isn't supported.
+| Contracts per gateway instance
+| 10,000
+| Exceeding this limit doesn't cause errors, but isn't supported.
+|===
 
 == Ports, IPs, and Hostnames Allowlist Requirements
 
