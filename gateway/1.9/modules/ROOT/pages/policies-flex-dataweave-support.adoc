@@ -1,0 +1,156 @@
+= DataWeave Support in Flex Gateway Policies
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:page-aliases: policies::policies-flex-dataweave-support.adoc
+
+xref:dataweave::index.adoc[DataWeave] is the programming language designed by MuleSoft for data transformation. It enables you to build a simple solution for a common integration developer use case: read and parse data from one format, transform the data, and write it out as a different format.
+
+Flex Gateway supports a subset of DataWeave in policy configuration expressions. DataWeave is only supported in included policies and custom policies created with PDK..
+
+== Available Types
+
+* xref:dataweave::dataweave-type-system.adoc#null[`Null`]
+* `Boolean`
+* `String`
+* `Number` (Driven as 64 bits floating points)
+* xref:dataweave::dataweave-type-system.adoc#array-type[`Array`]
+* xref:dataweave::dataweave-type-system.adoc#object-type[`Object`] (Repeated keys are not available)
+
+== Available Value Constructors for Types
+
+* xref:dataweave::dataweave-types.adoc#dw_type_boolean[`Boolean`]
+* xref:dataweave::dataweave-types.adoc#dw_type_string[`String`]
+* xref:dataweave::dataweave-types.adoc#dw_type_number[`Number`]
+* xref:dataweave::dataweave-types.adoc#dw_type_array[`Array`]
+
+== Unavailable Value Constructors for Types
+
+* xref:dataweave::dataweave-types.adoc#dw_type_null[`Null`] (Writing a `null` literal is not supported)
+* xref:dataweave::dataweave-types.adoc#dw_type_object[`Object`] (Objects can not be defined as literals)
+
+== Available Flow Control Structures
+
+* xref:dataweave::dataweave-flow-control.adoc#control_flow_if_else[`if else`]
+
+== Unavailable Flow Control Structures
+
+* xref:dataweave::dataweave-flow-control.adoc#control_flow_do[`do`]
+
+== Available Selectors
+
+* `Array[Number]`
+* `Array[String]`
+* `Object[String]`
+* `String[Number]`
+
+== Unavailable Selectors
+
+* `Object[Number]`
+
+== Available Equality and Relational Operators
+
+* xref:dataweave::dw-operators.adoc#equality-and-relational-operators[`==`]
+* xref:dataweave::dw-operators.adoc#equality-and-relational-operators[`!=`]
+* xref:dataweave::dw-operators.adoc#equality-and-relational-operators[`>=`]
+* xref:dataweave::dw-operators.adoc#equality-and-relational-operators[`&lt;=`]
+
+== Available Logical Operators
+
+* xref:dataweave::dw-operators.adoc#logical_operators[`not`]
+* xref:dataweave::dw-operators.adoc#logical_operators[`and`]
+* xref:dataweave::dw-operators.adoc#logical_operators[`or`]
+
+[[available-default-operators]]
+== Available Default Operators
+
+* xref:dataweave::dataweave-cookbook-defaults.adoc#example-of-using-the-keyword-default-to-set-a-default-value[`default`]
+
+== Available Functions
+
+=== `++`
+
+* xref:dataweave::dw-core-functions-plusplus.adoc#plusplus1[`++(Array<S>, Array<T>): Array<S | T>`]
+* xref:dataweave::dw-core-functions-plusplus.adoc#plusplus2[`++(String, String): String`]
+
+=== `contains`
+
+* xref:dataweave::dw-core-functions-contains.adoc#contains1[`contains(Array<T>, Any): Boolean`]
+* xref:dataweave::dw-core-functions-contains.adoc#contains2[`contains(String, String): Boolean`]
+
+=== `lower`
+
+* xref:dataweave::dw-core-functions-lower.adoc#lower1[`lower(String): String`]
+* xref:dataweave::dw-core-functions-lower.adoc#lower2[`lower(Null): Null`]
+
+=== `splitBy`
+
+* xref:dataweave::dw-core-functions-splitby.adoc#splitby2[`splitBy(String, String): Array<String>`]
+
+=== `sizeOf`
+
+* xref:dataweave::dw-core-functions-sizeof.adoc#sizeof1[`sizeOf(Array<Any>): Number`]
+* xref:dataweave::dw-core-functions-sizeof.adoc#sizeof2[`sizeOf(Object): Number`]
+* xref:dataweave::dw-core-functions-sizeof.adoc#sizeof4[`sizeOf(String): Number`]
+
+=== `trim`
+
+* xref:dataweave::dw-core-functions-trim.adoc#trim1[`trim(String): String`]
+* xref:dataweave::dw-core-functions-trim.adoc#trim2[`trim(Null): Null`]
+
+=== `upper`
+
+* xref:dataweave::dw-core-functions-upper.adoc#upper1[`upper(String): String`]
+* xref:dataweave::dw-core-functions-upper.adoc#upper2[`upper(Null): Null`]
+
+=== `uuid`
+
+* xref:dataweave::dw-core-functions-uuid.adoc#uuid1[`uuid(): String`]
+
+=== `dw::core::Strings::substringAfter`
+
+* xref:dataweave::dw-strings-functions-substringafter.adoc#substringafter1[`substringAfter(String, String): String`]
+* xref:dataweave::dw-strings-functions-substringafter.adoc#substringafter2[`substringAfter(Null, String): Null`]
+
+=== `dw::core::Strings::substringAfterLast`
+
+* xref:dataweave::dw-strings-functions-substringafterlast.adoc#substringafterlast1[`substringAfterLast(String, String): String`]
+* xref:dataweave::dw-strings-functions-substringafterlast.adoc#substringafterlast2[`substringAfterLast(Null, String): Null`]
+
+=== `dw::core::Strings::substringBefore`
+
+* xref:dataweave::dw-strings-functions-substringbefore.adoc#substringbefore1[`substringBefore(String, String): String`]
+* xref:dataweave::dw-strings-functions-substringbefore.adoc#substringbefore2[`substringBefore(Null, String): Null`]
+
+=== `dw::core::Strings::substringBeforeLast`
+
+* xref:dataweave::dw-strings-functions-substringbeforelast.adoc#substringbeforelast1[`substringBeforeLast(text: String, separator: String): String`]
+* xref:dataweave::dw-strings-functions-substringbeforelast.adoc#substringbeforelast2[`substringBeforeLast(text: Null, separator: String): Null`]
+
+[[available-predefined-variables]]
+== Available Predefined Variables
+
+* xref:dataweave::dataweave-variables-context.adoc[`attributes`]
+** `attributes.headers`
+** `attributes.method` (Only available in request context)
+** `attributes.queryParams` (Only available in request context)
+** `attributes.queryString` (Only available in request context)
+** `attributes.requestPath` (Only available in request context)
+** `attributes.requestUri` (Only available in request context)
+** `attributes.localAddress` (Only available in request context)
+** `attributes.remoteAddress` (Only available in request context)
+** `attributes.scheme` (Only available in request context)
+** `attributes.version` (Only available in request context)
+** `attributes.statusCode` (Only available in response context)
+
+* xref:dataweave::dataweave-variables-context.adoc[`authentication`]
+** `authentication.clientId`
+** `authentication.clientName`
+** `authentication.principal`
+** `authentication.properties`
+
+* xref:dataweave::dataweave-variables-context.adoc[`payload`]
+** `payload`
+
+* xref:dataweave::dataweave-variables-context.adoc[`vars`]
+** Individual policies support different sets of variables. For information, refer to the policies listed in xref:policies-included-directory.adoc[].

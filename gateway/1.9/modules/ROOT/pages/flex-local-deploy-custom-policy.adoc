@@ -1,0 +1,208 @@
+= Deploying a Custom Policy for Flex Gateway in Local Mode
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+include::partial$pdk-banner.adoc[tag=pdk]
+
+You can implement custom policies via WebAssembly (WASM) extensions that run on Envoy as custom filters. The following steps demonstrate deploying and applying a custom filter (policy) to an API running in Local Mode:
+
+. Create a configuration YAML file.
+. Save the file in the Flex Gateway configuration directory.
+. Create the extension definition.
+. Encode the custom policy WASM implementation using `base64`.
+. Link the extension definition to the custom policy WASM binary implementation.
+. Link the custom policy to an API instance.
+. Apply the resources to the Flex Gateway instance.
+
+== Before You Begin
+
+Before getting started, ensure that you have:
+
+* Flex Gateway installed and running in Local Mode. See xref:flex-install.adoc[] for more information about installing and running the gateway.
+* Your upstream service URL. See xref:flex-local-publish-simple-api.adoc[] for an example.
+* A custom policy implemented and compiled. See xref:policies-custom-flex-implement-rust.adoc[].
+
+== Deploy a Custom Policy
+
+. Create a configuration file called `custom-policy-example.yaml`.
+
+. Save the file in the Flex Gateway configuration directory. For example:
++
+* `/etc/mulesoft/flex-gateway/conf.d/policies`
+
+. Create the extension definition.
++
+Copy and paste the following YAML snippet into the new configuration file. The YAML defines the configuration and metadata properties for the custom policy:
++
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Extension
+metadata:
+  name: custom-local-example-definition
+spec:
+  extends:
+  - name: extension-authentication
+  - name: extension-definition
+  properties:
+    secret-value:
+      type: string
+  required:
+    - secret-value
+----
++
+* The `metadata.name` value contains the extension name.
++
+* The `Extension` inherits properties from other defined extensions. For example, `spec.extends` specifies that the extension is an `extension-definition`, and that it belongs in the `authentication` category (`extension-authentication`).
++
+* The `spec.properties` values define properties that configure the custom policy instance.
++
+* The `spec.required` value specifies the required properties.
+
+. Encode the custom policy WASM binary implementation using `base64`.
++
+Encode the custom policy WASM binary implementation by executing the following command:
++
+[source,ssh]
+----
+base64 <your-custom-policy-name>.wasm | tr -d '\n\r' > policy
+----
++
+The command sends the encoded data to a file called `policy`. In the next step, substitute `<WASM_BINARY_IN_BASE64>` with this encoded data.
++
+[NOTE]
+====
+If you compiled the policy using a target of `wasm32-unknown-unknown`, locate the binary in `./target/wasm32-unknown-unknown/release`.
+
+If you compiled the policy using a target of `wasm32-wasi`, locate the binary in `./target/wasm32-wasi/release`.
+====
+
+. Link the extension definition to the custom policy WASM binary implementation.
++
+In `custom-policy-example.yaml`, define another resource that contains the policy implementation:
++
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Extension
+metadata:
+  name: custom-local-example-flex
+spec:
+  extends:
+    - name: custom-local-example-definition
+    - name: envoy-filter
+    - name: proxy-wasm-filter
+  properties:
+    rootId:
+      type: string
+      default: main
+    implementation:
+      type: string
+      default: base64://<WASM_BINARY_IN_BASE64>
+----
++
+* The `metadata.name` value contains the policy name, which must be different from the name specified in the definition.
++
+* The `spec.extends` value specifies the resource definition to inherit from. For example, `custom-local-example-definition` is the resource previously defined.
++
+* Substitute the `<WASM_BINARY_IN_BASE64>` value of `spec.properties.implementation.default` with the `base64` encoded WASM binary data, generated previously.
++
+[NOTE]
+====
+You can include the policy definition and implementation in the same `Extension` resource, but this generates a tighter coupling between them. It is therefore recommended to separate the two into different resources.
+====
+
+. Link the custom policy to an API instance.
++
+In `custom-policy-example.yaml`, define another resource that links the policy to an API instance:
++
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: custom-local-example
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: ingress-http
+  policyRef:
+    kind: Extension
+    name: custom-local-example-flex
+  config:
+    secret-value: "an-example-value"
+----
++
+* The `metadata.name` value contains the custom policy instance name.
++
+* The `spec.targetRef.name` value contains the name of the API instance on which to apply the custom policy. The API instance must already have been defined and applied.
++
+* The `spec.policyRef.name` value contains the custom policy implementation to apply.
++
+* The `spec.config` value contains policy configuration data.
+
+. Apply the resources to the Flex Gateway instance.
++
+The complete `custom-policy-example.yaml` file now contains the following:
++
+[source,yaml]
+----
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Extension
+metadata:
+  name: custom-local-example-definition
+spec:
+  extends:
+  - name: extension-authentication
+  - name: extension-definition
+  properties:
+    secret-value:
+      type: string
+  required:
+    - secret-value
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Extension
+metadata:
+  name: custom-local-example-flex
+spec:
+  extends:
+    - name: custom-local-example-definition
+    - name: envoy-filter
+    - name: proxy-wasm-filter
+  properties:
+    rootId:
+      type: string
+      default: main
+    implementation:
+      type: string
+      default: base64://<WASM_BINARY_IN_BASE64>
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: custom-local-example
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: ingress-http
+  policyRef:
+    kind: Extension
+    name: custom-local-example-flex
+  config:
+    secret-value: "an-example-value"
+----
++
+Save the file in the Flex Gateway configuration directory. For example:
++
+* `/etc/mulesoft/flex-gateway/conf.d/policies`
+
+A custom policy now applies to an API instance called `ingress-http`.
+
+== See Also
+
+* xref:policies-custom-flex-implement-rust.adoc[]
+* xref:flex-local-configuration-reference-guide.adoc[]

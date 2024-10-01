@@ -1,0 +1,39 @@
+= Viewing Standard Output Logs
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Flex Gateway maintains standard output logs for individual replicas. Use the standard output logs for quick logging checks when additional logging output is not needed, such as ensuring when an external service is running or API requests are reaching Flex Gateway.
+
+You do not need to configure log output to view standard output logs. However, if you want access logs to appear in standard output logs, you must apply a Message Logging policy to the APIs you want to monitor. To apply a Message Logging policy, see xref:flex-local-third-party-logs-config.adoc#configure-access-logs[Configuring Access logs].
+
+You can also configure additional Fluent Bit to enable custom logging outputs and customize the log level info. To configure additional logging, see xref:flex-local-third-party-logs-config.adoc[].
+
+To view additional log outputs, find the appropriate method to view them. The following commands display only the standard output logs.
+
+== View Logs
+
+To view the standard output logs of your replica, run one of the following commands:
+
+For Linux:
+[source,ssh]
+----
+journalctl -u flex-gateway*
+----
+
+For Docker:
+[source,ssh]
+----
+docker logs -f <container-id>
+----
+
+For Kubernetes:
+[source,ssh]
+----
+kubectl logs -f <pod-name>
+----
+
+== See Also
+
+* https://docs.fluentbit.io/manual[Fluent Bit documentation]
