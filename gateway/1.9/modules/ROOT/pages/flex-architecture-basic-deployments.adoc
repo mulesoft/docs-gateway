@@ -1,0 +1,85 @@
+= Flex Gateway Deployment Models
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Flex Gateway supports multiple deployment models, which apply to both Connected Mode and Local Mode:
+
+* <<standalone-deployment, Standalone deployment>>
+* <<ingress-deployment, Ingress deployment>>
+* <<egress-deployment, Egress deployment>>
+* <<sidecar-deployment, Sidecar deployment>>
+
+You can extend the deployment models in this overview to all technological stacks that have the appropriate network controls applied. For more information about routing configuration modes, see <<routing-configuration-methods>>.
+
+All the following diagrams show Flex Gateway running in Connected Mode. For Flex Gateway running in Local Mode, the only difference is that Anypoint Platform would not be present in the deployment model. This does not affect how information flows between Flex Gateway and the upstream and downstream services.
+
+== Standalone Deployment
+
+In a standalone deployment, Flex Gateway acts as a standalone service that protects one or more integration API flows by managing internal traffic.
+
+As the following diagram shows, all traffic is inside an organization-owned network. The traffic passes through Flex Gateway before reaching the consumer APIs.
+
+image:ad-standalone-deployment.png["In a standalone deployment, Flex Gateway and the consumer applications are in the same network."]
+
+== Ingress Deployment
+
+Similar to standalone deployment, in an ingress deployment, Flex Gateway acts as a standalone service that protects one or more integration API flows. However, in an ingress deployment, Flex Gateway manages external traffic entering the internal network. Ingress deployment is the most common deployment model.
+
+Flex Gateway can act as both an ingress and an egress gateway.
+
+As the following diagram shows, all external traffic passes through Flex Gateway before reaching the consumer APIs. Flex Gateway is typically deployed behind a load balancer, and the consumer application does not belong to the same network as Flex Gateway or the APIs.
+
+image:ad-ingress-deployment.png["In an ingress deployment, Flex Gateway and the consumer applications are in different networks."]
+
+
+NOTE: Ingress deployment is not the same as a Kubernetes Ingress controller or Ingress `Resource`. For more information about routing configuration, see <<routing-configuration-methods>>.
+
+== Egress Deployment
+
+An egress deployment is the opposite deployment model of an ingress deployment. Flex Gateway still acts as a standalone service that protects one or more integration API flows. However, in an egress deployment, Flex Gateway manages internal traffic exiting the internal network, for example, API requests to non-organization-owned APIs.
+
+Flex Gateway can act as both an ingress and an egress gateway.
+
+As the following diagram shows, all internal traffic from the consumer application passes through Flex Gateway before reaching the external APIs.
+
+image:ad-egress-deployment.png[]
+
+== Sidecar Deployment
+In a sidecar deployment, each Flex Gateway deployment only protects the APIs exposed by its protected service. A new Flex Gateway replica is added with each new protected service.
+
+As the following diagram shows, traffic in a sidecar deployment passes through Flex Gateway to the respective consumer API. The consumer application can belong to the same network as Flex Gateway or an external network.
+
+image:ad-sidecar-deployment.png["In a sidecar deployment, Flex Gateway and the consumer application are in the same Kubernetes pod."]
+
+== Routing Configuration Methods
+
+There are different routing configuration methods dependent on what mode Flex Gateway is running in or what technological stack Flex Gateway is deployed on.
+
+How connections between Flex Gateway and services are configured is independent of the deployment model.
+
+=== Control Plane
+
+In control plane routing configuration, Flex Gateway and service connections are configured in a remote control plane. For Flex Gateway, the control plane is Anypoint Platfrom. Control plane configuration is only available in Flex Gateway Connected Mode.
+
+=== Custom Resource Definitions (CRDs)
+
+In custom resource definitions (CRDs) routing configuration, Flex Gateway and service connections are configured in custom resource yaml files.
+
+For Flex Gateway, the CRDs are `APIinstance`, `Service`, `PolicyBinding`, and `Configuration` and are defined in the xref:flex-local-configuration-reference-guide.adoc[].
+
+In Flex Gateway CRDs define connections in Local Mode but are also necessary for some connections in Connected Mode.
+
+=== Kubernetes Ingress Resource
+
+Flex Gateways running in Local Mode and deployed on Kubernetes can use Kubernetes `Ingress` resources to define connection routing. When routing is defined via `Ingress` resources, Flex Gateway acts as an Ingress Controller. `Ingress` resources are only avaliable in Kubernetes Local Mode.
+
+You can use `Ingress` resources and CRDs simultaneously. 
+
+For more information about how to configure Flex Gateway as an Ingress Controller, see xref:flex-gateway-k8-ingress-class.adoc[].
+
+== See Also
+
+* xref:flex-architecture-uc-overview.adoc[]
+* xref:flex-architecture-shared-storage.adoc[]

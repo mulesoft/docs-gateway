@@ -1,0 +1,103 @@
+= Configuring TLS Context for Flex Gateway in Connected Mode
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:page-mode: conn
+
+// Add TLS Context intro
+include::partial$task-flex-add-tls-context.adoc[tags=intro1]
+
+When you add a TLS context, you can also select the ciphers to use with the TLS context and configure different inbound and outbound validation settings.
+
+include::partial$task-tls-config.adoc[tags=intro2;defaultOutboundTLS]
+
+Flex Gateway implements inbound TLS at the port level, meaning that an inbound TLS context applied to an API instance is also applied to all other instances that share the same port. To learn more about how TLS context is shared across ports, see <<tls-context-applied-to-shared-ports, Inbound TLS Context Applied to Shared Ports>>.
+
+Port sharing is not a concern for outbound TLS. You can select the outbound TLS context for each individual upstream service.
+
+include::partial$task-tls-config.adoc[tag=aia-support]
+
+== Before You Begin
+Before configuring the TLS context for a Flex Gateway Connected Mode, complete the following tasks:
+
+* xref:flex-install.adoc[Download Flex Gateway]
+* xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
+* Ensure the following permissions are enabled:
+** _Grant access to secrets_ in Secrets Manager
+** _Deploy API Proxies_ in API Manager
++
+Your Anypoint Platform Admin can add these permissions in Access Management.
+See xref:access-management::configure-teams.adoc#manage-team-permissions[Manage Team Permissions] for more information. 
+
+* xref:anypoint-security::asm-secret-group-creation-task.adoc[Create a Secret Group]
++
+When adding a secret group, refer to the <<tls-configuration-options, TLS Configuration Options>>. 
++
+Depending on your desired configuration, either:
++
+** xref:anypoint-security::asm-secret-group-creation-task.adoc#adding-a-keystore[Add a Keystore]
+** xref:anypoint-security::asm-secret-group-creation-task.adoc#adding-a-truststore[Add a Trustore]
++
+NOTE: Privacy Enhanced Mail (PEM) type is required for your Keystore or Truststore.
+
+// TLS Configuration Options
+include::partial$task-flex-add-tls-context.adoc[tags=configurationOptions]
+
+
+// Add TLS Context in Secrets Manager
+include::partial$task-flex-add-tls-context.adoc[tags=addContext]
+
+
+//redeploy
+
+
+
+== Apply a TLS Context to an API
+
+You can apply a TLS context to an API instance either when creating a new instance or by editing an existing instance.
+
+API instance settings configuration has two parts, the downstream configuration and the upstream configuration. Inbound TLS context is a downstream configuration option, and outbound TLS context is an upstream configuration option. When adding a new API instance, the downstream and upstream configuration is on separate pages. When editing an API instance, the downstream and upstream configuration options appear on the same page but are in different sections.
+
+For information about either option, see the relevant tutorial:
+
+* xref:api-manager::create-instance-task-flex.adoc[]
+* xref:api-manager::edit-api-endpoint-task.adoc[]
+
+To apply a TLS context:
+
+. Go to *Anypoint Platform > API Manager*.
+. Navigate to either the:
+* Upstream or downstream configuration page, if adding a new API instance.
+* *Settings* page, if editing an existing API instance.
+. Select *HTTPS* for the *Protocol* configuration field if configuring an inbound TLS context.
+. Click *Add TLS Context*.
+.. Select a *Secret Group*.
+.. Select a *TLS Context*.
+.. Click *Ok*.
+. Finish creating the API instance or save the configuration edits.
+
+
+[[tls-context-applied-to-shared-ports]]
+== Inbound TLS Context Applied to Shared Ports
+Though a port must have an API instance to have an inbound TLS context applied, the inbound TLS context is applied to the port rather than the API instance.
+
+Applying an inbound TLS context to an API instance that shares its port with other instances applies the inbound TLS context to all instances sharing the port.
+
+When you apply, edit, or remove the inbound TLS context of an API instance sharing a port, API Manager shows a warning with a list of the instances sharing the port. You can then choose to override the inbound TLS context of the listed API instances. Overriding the inbound TLS context of the API instances that share the port applies the inbound TLS context to the instances and then redeploys the instances.
+
+Overriding the inbound TLS context of deployed API instances redeploys the instances. Redeploying causes a brief period of downtime in the API instances.
+
+If you edit the port of an API instance that previously shared a port and an inbound TLS context with other instances, the inbound TLS context remains applied to the instances on the previous port.
+
+include::partial$task-flex-add-tls-context.adoc[tags=redeploy]
+//Redeploy
+
+//Ciphers
+include::partial$flex-tls-cipher.adoc[tags=connectedSelect;cipherSupport;ciphers]
+
+//Ciphers
+== See Also
+
+* xref:flex-local-tls-config.adoc[Configuring TLS Context for Flex Gateway in Local Mode]
+* xref:policies-included-tls.adoc[Transport Layer Security Policy]

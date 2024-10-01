@@ -1,0 +1,201 @@
+= Getting Started with Flex Gateway
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:page-aliases: runtime-manager::flex-gateway-add.adoc, runtime-manager::flex-gateway-api-add.adoc
+:imagesdir: ../assets/images
+
+The goal of this tutorial is to quickly get started with Anypoint Flex Gateway. Using Docker, the tutorial describes how to install, register, and run Flex Gateway in Connected Mode. Additionally, the tutorial describes how to publish an API that is secured with a basic authentication policy.
+
+== Before You Begin
+
+Before getting started with Flex Gateway, ensure that you have:
+
+* A username and password for your Anypoint Platform organization. If you don’t have Anypoint Platform yet, https://anypoint.mulesoft.com/login/signup[create a Trial organization^] on Anypoint Platform.
+
+* A Linux machine with an x86 processor. M1 and M2 processors are not supported.
++
+include::partial$prerequisites.adoc[tag=intro]
+
+** {empty}
+include::partial$prerequisites.adoc[tag=amazon-linux]
+
+** {empty}
+include::partial$prerequisites.adoc[tag=centos]
+
+** {empty}
+include::partial$prerequisites.adoc[tag=debian]
+
+** {empty}
+include::partial$prerequisites.adoc[tag=red-hat]
+
+** {empty}
+include::partial$prerequisites.adoc[tag=red-hat-ibm]
+
+** {empty}
+include::partial$prerequisites.adoc[tag=suse]
+
+** {empty}
+include::partial$prerequisites.adoc[tag=suse-ibm]
+
+** {empty}
+include::partial$prerequisites.adoc[tag=ubuntu]
+
+* A Docker installation. See https://www.docker.com/products/docker-desktop/[Docker Desktop^] for an example.
+
+== Download Flex Gateway
+
+To download the Flex Gateway Docker image, run the following command in a terminal window:
+
+[source,ssh,subs=attributes+]
+----
+docker pull mulesoft/flex-gateway:{gateway-ver-var}
+----
+
+[NOTE]
+Use `sudo` if you encounter file permission issues when running this command.
+
+== Register Flex Gateway
+
+. Create a new directory by running:
++
+[source,ssh]
+----
+mkdir flex-registration
+----
+
+. Navigate to the new directory by running:
++
+[source,ssh]
+----
+cd flex-registration
+----
+
+. Log in to https://anypoint.mulesoft.com/login/[Anypoint Platform^] with your Anypoint username and password.
+. Select *Runtime Manager*.
+. Click on the *Flex Gateways* tab in the side navigation panel.
+. Click *Add Gateway*.
+. Select *Docker*.
+. Copy the code block in the *Register your gateway* section. The code block contains your unique organization ID and token.
++
+The following screenshot of the *Add a Flex Gateway* page highlights the code block to copy:
++
+image::gateway-quickstart-add-gateway.png["Add a Flex Gateway page with code block to copy selected",width=90%]
+
+. Run the copied code block in your terminal window, making sure to first replace `<gateway-name>` with a name, such as `my-gw`.
++
+[NOTE]
+Use `sudo` if you encounter file permission issues when running this command.
+
+. In Runtime Manager, select *Flex Gateways* from the side navigation panel.
++
+Your registered Flex Gateway now appears in the list of gateways.
+
+== Run Flex Gateway
+
+To run Flex Gateway, run the following in a terminal window:
+
+[source,ssh]
+----
+docker run --rm \
+  -v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
+  -p 8081:8081 \
+  mulesoft/flex-gateway
+----
+
+[NOTE]
+Use `sudo` if you encounter file permission issues when running this command.
+
+A new Flex Gateway instance is now running in your terminal window.
+
+[NOTE]
+The Flex Gateway instance will continue running in the terminal window until the process is stopped, or until the window is closed.
+
+== Publish a Simple API
+
+. Select *API Manager* from the Anypoint Platform menu.
+. Click *Add API*, followed by *Add new API*:
++
+image::gateway-quickstart-add-new-api.png["Add new API page with Add new API selected",width=35%]
+
+. From the *Add API* page, select *Flex Gateway* as your runtime.
+. Select your registered gateway in the *Select a gateway* section.
+. Click *Next*.
++
+The following screenshot of the *Add API* page highlights the specified options:
++
+image::gateway-quickstart-select-gateway-for-api.png["Add API page with Flex Gateway Runtime and my-gw gateway selected",width=100%]
+
+. Click *Create New API*.
+. Specify an API name and select *HTTP API* as the asset type.
+. Click *Next*.
+. From the *Endpoint* page, enter the following in the *Implementation URI* field:
++
+[source]
+----
+https://jsonplaceholder.typicode.com/
+----
+. Enter `8081` in the *Port* field.
+. Click *Next*.
++
+// The following screenshot of the *Endpoint* page highlights the specified options.
+// +
+// image::gateway-quickstart-select-endpoint.png["Screenshot of 'Endpoint' page",width=100%]
+
+. Click *Save & Deploy*.
++
+Inside the gateway instance Docker container, all HTTP requests made to `localhost` on port `8081` are now proxied to the `jsonplaceholder` service.
+. To test the API Instance, run the following command in a new terminal window:
++
+[source,ssh]
+----
+curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://localhost:8081/'
+----
++
+The command executes a `GET` request to the API, and then prints the resulting `200` status code, indicating success.
+
+== Secure Your API Using the Basic Authentication Policy
+
+. While still in *API Manager*, select *API Administration* from the side navigation panel.
+. Select the name of the API created in the previous section.
+. Select *Policies* from the side navigation panel.
+. In the *Policies* page, click *Add policy*.
++
+The following screenshot of the *Policies* page highlights the specified options:
++
+image::gateway-quickstart-add-policy.png["Add Policy page with Add policy button",width=65%]
+
+. Select the *Basic Authentication - Simple* policy.
+. Click *Next*.
+. For *User Name*, enter `user`.
+. For *User Password*, enter `password`.
+. Click *Apply*.
++
+The following screenshot of the *Configure Basic Authentication - Simple policy* page highlights the specified options:
++
+image::gateway-quickstart-config-basic-auth.png["Configure Basic Authentication Policy page with User Password field selected",width=65%]
+
+. To test the API Instance _without_ authentication, run the following `curl` command in the terminal window:
++
+[source,ssh]
+----
+curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://localhost:8081/'
+----
++
+The command prints a resulting `401 (Unauthorized)` status code, because the request does not include the Authentication context.
+. To test the API Instance _with_ authentication, run the following command in the terminal window:
++
+[source,ssh]
+----
+curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://localhost:8081/' -u user:password
+----
++
+[NOTE]
+The `user` and `password` parameters must match what was specified when you applied the policy via *API Manager*.
++
+The command prints the resulting `200` status code, indicating success.
+
+== Next Steps
+
+* xref:flex-review-prerequisites.adoc[]
+* xref:flex-gateway-set-up.adoc[]
