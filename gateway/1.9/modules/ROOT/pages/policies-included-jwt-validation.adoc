@@ -309,6 +309,12 @@ The JWT is also propagated downstream, and you can access it by using the follow
 
 `#[authentication.properties.jwt]`
 
+==== Propagating Client ID
+
+If Client ID validation is enabled, the Client ID is propagated as a claim and as a reserved authentication property. Access the property by using the following DataWeave expression:
+
+`#[authentication.clientId]`
+
 === Retry Mechanism
 
 If you selected JSON Web Key Set (JWKS) as JWT Key Origin, the policy uses a retry mechanism to handle failed JWKS fetches. Every time the cached JWKS expires or is absent and a new request is triggered, a request is sent to each JWKS service. If a request fails, a sequence of asynchronous requests with an exponential backoff delay is sent to the failed JWKS service until a new JWKS is obtained and cached again.
