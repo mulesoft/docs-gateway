@@ -186,7 +186,7 @@ The supported formating types are:
 +
 * `dataweave`: Specifies the input parameter is a DataWeave variable and notifies Flex Gateway to transform the input. For more information about DataWeave expressions, see <<dataweave-expressions>>.
 * `service`: Specifies the input parameter is a URI and automatically creates a Flex Gateway service to enable HTTP calls from the policy.
-* `ip-range`: Specifies the expected text is a range of IPs and provides additional validation on the input.
+* `ipRange`: Specifies the expected text is a range of IPs and provides additional validation on the input.
 * `uri`: Specifies the expected text is a URI and provides additional validation on the input. Only use `uri` when the URI is not a service making HTTP calls from the policy.
 +
 The following yaml snippet demonstrates all string formats:
@@ -204,7 +204,7 @@ properties:
         default: "#[splitBy(attributes.headers['Authorization'], ' ')[1]]"
     blockedIps:
         type: string
-        format: ip-range
+        format: ipRange
         default: "192.168.3.1/30"
     loginUrl:
         type: string
@@ -373,7 +373,7 @@ Properties defined in the `gcl.yaml` files are mapped to the Rust data types in 
 
 | `string` | `String`
 | `uri` string | `String`
-| `ip-range` string | `String`
+| `ipRange` string | `String`
 | `dataveave` string | `pdk::script::Script`
 | `number` | `f64`
 | `integer` | `i64`
