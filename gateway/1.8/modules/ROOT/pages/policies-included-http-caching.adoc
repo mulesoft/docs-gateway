@@ -332,10 +332,14 @@ For more information about the default values, see <<cpp,Configuring Policy Para
 
 == FAQ
 
+
+*I'm using Postman or a similar tool and the policy isn't caching anything?*
+
+When the *Follow HTTP Caching directives* parameter is `true`, the policy follows the `cache-control` header's directive. By default, Postman and some other tools add the `cache-control=no-cache` header to requests. Therefore, the policy ignores the cache unless Postman is configured otherwise.
+
 *What happens when the evaluation of the key results in any error?*
 
 If the evaluation of the expression for a particular request results in an error, the policy does not take effect and the request continues to the next receptor in the policy chain.
-
 
 *Can I store only part of the response with this policy?*
 
