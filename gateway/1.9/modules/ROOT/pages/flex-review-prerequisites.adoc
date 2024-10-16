@@ -1,0 +1,160 @@
+= Requirements and Limits for Flex Gateway
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:page-aliases: runtime-manager::flex-gateway-permissions.adoc
+:imagesdir: ../assets/images
+
+Before you download and install Anypoint Flex Gateway, review the following requirements and limits.
+
+== Permission Requirements
+
+Running Flex Gateway requires the following permissions:
+
+* _Manage Servers_ and _Read Servers_ permissions in Runtime Manager
+
+Your Anypoint Platform Admin can add these permissions in Access Management.
+See xref:access-management::configure-teams.adoc#manage-team-permissions[Manage Team Permissions] for more information. 
+
+Your Anypoint Platform Admin can also add a Connected App with the appropriate permissions.
+See xref:access-management::connected-apps-overview.adoc[Connected Apps] for more information.
+
+To register Flex Gateway using a Connected App, the following scopes are required:
+
+* Manage Servers
+* Read Servers
+* View Organization
+
+== Software Requirements
+
+Flex Gateway isn't supported on Windows or in Docker running on Windows.
+
+=== Software Requirements for Kubernetes and OpenShift Deployments
+
+Running Flex Gateway requires:
+
+* A minimum of either Kubernetes 1.21 or OpenShift 4.8.
+
+* Ingress v1 (stable), which requires specifying `apiVersion: networking.k8s.io/v1` as the API version in your configuration resources.
+
+* A private cloud or data center.
++
+Or, a cloud provider such as the following:
+
+** Google Kubernetes Engine (GKE)
+** Amazon Elastic Kubernetes Service (Amazon EKS)
+** Azure Kubernetes Service (AKS)
+
+//helm prereq
+* {empty}
+include::partial$prerequisites.adoc[tag=helm]
+
+=== Software Requirements for Linux Deployments
+
+include::partial$prerequisites.adoc[tag=intro]
+
+* {empty}
+include::partial$prerequisites.adoc[tag=amazon-linux]
+
+* {empty}
+include::partial$prerequisites.adoc[tag=centos]
+
+* {empty}
+include::partial$prerequisites.adoc[tag=debian]
+
+* {empty}
+include::partial$prerequisites.adoc[tag=red-hat]
+
+* {empty}
+include::partial$prerequisites.adoc[tag=red-hat-ibm]
+
+* {empty}
+include::partial$prerequisites.adoc[tag=suse]
+
+* {empty}
+include::partial$prerequisites.adoc[tag=suse-ibm]
+
+* {empty}
+include::partial$prerequisites.adoc[tag=ubuntu]
+
+Flex Gateway is designed to run in cloud-native architectures. You can therefore only install one gateway instance per Linux VM. Multiple installations on a single VM are not supported.
+
+=== Software Requirements for Container Deployments
+
+Flex Gateway supports the following:
+
+* Docker
+* Podman
+
+Additionally, Flex Gateway supports the following container orchestration services:
+
+* Amazon Elastic Container Service (Amazon ECS)
+* Azure Container Service (ACS)
+* Google Cloud Run
+* AWS Fargate
+
+== Hardware Requirements
+
+A single Flex Gateway can support multiple backend APIs. To support more backend APIs, you can deploy multiple replicas or additional Flex Gateways. For information about sizing, refer to xref:flex-sizing-guide.adoc[].
+
+Flex Gateway requires either an Intel or AMD-64 processor.
+
+[[limits]]
+== Limits
+
+[%header%autowidth.spread,cols="a,>.<a,a"]
+|===
+| Limit | Value | Notes
+| Request header
+| 60 KB
+| Requests that exceed this limit receive a 431 response.
+| Payload
+| 1 MB
+| This limit applies only to buffering the payload (such as logging the payload using message logging). If you're not accessing the payload, there's no limit to payload size.
+
+Payloads that exceed this limit receive a 413 response.
+| APIs per gateway instance
+| {gateway-api-max} 
+| Exceeding this limit doesn't cause errors, but isn't supported.
+| Contracts per API
+| 1,000
+| Exceeding this limit doesn't cause errors, but isn't supported.
+| Contracts per gateway instance
+| 10,000
+| Exceeding this limit doesn't cause errors, but isn't supported.
+|===
+
+== Ports, IPs, and Hostnames Allowlist Requirements
+
+For Flex Gateway to communicate with MuleSoft-managed online Anypoint Platform APIs and services, you must add the following hostnames and ports of external resources to the allowlist:
+ 
+[%header%autowidth.spread]
+|===
+|Plane |Host |Port| Mode| Description| Protocol
+|*US*|*anypoint.mulesoft.com* | 443| Both| Required to connect with the control plane, push internal metrics, and download custom policy binaries| HTTPS
+|*US*|*arm-mcm2-service.kprod.msap.io* | 443| Both| Required to communicate with the transport layer| mTLS
+|*US*|*logging.ingestion.us-east-1.prod.cloudhub.io* | 443| Both| Required to send analytics data to the control plane| HTTPS
+|*US*|*metering.ingestion.us-east-1.prod.cloudhub.io* | 443| Both| Required to send analytics data to the control plane| HTTPS
+|*US*|*monitoring.ingestion.us-east-1.prod.cloudhub.io* | 443| Both| Required to send analytics data to the control plane| HTTPS
+|*US*|*exchange-files.anypoint.mulesoft.com* | 443| Connected| Required to download policies| HTTPS
+|*US*|*exchange2-asset-manager-kprod.s3.amazonaws.com* | 443| Connected| Required to download policies| HTTPS
+|*US*|*configuration-resolver.prod.cloudhub.io* | 443| Connected| Required to download policies| mTLS
+|*US*|*us1.ingest.mulesoft.com* | 443| Both| Required to send analytics data to the control plane| HTTPS
+|*US*|*flex-packages.anypoint.mulesoft.com* | 443| Both| Required to download and install Flex Gateway| HTTPS
+|*EU*|*eu1.anypoint.mulesoft.com* | 443| Both| Required to connect with the control plane, push internal metrics, and download custom policy binaries| HTTPS
+|*EU*|*arm-mcm2-service.kprod-eu.msap.io* | 443| Both| Required to communicate with the transport layer| mTLS
+|*EU*|*logging.ingestion.eu-central-1.prod-eu.msap.io* | 443| Both| Required to send analytics data to the control plane| HTTPS
+|*EU*|*metering.ingestion.eu-central-1.prod-eu.msap.io* | 443| Both| Required to send analytics data to the control plane| HTTPS
+|*EU*|*eu1.ingest.mulesoft.com* | 443| Both| Required to send analytics data to the control plane| HTTPS
+|*EU*|*monitoring.ingestion.eu-central-1.prod-eu.msap.io* | 443| Both| Required to send analytics data to the control plane| HTTPS
+|*EU*|*configuration-resolver.prod-eu.msap.io* | 443| Connected| Required to download policies| mTLS
+|*EU*|*exchange-files.eu1.anypoint.mulesoft.com* | 443| Connected| Required to download policies| HTTPS
+|*EU*|*exchange2-asset-manager-kprod-eu.s3.eu-central-1.amazonaws.com* | 443| Connected| Required to download policies| HTTPS
+|*EU*|*flex-packages.anypoint.mulesoft.com* | 443| Both| Required to download and install Flex Gateway| HTTPS
+|*EU*|*flex-packages.eu1.anypoint.mulesoft.com* | 443| Both| Required to download and install Flex Gateway| HTTPS
+|===
+
+[NOTE]
+====
+Port 9998 is reserved for internal processes, and should not be used in `ApiInstance` definitions.
+====

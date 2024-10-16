@@ -1,0 +1,187 @@
+= Registering and Running in Connected Mode with a Token
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:reg-mode: Connected
+
+//table with tech logos and links (linux, docker, k8, openshift)
+include::partial$task-reg-run-flex-gateway.adoc[tags=table-logos-links]
+
+[[prereqs]]
+// Prerequisites
+include::partial$task-reg-run-flex-gateway.adoc[tags=prerequisites-heading;prerequisites;token-prerequisites]
+
+[[linux]]
+// Register and run with a token as a Linux service
+include::partial$task-reg-run-flex-gateway.adoc[tags=token-linux-heading]
+include::partial$prerequisites.adoc[tag=intro]
+
+* {empty}
+include::partial$prerequisites.adoc[tag=amazon-linux]
+
+* {empty}
+include::partial$prerequisites.adoc[tag=centos]
+
+* {empty}
+include::partial$prerequisites.adoc[tag=debian]
+
+* {empty}
+include::partial$prerequisites.adoc[tag=red-hat]
+
+* {empty}
+include::partial$prerequisites.adoc[tag=red-hat-ibm]
+
+* {empty}
+include::partial$prerequisites.adoc[tag=suse]
+
+* {empty}
+include::partial$prerequisites.adoc[tag=suse-ibm]
+
+* {empty}
+include::partial$prerequisites.adoc[tag=ubuntu]
+
+include::partial$task-reg-run-flex-gateway.adoc[tags=reg-command-intro;sub-coll-info;token-replace-content;replace-content;reg-command-heading;reg-command-1;linux-reg-command;token-reg-command;connected-reg-command;organization-reg-command;output-reg-command-linux;reg-command-2;after-reg;linux-after-reg;disconnected-after-reg;create-config-folder-file;config-content;linux-start-commands;gateway-connected]
+
+[[container]]
+include::partial$task-reg-run-flex-gateway.adoc[tags=token-container-heading]
+include::partial$task-reg-run-flex-gateway.adoc[tags=table-containers-logos-heading]
+include::partial$task-reg-run-flex-gateway.adoc[tags=table-containers-logos-links]
+
+[[docker]]
+// Register and run with a token in a Docker container
+include::partial$task-reg-run-flex-gateway.adoc[tags=token-docker-heading;reg-command-intro;sub-coll-info-container;token-replace-content;replace-content;reg-command-heading-container;docker-create-directory-note;reg-command-1;docker-reg-command;token-reg-command;connected-reg-command;organization-reg-command;output-reg-command-docker;reg-command-2;after-reg;after-reg-2;disconnected-after-reg;start-command-container;gateway-connected]
+
+// PODMAN
+[[podman]]
+// Register and run with a token in a Podman container
+include::partial$task-reg-run-flex-gateway.adoc[tags=token-podman-heading;reg-command-intro;sub-coll-info-container;token-replace-content;replace-content;reg-command-heading-container;docker-create-directory-note;reg-command-1;podman-reg-command;token-reg-command;connected-reg-command;organization-reg-command;output-reg-command-docker;reg-command-2;after-reg;after-reg-2;disconnected-after-reg;podman-start-command;gateway-connected]
+
+// KUBERNETES 
+[[kubernetes]]
+// Register and run with a token in a Kubernetes cluster
+//heading
+include::partial$task-reg-run-flex-gateway.adoc[tags=token-k8s-heading]
+// - task overview
+include::partial$task-reg-run-flex-gateway.adoc[tags=k8s-install-flex-helm-chart-intro-connected]
+// - cluster-level access when rbac enabled
+include::partial$prerequisites.adoc[tags=rbac-permission-k8]
+//- links to steps
+include::partial$task-reg-run-flex-gateway.adoc[tags=links-to-k8s-reg-steps]
+//- connected mode supplemental info for k8 and openshift
+include::partial$task-reg-run-flex-gateway.adoc[tag=k8s-connected-intro]
+
+[[options-k8s]]
+//sub collected info
+include::partial$task-reg-run-flex-gateway.adoc[tags=sub-coll-info;token-replace-content;replace-content]
+
+[[reg-k8s]]
+include::partial$task-reg-run-flex-gateway.adoc[tags=reg-command-heading]
+include::partial$task-reg-run-flex-gateway.adoc[tags=reg-command-heading-intro]
+
+[[docker-container-reg]]
+.*Docker*
+[%collapsible]
+====
+include::partial$task-reg-run-flex-gateway.adoc[tags=docker-reg-command-heading-intro]
+
+//reg command
+include::partial$task-reg-run-flex-gateway.adoc[tags=reg-command-1;docker-reg-command;token-reg-command;connected-reg-command;organization-reg-command;output-reg-command-docker;reg-command-2;after-reg;k8s-after-reg;disconnected-after-reg]
+====
+
+[[podman-container-reg]]
+.*Podman*
+[%collapsible]
+====
+include::partial$task-reg-run-flex-gateway.adoc[tags=podman-reg-command-heading-intro]
+
+//reg command
+include::partial$task-reg-run-flex-gateway.adoc[tags=reg-command-1;podman-reg-command;token-reg-command;connected-reg-command;organization-reg-command;output-reg-command-docker;reg-command-2;after-reg;k8s-after-reg;disconnected-after-reg]
+====
+
+[[deploy-k8s]]
+//install helm chart section
+//- title
+include::partial$task-reg-run-flex-gateway.adoc[tags=k8s-install-flex-helm-chart-title]
+//- helm chart info
+include::partial$task-reg-run-flex-gateway.adoc[tags=k8s-flex-helm-chart]
+include::partial$prerequisites.adoc[tags=helm] 
+Refer to <<helm-options-k8s>> for configuration options. 
+//- add chart repo and deploy flex via chart
+include::partial$task-reg-run-flex-gateway.adoc[tags=k8s-flex-helm-chart-add;k8s-flex-helm-chart-deploy]
+//- for flex connected mode deployment only
+include::partial$task-reg-run-flex-gateway.adoc[tags=gateway-connected]
+
+[[helm-options-k8s]]
+//helm config options
+include::partial$task-reg-run-flex-gateway.adoc[tags=helm-chart-options]
+
+
+// OPENSHIFT 
+[[openshift]]
+// Register and run with a token in an OpenShift cluster
+//heading
+include::partial$task-reg-run-flex-gateway.adoc[tags=token-openshift-heading]
+//intro
+include::partial$task-reg-run-flex-gateway.adoc[tags=k8s-install-flex-helm-chart-intro-connected]
+//- cluster-level access when rbac enabled
+include::partial$prerequisites.adoc[tags=rbac-permission-k8;rbac-role-openshift]
+//- note (openshift command line procedures same as k8)
+include::partial$task-reg-run-flex-gateway.adoc[tags=note-openshift-k8]
+//- links to steps
+include::partial$task-reg-run-flex-gateway.adoc[tags=links-to-openshift-reg-steps]
+
+//- connected mode supplemental info for k8 and openshift
+include::partial$task-reg-run-flex-gateway.adoc[tag=k8s-connected-intro]
+
+[[options-openshift]]
+//sub collected info
+include::partial$task-reg-run-flex-gateway.adoc[tags=sub-coll-info;token-replace-content;replace-content]
+
+[[reg-openshift]]
+include::partial$task-reg-run-flex-gateway.adoc[tags=reg-command-heading]
+
+include::partial$task-reg-run-flex-gateway.adoc[tags=reg-command-openshift-heading-intro]
+
+[[docker-openshift-container-reg]]
+.*Docker*
+[%collapsible]
+====
+include::partial$task-reg-run-flex-gateway.adoc[tags=docker-reg-command-heading-intro]
+
+//reg command
+include::partial$task-reg-run-flex-gateway.adoc[tags=reg-command-1;docker-reg-command;token-reg-command;connected-reg-command;organization-reg-command;output-reg-command-docker;reg-command-2;after-reg;k8s-after-reg;disconnected-after-reg]
+====
+
+[[podman-openshift-container-reg]]
+.*Podman*
+[%collapsible]
+====
+include::partial$task-reg-run-flex-gateway.adoc[tags=podman-reg-command-heading-intro]
+
+//reg command
+include::partial$task-reg-run-flex-gateway.adoc[tags=reg-command-1;podman-reg-command;token-reg-command;connected-reg-command;organization-reg-command;output-reg-command-docker;reg-command-2;after-reg;k8s-after-reg;disconnected-after-reg]
+====
+
+[[deploy-openshift]]
+//install helm chart section
+//- title
+include::partial$task-reg-run-flex-gateway.adoc[tags=k8s-install-flex-helm-chart-title]
+//- helm chart info
+include::partial$task-reg-run-flex-gateway.adoc[tags=k8s-flex-helm-chart]
+include::partial$prerequisites.adoc[tags=helm] 
+Refer to <<helm-options-openshift>> for configuration options. 
+//- add chart repo and deploy flex via chart
+include::partial$task-reg-run-flex-gateway.adoc[tags=k8s-flex-helm-chart-add;k8s-flex-helm-chart-deploy]
+//- for flex connected mode deployment only
+include::partial$task-reg-run-flex-gateway.adoc[tags=gateway-connected]
+
+[[helm-options-openshift]]
+//helm config options
+include::partial$task-reg-run-flex-gateway.adoc[tags=helm-chart-options]
+
+
+== See Also
+
+* xref:flex-gateway-getting-started.adoc[]
+* xref:flex-local-reg-run.adoc[]

@@ -1,0 +1,194 @@
+= Flex Gateway Overview
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:page-aliases: gateway::flex-shared-responsibility.adoc, runtime-manager::flex-gateway-about.adoc, runtime-manager::flex-gateway-modes.adoc
+
+Anypoint Flex Gateway is an Envoy-based, ultrafast lightweight API gateway designed to manage and secure APIs running anywhere. Built to seamlessly integrate with DevOps and CI/CD workflows, Flex Gateway delivers the performance required for the most demanding applications and microservices while providing enterprise security and manageability across any environment.
+
+The following video provides a quick overview of Flex Gateway:
+
+++++
+include::_partials/product-spotlight-video.html[]
+++++
+
+== Flex Gateway Architecture
+
+Flex Gateway comprises two components that work in tandem:
+
+* <<control_plane,Control plane>>
+* <<runtime,Runtime>>
+
+The following graphic diagrams the relationship between these components:
+
+image::gateway-concepts-control-plane-diagram.png["Flex Gateway Concepts diagram,"width=100%]
+
+[[control_plane]]
+=== Control plane
+
+The control plane is a MuleSoft-hosted platform that centralizes management and observability, enabling you to:
+
+* Build APIs.
+* Add policies.
+* Deploy APIs into the runtime.
+* Monitor APIs in Anypoint API Manager.
+* Configure the runtime in Anypoint Runtime Manager.
+
+[[runtime]]
+=== Runtime
+
+The gateway runtime is a customer-hosted distributed entity installed in any cloud data center or, for testing purposes, on your local laptop. The runtime receives commands from the control plane and routes and protects the backend APIs. Built with security in mind, Flex Gateway secures communications between the runtime and the control plane through mTLS and HTTPs.
+
+Fluent Bit implementation enables log output to local files, or to aggregators such as New Relic, Sumo Logic, and Splunk.
+
+== Replicas
+A runtime unit is called a `replica`. While a single runtime can support {gateway-api-max} backend APIs for high availability, it is best to deploy Flex Gateway as a cluster with multiple replicas running in parallel. Using clusters increases gateway performance and robustness, and is recommended for high-performance applications that must scale.
+
+A single Flex Gateway can support multiple backend APIs. To support more backend APIs, you can deploy multiple replicas or additional Flex Gateways. Increase replica CPU and memory for higher throughput and increased performance.
+
+You can configure an optional external REDIS storage for features such as distributed rate limiting and distributed caching. Gateway replicas use the REDIS storage as a scratchpad to coordinate rate-limiting across multiple replicas, so customer SLAs are adhered to.
+
+== API Instances
+
+Flex Gateway supports HTTP and REST API instances.
+
+Flex Gateway does not natively support SOAP APIs and does not provide any schema validation for XML. However, you can publish an HTTP API instance to secure any API that uses HTTP protocol.
+
+To publish a SOAP API, refer to xref:flex-troubleshoot-soap-apis.adoc[].
+
+== Connected Mode vs. Local Mode
+
+Flex Gateway can be deployed in two ways:
+
+* <<connected_mode,Connected Mode>>
+* <<local_mode,Local Mode>>
+
+[[connected_mode]]
+=== Connected Mode
+In Connected Mode, the gateway is fully connected to the MuleSoft control plane. This connection allows for centralized management, observability, and security. Anypoint API Manager enables full API lifecycle management and policy configuration. Anypoint Runtime Manager enables you to deploy and configure your gateway.
+
+Choose Connected Mode for a UI-based experience to deploy policies, and for managing and monitoring the gateway.
+
+[[local_mode]]
+=== Local Mode
+
+You can also configure and manage a standalone gateway that is mostly disconnected from the control plane. Choose Local Mode for this experience.
+
+[NOTE]
+Flex Gateway deployed in Local Mode only connects to the control plane for registration and logging usage metrics.
+
+In Local Mode, you manage all configuration and policy applications with locally stored declarative configuration files.
+
+Use Local Mode to build CI/CD pipelines for application deployments.
+
+=== Summary of Differences
+
+The following table summarizes the differences between Connected Mode and Local Mode.
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| | Connected Mode | Local Mode
+
+| *Use Case*
+| Centralize management, observability, and security. Flex Gateway connects to the control plane.
+| Operate independently of the control plane in a mostly disconnected manner. Manage with locally stored declarative configuration files. Build CI/CD pipelines.
+
+| *Policy Application*
+| Via API Manager
+| Via local declarative configuration files
+
+| *Air-Gapped?*
+| No. Flex Gateway is connected to the control plane.
+| No. Flex Gateway is managed locally but only connected to the control plane for registration and usage metrics.
+
+|===
+
+== Installation Options
+
+You can install Flex Gateway in a variety of ways:
+
+* A standalone runtime in a Docker container deployed on Heroku from Salesforce
++
+To learn more, see https://blog.heroku.com/mastering-api-integration-salesforce-heroku-mulesoft-anypoint-flex-gateway[Mastering API Integration: Salesforce, Heroku, and MuleSoft Anypoint Flex Gateway].
+
+* A standalone runtime in a Docker container
+
+* A sidecar to a backend application in a Docker container, thereby protecting a single backend application
+
+* A Kubernetes `Deployment` for high-availability, high-performance use cases
+
+* An OpenShift on IBM Power `Deployment` for high-availability, high-performance use cases
+
+* A standalone single runtime or replica on various Linux environments, including:
+
+** {empty}
+include::partial$prerequisites.adoc[tag=amazon-linux]
+
+** {empty}
+include::partial$prerequisites.adoc[tag=centos]
+
+** {empty}
+include::partial$prerequisites.adoc[tag=debian]
+
+** {empty}
+include::partial$prerequisites.adoc[tag=red-hat]
+
+** {empty}
+include::partial$prerequisites.adoc[tag=red-hat-ibm]
+
+** {empty}
+include::partial$prerequisites.adoc[tag=suse]
+
+** {empty}
+include::partial$prerequisites.adoc[tag=suse-ibm]
+
+** {empty}
+include::partial$prerequisites.adoc[tag=ubuntu]
+
+Use a standalone gateway when protecting a few APIs and the number of transactions is low, with a minimal impetus on high-availability or robustness. Otherwise, use an Ingress controller in Kubernetes.
+
+== Version Retirement Dates
+
+For information about Flex Gateway version retirement dates, refer to https://help.mulesoft.com/s/article/MuleSoft-Product-Feature-Retirements[MuleSoft Product Feature Retirements^].
+
+== Shared Responsibility
+
+The successful operation of Flex Gateway is a responsibility shared between you and MuleSoft.
+
+=== MuleSoft Responsibility
+
+MuleSoft is responsible for:
+
+* Providing and supporting Flex Gateway (including the agent, Envoy package, and Fluent Bit package)
+* Providing and supporting a base Helm chart for the installation of Flex Gateway in a Kubernetes cluster
+* Providing and supporting an online Docker image registry
+* Providing and supporting an online package repository for installation on Linux
+
+=== Your Responsibility
+
+When running on any target, you are responsible for:
+
+* Maintaining connectivity to the Anypoint Control Plane
+* Not running third-party software that interferes with normal Flex Gateway operation, such as antivirus, DPI, or application security systems
+
+When running in Kubernetes, you are responsible for:
+
+* Adapting the base Helm chart for your specific needs
+* Managing the Kubernetes `Deployment`, including:
+** External load balancing
+** Customizations to `Ingress` resources
+** Log forwarding
+** Monitoring
+** Network ports, NAT gateways, and proxies
+** Container runtime and networking
+** Provisioning and management of the Kubernetes environment, which requires:
+*** Your IT team to provision and manage the infrastructure
+*** Your network team to configure allowed ports and proxy settings
+*** Your security team to verify compliance and obtain security certificates
+
+See xref:general::usage-reports.adoc[Viewing Usage Reports] for information about your monthly Flex Gateway usage.
+
+== Next Steps
+
+* xref:flex-gateway-getting-started.adoc[]

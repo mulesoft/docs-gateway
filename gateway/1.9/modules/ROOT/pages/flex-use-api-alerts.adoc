@@ -1,0 +1,223 @@
+= Using Flex Gateway API Alerts
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Using API alerts for Flex Gateway in Connected Mode, you can add and configure email notifications that flag unusual API behavior, such as:
+
+* An API response time over 60 seconds
+* More than 1000 API requests in 30 seconds
+
+See <<add-api-alerts,Add API Alerts>> below.
+
+[[types-of-api-alerts]]
+== Types of API Alerts
+
+Add any of the following alerts to notify you of the condition described:
+
+* Total Request Count: Users request access to the API more times than allowed during a specified time. Specify time interval values from 1 through 999999999. To prevent data bursts, intervals are implemented as sliding windows instead of as absolute minute boundaries. See https://www.techopedia.com/definition/869/sliding-window[Sliding Windows].
+
+* Average Response Time: The response time of the API exceeds a specified timeout period.
+
+* Response Codes: Upon receiving a request, the API returns an HTTP code of 400, 401, 403, 404, 408, 500, 502, or 503 or a custom three-digit response.
+
+* Policy Violation: An infraction of a specified policy governing the API occurs.
+
+== How API Alerts Work
+
+API alerts are triggered only when:
+
+* The API state changes
++
+Note that the first occurrence of a state change might go undetected if a newly created alert does not include defined states.
+
+* The alert conditions are met for the specified period of time
++
+For example, if an alert is configured to trigger when an API returns an HTTP code of 500 five or more times within a 10-minute period, it does not trigger if the API returns a code of 500 only once within that 10-minute period.
+
+When configuring an API alert, you can select business group users and users outside your organization to receive email notifications about the alert. Notifications include information about events that trigger alerts as specified by severity level.
+
+[NOTE]
+API Alerts are sent from `no-reply@mulesoft.com`. This cannot be customized.
+
+* The first email describes the alert:
++
+`Your API, CesarDemoAPI - Basic:151 (Environment: "NewOne"), has received greater than 2 requests within 1 consecutive periods of 1 minutes.`
++
+* Another email notifies you when the alert is resolved:
++
+`Your API Version, jsonplaceholderapi - 1.0.development, is no longer in an alert state. The number of policy violations was not greater than 1 in the last 1 consecutive periods of 1 minutes.`
+
+After the first set of two notification emails is sent, API Manager stops listening for alerts until the next alert period begins. This technique prevents repeated notification emails.
+
+== Before You Begin
+
+To view and delete alerts, ensure that you have:
+
+* *Manage Alerts* permission to view and delete API alerts.
+* *View Alerts* permission for view-only access to alerts.
+
+[[add-api-alerts]]
+== Add API Alerts
+
+To track and manage APIs, you can add one or more API alerts to your API instances. Add different <<types-of-api-alerts, types of alerts>> based on your requirements.
+
+The following table explains the number of active alerts per API instance:
+
+include::reuse::partial$billing/pricing.adoc[tag=apiAlerts]
+
+All subscriptions enable you to have as many non-active alerts as needed. 
+
+Pausing or deleting an active alert enables you to create new alerts if you have reached the maximum number of active alerts. 
+
+Alerts are enabled by default when created. This setting cannot be modified.
+
+NOTE: Alerts cannot be added to API instances protected by xref:api-manager::automated-policies-landing-page.adoc[automated policies].
+
+To add an API alert:
+
+. Navigate to *API Manager* > *API Administration* and click the API instance for which you want to add an alert.
+. From the left navigation pane, select *Alerts* > *New alert*.
+. Specify values for the displayed alert options:
+* *Name*:
++
+Type an alert name, for example, `trial-alert`. You can delete an alert anytime if not required.
+* *Severity*:
++
+Select a severity for the alert:
+
+** *Info*
++
+Assign to alerts that do not require immediate attention when triggered. This severity indicates that the metric should be passively monitored.
+** *Warning*
++
+Assign to alerts that require prompt attention when triggered. This severity indicates an alert should be closely monitored.
+** *Critical*
++
+Assign to alerts that require immediate attention when triggered. This severity indicates an alert should receive an immediate response.
+. Specify the alert conditions:
+* *Metric*
++
+Condition that triggers the alert.
+
+* *Logic*
++
+When the alert is triggered, based on the occurrence rate defined in the *When number of occurrences are* and *For at least [number of] minutes* fields. 
+You can select a maximum of ten response codes for alert conditions. 
+
+. Configure the email notification:
+
+* *Subject*
++
+Subject of the alert email to send when the alert is triggered. The subject can include variables. See <<alert-variables>>.
+
+* *Message*
++
+Body text for the email to send when the alert is triggered. The message body can include variables. See <<alert-variables>>.
+
+* *Recipients*
++
+Recipients of the alert email. You can select up to 20 platform user IDs and enter up to 20 email addresses.
+
+. Click *Create*.
+
+Alerts appear as *Pending* when they are created. After the API receives traffic, the alert changes to a state of *OK*. Depending on the value, the alert transitions to *OK* or *Alerting*.
+
+=== Alert Email Template
+
+You can use the following variables in the *Subject* and *Message* fields for basic email alerts.
+
+For the description of each variable, see <<alert-variables>>.
+
+[%header]
+.Variables for Alerts
+|===
+| Alert | Applicable Variables
+
+| *Total Request Count*
+.4+a|
+* `${severity}`
+* `${operator}`
+* `${threshold}`
+* `${period}`
+* `${value}`
+* `${condition}`
+* `${organization}`
+* `${environment}`
+* `${apiLink}`
+* `${dashboardLink}`
+* `${api}`
+* `${policy}`
+
+| *Average Response Time*
+| *Response Codes*
+| *Policy Violations*
+
+
+|===
+
+[[alert-variables]]
+
+[%header%autowidth.spread]
+[[alert-variables]]
+.Variable Definitions
+|===
+|Variable |Definition
+|`${apiLink}`|URL of the triggered API
+|`${alertState}`|State of the alert when it was triggered.
+
+Available values are `OK` or `Alerting`.
+|`${comparison}`|* Above, above or equal, equal, below or equal, below
+|`${condition}`|Metric for which the alert is triggered
+|`${environment}`|Name of the environment in which the resource is deployed
+|`${operator}` |An operator, such as `< > =`
+|`${organization}` |Name of the organization that owns the alert
+|`${period}` |Period of time over which to measure
+|`${severity}` | Severity of the alert
+|`${threshold}` |Count over the period of time that triggers the alert
+|`${value}` | Value of the metric that triggers the alert
+|===
+
+[[enabling-alerts]]
+
+== Pause and Edit API Alerts
+
+Pausing an alert causes the alert to transition to *Paused*.
+
+You can also edit an existing alert by following these steps:
+
+. In API Manager, click *API Administration* in the left navigation bar.
+. Click the API instance and version that you want to edit and then click *Alerts*.
+. Click *Edit* from the three-dots menu (image:three-dots-menu.png[5%,5%]) on the alert you want to edit.
++
+image::flex-alerts-edit.png[Edit alerts]
+
+== Test API Alerts
+
+The process for testing API alerts begins with creating a Flex Gateway. Follow these steps to get started with Flex Gateway and test alerts:
+
+. xref:flex-install.adoc[Download Flex Gateway]
+. Register and Run Flex Gateway
++
+* xref:flex-conn-reg-run.adoc[Register and Run in Connected Mode]
+* xref:flex-local-reg-run.adoc[Register and Run in Local Mode]
+. Manage an API with Flex Gateway
++
+* xref:flex-conn-configure.adoc[]
+* xref:flex-local-configure.adoc[]
+
+== View and Delete Alerts
+
+To view and delete alerts:
+
+. From API Manager, click *API Administration > API instance*, and select *Alerts*.
++
+image::view-add-alert.png[Viewing and adding alerts]
+
++
+. Expand an alert in the list.
++
+Details about the alert options appear.
++
+. Click *Delete* from the three-dots menu (image:three-dots-menu.png[5%,5%]) on the alert you want to delete. You can also delete an alert when editing it.

@@ -1,0 +1,211 @@
+= Publish a Flex Gateway Custom Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:page-aliases: policies::policies-custom-flex-getting-started.adoc
+
+include::partial$pdk-banner.adoc[tag=pdk]
+
+The following steps are the high-level workflow for publishing custom policies for Anypoint Flex Gateway:
+
+. Create policy definition files.
+. Publish policy definition asset to Exchange.
+. Create implementation files.
+. Add policy implementation to the published policy definition.
+
+== Before You Begin
+
+Before you can publish a custom policy for Flex Gateway, ensure you have administrator or contributor permission for Anypoint Platform.
+
+
+[[create-policy-definition-files]]
+== Create Policy Definition Files
+
+A JSON and a YAML policy definition file must be created before you can upload the policy implementation. The required files are JSON and YAML.
+
+The JSON file specifies the interface for the policy using JSON schema language. The JSON file is used by API Manager to render the UI.
+
+The YAML file provides metadata regarding the policy for example, the policy category, interface scope, required characteristics, and RAML/OAS snippets.
+
+Copy the custom policy definition examples or create the files on your local system.
+
+=== Create the JSON Schema File
+
+The JSON schema file specifies the interface for the policy by identifying which properties are required or supported to configure the policy. The file also includes more annotations to refine the type for each property that enables some fields to perform a special behavior in the Anypoint platform. For example, Dataweave validations or secure handling of secrets.
+
+The JSON file must include the following fields:
+
+* Top-level @context
++
+References the vocabulary used for the extra type annotations. The aliases used to namespace the vocabulary are a optional. Commonly-used names can be `security` or `config`.
++
+Values for the security and config aliases are:
+
+** Security: `anypoint://vocabulary/policy.yaml#`
+** Config: `anypoint://vocabulary/policyConfigurationsForUI.yaml#``
+* Top-level title
+* $schema with a link to the JSON Schema spec (see example)
+* Root type of `object`
+* Top-level description
+* Each property must also include:
++
+** Title
++
+The title is used by API Manager UI to render the field name.
+** Description
++
+The description is used by API Manager UI to describe the field.
+** Type
++
+Only primitive types are supported, for example `integer`, `string`, `object`, `boolean`, and `array`.
+
+Each property can include the following:
+
+* Format
++
+Options are `dataweaveExpression` and `ipRange``.
+* Default
++
+Allows the user to enter a default value which is rendered in the UI.
+* @context with a @characteristics array
++
+Further refines the type with more annotations with the following options:
+
+** `config:commaSeparatedValues`
++
+The value of this field results in an array
+** `security:sensitive`
+Determines whether the property is masked when entering the property in the API Manager UI.
+
+
+The following code is a example of a basic authentication JSON schema:
+
+----
+
+ {
+  "title": "Basic authentication - Simple",
+  "type": "object",
+  "description": "Enforces HTTP Basic authentication according to the details configured in the policy.",
+  "properties": {
+    "username": {
+      "title": "User Name",
+      "type": "string"
+    },
+    "password": {
+      "title": "User Password",
+      "type": "string",
+      "@context": {
+        "@characteristics": [
+          "security:sensitive"
+        ]
+      }
+    }
+  },
+  "required": [
+    "username",
+    "password"
+  ],
+  "unevaluatedProperties": false,
+  "@context": {
+    "@vocab": "anypoint://vocabulary/policy.yaml#",
+    "security": "anypoint://vocabulary/policy.yaml#"
+  },
+  "$id": "basic-authentication-simple",
+  "$schema": "https://json-schema.org/draft/2019-09/schema"
+}
+----
+
+=== Create the Definition Metadata YAML File
+
+The YAML file provides information about the policy and its requirements. The YAML file is not tied to any specific runtime or binary.
+
+The file must have these fields configured:
+
+* Header
++
+Header must be #%Policy Definition 0.1.
+* Name
++
+User-friendly name used for to display the policy name in API Manager UI. Must be a string value.
+* Description
++
+Must be a string value.
+
+* Category
++
+Category to which the policy belongs. Used to group and filter policies in API Manager UI. Any string value is valid. For example, `security`, `quality of service`, `compliance`, `troubleshooting`, and `transformation`.
+
+* Provided Characteristics
++
+A list used to define the characteristics the policy provides. Must be an array of strings. Use `providedCharacteristics: []` to leave empty.
+
+The following code is an example of a basic authentication definition YAML file:
+----
+#%Policy Definition 0.1
+name: Basic authentication - Simple
+description: Enforces HTTP Basic authentication according to the details configured in the policy.
+category: Security
+providedCharacteristics:
+  - Requires authentication
+requiredCharacteristics: []
+interfaceScope: ["api", "resource"]
+interfaceTransformation: []
+encryptionSupported: true
+violationCategory: authentication
+----
+
+== Publish Policy Definition Asset to Exchange
+After creating the required policy definition files (JSON and YAML), publish the policy definition asset to Exchange.
+
+See xref:exchange::to-create-an-asset#create-custom-policy-definition-asset[Create a Custom Policy Definition Asset] for more information.
+
+[[create-implementation-files]]
+== Create Implementation Files
+The policy implementation files that are required to make the policy available in a runtime are a metadata file and a binary file. The metadata file describes what technology the binary file applies to and from which runtime version. The metadata file must be a YAML file. The binary file contains the policy logic and manages the runtime execution. The file can be a WebAssembly (WASM) for Anypoint Flex Gateway or a JAR file for Mule 4 runtime.
+
+=== Create Metadata YAML File
+The metadata YAML file provides details about the specific implementation of the policy definition. A single policy definition can have several implementations. Each an independent asset in Exchange or different versions of the same Exchange asset.
+
+The metada YAML file must include the following fields:
+
+* Header
++
+#%Policy Implementation 1.0
+* Technology
++
+Either `mule4` or `flexGateway`.
+* Name
++
+Name of the implementation.
+* minRuntimeVersion
++
+A semantic version representing the first runtime version that the implementation binary is compatible with. For example, a mule binary might only be compatible from 4.3.0 onwards.
+
+The YAML file can also include `Release notes`.
+
+The following code is an example of a implementation metadata YAML file:
+
+----
+#%Policy Implementation 1.0
+minRuntimeVersion: 4.1.1
+maxRuntimeVersion: 4.4.0
+technology: mule4
+name: Simple Auth Mule Implementation
+releaseNotes: "<some notes here>"
+
+----
+
+=== Create the Implementation Binary Files
+The implementation binary file is a JAR file for Mule 4 policies or a WebAssembly WASM file for Anypoint Flex Gateway. These files should support all of the configuration fields and function the way the definition metadata describes.
+
+
+== Add Policy Implementation Files to Published Policy Definition 
+After the custom policy definition asset is published to Exchange, the next step is to add the policy implementation files to the published policy. This step enables the policy to be available in runtime. The required implementation files are a binary file such as a WebAssembly (WASM) file for Flex Gateway or JAR for Mule 4 runtime and a YAML metadata file.
+
+Before adding the implementation files, ensure that the policy asset is in the Stable state.
+
+// See xref:exchange::add-policy-implementation-files-to-published-policy-definition[Add Policy Implementation Files to Published Policy Definition] for more information.
+
+
+== Apply the Policy to an API from Anypoint API Manager
+After the implementation files are published, the policy is available to be applied to an API in API Manager. See the Anypoint API Manager documentation for information about applying the policy.

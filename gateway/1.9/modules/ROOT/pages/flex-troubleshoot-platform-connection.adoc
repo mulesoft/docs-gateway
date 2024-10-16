@@ -1,0 +1,51 @@
+= Troubleshoot Platform Connections
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+When configuring Flex Gateway, it is possible for the Flex Replica's `registration.yaml` to be absent or for the replica to lose its connection to Anypoint Platform.
+
+To troubleshoot whether a registration file is present and whether Flex Gateway can make platform connections, use the following command:
+
+[source,ssh]
+----
+flexctl check connections
+----
+
+The `flexctl check connections` command first ensures that a `registration.yaml` file is present. Then it checks whether the replica can connect to the URLs defined in the registration file. If the `flexctl check connections` command is successful, it returns the following `info` message:
+
+----
+$ flexctl check connections
+[flexctl][info] Connection to platform endpoints successful.
+----
+
+== No Registration File Found
+
+If the `registration.yaml` file isn't found, Flex Gateway returns the following error message:
+
+----
+$ flexctl check connections
+Error: no registration config
+----
+
+To troubleshoot an absent registration file, check your Flex Replica configuration folder. To learn more about registering a Flex Gateway, see following section for your relevant mode:
+
+* xref:flex-conn-reg-run.adoc[]
+* xref:flex-local-reg-run.adoc[]
+
+== Failed Connection
+
+There are multiple reasons why Flex Gateway might experience connection issues, such as an error in the gateway's environment or a network issue. How you troubleshoot your error depends on the error returned.
+
+If Flex Gateway can't connect to a specific URL, it returns an error message that includes the unreachable URL and the error message returned from the connection attempt. The following error message is an example of an error returned due to no internet connection:
+
+----
+$ flexctl check connections
+Error: failed connecting to https://anypoint.mulesoft.com/: dial tcp 52.22.227.22:443: connect: network is unreachable
+----
+
+== See Also
+
+* xref:flex-troubleshoot-reg.adoc[]
+* xref:flex-troubleshoot-requests.adoc[]
