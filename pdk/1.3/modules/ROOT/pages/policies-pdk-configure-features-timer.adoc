@@ -1,0 +1,161 @@
+= Configuring Delayed, Periodic, and Synchronous Functions
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Use the `Clock` injectable to build a timer to enable delayed, periodic, and synchronous functions. Each policy supports only one timer.
+
+Each timer provides the following two functions:
+
+[source,rust]
+----
+pub async fn next_tick(&self) -> bool;
+pub async fn sleep(&self, interval: Duration) -> bool;
+----
+
+* `next_tick`: Sleeps for the minimum amount of time the timer is capable of distinguishing.
+* `sleep`: Sleeps for an amount of ticks where the elapsed time is greater or equal than the provided `Duration`. For example, if you configure the period of the clock to 10 seconds, calling `timer.sleep(Duration::from_secs(1))` sleeps for 10 seconds.
+
+Both functions return `true` when the specified time has passed or `false` if the policy is unapplied or edited during execution.
+
+== Configure the Timer
+
+To inject a timer in your policy, insert a `Clock` into your policy configuration function and define a timer with a time period:
+
+[source,rust]
+----
+#[entrypoint]
+async fn configure(
+   launcher: Launcher,
+   Configuration(bytes): Configuration,
+   clock: Clock, // Inject the clock to be able to launch async tasks.
+   client: HttpClient,
+) -> Result<()> {
+
+
+   // set the period between ticks of the timer.
+   let timer = clock.period(Duration::from_secs(10));
+----
+
+After you inject the timer, share a its reference with the `on_request` and `on_response` functions to begin creating delayed functions:
+
+[source,rust]
+----
+    launcher
+        .launch(on_request(|rs| request_filter(rs, &timer, &config)))
+        .await?;
+----
+
+You can now await timer functions in `on_request` and `on_response` functions, for example:
+
+[source,rust]
+----
+    let slept = timer.sleep(duration).await;
+    let tick = timer.next_tick().await;
+----
+
+NOTE: To view an example policy project that launches delayed functions, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/spike/README.md[Spike Policy Example].
+
+== Launch Asynchronous Tasks
+
+Use the timer to execute tasks independent of the request flow. To execute asynchronous tasks:
+
+. Define your task inside an `async` function.
+. In the policy configuration function, call your function but don't await the returned future.
+. In the policy configuration function, call the `launch` function with the `on_request` and `on_response` filter functions but don't await the returned future.
+. Use the `join!` macro to await both futures of your task function and `launch` function at the same time. 
++
+NOTE: To use the `join` macro, add the ‘futures’ crate as dependency in your `cargo.toml` file.
+
+Each worker executes a copy of the task. Configure a loop inside the function to execute periodic tasks. For example, the following code example awaits both functions:
+
+[source,rust]
+----
+let task = my_async_task(&timer, &config);
+let launched = launcher.launch(filter);
+let joined = join!(launched, task);
+----
+
+Adding a loop to the `my_async_task` function creates periodic tasks, for example:
+
+[source,rust]
+----
+async fn my_async_task(timer: &Timer, config: &Config) {
+    // While the policy is still running.
+    // Wait for the next cycle.
+    while timer.next_tick().await {
+        // Execute periodic task
+    }
+}
+----
+
+To launch multiple asynchronous tasks, send a reference of the timer to your `async` functions and join them with the `launch` task, for example:
+
+[source,rust]
+----
+let task1 = my_async_task1(&timer, &config);
+let task2 = my_async_task2(&timer, &config);
+let launched = launcher.launch(filter);
+let joined = join!(launched, task1, task2);
+----
+
+NOTE: To view an example policy project that launches asynchronous periodic tasks, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/metrics/README.md[Metrics Policy Example^].
+
+== Sync Asynchronous Tasks between Workers
+
+Use the PDK `LockBuilder` to sync workers. The lock ensures that only one worker is completing a task in a time period. Each policy supports multiple locks.
+
+Locks are useful when a policy consumes an HTTP service that has usage limits. A single worker can fetch data and then share the data with other workers to reduce service requests.
+
+To configure a lock:
+
+. Inject the `LockBuilder` into your policy configuration function:
++
+[source,rust]
+----
+#[entrypoint]
+async fn configure(
+    launcher: Launcher,
+    Configuration(bytes): Configuration,
+    clock: Clock,        // Inject the clock to be able to launch async tasks.
+    lock: LockBuilder,   // Inject the lock to be able to synchronize the workers.
+) -> Result<()> {
+----
+
+. Configure the lock and share a reference of it with your asynchronous function:
++
+[source,rust]
+----
+    let lock = lock
+        .new(ID.to_string())
+        .expiration(Duration::from_secs(20))
+        .build();
+    let task = my_async_task(&timer, &lock);
+----
++
+If the asynchronous task executes additional `async` function calls inside the task, configure the `expiration` of the lock to a duration longer than the total time needed to complete the nested `async` function calls.
+
+. Inside the asynchronous function, acquire the lock before executing the desired task. If no other worker has the lock, the current worker acquires the lock. Otherwise, you must omit the execution of the task and wait for the next task loop, for example:
++
+[source,rust]
+----
+async fn my_async_task(
+    timer: &Timer,
+    lock: &TryLock,
+) {
+   while timer.next_tick().await {
+     if let Some(acquired) = lock.try_lock() {
+       // execute task.
+     }
+   }
+}
+----
++
+After obtaining the lock, if you execute code that requires you await a result, you must call the `refresh_lock` function to ensure the lock hasn’t expired. If the lock has expired, the worker is considered unresponsive. Abort the execution of your task because another worker is running the same task execution.
+
+NOTE: To view an example policy project that synchronizes asynchronous periodic tasks and shares information between workers, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/block/README.md[Block Policy Example].
+
+== See Also
+
+* xref:policies-pdk-configure-features-inject-parameters.adoc[]
