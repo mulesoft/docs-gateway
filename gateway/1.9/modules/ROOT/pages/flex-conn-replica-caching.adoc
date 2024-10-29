@@ -1,0 +1,28 @@
+= Configuring Replica Configuration Caching in Connected Mode
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Enable the Flex Gateway control node feature
+
+When the Flex Gateway control node feature is enabled, a Flex Gateway replica caches its gateway configuration in Redis shared storage. To reduce scale-up time when new replicas are created, the new replica uses the cached configuration instead of downloading the configuration from Anypoint Monitoring.
+
+The control node caching works by:
+
+. When first Flex Replica is created, it sees that their is no configuration in the Redis shared storage.
+. The first replica creates the group ID and downloads its configuration from Anypoint Platform. The replica then stores the configuration in Redis.
+. When a new Flex Replica is created, it uses the stored configuration.
+. At their start up, all Flex Replicas connect to Anypoint Platform and send configuration update requests to the same group ID.
+. When the configuration is updated on Anypoint Platform, only one replica receives the configuration updates.
+. The replica download the neccesary configuration from Anypoint Platform and stores the configuration in Redis for the other replicas to use.
+
+
+== Enable Replica Caching
+
+. Ensure the Redis shared storage is configured.
++
+To learn more, see xref:flex-conn-shared-storage-config.adoc[].
+
+. Enable the `FLEX_CONTROL_NODE_ENABLED=ture` environment variable.
+
