@@ -45,7 +45,7 @@ async fn response_filter(response_state: ResponseState, _config: &Config) {
     let headers_handler = headers_state.handler();
     let old_headers = headers_handler.header("request-header").unwrap_or_default();
 
-    let new_value = vec![("response-header1", "--replaced--"), ("response-header2", "--replaced--")];
+    let new_headers = vec![("response-header1", "--replaced--"), ("response-header2", "--replaced--")];
     logger::info!("Old request header value: {old_headers:?}, New value: {new_headers:?}");
     headers_handler.set_header(new_headers);
 }
