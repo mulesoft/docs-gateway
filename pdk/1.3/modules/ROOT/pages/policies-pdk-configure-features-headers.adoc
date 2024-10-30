@@ -1,0 +1,135 @@
+= Reading and Writing Request Headers and Bodies
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Flex Gateway Policy Development Kit (PDK) enables you to both:
+
+* <<read-and-write-headers>>
+* <<read-and-write-request-bodies>>
+
+[[read-and-write-headers]]
+== Read and Write Request Headers
+
+To access the headers in both the request and the response, transform the `RequestState` or `ResponseState` to a header state by calling the method `into_headers_state()` and awaiting it. After calling the method, access and manipulate the headers by calling the functions of the `HeadersHandler` trait.
+
+[source,Rust]
+----
+pub trait HeadersHandler {
+    fn headers(&self) -> Vec<(String, String)>;
+    fn header(&self, name: &str) -> Option<String>;
+    fn add_header(&self, name: &str, value: &str);
+    fn set_header(&self, name: &str, value: &str);
+    fn set_headers(&self, headers: Vec<(&str, &str)>);
+    fn remove_header(&self, name: &str);
+}
+----
+
+You can access headers in `on_request` or `on_response` wrapped functions by implementing the following code:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState, _config: &Config) {
+    let headers_state = request_state.into_headers_state().await;
+    let headers_handler = headers_state.handler();
+    let old_value = headers_handler.header("request-header").unwrap_or_default();
+
+    let new_value = "--replaced--";
+    logger::info!("Old request header value: {old_value}, New value: {new_value}");
+    headers_handler.set_header("request-header", new_value);
+}
+
+async fn response_filter(response_state: ResponseState, _config: &Config) {
+    let headers_state = response_state.into_headers_state().await;
+    let headers_handler = headers_state.handler();
+    let old_headers = headers_handler.header("request-header").unwrap_or_default();
+
+    let new_value = vec![("response-header1", "--replaced--"), ("response-header2", "--replaced--")];
+    logger::info!("Old request header value: {old_headers:?}, New value: {new_value:?}");
+    headers_handler.set_headers(new_value);
+}
+----
+
+Envoy handles the method, scheme, path, authority, and status codes as headers. PDK provides the following methods to access and modify the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status` Envoy headers:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState, _config: &Config) {
+    let headers_state = request_state.into_headers_state().await;
+    let method = headers_state.method();
+    let scheme = headers_state.scheme();
+    let authority = headers_state.authority();
+    let path = headers_state.path();
+    ...
+}
+
+async fn response_filter(response_state: ResponseState, _config: &Config) {
+    let headers_state = response_state.into_headers_state().await;
+    let status = headers_state.status_code();
+}
+----
+
+[[read-and-write-request-bodies]]
+== Read and Write Request Bodies
+
+NOTE: Reading and writing bodies is limited to payloads of size 1MB or smaller.
+
+To access the body in both the request and the response, transform the `RequestState` or `ResponseState` to a body state by calling the method `into_body_state()` and awaiting it:
+
+[source,Rust]
+----
+let body_state = request_state.into_body_state().await;
+----
+
+If the original state was already transformed into a header state, transform the state into a body state by calling the same function, for example:
+
+[source,Rust]
+----
+let headers_state = request_state.into_headers_state().await;
+let body_state = headers_state.into_body_state().await;
+----
+
+After calling `into_body_state()`, access and manipulate the headers by calling the functions of the `BodyHandler` trait.
+
+[source,Rust]
+----
+pub trait BodyHandler {
+    fn body(&self) -> Vec<u8>;
+}
+----
+
+Because Envoy uses the same buffer to share data from the headers and the body, the policy cannot access the headers and the body at the same time. If the policy must read both:
+
+. Read the headers and save the necessary values in a variable.
+. Read the body.
+
+You can read the headers and then the body in both the response and request. However, you cannot modify headers after reading the body. Complete all header modification before reading the body, for example:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState) {
+    let headers_state = request_state.into_headers_state().await;
+    let headers_handler = headers_state.handler();
+
+    let agent = headers_handler.header("User-Agent").unwrap_or_else(|| "Undefined".to_string());
+
+    // Removing old content length header before manipulating body
+    headers_handler.remove_header("content-length");
+
+    let body_state = headers_state.into_body_state().await;
+    let body_handler = body_state.handler();
+    let body = body_handler.body();
+
+    logger::info!("User: {agent} sent: {}", String::from_utf8_lossy(body.as_slice()));
+	
+    let new_body = "new body".as_bytes();
+    body_handler.set_body(&new_body);
+}
+----
+
+NOTE: This code removes the `content-length` header. This is required to modify the body.
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]
