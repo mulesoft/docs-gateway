@@ -37,7 +37,7 @@ async fn request_filter(request_state: RequestState, _config: &Config) {
 
     let new_value = "--replaced--";
     logger::info!("Old request header value: {old_value}, New value: {new_value}");
-    headers_handler.set_headers("request-header", new_value);
+    headers_handler.set_header("request-header", new_value);
 }
 
 async fn response_filter(response_state: ResponseState, _config: &Config) {
@@ -47,7 +47,7 @@ async fn response_filter(response_state: ResponseState, _config: &Config) {
 
     let new_headers = vec![("response-header1", "--replaced--"), ("response-header2", "--replaced--")];
     logger::info!("Old request header value: {old_headers:?}, New value: {new_headers:?}");
-    headers_handler.set_header(new_headers);
+    headers_handler.set_headers(new_headers);
 }
 ----
 
