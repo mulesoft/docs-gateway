@@ -172,8 +172,8 @@ Render policy configuration parameters dynamically by establishing conditions to
 ----
 properties:
     encryptBody:
-        type: boolean
-        default: false
+        type: string
+        default: "false"
     encryptionKey:
         type: string
         "@rendering":
@@ -188,8 +188,8 @@ In the following code example, the `encryptionKey` parameter is initially visibl
 ----
 properties:
     encryptBody:
-        type: boolean
-        default: true
+        type: string
+        default: "true"
     encryptionKey:
         type: string
         "@rendering":
@@ -201,6 +201,8 @@ properties:
 Conditional parameters have the following restrictions:
 
 * You can only define a single condition per parameter.
+* Only `string` parameters are supported as the condition parameter.
+* The conditionally rendered parameter cannot be an `object` or `enum`.
 * Required properties that are conditionally rendered must have a default value defined. In the above examples, if `encryptionKey` is required, it requires a default value.
 * Only root-level parameters support conditional rendering. Inner properties of arrays or objects do not support conditional rendering.
 
@@ -248,7 +250,7 @@ The supported formating types are:
 +
 * `dataweave`: Specifies the input parameter is a DataWeave variable and notifies Flex Gateway to transform the input. For more information about DataWeave expressions, see <<dataweave-expressions>>.
 * `service`: Specifies the input parameter is a URI and automatically creates a Flex Gateway service to enable HTTP calls from the policy.
-* `ip-range`: Specifies the expected text is a range of IPs and provides additional validation on the input.
+* `ipRange`: Specifies the expected text is a range of IPs and provides additional validation on the input.
 * `uri`: Specifies the expected text is a URI and provides additional validation on the input. Only use `uri` when the URI is not a service making HTTP calls from the policy.
 +
 The following yaml snippet demonstrates all string formats:
@@ -266,7 +268,7 @@ properties:
         default: "#[splitBy(attributes.headers['Authorization'], ' ')[1]]"
     blockedIps:
         type: string
-        format: ip-range
+        format: ipRange
         default: "192.168.3.1/30"
     loginUrl:
         type: string
@@ -435,7 +437,7 @@ Properties defined in the `gcl.yaml` files are mapped to the Rust data types in 
 
 | `string` | `String`
 | `uri` string | `String`
-| `ip-range` string | `String`
+| `ipRange` string | `String`
 | `dataveave` string | `pdk::script::Script`
 | `number` | `f64`
 | `integer` | `i64`

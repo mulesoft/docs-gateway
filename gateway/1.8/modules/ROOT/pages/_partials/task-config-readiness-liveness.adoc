@@ -67,13 +67,19 @@ readinessProbe:
 +
 To modify the default parameters, update your Helm chart. You can modify these parameters during or after the initial installation of the Helm chart. For more information about updating a Helm chart, see xref:flex-gateway-k8-change-helm-settings.adoc[].
 +
+The default Kubernetes readiness probe is configured to be error-tolerant. This enables Flex Gateway to scale even though there might be configuration errors. To learn more about error tolerance, see <<configure-error-tolerance>>.
++
 NOTE: When using a readiness probe in Kubernetes (or Openshift) and Connected Mode, omit the `--wait` flag in the Helm chart used to deploy Flex Gateway. Not doing so might result in an installation failure because Helm waits for a readiness state of `true`. If there's no API deployed to your Flex Gateway instance, the readiness state is `false`. This is not an issue with custom readiness probe configurations or gateways that have an API configured.
+
+Docker, Podman, and Linux::
 +
-[discrete]
-==== Configure External Components
-+
+For Docker and Linux deployments, Flex Gateway doesn't include a pre-configured default readiness probe. However, you can run the readiness probe command manually or configure it for automated use with external third-party services. Besides the Kubernetes readiness probe, MuleSoft doesn't provide support for third-party readiness probes.
+====
+
+=== Configure External Components
+
 Configure your external components to query the readiness state. For example, in AWS virtual machines that run behind a load balancer, configure the readiness query as a health check. To expose the readiness API to external components, apply the following configuration to the Flex Gateway instance:
-+
+
 [source,yaml]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -85,49 +91,29 @@ spec:
    enabled: true
    port: 3000
 ----
-+
-Applying the YAML configuration snippet enables the readiness API to respond to `GET` requests:
-+
-`\http://<flex-gateway-url>:<port-configured>/probes/readiness?allowEnvoyErrors=<true|false>&allowAPIErrors=<true|false>&allowPolicyErrors=<true|false>`
-+
-[discrete]
-==== Configure Error Tolerance
-+
-The default Kubernetes readiness probe is configured to be error-tolerant. If a configuration error occurs (for example, if you misconfigure a policy), the readiness state changes to `true` after the API instances and policies are deployed. This enables Flex Gateway to scale even though there might be configuration errors.
-+
-You can configure the readiness probe to be error-intolerant, meaning that misconfigured gateway instances never reach a readiness state of `true`.
-+
-To configure the Helm chart for error intolerance, remove the following flags from the readiness probe:
 
-+
+Applying the YAML configuration snippet enables the readiness API to respond to `GET` requests:
+
+`\http://<flex-gateway-url>:<port-configured>/probes/readiness?allowEnvoyErrors=<true|false>&allowAPIErrors=<true|false>&allowPolicyErrors=<true|false>`
+
+[[configure-error-tolerance]]
+=== Configure Error Tolerance
+
+You can configure the readiness probe error intolerant or error tolerant. For error-intolerant, misconfigured gateway instances never reach a readiness state of `true`. For error-tolerant deployments, if a configuration error occurs (for example, if you misconfigure a policy), the readiness state is still `true` after the API instances and policies are deployed. This enables Flex Gateway to scale even though there might be configuration errors.
+
+The readiness CLI command provides the following flags to configure error tolerance:
+
 * `--allow-api-errors`
 * `--allow-envoy-errors`
 * `--allow-policy-errors`
 
-+
-In deployments that query the readiness state through HTTP requests, use these query parameters:
+In deployments that query the readiness state through HTTP requests to the readiness API, use these query parameters:
+
 * `allowEnvoyErrors=false`
 * `allowAPIErrors=false`
 * `allowPolicyErrors=false`
 
-Docker, Podman, and Linux::
-+
-For Docker and Linux deployments, Flex Gateway doesn't include a pre-configured default readiness probe. However, you can run the readiness probe command manually or configure it for automated use with third-party services. Besides the Kubernetes readiness probe, MuleSoft doesn't provide support for third-party readiness probes.
-+
-To expose the readiness API to external components, apply the following configuration to the Flex Gateway instance:
-+
-[source,yaml]
-----
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: Configuration
-metadata:
- name: probe
-spec:
- probe:
-   enabled: true
-   port: 3000
-----
-====
+=== Probe Readiness During Shutdown
 
 Readiness is also probed during shutdown, when the gateway sends a `Connection: close` header. A `SIGTERM` signal initiates a drain of downstream connections by signaling them to reconnect. The default drain period is 25 seconds, after which Flex Gateway exits gracefully.
 
