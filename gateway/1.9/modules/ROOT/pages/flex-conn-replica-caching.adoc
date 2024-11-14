@@ -1,20 +1,19 @@
-= Configuring Replica Configuration Caching in Connected Mode
+= Configuring Flex Gateway Caching in Connected Mode
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Enable replica configuration caching to have a Flex Gateway replica cache its gateway configuration in Redis shared storage. When configured, new replicas use the cached gateway configuration Instead of each replica directly downloading the configuration from Anypoint Platform. Caching a replica's configuration reduces scale-up time and increases resiliency.
+Enable Flex Gateway configuration caching to have a Flex Gateway cache its gateway configuration in Redis shared storage. When configured, Flex replicas use the cached gateway configuration instead of each replica directly downloading the configuration from Anypoint Platform. Caching configuration reduces scale-up time and increases resiliency.
 
 Replica caching works by:
 
-. When the first Flex Replica is created, it sees that there is no configuration in the Redis shared storage.
-. The first replica creates the group ID and downloads its configuration from Anypoint Platform. The replica then stores the configuration in Redis.
-. When a new Flex Replica is created, it uses the stored configuration.
-. When the configuration is updated on Anypoint Platform, a single replica downloads the necessary configuration from Anypoint Platform and stores the configuration in Redis for the other replicas to use.
+. When the first Flex replica starts, the replica downloads the configuration from Anypoint Platform and stores it in  Redis.
+. When other replicas start, they use the locally cached configuration rather than downloading from Anypoint Platform
+. When the Flex Gateway's configuration is updated on Anypoint Platform, any one of the replicas downloads the necessary configuration from Anypoint Platform and stores the configuration in Redis for immediate use by the other replicas.
 
 
-== Enable Replica Caching
+== Enable Flex Gateway Configuration Caching
 
 . Ensure the Redis shared storage is configured.
 +
