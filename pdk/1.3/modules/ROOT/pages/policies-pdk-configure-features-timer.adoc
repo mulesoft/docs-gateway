@@ -57,29 +57,29 @@ You can now await timer functions in `on_request` and `on_response` functions, f
 
 NOTE: To view an example policy project that launches delayed functions, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/spike/README.md[Spike Policy Example].
 
-== Change the tick period
+== Releasing the Clock
 
-The timer provides the next method to change the previously configured tick period: 
-
-[source,rust]
-----
-pub fn set_period(&self, interval: Duration);
-----
-
-You can reuse timer across the policy lifecycle. When setting the period with an interval of `Duration::ZERO`, 
-tick event is no longer available and invokations like `Timer::next_tick().await` and `Timer::sleep().await` will not be 
-awakened.
+The timer provides the method for releasing the `Clock` in: 
 
 [source,rust]
 ----
-    let mut timer = clock.period(Duration::from_millis(500));
-    some_initial_task(&timer).await;
+pub fn release(self) -> Clock;
+----
 
-    timer.set_period(Duration::from_millis(3000))
-    some_other_task(&timer).await;
+This method is useful when you want to reset the tick period in order to create a new timer.
 
-    // Stop the tick event.
-    timer.set_period(Duration::ZERO);
+[source,rust]
+----
+    // Configure an initial tick period.
+    let initial_timer = clock.period(Duration::from_millis(500));
+    some_initial_task(&other_timer).await;
+
+    // Configure another tick period.
+    let other_timer = initial_timer.release().period(Duration::from_millis(3000);
+    some_other_task(&other_timer).await;
+
+    // Get the clock back.
+    let clock = other_timer.release();
 ----
 
 == Launch Asynchronous Tasks
