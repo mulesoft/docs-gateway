@@ -4,16 +4,14 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Enable replica configuration caching to have a Flex Gateway replica cache its gateway configuration in Redis shared storage. When configured, new replicas use the cached gateway configuration instead of downloading the configuration from Anypoint Platform. Caching a replica's configuration reduces scale-up time and increases resiliency.
+Enable replica configuration caching to have a Flex Gateway replica cache its gateway configuration in Redis shared storage. When configured, new replicas use the cached gateway configuration Instead of each replica directly downloading the configuration from Anypoint Platform. Caching a replica's configuration reduces scale-up time and increases resiliency.
 
 Replica caching works by:
 
 . When the first Flex Replica is created, it sees that there is no configuration in the Redis shared storage.
 . The first replica creates the group ID and downloads its configuration from Anypoint Platform. The replica then stores the configuration in Redis.
 . When a new Flex Replica is created, it uses the stored configuration.
-. At their start up, all Flex Replicas connect to Anypoint Platform and send configuration update requests to the same group ID.
-. When the configuration is updated on Anypoint Platform, only one replica receives the configuration updates.
-. The replica download the nec4essary configuration from Anypoint Platform and stores the configuration in Redis for the other replicas to use.
+. When the configuration is updated on Anypoint Platform, a single replica downloads the necessary configuration from Anypoint Platform and stores the configuration in Redis for the other replicas to use.
 
 
 == Enable Replica Caching
@@ -22,5 +20,5 @@ Replica caching works by:
 +
 To learn more, see xref:flex-conn-shared-storage-config.adoc[].
 
-. Enable the `FLEX_CONTROL_NODE_ENABLED=true` environment variable.
+. Enable the `FLEX_DATASOURCE_CONTROL_NODE_ENABLED=true` environment variable.
 
