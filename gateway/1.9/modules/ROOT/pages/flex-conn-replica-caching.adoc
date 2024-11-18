@@ -6,14 +6,13 @@ endif::[]
 
 Enable Flex Gateway configuration caching to have a Flex Gateway cache its gateway configuration in Redis shared storage. When configured, Flex replicas use the cached gateway configuration instead of each replica directly downloading the configuration from Anypoint Platform. Caching configuration reduces scale-up time and increases resiliency.
 
-Flex Gateway encrypts the configuration when caching. If Redis errors occur when caching is configured, each replica downloads configurations directly from Anypoint Platform. If Flex Gateway disconnects from Anypoint Platform, Flex gateway uses the cached configuration until the connections is restored.
-
 Flex Gateway configuration caching works by:
 
-. When the first Flex replica starts, the replica downloads the configuration from Anypoint Platform and stores it in  Redis.
+. When the first Flex replica starts, the replica downloads the configuration from Anypoint Platform, encrypts the configuration, and stores it in Redis.
 . When other replicas start, they use the locally cached configuration rather than downloading from Anypoint Platform
 . When the Flex Gateway's configuration is updated on Anypoint Platform, any one of the replicas downloads the necessary configuration from Anypoint Platform and stores the configuration in Redis for immediate use by the other replicas.
 
+If Redis errors occur when caching is configured, each replica downloads configurations directly from Anypoint Platform. If Flex Gateway disconnects from Anypoint Platform, Flex gateway uses the cached configuration until the connections is restored.
 
 == Enable Flex Gateway Configuration Caching
 
