@@ -1,0 +1,311 @@
+= Using Contracts Validation library functions
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+NOTE: To view an example policy project that uses Flex Gateway Policy Development Kit (PDK)'s Contracts Validation library, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/contracts-validation/README.md[Contracts Validation Policy Example^].
+
+A https://docs.mulesoft.com/api-manager/latest/api-contracts-landing-page[contract] between the API instance and the application gives access to it based on SLA tiers.
+Only one contract can exist per API instance and application at any time.
+Client applications can validate their contract by providing credentials that consist of two keys: client ID and client secret.
+Contracts Validation library provides functionalities to validate client credentials and is useful for implementing a custom client ID enforcement policy.
+
+[[contracts-module]]
+== Contracts module
+The Contracts Validation library is available from the `pdk::contracts` module.
+The module provides the `ContractValidator` object to validate client credentials.
+Client credentials are represented by `ClientId` and `ClientSecret` objects.
+Authentication and authorization can be validated with  `ContractValidator::authenticate()` and `ContractValidator::authorize()` methods:
+
+[source,Rust]
+----
+
+impl ContractValidator {
+
+   pub fn authenticate(client_id: &ClientId, client_secret: &ClientSecret) -> Result<ClientData, AuthenticationError>;
+
+   pub fn authorize(client_id: &ClientId, client_secret: &ClientSecret) -> Result<ClientData, AuthorizationError>;
+}
+
+----
+
+Both methods return a `ClientData` struct that holds client ID, client name and SLA ID fields.
+
+[source,Rust]
+----
+pub struct ClientData {
+    pub client_id: String,
+    pub client_name: String,
+    pub sla_id: Option<String>,
+}
+----
+
+[[request-validation]]
+== Request authentication and authorization
+
+A request can be authenticated by extracting client credentials from it, and invoking the `ClientValidation::authenticate()` method.
+A helper function `basic_auth_credentials()` for extracting Basic Auth credentials from headers is provided with the `pdk::contracts` module.
+
+[source,Rust]
+----
+pub fn basic_auth_credentials(request_headers_state: &RequestHeadersState)
+    -> Result<(ClientId, ClientSecret), BasicAuthError>;
+----
+
+An authentication request filter could be written as follows:
+
+[source,Rust]
+----
+async fn my_authentication_filter(
+  state: RequestHeadersState,
+  authentication: Authentication,
+  validator: &ContractValidator,
+) -> Flow<()> {
+
+    // Extract credentials
+    let (client_id, client_secret) = match basic_auth_credentials(&state) {
+        Ok(credentials) => credentials,
+        Err(e) => {
+            logger::info!("Invalid credentials: {e}");
+
+            // For simplicity, we are using a user-defined `unathorized_response()`
+            // helper function for building responses.
+            return Flow::Break(unauthorized_response("Invalid credentials", 401));
+        }
+    };
+
+    // Validate authentication
+    let validation = validator.authenticate(&client_id, &client_secret);
+
+    let client_data = match validation {
+        Ok(client_data) => client_data,
+        Err(e) => {
+            logger::info!("Invalid authentication: {e}");
+            return Flow::Break(unauthorized_response("Invalid authentication", 403));
+        }
+    };
+
+    // Update the current authentication
+    if let Some(mut auth) = authentication.authentication() {
+        auth.client_id = Some(client_data.client_id);
+        auth.client_name = Some(client_data.client_name);
+
+        authentication.set_authentication(Some(&auth));
+    }
+
+    Flow::Continue(())
+}
+----
+
+An authorization request filter can be written in a similar way:
+
+[source,Rust]
+----
+async fn my_authorization_filter(
+  state: RequestHeadersState,
+  validator: &ContractValidator,
+) -> Flow<()> {
+
+    // Extract client id with a user defined helper `extract_client_id()` function,
+    let client_id = match extract_client_id(&state) {
+        Ok(credentials) => credentials,
+        Err(e) => {
+            logger::info!("Invalid credentials: {e}");
+
+            // For simplicity, we are using a user-defined `unathorized_response()`
+            // helper function for building responses.
+            return Flow::Break(unauthorized_response("Invalid credentials", 401));
+        }
+    };
+
+    // Validate authorization
+    let validation = validator.authorize(&client_id);
+
+    if let  Err(e) = validation {
+        logger::info!("Invalid authentication: {e}");
+        return Flow::Break(unauthorized_response("Invalid authentication", 403));
+    }
+
+    Flow::Continue(())
+}
+----
+
+[[custom-credentials-extraction]]
+== Custom extraction for client credentials
+
+Credential extraction can be implemented by invoking `ClientId::new()` and `ClientSecret::new()` methods:
+
+[source,Rust]
+----
+impl ClientId {
+   pub fn new(client_id: String) -> Self;
+}
+
+impl ClientSecret {
+   pub fn new(client_secret: String) -> Self;
+}
+----
+
+The next snippet shows how to initialize a set of credentials:
+
+[source,Rust]
+----
+
+fn initialize_credentials(raw_client_id: String, raw_client_secret) -> (ClientId, ClientSecret) {
+   let client_id = ClientId::new(raw_client_id);
+   let client_secret = ClientSecret::new(raw_client_secret);
+
+   (client_id, client_secret)
+}
+
+----
+
+NOTE: `ClientSecret` is implemented in a secure way where it's content is zeroed after use.
+It also implements the `Debug` trait without exposing his content.
+
+[[contract-validator-injection]]
+== ContractValidator injection
+
+The `ContractValidator` object can be injected in the `configure()` function and share it by reference to the filter
+as in the next snippet:
+
+[source,Rust]
+----
+#[entrypoint]
+async fn configure(launcher: Launcher, validator: ContractValidator) -> Result<(), LaunchError> {
+
+    let filter = on_request(|state, authentication| my_authentication_filter(state, authentication, &validator));
+    launcher.launch(filter).await?;
+
+    OK(())
+}
+----
+
+[[contract-database-polling]]
+=== Local Contracts Database polling
+
+`ContractValidator` object maintains a local copy of the contracts database. This local copy must be polled periodically
+in order to maintain the local copy of contracts up to date by invoking the `ContractValidator::update_contracts()` method:
+
+[source,Rust]
+----
+
+impl ContractValidator {
+    pub async fn update_contracts(&self) -> Result<(), UpdateError>;
+}
+
+----
+
+The `ContractValidator::update_contracts()` method returns an error that specifies if some connectivity problem occurs
+during the contracts database polling. It is responsibility of the programmer the handle retry and error handling heuristics.
+
+`ContractValidator::update_contracts()`  must be invoked periodically in a period specified by the
+`ContractValidator::UPDATE_PERIOD` constant:
+
+[source,Rust]
+----
+
+async fn update_my_contracts(validator: &ContractValidator, clock: Clock) {
+
+    // Configure a new timer
+    let timer = clock.period(ContractValidator::UPDATE_PERIOD);
+
+    loop {
+       // Update result handling should be customized by the programmer
+       let update_result = validator.update_contracts().await;
+
+       // Wait for the next tick
+       if !timer.next_tick().await {
+           // If no more ticks are available, finish the task.
+           return;
+       }
+    }
+}
+----
+
+[source,Rust]
+----
+There is a contract database initialization period where the contracts database must be polled in a higher frequency
+than update period. The `ContractValidator::INITIALIZATION_PERIOD` specifies the interval required by the initial polling.
+
+async fn initialize_my_contracts(validator: &ContractValidator, clock: Clock) {
+
+    // Configure a new timer
+    let timer = clock.period(ContractValidator::UPDATE_PERIOD);
+
+    loop {
+       // Update result handling should be customized by the programmer
+       let update_result = validator.update_contracts().await;
+
+       // Wait for the next tick
+       if !timer.next_tick().await {
+           // If no more ticks are available, finish the task.
+           return;
+       }
+    }
+}
+
+----
+
+The next snippet shows a complete contract polling task, with initialization and update polling periods:
+
+[source,Rust]
+----
+async fn update_my_contracts(validator: &ContractValidator, clock: Clock) {
+    let initialization_timer = clock.period(ContractValidator::INITIALIZATION_PERIOD);
+
+    loop {
+        if validator.update_contracts().await.is_ok() {
+            logger::info!("Contracts storage initialized.");
+            break;
+        }
+
+        if !initialization_timer.next_tick().await {
+            logger::info!("Tick event suspended.");
+            break;
+        }
+ }
+
+    let update_timer = initialization_timer
+        .release()
+        .period(ContractValidator::UPDATE_PERIOD);
+
+    loop {
+        let _ = validator.update_contracts().await;
+
+        if !update_timer.next_tick().await {
+            logger::info!("Tick event suspended.");
+            break;
+        }
+        logger::info!("Retrying contracts storage initialization.");
+    }
+}
+----
+
+Since contracts database polling task must run concurrently with `Launcher::launch()` task, the `join!()` macro
+from the https://crates.io/crates/futures[futures] crate can help to join both tasks.
+The next snippet shows a complete `configure()` function with polling and launching:
+
+[source,Rust]
+----
+#[entrypoint]
+async fn configure(launcher: Launcher, clock: Clock,validator: ContractValidator) -> Result<(), LauncherError> {
+
+    let filter = on_request(|state, authentication| my_authentication_filter(state, authentication, &validator));
+
+    let (_, launcher_result) = join! {
+        update_my_contracts(&validator, clock),
+        launcher.launch(filter),
+    };
+
+    launcher_result
+}
+----
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]
+* xref:policies-pdk-configure-features-timer.adoc[]
+* https://docs.mulesoft.com/api-manager/latest/api-contracts-landing-page[Client Applications, Contracts, and Credentials]
+
