@@ -78,13 +78,8 @@ To register a Flex Gateway with Anypoint Platform, you must enter the registrati
 
 * `--client-id` = the Id for the Connected App you configured in Access Management
 * `--client-secret` = the Secret for the Connected App you configured in Access Management
-
-
 * `--environment` = the Environment Id for the environment in Anypoint Platform where you want the Flex Gateway to run
-
-
 * `--organization` = your Organization ID in Anypoint Platform
-
 * `--split` (optional) = the flag that determines whether registration information should split into multiple files. The default value is `false`.
 +
 If `split` is set to `true`, registration information is split into two files: `registration.yaml` and `certificate.yaml`. If `false`, all registration information is contained in one file: `registration.yaml`.
@@ -92,28 +87,19 @@ If `split` is set to `true`, registration information is split into two files: `
 
 * `my-gateway` = the name you want to assign the gateway cluster
 
-
 === Register Flex Gateway
 
 Register your Flex Gateway instance using the data that you gathered for the command options.
 
-
 [source,ssh,subs=attributes+]
 ----
-
 flexctl registration create \
-
 --client-id=<your-connected-app-client-id> \
 --client-secret=<your-connected-app-client-secret> \
-
 --environment=<your-environment-id> \
-
 --connected=true \
-
 --organization=<your-org-id> \
-
 --output-directory=/usr/local/share/mulesoft/flex-gateway/conf.d \
-
 my-gateway
 ----
 
@@ -121,7 +107,6 @@ Use `sudo` if you encounter file permission issues when running this command.
 
 NOTE: If you are in Europe you will need to add the `--anypoint-url=https://eu1.anypoint.mulesoft.com` flag
 to your command.
-
 
 In the output directory, you should see the following new registration file(s):
 
@@ -131,13 +116,7 @@ In the output directory, you should see the following new registration file(s):
 IMPORTANT: These generated files are credentials for you to connect your Flex Gateway. If you lose them you
 can no longer connect your Flex Gateway.
 
-
-
 In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find your gateway in the UI. Notice that your gateway's status is *Disconnected*. Refresh the page, if necessary.
-
-
-
-
 
 === Start Commands
 
@@ -163,7 +142,6 @@ If `flex-gateway.service` has a status of `active`, Flex Gateway is successfully
   flex-gateway.service              loaded active running Application
 ----
 
-
 In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find your new gateway in the UI. Notice that your gateway's current status is *Connected*. Refresh the page, if necessary.
 
 NOTE: After 30 days, a stopped or deleted gateway is removed from the Runtime Manager UI. Otherwise, the UI continues to list the gateway even if it is no longer running or connected.
@@ -183,21 +161,15 @@ You can register and run Flex Gateway for use in one of the following containers
 [[docker]]
 // Register and run with a connected app in a Docker container
 === Register and Run with a Connected App in a Docker Container
-
 To register a Flex Gateway with Anypoint Platform, you must enter the registration command and then the start command. Each command includes information specific to your Anypoint Platform instance and *must be updated before* executing. See <<Before You Begin>> for more information on how to find the information you will need.
 
 ==== Collect Your Registration Data
 
 Before registering your Flex Gateway instance, collect information for the following registration command options:
 
-
 * `--client-id` = the Id for the Connected App you configured in Access Management
 * `--client-secret` = the Secret for the Connected App you configured in Access Management
-
-
 * `--environment` = the Environment Id for the environment in Anypoint Platform where you want the Flex Gateway to run
-
-
 * `--organization` = your Organization ID in Anypoint Platform
 
 * `--split` (optional) = the flag that determines whether registration information should split into multiple files. The default value is `false`.
@@ -207,33 +179,23 @@ If `split` is set to `true`, registration information is split into two files: `
 
 * `my-gateway` = the name you want to assign the gateway cluster
 
-
 ==== Register Flex Gateway
 
 Register your Flex Gateway instance using the data that you gathered for the command options.
 
-
 IMPORTANT: Create a new directory called `flex-registration` (or similar) and then run the registration command in this new directory. The command creates registration files in this location.
-
 
 [source,ssh,subs=attributes+]
 ----
-
 docker run --entrypoint flexctl \
 -v "$(pwd)":/registration -u $UID mulesoft/flex-gateway \
 registration create \
-
 --client-id=<your-connected-app-client-id> \
 --client-secret=<your-connected-app-client-secret> \
-
 --environment=<your-environment-id> \
-
 --connected=true \
-
 --organization=<your-org-id> \
-
 --output-directory=/registration \
-
 my-gateway
 ----
 
@@ -242,7 +204,6 @@ Use `sudo` if you encounter file permission issues when running this command.
 NOTE: If you are in Europe you will need to add the `--anypoint-url=https://eu1.anypoint.mulesoft.com` flag
 to your command.
 
-
 In the output directory, you should see the following new registration file(s):
 
 * `registration.yaml`
@@ -250,8 +211,6 @@ In the output directory, you should see the following new registration file(s):
 
 IMPORTANT: These generated files are credentials for you to connect your Flex Gateway. If you lose them you
 can no longer connect your Flex Gateway.
-
-
 
 In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find your gateway in the UI. Notice that your gateway's status is *Disconnected*. Refresh the page, if necessary.
 
@@ -276,21 +235,15 @@ NOTE: After 30 days, a stopped or deleted gateway is removed from the Runtime Ma
 [[podman]]
 // Register and run with a connected app in a Podman container
 === Register and Run with a Connected App in a Podman Container
-
 To register a Flex Gateway with Anypoint Platform, you must enter the registration command and then the start command. Each command includes information specific to your Anypoint Platform instance and *must be updated before* executing. See <<Before You Begin>> for more information on how to find the information you will need.
 
 ==== Collect Your Registration Data
 
 Before registering your Flex Gateway instance, collect information for the following registration command options:
 
-
 * `--client-id` = the Id for the Connected App you configured in Access Management
 * `--client-secret` = the Secret for the Connected App you configured in Access Management
-
-
 * `--environment` = the Environment Id for the environment in Anypoint Platform where you want the Flex Gateway to run
-
-
 * `--organization` = your Organization ID in Anypoint Platform
 
 * `--split` (optional) = the flag that determines whether registration information should split into multiple files. The default value is `false`.
@@ -300,33 +253,23 @@ If `split` is set to `true`, registration information is split into two files: `
 
 * `my-gateway` = the name you want to assign the gateway cluster
 
-
 ==== Register Flex Gateway
 
 Register your Flex Gateway instance using the data that you gathered for the command options.
 
-
 IMPORTANT: Create a new directory called `flex-registration` (or similar) and then run the registration command in this new directory. The command creates registration files in this location.
-
 
 [source,ssh,subs=attributes+]
 ----
-
 podman run --entrypoint flexctl --userns=keep-id \
 -v "$(pwd)":/registration:Z -u $UID docker.io/mulesoft/flex-gateway \
 registration create \
-
 --client-id=<your-connected-app-client-id> \
 --client-secret=<your-connected-app-client-secret> \
-
 --environment=<your-environment-id> \
-
 --connected=true \
-
 --organization=<your-org-id> \
-
 --output-directory=/registration \
-
 my-gateway
 ----
 
@@ -335,7 +278,6 @@ Use `sudo` if you encounter file permission issues when running this command.
 NOTE: If you are in Europe you will need to add the `--anypoint-url=https://eu1.anypoint.mulesoft.com` flag
 to your command.
 
-
 In the output directory, you should see the following new registration file(s):
 
 * `registration.yaml`
@@ -343,8 +285,6 @@ In the output directory, you should see the following new registration file(s):
 
 IMPORTANT: These generated files are credentials for you to connect your Flex Gateway. If you lose them you
 can no longer connect your Flex Gateway.
-
-
 
 In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find your gateway in the UI. Notice that your gateway's status is *Disconnected*. Refresh the page, if necessary.
 
@@ -371,11 +311,11 @@ NOTE: After 30 days, a stopped or deleted gateway is removed from the Runtime Ma
 //intro
 // - overview
 == Register and Run with a Connected App in a Kubernetes Cluster
-
 Register Flex Gateway, and then use Helm to deploy Flex Gateway to a node in your cluster and connect to Anypoint Platform. After deploying, use Runtime Manager to verify that the gateway is present and connected to Anypoint Platform.
-
 // - cluster-level access when rbac enabled
+
 When deploying Flex Gateway to a Kubernetes cluster that enables role-based access control (RBAC), you must have cluster-level permissions to permit installation of custom resource definitions (CRDs) used by Flex Gateway. 
+
 //- links to steps
 Complete the following steps: 
 
@@ -383,6 +323,7 @@ Complete the following steps:
 . <<reg-k8s>>
 . <<deploy-k8s>>
 //- connected mode supplemental info for k8 and openshift
+
 In Connected Mode, Flex Gateway typically serves as an ingress or Edge API gateway that receives traffic from outside of the cluster. Flex Gateway can also act as a standalone gateway for internal (east-west) services. 
 
 Most management takes place within Anypoint Platform: 
@@ -394,21 +335,15 @@ Most management takes place within Anypoint Platform:
 In Connected Mode, resource creation through `kubectl apply` is possible but restricted to the following resource types:
 Configuration, Service, Extension, and PolicyBinding of types `tls`, `tls-inbound`, and `tls-outbound`. For more info about resources, see xref:flex-local-configuration-reference-guide.adoc[].
 
-
 [[options-k8s]]
 //sub collected info
 === Collect Your Registration Data
  
-Before registering your Flex Gateway instance, collect information for the following registration command options: 
-
+Before registering your Flex Gateway instance, collect information for the following registration command options:
 
 * `--client-id` = the Id for the Connected App you configured in Access Management
 * `--client-secret` = the Secret for the Connected App you configured in Access Management
-
-
 * `--environment` = the Environment Id for the environment in Anypoint Platform where you want the Flex Gateway to run
-
-
 * `--organization` = your Organization ID in Anypoint Platform
 
 * `--split` (optional) = the flag that determines whether registration information should split into multiple files. The default value is `false`.
@@ -417,7 +352,6 @@ If `split` is set to `true`, registration information is split into two files: `
 * `--output-directory` (optional) = the directory in which registration information is output
 
 * `my-gateway` = the name you want to assign the gateway cluster
-
 
 [[reg-k8s]]
 === Register Flex Gateway
@@ -429,7 +363,6 @@ You can register using one of the following container runtimes:
 // * <<docker-container-reg,Docker>>
 // * <<podman-container-reg,Podman>>
 
-
 [[docker-container-reg]]
 .*Docker*
 [%collapsible]
@@ -437,26 +370,18 @@ You can register using one of the following container runtimes:
 // ==== Docker
 Run the following command to register using Docker:
 
-
 //reg command
 [source,ssh,subs=attributes+]
 ----
-
 docker run --entrypoint flexctl \
 -v "$(pwd)":/registration -u $UID mulesoft/flex-gateway \
 registration create \
-
 --client-id=<your-connected-app-client-id> \
 --client-secret=<your-connected-app-client-secret> \
-
 --environment=<your-environment-id> \
-
 --connected=true \
-
 --organization=<your-org-id> \
-
 --output-directory=/registration \
-
 my-gateway
 ----
 
@@ -464,7 +389,6 @@ Use `sudo` if you encounter file permission issues when running this command.
 
 NOTE: If you are in Europe you will need to add the `--anypoint-url=https://eu1.anypoint.mulesoft.com` flag
 to your command.
-
 
 In the output directory, you should see the following new registration file(s):
 
@@ -474,9 +398,8 @@ In the output directory, you should see the following new registration file(s):
 IMPORTANT: These generated files are credentials for you to connect your Flex Gateway. If you lose them you
 can no longer connect your Flex Gateway.
 
-
-
 In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find your gateway in the UI. Notice that your gateway's status is *Disconnected*. Refresh the page, if necessary.
+
 ====
 
 [[podman-container-reg]]
@@ -486,26 +409,18 @@ In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find 
 // ==== Podman
 Run the following command to register using Podman:
 
-
 //reg command
 [source,ssh,subs=attributes+]
 ----
-
 podman run --entrypoint flexctl --userns=keep-id \
 -v "$(pwd)":/registration:Z -u $UID docker.io/mulesoft/flex-gateway \
 registration create \
-
 --client-id=<your-connected-app-client-id> \
 --client-secret=<your-connected-app-client-secret> \
-
 --environment=<your-environment-id> \
-
 --connected=true \
-
 --organization=<your-org-id> \
-
 --output-directory=/registration \
-
 my-gateway
 ----
 
@@ -513,7 +428,6 @@ Use `sudo` if you encounter file permission issues when running this command.
 
 NOTE: If you are in Europe you will need to add the `--anypoint-url=https://eu1.anypoint.mulesoft.com` flag
 to your command.
-
 
 In the output directory, you should see the following new registration file(s):
 
@@ -523,14 +437,14 @@ In the output directory, you should see the following new registration file(s):
 IMPORTANT: These generated files are credentials for you to connect your Flex Gateway. If you lose them you
 can no longer connect your Flex Gateway.
 
-
-
 In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find your gateway in the UI. Notice that your gateway's status is *Disconnected*. Refresh the page, if necessary.
+
 ====
 
 [[deploy-k8s]]
 //install helm chart section
 //- title
+
 === Install Helm Chart into the Namespace
 
 //- helm chart info
@@ -538,6 +452,7 @@ A Helm chart installs Flex Gateway, monitoring tools, and applications.
 A minimum Helm version of 3.0.0 is required.  
 Refer to <<helm-options-k8s>> for configuration options. 
 //- add chart repo and deploy flex via chart
+
 . Add a Helm repository named `flex-gateway` for your chart: 
 +
 [source,helm]
@@ -570,7 +485,6 @@ Update Complete. ⎈Happy Helming!⎈
 ----
 +
 If you have more than one Helm repository on your machine, the message in your terminal window lists all of the repositories.
-
 //      PLEASE retain blank line before first step below
 
 . Run the Helm command for deploying your gateway in Connected Mode:
@@ -606,6 +520,7 @@ TEST SUITE: None
 The `REVISION` value increments the `ingress` release by `1` each time you run this command with the same namespace, repository, and chart names. For example, if you run the command a second time, you find a new revision number (`REVISION: 2`). The `LAST DEPLOYED` date reflects the date of that revision.
 //    do not add an empty new line here at end, please
 //- for flex connected mode deployment only
+
 In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find your new gateway in the UI. Notice that your gateway's current status is *Connected*. Refresh the page, if necessary.
 
 NOTE: After 30 days, a stopped or deleted gateway is removed from the Runtime Manager UI. Otherwise, the UI continues to list the gateway even if it is no longer running or connected.
@@ -638,7 +553,6 @@ helm show readme flex-gateway/flex-gateway
 ----
 
 
-
 // OPENSHIFT 
 [[openshift]]
 // Register and run with a connected app in an OpenShift cluster
@@ -646,10 +560,9 @@ helm show readme flex-gateway/flex-gateway
 == Register and Run with a Connected App in an OpenShift Cluster
 //task intro
 Register Flex Gateway, and then use Helm to deploy Flex Gateway to a node in your cluster and connect to Anypoint Platform. After deploying, use Runtime Manager to verify that the gateway is present and connected to Anypoint Platform.
-
 //- cluster-level access when rbac enabled
-When deploying Flex Gateway to a Kubernetes cluster that enables role-based access control (RBAC), you must have cluster-level permissions to permit installation of custom resource definitions (CRDs) used by Flex Gateway. 
 
+When deploying Flex Gateway to a Kubernetes cluster that enables role-based access control (RBAC), you must have cluster-level permissions to permit installation of custom resource definitions (CRDs) used by Flex Gateway. 
 In OpenShift, the `cluster-admin` role provides this level of access.
 //- note (openshift command line procedures same as k8)
 From the command line, OpenShift procedures match Kubernetes procedures. 
@@ -660,6 +573,7 @@ Complete the following steps:
 . <<reg-openshift>>
 . <<deploy-openshift>>
 //- connected mode supplemental info for k8 and openshift
+
 In Connected Mode, Flex Gateway typically serves as an ingress or Edge API gateway that receives traffic from outside of the cluster. Flex Gateway can also act as a standalone gateway for internal (east-west) services. 
 
 Most management takes place within Anypoint Platform: 
@@ -671,21 +585,15 @@ Most management takes place within Anypoint Platform:
 In Connected Mode, resource creation through `kubectl apply` is possible but restricted to the following resource types:
 Configuration, Service, Extension, and PolicyBinding of types `tls`, `tls-inbound`, and `tls-outbound`. For more info about resources, see xref:flex-local-configuration-reference-guide.adoc[].
 
-
 [[options-openshift]]
 //sub collected info
 === Collect Your Registration Data
  
 Before registering your Flex Gateway instance, collect information for the following registration command options: 
 
-
 * `--client-id` = the Id for the Connected App you configured in Access Management
 * `--client-secret` = the Secret for the Connected App you configured in Access Management
-
-
 * `--environment` = the Environment Id for the environment in Anypoint Platform where you want the Flex Gateway to run
-
-
 * `--organization` = your Organization ID in Anypoint Platform
 
 * `--split` (optional) = the flag that determines whether registration information should split into multiple files. The default value is `false`.
@@ -695,18 +603,15 @@ If `split` is set to `true`, registration information is split into two files: `
 
 * `my-gateway` = the name you want to assign the gateway cluster
 
-
 [[reg-openshift]]
 === Register Flex Gateway
 
 Register your Flex Gateway instance using the data that you gathered for the command options.
 
-
 You can register using one of the following container runtimes:
 
 // * <<docker-openshift-container-reg,Docker>>
 // * <<podman-openshift-container-reg,Podman>>
-
 
 [[docker-openshift-container-reg]]
 .*Docker*
@@ -715,26 +620,18 @@ You can register using one of the following container runtimes:
 // ==== Docker
 Run the following command to register using Docker:
 
-
 //reg command
 [source,ssh,subs=attributes+]
 ----
-
 docker run --entrypoint flexctl \
 -v "$(pwd)":/registration -u $UID mulesoft/flex-gateway \
 registration create \
-
 --client-id=<your-connected-app-client-id> \
 --client-secret=<your-connected-app-client-secret> \
-
 --environment=<your-environment-id> \
-
 --connected=true \
-
 --organization=<your-org-id> \
-
 --output-directory=/registration \
-
 my-gateway
 ----
 
@@ -742,7 +639,6 @@ Use `sudo` if you encounter file permission issues when running this command.
 
 NOTE: If you are in Europe you will need to add the `--anypoint-url=https://eu1.anypoint.mulesoft.com` flag
 to your command.
-
 
 In the output directory, you should see the following new registration file(s):
 
@@ -752,9 +648,8 @@ In the output directory, you should see the following new registration file(s):
 IMPORTANT: These generated files are credentials for you to connect your Flex Gateway. If you lose them you
 can no longer connect your Flex Gateway.
 
-
-
 In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find your gateway in the UI. Notice that your gateway's status is *Disconnected*. Refresh the page, if necessary.
+
 ====
 
 [[podman-openshift-container-reg]]
@@ -764,26 +659,18 @@ In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find 
 // ==== Podman
 Run the following command to register using Podman:
 
-
 //reg command
 [source,ssh,subs=attributes+]
 ----
-
 podman run --entrypoint flexctl --userns=keep-id \
 -v "$(pwd)":/registration:Z -u $UID docker.io/mulesoft/flex-gateway \
 registration create \
-
 --client-id=<your-connected-app-client-id> \
 --client-secret=<your-connected-app-client-secret> \
-
 --environment=<your-environment-id> \
-
 --connected=true \
-
 --organization=<your-org-id> \
-
 --output-directory=/registration \
-
 my-gateway
 ----
 
@@ -791,7 +678,6 @@ Use `sudo` if you encounter file permission issues when running this command.
 
 NOTE: If you are in Europe you will need to add the `--anypoint-url=https://eu1.anypoint.mulesoft.com` flag
 to your command.
-
 
 In the output directory, you should see the following new registration file(s):
 
@@ -801,9 +687,8 @@ In the output directory, you should see the following new registration file(s):
 IMPORTANT: These generated files are credentials for you to connect your Flex Gateway. If you lose them you
 can no longer connect your Flex Gateway.
 
-
-
 In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find your gateway in the UI. Notice that your gateway's status is *Disconnected*. Refresh the page, if necessary.
+
 ====
 
 [[deploy-openshift]]
@@ -816,6 +701,7 @@ A Helm chart installs Flex Gateway, monitoring tools, and applications.
 A minimum Helm version of 3.0.0 is required.  
 Refer to <<helm-options-openshift>> for configuration options.
 //- add chart repo and deploy flex via chart
+
 . Add a Helm repository named `flex-gateway` for your chart: 
 +
 [source,helm]
@@ -848,7 +734,6 @@ Update Complete. ⎈Happy Helming!⎈
 ----
 +
 If you have more than one Helm repository on your machine, the message in your terminal window lists all of the repositories.
-
 //      PLEASE retain blank line before first step below
 
 . Run the Helm command for deploying your gateway in Connected Mode:
@@ -884,6 +769,7 @@ TEST SUITE: None
 The `REVISION` value increments the `ingress` release by `1` each time you run this command with the same namespace, repository, and chart names. For example, if you run the command a second time, you find a new revision number (`REVISION: 2`). The `LAST DEPLOYED` date reflects the date of that revision.
 //    do not add an empty new line here at end, please
 //- for flex connected mode deployment only
+
 In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find your new gateway in the UI. Notice that your gateway's current status is *Connected*. Refresh the page, if necessary.
 
 NOTE: After 30 days, a stopped or deleted gateway is removed from the Runtime Manager UI. Otherwise, the UI continues to list the gateway even if it is no longer running or connected.
@@ -914,7 +800,6 @@ To view the Helm chart `README`, run `helm show readme <repository-name>/<chart-
 ----
 helm show readme flex-gateway/flex-gateway
 ----
-
 
 
 == See Also
