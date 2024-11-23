@@ -515,6 +515,7 @@ If you have more than one Helm repository on your machine, the message in your t
 [source,helm]
 ----
 helm -n gateway upgrade -i --create-namespace \
+ingress flex-gateway/flex-gateway \
 --set gateway.mode=connected \
 --set-file registration.content=registration.yaml
 ----
@@ -524,6 +525,8 @@ This command creates the `gateway` namespace and a release named `ingress` if th
 The command uses `--set gateway.mode=connected` because the default for the Helm chart is Local Mode.
 +
 When you install Flex Gateway, a Service type `LoadBalancer` is created by default. You must have the appropriate permissions to create a load balancer in your cloud. If the load balancer is not provisioned or has issues with the provisioning process, you must choose another type by changing the `service.type` property during the installation.
++
+NOTE: By default, Flex Gateways running in Kubernetes or Openshift use a readiness probe. If there's no API deployed to your Flex Gateway instance, the readiness state is `false`. This isn’t an issue with custom readiness probe configurations.
 +
 When successful, the command prints a message indicating an upgrade to your `ingress` release:
 +
@@ -548,12 +551,15 @@ The `REVISION` value increments the `ingress` release by `1` each time you run t
 [source,helm]
 ----
 helm -n gateway upgrade -i --create-namespace \
+ingress flex-gateway/flex-gateway \
 --set-file registration.content=registration.yaml
 ----
 +
 This command creates the `gateway` namespace and a release named `ingress` if they do not exist. You can use names of your choice for your namespace and release. The command syntax for the Helm repository and chart names is `<helm-repo-name>/<helm-chart-name>`.
 +
 When you install Flex Gateway, a Service type `LoadBalancer` is created by default. You must have the appropriate permissions to create a load balancer in your cloud. If the load balancer is not provisioned or has issues with the provisioning process, you must choose another type by changing the `service.type` property during the installation. 
++
+NOTE: By default, Flex Gateways running in Kubernetes or Openshift use a readiness probe. If there's no API deployed to your Flex Gateway instance, the readiness state is `false`. This isn’t an issue with custom readiness probe configurations.
 +
 When successful, the command prints a message indicating an upgrade to your `ingress` release:
 +
