@@ -105,23 +105,14 @@ Flex Gateway requires either an Intel or AMD-64 processor.
 [%header%autowidth.spread,cols="a,>.<a,a"]
 |===
 | Limit | Value | Notes
-| Request header
-| 60 KB
-| Requests that exceed this limit receive a 431 response.
-| Payload
-| 1 MB
-| This limit applies only to buffering the payload (such as logging the payload using message logging). If you're not accessing the payload, there's no limit to payload size.
-
+| Request header | 60 KB | Requests that exceed this limit receive a `431` response.
+| Payload | 1 MB | This limit applies only to buffering the payload (such as logging the payload using message logging). If you're not accessing the payload, the payload size has no limit. + 
 Payloads that exceed this limit receive a 413 response.
-| APIs per gateway instance
-| {gateway-api-max} 
-| Exceeding this limit doesn't cause errors, but isn't supported.
-| Contracts per API
-| 1,000
-| Exceeding this limit doesn't cause errors, but isn't supported.
-| Contracts per gateway instance
-| 10,000
-| Exceeding this limit doesn't cause errors, but isn't supported.
+| APIs per gateway instance | {gateway-api-max} | Exceeding this limit isn’t supported but doesn't cause errors.
+| Upstreams per API | 50 | The 50 upstreams is a combination of different routes. +
+To learn more, see xref:api-manager::create-instance-task-flex.adoc#limits[Multiple Upstream Limits].
+| Contracts per API | 1,000 | Exceeding this limit isn’t supported but doesn't cause errors.
+| Contracts per gateway instance | 10,000 | Exceeding this limit isn’t supported and causes no error.
 |===
 
 == Ports, IPs, and Hostnames Allowlist Requirements
