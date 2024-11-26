@@ -288,8 +288,10 @@ NOTE: After 30 days, a stopped or deleted gateway is removed from the Runtime Ma
 == Register and Run with a Token in a Kubernetes Cluster
 // - task overview
 Register Flex Gateway, and then use Helm to deploy Flex Gateway to a node in your cluster and connect to Anypoint Platform. After deploying, use Runtime Manager to verify that the gateway is present and connected to Anypoint Platform.
+
 // - cluster-level access when rbac enabled
 When deploying Flex Gateway to a Kubernetes cluster that enables role-based access control (RBAC), you must have cluster-level permissions to permit installation of custom resource definitions (CRDs) used by Flex Gateway. 
+
 //- links to steps
 Complete the following steps: 
 
@@ -314,6 +316,7 @@ Configuration, Service, Extension, and PolicyBinding of types `tls`, `tls-inboun
 === Collect Your Registration Data
  
 Before registering your Flex Gateway instance, collect information for the following registration command options: 
+
 * `--token` = the registration token for your environment in Anypoint Platform
 * `--organization` = your Organization ID in Anypoint Platform
 * `--split` (optional) = the flag that determines whether registration information should split into multiple files. The default value is `false`.
@@ -326,6 +329,7 @@ If `split` is set to `true`, registration information is split into two files: `
 === Register Flex Gateway
 
 Register your Flex Gateway instance using the data that you gathered for the command options.
+
 You can register using one of the following container runtimes:
 
 // * <<docker-container-reg,Docker>>
@@ -407,10 +411,12 @@ In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find 
 //install helm chart section
 //- title
 === Install Helm Chart into the Namespace
+
 //- helm chart info
 A Helm chart installs Flex Gateway, monitoring tools, and applications.
 A minimum Helm version of 3.0.0 is required.  
-Refer to <<helm-options-k8s>> for configuration options. 
+Refer to <<helm-options-k8s>> for configuration options.
+
 //- add chart repo and deploy flex via chart
 . Add a Helm repository named `flex-gateway` for your chart: 
 +
@@ -478,6 +484,7 @@ TEST SUITE: None
 +
 The `REVISION` value increments the `ingress` release by `1` each time you run this command with the same namespace, repository, and chart names. For example, if you run the command a second time, you find a new revision number (`REVISION: 2`). The `LAST DEPLOYED` date reflects the date of that revision.
 //    do not add an empty new line here at end, please
+
 //- for flex connected mode deployment only
 In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find your new gateway in the UI. Notice that your gateway's current status is *Connected*. Refresh the page, if necessary.
 
@@ -518,8 +525,10 @@ helm show readme flex-gateway/flex-gateway
 == Register and Run with a Token in an OpenShift Cluster
 //intro
 Register Flex Gateway, and then use Helm to deploy Flex Gateway to a node in your cluster and connect to Anypoint Platform. After deploying, use Runtime Manager to verify that the gateway is present and connected to Anypoint Platform.
+
 //- cluster-level access when rbac enabled
 When deploying Flex Gateway to a Kubernetes cluster that enables role-based access control (RBAC), you must have cluster-level permissions to permit installation of custom resource definitions (CRDs) used by Flex Gateway. 
+
 In OpenShift, the `cluster-admin` role provides this level of access.
 //- note (openshift command line procedures same as k8)
 From the command line, OpenShift procedures match Kubernetes procedures. 
@@ -547,6 +556,7 @@ Configuration, Service, Extension, and PolicyBinding of types `tls`, `tls-inboun
 === Collect Your Registration Data
  
 Before registering your Flex Gateway instance, collect information for the following registration command options: 
+
 * `--token` = the registration token for your environment in Anypoint Platform
 * `--organization` = your Organization ID in Anypoint Platform
 * `--split` (optional) = the flag that determines whether registration information should split into multiple files. The default value is `false`.
@@ -641,6 +651,7 @@ In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find 
 //install helm chart section
 //- title
 === Install Helm Chart into the Namespace
+
 //- helm chart info
 A Helm chart installs Flex Gateway, monitoring tools, and applications.
 A minimum Helm version of 3.0.0 is required.  
@@ -712,6 +723,7 @@ TEST SUITE: None
 +
 The `REVISION` value increments the `ingress` release by `1` each time you run this command with the same namespace, repository, and chart names. For example, if you run the command a second time, you find a new revision number (`REVISION: 2`). The `LAST DEPLOYED` date reflects the date of that revision.
 //    do not add an empty new line here at end, please
+
 //- for flex connected mode deployment only
 In Runtime Manager, click *&#8592; Flex Gateway* in the left navigation to find your new gateway in the UI. Notice that your gateway's current status is *Connected*. Refresh the page, if necessary.
 
