@@ -45,9 +45,9 @@ async fn response_filter(response_state: ResponseState, _config: &Config) {
     let headers_handler = headers_state.handler();
     let old_headers = headers_handler.header("request-header").unwrap_or_default();
 
-    let new_value = vec![("response-header1", "--replaced--"), ("response-header2", "--replaced--")];
-    logger::info!("Old request header value: {old_headers:?}, New value: {new_value:?}");
-    headers_handler.set_headers(new_value);
+    let new_headers = vec![("response-header1", "--replaced--"), ("response-header2", "--replaced--")];
+    logger::info!("Old request header value: {old_headers:?}, New value: {new_headers:?}");
+    headers_handler.set_headers(new_headers);
 }
 ----
 
@@ -72,6 +72,8 @@ async fn response_filter(response_state: ResponseState, _config: &Config) {
 
 [[read-and-write-request-bodies]]
 == Read and Write Request Bodies
+
+NOTE: Reading and writing bodies is limited to payloads of size 1MB or smaller.
 
 To access the body in both the request and the response, transform the `RequestState` or `ResponseState` to a body state by calling the method `into_body_state()` and awaiting it:
 
