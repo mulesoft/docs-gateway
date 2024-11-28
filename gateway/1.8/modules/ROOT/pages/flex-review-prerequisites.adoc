@@ -104,23 +104,14 @@ Flex Gateway requires either an Intel or AMD-64 processor.
 [%header%autowidth.spread,cols="a,>.<a,a"]
 |===
 | Limit | Value | Notes
-| Request header
-| 60 KB
-| Requests that exceed this limit receive a 431 response.
-| Payload
-| 1 MB
-| This limit applies only to buffering the payload (such as logging the payload using message logging). If you're not accessing the payload, there's no limit to payload size.
-
+| Request header | 60 KB | Requests that exceed this limit receive a `431` response.
+| Payload | 1 MB | This limit applies only to buffering the payload (such as logging the payload using message logging). If you're not accessing the payload, the payload size has no limit. + 
 Payloads that exceed this limit receive a 413 response.
-| APIs per gateway instance
-| {gateway-api-max} 
-| Exceeding this limit doesn't cause errors, but isn't supported.
-| Contracts per API
-| 1,000
-| Exceeding this limit doesn't cause errors, but isn't supported.
-| Contracts per gateway instance
-| 10,000
-| Exceeding this limit doesn't cause errors, but isn't supported.
+| APIs per gateway instance | {gateway-api-max} | Exceeding this limit isn’t supported but doesn't cause errors.
+| Upstreams per API | 50 | The 50 upstreams is a combination of different routes. +
+To learn more, see xref:api-manager::create-instance-task-flex.adoc#limits[Multiple Upstream Limits].
+| Contracts per API | 1,000 | Exceeding this limit isn’t supported but doesn't cause errors.
+| Contracts per gateway instance | 10,000 | Exceeding this limit isn’t supported and causes no error.
 |===
 
 == Ports, IPs, and Hostnames Allowlist Requirements
@@ -138,11 +129,13 @@ For Flex Gateway to communicate with MuleSoft-managed online Anypoint Platform A
 |*US*|*exchange-files.anypoint.mulesoft.com* | 443| Connected| Required to download policies| HTTPS
 |*US*|*exchange2-asset-manager-kprod.s3.amazonaws.com* | 443| Connected| Required to download policies| HTTPS
 |*US*|*configuration-resolver.prod.cloudhub.io* | 443| Connected| Required to download policies| mTLS
+|*US*|*us1.ingest.mulesoft.com* | 443| Both| Required to send analytics data to the control plane| HTTPS
 |*US*|*flex-packages.anypoint.mulesoft.com* | 443| Both| Required to download and install Flex Gateway| HTTPS
 |*EU*|*eu1.anypoint.mulesoft.com* | 443| Both| Required to connect with the control plane, push internal metrics, and download custom policy binaries| HTTPS
 |*EU*|*arm-mcm2-service.kprod-eu.msap.io* | 443| Both| Required to communicate with the transport layer| mTLS
 |*EU*|*logging.ingestion.eu-central-1.prod-eu.msap.io* | 443| Both| Required to send analytics data to the control plane| HTTPS
 |*EU*|*metering.ingestion.eu-central-1.prod-eu.msap.io* | 443| Both| Required to send analytics data to the control plane| HTTPS
+|*EU*|*eu1.ingest.mulesoft.com* | 443| Both| Required to send analytics data to the control plane| HTTPS
 |*EU*|*monitoring.ingestion.eu-central-1.prod-eu.msap.io* | 443| Both| Required to send analytics data to the control plane| HTTPS
 |*EU*|*configuration-resolver.prod-eu.msap.io* | 443| Connected| Required to download policies| mTLS
 |*EU*|*exchange-files.eu1.anypoint.mulesoft.com* | 443| Connected| Required to download policies| HTTPS
