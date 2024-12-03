@@ -1,0 +1,89 @@
+= Uploading Custom Policies to Exchange
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+During the custom policy development cycle, you can upload your policy to Exchange to create a new Exchange asset to manage the policy's version and to distribute it to other users. For more information about Exchange, see xref:exchange::index.adoc[].
+
+For custom policies running in Local Mode, it is not required to publish your policy to Exchange. However, Exchange is a useful version control tool. It is your responsibility to distribute custom policies for Local Mode use.
+
+When uploading your policy to Exchange, you can choose to either:
+
+* <<publish, Publish a Custom Policy>> +
+Publish a policy if the policy version is still in development. This enables you to test and edit the policy version.
+* <<release, Release a Custom Policy>> +
+Release the policy to create a definitive version of the policy. After releasing the policy, you must create a new policy version to edit the policy.
+
+Every time you publish or release a policy, you create a new `stable` asset in Exchange. For more information about `stable` state assets, see xref:exchange::lifecycle.adoc#stablet-state[Stable State Assets].
+
+After you upload your policy to Exchange, see xref:policies-pdk-apply-policies.adoc[].
+
+== Before You Begin
+
+* Ensure that the Connected App you used to authenticate to the xref:policies-pdk-prerequisites.adoc#cli[Anypoint Platform CLI] has the `Exchange Contributor` scope applied.
+* xref:policies-pdk-compile-policies.adoc[Compile your Policy].
+
+[[publish]]
+== Publish a Custom Policy
+
+To publish a custom policy, run the `make publish` command from the policy's root folder:
+
+[source,ssh]
+----
+make publish
+----
+
+After publishing the asset, a new asset labeled `DEV` appears in Exchange:
+
+image:pdk-dev-asset.png["Policy appears in Exchange labeled DEV."]
+
+The asset's group ID, asset ID, and asset version (GAV) appear, similar to the following:
+
+* *groupID*: `<organizationId>`
+* *assetID*: `my-custom-policy-dev` 
++
+When publishing a policy, `-dev` appears appended to the *assetID*.
+* *version*: `1.0.0-20230618115723` 
++
+When publishing a policy, a timestamp appears appended to the *version*.
+
+Rerunning the publish command creates a new version of the policy asset with an updated timestamp. Previously published policy versions are still available.
+
+
+[[release]]
+== Release a Custom Policy
+
+To release a custom policy, run the `make release` command from the policy's root folder:
+
+[source,ssh]
+----
+make release
+----
+
+Released policies are not labeled `DEV`. The asset's GAV appears similar to the following:
+
+* *groupID*: `<organizationId>`
+* *assetID*: `my-custom-policy`
++
+Released policies do not have `-dev` appended to their *assetID*.
+* *version*: `1.0.0`
++
+Released policies do not have a timestamp appended to their *assetID*.
+
+After releasing the asset, rerunning the `make release` command results in a conflict error.
+
+To begin working on the next version of your policy, update the version number in the `Cargo.toml` file.
+
+For example, if the latest version is `1.0.0`, update the `Cargo.toml` file as follows to begin working on a minor release:
+
+[source,toml]
+----
+name = "my-custom-policy"
+version = "1.1.0"
+----
+
+== See Also
+
+* xref:policies-pdk-apply-policies.adoc[]
+* xref:policies-pdk-troubleshooting.adoc[]
