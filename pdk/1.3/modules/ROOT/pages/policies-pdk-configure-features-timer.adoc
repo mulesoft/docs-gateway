@@ -6,7 +6,7 @@ endif::[]
 
 Use the `Clock` injectable to build a timer to enable delayed, periodic, and synchronous functions. Each policy supports only one timer.
 
-Each timer provides the following two functions:
+Each timer provides the following two async functions:
 
 [source,rust]
 ----
@@ -56,6 +56,29 @@ You can now await timer functions in `on_request` and `on_response` functions, f
 ----
 
 NOTE: To view an example policy project that launches delayed functions, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/spike/README.md[Spike Policy Example].
+
+== Release the Clock
+
+To create a new timer with a different tick period, release the `Clock` by using the following method: 
+
+[source,rust]
+----
+pub fn release(self) -> Clock;
+----
+
+The following code snippet creates a timer and then releases the clock to create a new timer:
+
+[source,rust]
+----
+    // Configure an initial tick period.
+    let initial_timer = clock.period(Duration::from_millis(500));
+    some_initial_task(&other_timer).await;
+    // Configure another tick period.
+    let other_timer = initial_timer.release().period(Duration::from_millis(3000);
+    some_other_task(&other_timer).await;
+    // Get the clock back.
+    let clock = other_timer.release();
+----
 
 == Launch Asynchronous Tasks
 
