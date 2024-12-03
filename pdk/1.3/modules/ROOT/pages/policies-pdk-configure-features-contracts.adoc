@@ -1,4 +1,4 @@
-= Using Contracts Validation library functions
+= Using Contracts Validation Library functions
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -6,31 +6,26 @@ endif::[]
 
 NOTE: To view an example policy project that uses Flex Gateway Policy Development Kit (PDK)'s Contracts Validation library, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/contracts-validation/README.md[Contracts Validation Policy Example^].
 
-A https://docs.mulesoft.com/api-manager/latest/api-contracts-landing-page[contract] between the API instance and the application gives access to it based on SLA tiers.
-Only one contract can exist per API instance and application at any time.
-Client applications can validate their contract by providing credentials that consist of two keys: client ID and client secret.
-Contracts Validation library provides functionalities to validate client credentials and is useful for implementing a custom client ID enforcement policy.
+xref:api-manager::api-contracts-landing-page.adoc[Contracts] between a API instances and applications give the application access to the instance based on SLA tiers. Client applications can validate their contract by providing credentials that consist of the client ID and client secret. The PDK Contracts Validation library provides functions to validate client credentials and implement a custom client ID enforcement policy.
+
+Only one contract at a time can exist between an API instance and an application.
 
 [[contracts-module]]
 == Contracts module
-The Contracts Validation library is available from the `pdk::contracts` module.
-The module provides the `ContractValidator` object to validate client credentials.
-Client credentials are represented by `ClientId` and `ClientSecret` objects.
-Authentication and authorization can be validated with  `ContractValidator::authenticate()` and `ContractValidator::authorize()` methods:
+
+The Contracts Validation library is available from the `pdk::contracts` module. 
+
+The module provides the `ContractValidator` object to validate client credentials represented by the `ClientId` and `ClientSecret` objects. Authentication and authorization can be validated with  `ContractValidator::authenticate()` and `ContractValidator::authorize()` methods:
 
 [source,Rust]
 ----
-
 impl ContractValidator {
-
    pub fn authenticate(client_id: &ClientId, client_secret: &ClientSecret) -> Result<ClientData, AuthenticationError>;
-   
    pub fn authorize(client_id: &ClientId, client_secret: &ClientSecret) -> Result<ClientData, AuthorizationError>;
 }
-
 ----
 
-Both methods return a `ClientData` struct that holds client ID, client name and SLA ID fields.
+Both methods return a `ClientData` struct that holds the client ID, client name, and SLA ID fields:
 
 [source,Rust]
 ----
@@ -42,10 +37,9 @@ pub struct ClientData {
 ----
 
 [[request-validation]]
-== Request authentication and authorization
+== Request Authentication and Authorization
 
-A request can be authenticated by extracting client credentials from it, and invoking the `ClientValidation::authenticate()` method.
-A helper function `basic_auth_credentials()` for extracting Basic Auth credentials from headers is provided with the `pdk::contracts` module.
+Authenticate a request by extracting the client credentials from it and then invoking the `ClientValidation::authenticate()` method. The `pdk::contracts` module provides the `basic_auth_credentials()` helper function to extract Basic Authentication credentials from request headers:
 
 [source,Rust]
 ----
@@ -53,7 +47,7 @@ pub fn basic_auth_credentials(request_headers_state: &RequestHeadersState)
     -> Result<(ClientId, ClientSecret), BasicAuthError>;
 ----
 
-An authentication request filter could be written as follows:
+The following code snippet provides a simple authentication request filter:
 
 [source,Rust]
 ----
@@ -98,7 +92,7 @@ async fn my_authentication_filter(
 }
 ----
 
-An authorization request filter can be written in a similar way:
+The following code snippet provides a simple authorization request filter:
 
 [source,Rust]
 ----
@@ -132,9 +126,9 @@ async fn my_authorization_filter(
 ----
 
 [[custom-credentials-extraction]]
-== Custom extraction for client credentials
+== Implement Custom Extraction for Client credentials
 
-Credential extraction can be implemented by invoking `ClientId::new()` and `ClientSecret::new()` methods:
+Invoke the `ClientId::new()` and `ClientSecret::new()` methods to extract credentials:
 
 [source,Rust]
 ----
@@ -147,7 +141,7 @@ impl ClientSecret {
 }
 ----
 
-The next snippet shows how to initialize a set of credentials:
+After extracting the credentials, initialize a set of the credentials:
 
 [source,Rust]
 ----
@@ -161,14 +155,12 @@ fn initialize_credentials(raw_client_id: String, raw_client_secret) -> (ClientId
 
 ----
 
-NOTE: `ClientSecret` is implemented in a secure way where it's content is zeroed after use.
-It also implements the `Debug` trait without exposing his content.
+NOTE: For security, the content of `ClientSecret` is zeroed after use. Also, the `Debug` trait does not expose the `ClientSecret` content.
 
 [[contract-validator-injection]]
-== ContractValidator injection
+== Inject the ContractValidator Object
 
-The `ContractValidator` object can be injected in the `configure()` function and share it by reference to the filter
-as in the next snippet:
+Inject the `ContractValidator` object into the `#[entrypoint]` function and share its reference to the request filter:
 
 [source,Rust]
 ----
@@ -185,8 +177,8 @@ async fn configure(launcher: Launcher, validator: ContractValidator) -> Result<(
 [[contract-database-polling]]
 === Local Contracts Database polling
 
-`ContractValidator` object maintains a local copy of the contracts database. This local copy must be polled periodically
-in order to maintain the local copy of contracts up to date by invoking the `ContractValidator::update_contracts()` method:
+The `ContractValidator` object maintains a local copy of the contracts database. You must poll the local copy periodically to maintain a valid
+copy of the contracts. Invoke the `ContractValidator::update_contracts()` method to poll the local copy:
 
 [source,Rust]
 ----
@@ -197,10 +189,8 @@ impl ContractValidator {
 
 ----
 
-The `ContractValidator::update_contracts()` method returns an error that specifies if some connectivity problem occurs
-during the contracts database polling. It is responsibility of the programmer the handle retry and error handling heuristics.
-
-`ContractValidator::update_contracts()`  must be invoked periodically in a period specified by the
+If the `ContractValidator::update_contracts()` method returns an error that specifies a connectivity problem occurred
+during the contracts database polling, the programmer must implement the retry and error handling heuristics. You must invoke `ContractValidator::update_contracts()` in a period specified by the
 `ContractValidator::UPDATE_PERIOD` constant:
 
 [source,Rust]
@@ -224,10 +214,11 @@ async fn update_my_contracts(validator: &ContractValidator, clock: Clock) {
 }
 ----
 
+There is a contract database initialization period where the contracts database must be polled in a higher frequency
+than update period. The `ContractValidator::INITIALIZATION_PERIOD` specifies the interval required by the initial polling:
+
 [source,Rust]
 ----
-There is a contract database initialization period where the contracts database must be polled in a higher frequency
-than update period. The `ContractValidator::INITIALIZATION_PERIOD` specifies the interval required by the initial polling.
 
 async fn initialize_my_contracts(validator: &ContractValidator, clock: Clock) {
     
@@ -248,7 +239,7 @@ async fn initialize_my_contracts(validator: &ContractValidator, clock: Clock) {
 
 ----
 
-The next snippet shows a complete contract polling task, with initialization and update polling periods:
+The following snippet shows a complete contract polling task with initialization and update polling periods:
 
 [source,Rust]
 ----
@@ -283,9 +274,8 @@ async fn update_my_contracts(validator: &ContractValidator, clock: Clock) {
 }
 ----
 
-Since contracts database polling task must run concurrently with `Launcher::launch()` task, the `join!()` macro
-from the https://crates.io/crates/futures[futures] crate can help to join both tasks.
-The next snippet shows a complete `configure()` function with polling and launching:
+Since contracts database polling task must run concurrently with the `Launcher::launch()` task, use the `join!()` macro
+from the https://crates.io/crates/futures[futures] crate to join both tasks. The following snippet implementes a complete `#[entrypoint]` function with polling and launching:
 
 [source,Rust]
 ----
