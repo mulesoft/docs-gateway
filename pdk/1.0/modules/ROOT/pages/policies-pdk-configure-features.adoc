@@ -145,33 +145,6 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-[[event-flow]]
-== Event Flow
-
-When filtering requests and responses, Proxy Wasm splits handling the header and body into two main events that must happen in a specific order. Before the policy can handle the body, the header event has to fully propagate through all policies. For example, the event flow for an API with two policies applied is:
-
-. Policy 1 handles the request header event.
-. Policy 2 handles the request header event.
-. The backend service receives the request headers.
-. Policy 1 handles the request body event.
-. Policy 2 handles the request body event.
-. The backend receives the request body.
-. The backend sends the response.
-. Policy 2 handles the response header event.
-. Policy 1 handles the response header event.
-. The client receives the response headers.
-. Policy 2 handles the response body event.
-. Policy 1 handles the response body event.
-. The client receives the response body.
-
-This order creates the following limitations:
-
-* Policies cannot modify headers after the body is read.
-* All policies must fully process the header event before reading the body. It is not possible to save data of the body on one policy and then modify the headers headers using that body data in a different policy.
-* When all policies process the header event, it reaches the backend service. To ensure no data from a rejected request reaches the backend service, you must reject the headers based on only the request headers. When rejecting requests based on their body, most servers and clients can detect interrupted requests and discard the headers of the request.
-
-In the policy source code, reading the body separates the header and body event. For example, if the the declaration `let body_state = headers_state.into_body_state().await;` is used to read the body, everything prior to the declaration occurs in the header event, and everything after occurs in the body event.
-
 [[flow-cancellation]]
 == Flow Cancellation
 
