@@ -145,31 +145,6 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-[[understanding-the-event-flow]]
-== Understanding The Event Flow
-Despite the fact that the PDK abstracts the developer from the event-oriented coding approach, the PDK is still limited by the underlying event handling of proxy wasm.
-
-The events for handling the header and body of requests and responses will follow a particular and unchangeable order. Proxy Wasm has two main events, the header event and the body event.  Before the body event can be handled, the header event has to be fully propagated through the policy chain. This imposes the following limitations:
-
-* Headers cannot be modified after the body is read.
-* All policies have to fully process the header event before the body can be read. It is not possible to save data of the body on one policy and modify the headers on the next one.
-* If all policies process a particular event it will reach the destination. Most servers and clients detect that a request is interrupted and they discard it. If you wish for no data to reach the backend or the client at all you’ll need to accept or reject the request with only just the headers.
-
-Let’s suppose we have two policies applied to an api. The event flow will be:
-
-. Policy 1 handles the request header event.
-. Policy 2 handles the request header event.
-. The backend receives the request headers.
-. Policy 1 handles the request body event.
-. Policy 2 handles the request body event.
-. The backend receives the request body.
-. The backend sends the response.
-. Policy 2 handles the response header event.
-. Policy 1 handles the response header event.
-. The client receives the response headers.
-. Policy 2 handles the response body event.
-. Policy 1 handles the response body event.
-. The client receives the response body.
 
 [[flow-cancellation]]
 == Flow Cancellation
