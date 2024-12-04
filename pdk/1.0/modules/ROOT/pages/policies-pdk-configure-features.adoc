@@ -148,25 +148,11 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 [[event-flow]]
 == Event Flow
 
-Despite the fact that the PDK abstracts the developer from the event-oriented coding approach, the PDK is still limited by the underlying event handling of proxy wasm.
-
-The events for handling the header and body of requests and responses follow a specific order. Proxy Wasm has two main handling events, the header event and the body event, that follow a specific ore.  Before the body event can be handled, the header event has to be fully propagated through the policy chain. This imposes the following limitations:
-
-When filtering requests and responses, Proxy Wasm has the two main events of handling the header and body that must happen in a specific order. Before the policy can handle the body, the header event has to fully propagate through the policy chain. This order created the following limitations:
-
-* Policies cannot modify headers after the body is read.
-* All policies must fully process the header event before reading the body. It is not possible to save data of the body on one policy and modify the headers on the next one.
-* When all policies process the header event, it reaches the backend service. If you want to ensure no data from a rejected request reaches the backend service, you must reject the headers based on only the request headers.
-
- to reach the backend or the client at all you’ll need to accept or reject the request with only just the headers.
-
- Most servers and clients detect that a request is interrupted and they discard it. If you wish for no data to reach the backend or the client at all you’ll need to accept or reject the request with only just the headers.
-
-If an API has two policies applied, the event flow is:
+When filtering requests and responses, Proxy Wasm splits handling the header and body into two main events that must happen in a specific order. Before the policy can handle the body, the header event has to fully propagate through all policies. For example, the event flow for an API with two policies applied is:
 
 . Policy 1 handles the request header event.
 . Policy 2 handles the request header event.
-. The backend receives the request headers.
+. The backend service receives the request headers.
 . Policy 1 handles the request body event.
 . Policy 2 handles the request body event.
 . The backend receives the request body.
@@ -177,6 +163,14 @@ If an API has two policies applied, the event flow is:
 . Policy 2 handles the response body event.
 . Policy 1 handles the response body event.
 . The client receives the response body.
+
+This order creates the following limitations:
+
+* Policies cannot modify headers after the body is read.
+* All policies must fully process the header event before reading the body. It is not possible to save data of the body on one policy and then modify the headers headers using that body data in a different policy.
+* When all policies process the header event, it reaches the backend service. To ensure no data from a rejected request reaches the backend service, you must reject the headers based on only the request headers. When rejecting requests based on their body, most servers and clients can detect interrupted requests and discard the headers of the request.
+
+In the policy source code, reading the body separates the header and body event. For example, if the the declaration `let body_state = headers_state.into_body_state().await;` is used to read the body, everything prior to the declaration occurs in the header event, and everything after occurs in the body event.
 
 [[flow-cancellation]]
 == Flow Cancellation
