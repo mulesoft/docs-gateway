@@ -145,17 +145,24 @@ async fn configure(launcher: Launcher, Configuration(bytes): Configuration) -> R
 }
 ----
 
-[[understanding-the-event-flow]]
-== Understanding The Event Flow
+[[event-flow]]
+== Event Flow
+
 Despite the fact that the PDK abstracts the developer from the event-oriented coding approach, the PDK is still limited by the underlying event handling of proxy wasm.
 
-The events for handling the header and body of requests and responses will follow a particular and unchangeable order. Proxy Wasm has two main events, the header event and the body event.  Before the body event can be handled, the header event has to be fully propagated through the policy chain. This imposes the following limitations:
+The events for handling the header and body of requests and responses follow a specific order. Proxy Wasm has two main handling events, the header event and the body event, that follow a specific ore.  Before the body event can be handled, the header event has to be fully propagated through the policy chain. This imposes the following limitations:
 
-* Headers cannot be modified after the body is read.
-* All policies have to fully process the header event before the body can be read. It is not possible to save data of the body on one policy and modify the headers on the next one.
-* If all policies process a particular event it will reach the destination. Most servers and clients detect that a request is interrupted and they discard it. If you wish for no data to reach the backend or the client at all you’ll need to accept or reject the request with only just the headers.
+When filtering requests and responses, Proxy Wasm has the two main events of handling the header and body that must happen in a specific order. Before the policy can handle the body, the header event has to fully propagate through the policy chain. This order created the following limitations:
 
-Let’s suppose we have two policies applied to an api. The event flow will be:
+* Policies cannot modify headers after the body is read.
+* All policies must fully process the header event before reading the body. It is not possible to save data of the body on one policy and modify the headers on the next one.
+* When all policies process the header event, it reaches the backend service. If you want to ensure no data from a rejected request reaches the backend service, you must reject the headers based on only the request headers.
+
+ to reach the backend or the client at all you’ll need to accept or reject the request with only just the headers.
+
+ Most servers and clients detect that a request is interrupted and they discard it. If you wish for no data to reach the backend or the client at all you’ll need to accept or reject the request with only just the headers.
+
+If an API has two policies applied, the event flow is:
 
 . Policy 1 handles the request header event.
 . Policy 2 handles the request header event.
