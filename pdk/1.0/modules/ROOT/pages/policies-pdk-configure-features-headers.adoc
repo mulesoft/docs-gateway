@@ -27,7 +27,7 @@ When filtering requests and responses, Proxy Wasm splits handling the headers an
 
 This order creates the following limitations:
 
-* Policies can’t modify headers after the body is read.
+* Policies can’t modify headers after reading the body.
 * All policies must fully process the header event before reading the body. Saving data of the body on one policy and then modifying the headers using that body data in a different policy isn’t possible.
 * When all policies process the header event, it reaches the backend service. To ensure no data from a rejected request reaches the backend service, you must reject the headers based on only the request headers. When rejecting requests based on their body, most servers and clients can detect interrupted requests and discard the headers of the request.
 
