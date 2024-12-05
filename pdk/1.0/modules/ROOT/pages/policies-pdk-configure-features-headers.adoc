@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Flex Gateway Policy Development Kit (PDK) enables you to both read and writer to request and response headers and bodies.
+With Flex Gateway Policy Development Kit (PDK), you can read and writer to request and response headers and bodies.
 
 [[event-flow]]
 == Event Flow
@@ -27,11 +27,11 @@ When filtering requests and responses, Proxy Wasm splits handling the header and
 
 This order creates the following limitations:
 
-* Policies cannot modify headers after the body is read.
-* All policies must fully process the header event before reading the body. It is not possible to save data of the body on one policy and then modify the headers headers using that body data in a different policy.
+* Policies can’t modify headers after the body is read.
+* All policies must fully process the header event before reading the body. Saving data of the body on one policy and then modifying the headers using that body data in a different policy isn’t possible.
 * When all policies process the header event, it reaches the backend service. To ensure no data from a rejected request reaches the backend service, you must reject the headers based on only the request headers. When rejecting requests based on their body, most servers and clients can detect interrupted requests and discard the headers of the request.
 
-In the policy source code, reading the body separates the header and body event. For example, if the the declaration `let body_state = headers_state.into_body_state().await;` is used to read the body, everything prior to the declaration occurs in the header event, and everything after occurs in the body event.
+In the policy source code, reading the body separates the header and body event. For example, if the declaration `let body_state = headers_state.into_body_state().await;` is used to read the body, everything prior to the declaration occurs in the header event, and everything after occurs in the body event.
 
 [[read-and-write-headers]]
 == Read and Write Request Headers
