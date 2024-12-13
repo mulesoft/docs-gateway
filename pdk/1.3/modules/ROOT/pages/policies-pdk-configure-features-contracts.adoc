@@ -1,4 +1,4 @@
-= Using Contracts Validation Library functions
+= Using Contracts Validation Library Functions
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -11,11 +11,11 @@ xref:api-manager::api-contracts-landing-page.adoc[Contracts] between API instanc
 Only one contract at a time can exist between an API instance and an application.
 
 [[contracts-module]]
-== Contracts module
+== Contracts Module
 
 The Contracts Validation library is available from the `pdk::contracts` module. 
 
-The module provides the `ContractValidator` object to validate client credentials represented by the `ClientId` and `ClientSecret` objects. Authentication and authorization can be validated with  `ContractValidator::authenticate()` and `ContractValidator::authorize()` methods:
+The module provides the `ContractValidator` object to validate client credentials represented by the `ClientId` and `ClientSecret` objects. Validate authentication and authorization can with the `ContractValidator::authenticate()` and `ContractValidator::authorize()` methods:
 
 [source,Rust]
 ----
@@ -155,7 +155,7 @@ fn initialize_credentials(raw_client_id: String, raw_client_secret) -> (ClientId
 
 ----
 
-NOTE: For security, the content of `ClientSecret` is zeroed after use. Also, the `Debug` trait does not expose the `ClientSecret` content.
+NOTE: For security, the content of `ClientSecret` is deleted after use, and the `Debug` trait does not expose the `ClientSecret` content.
 
 [[contract-validator-injection]]
 == Inject the ContractValidator Object
@@ -175,7 +175,7 @@ async fn configure(launcher: Launcher, validator: ContractValidator) -> Result<(
 ----
 
 [[contract-database-polling]]
-=== Local Contracts Database polling
+=== Local Contracts Database Polling
 
 The `ContractValidator` object maintains a local copy of the contracts database. You must poll the local copy periodically to maintain a valid
 copy of the contracts. Invoke the `ContractValidator::update_contracts()` method to poll the local copy:
