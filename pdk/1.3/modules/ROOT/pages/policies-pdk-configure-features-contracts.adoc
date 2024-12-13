@@ -39,7 +39,7 @@ pub struct ClientData {
 [[request-validation]]
 == Request Authentication and Authorization
 
-Authenticate a request by extracting the client credentials from it and then invoking the `ClientValidation::authenticate()` method. The `pdk::contracts` module provides the `basic_auth_credentials()` helper function to extract Basic Authentication credentials from request headers:
+Authenticate a request by extracting the client credentials from the request and then invoking the `ClientValidation::authenticate()` method. The `pdk::contracts` module provides the `basic_auth_credentials()` helper function to extract Basic Authentication credentials from request headers:
 
 [source,Rust]
 ----
@@ -47,7 +47,7 @@ pub fn basic_auth_credentials(request_headers_state: &RequestHeadersState)
     -> Result<(ClientId, ClientSecret), BasicAuthError>;
 ----
 
-The following code snippet provides a simple authentication request filter:
+This code snippet provides a simple authentication request filter:
 
 [source,Rust]
 ----
@@ -92,7 +92,7 @@ async fn my_authentication_filter(
 }
 ----
 
-The following code snippet provides a simple authorization request filter:
+This code snippet provides a simple authorization request filter:
 
 [source,Rust]
 ----
@@ -239,7 +239,7 @@ async fn initialize_my_contracts(validator: &ContractValidator, clock: Clock) {
 
 ----
 
-The following snippet shows a complete contract polling task with initialization and update polling periods:
+This snippet shows a complete contract polling task with initialization and update polling periods:
 
 [source,Rust]
 ----
@@ -275,7 +275,7 @@ async fn update_my_contracts(validator: &ContractValidator, clock: Clock) {
 ----
 
 Since contracts database polling task must run concurrently with the `Launcher::launch()` task, use the `join!()` macro
-from the https://crates.io/crates/futures[futures] crate to join both tasks. The following snippet implementes a complete `#[entrypoint]` function with polling and launching:
+from the https://crates.io/crates/futures[futures] crate to join both tasks. This snippet implementes a complete `#[entrypoint]` function with polling and launching:
 
 [source,Rust]
 ----
