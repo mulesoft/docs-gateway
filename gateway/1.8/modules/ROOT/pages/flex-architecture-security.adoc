@@ -1,0 +1,96 @@
+= Flex Gateway Deployment Models
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+== Secure Flex Gateway in Anypoint Platform
+
+Always apply the principle of least privilege to Flex Gateways in Anypoint Platform. Ensure that only users that need access to Flex Gateways have it. Users that have access to Flex Gateway are able to view Flex Gateway configuration details and logs.
+
+To learn how to manage user's access, see xref:docs-access-management::index.adoc[].
+
+== Secure the Flex Gateway Registration Resource
+
+Flex Gateway stores registration information locally. This registration resource contains the certificate the Flex Replica uses to communicate and authenticate itself with Anypoint Platform. This diagram demonstrates how Flex Gateway communicates with Anypoint Platform via mTLS:
+
+image:
+
+Restrict access to the registration resource to ensure there are unauthorized execution of replicas from outside the organization. Specifically:
+
+* Ensure Secrets are encrypted at rest and that least privilege access is enforced for the registration resource secret.
+* Store sensitive data, such as credentials and API keys, in secure vaults, for example, AWS Secrets Manager, Azure Key Vault, or HashiCorp Vault.
+* Avoid hardcoding secrets and only use environment variables for non-sensitive configurations.
+* Encrypt sensitive information in configuration files
+
+For Kubernetes deployments, see https://kubernetes.io/docs/concepts/security/secrets-good-practices/[Good practices for Kubernetes Secrets] for Kubernetes specific best practices.
+
+== Renew the Flex Certificate 
+
+Anypoint Flex Gateway uses a managed PKI certificate to communicate with Anypoint Platform. This certificate is generated when you register Flex Gateway in either Connected Mode or Local Mode. Renew the certificate before it's expiration date to ensure the runtime can connect to the control plane.
+
+To learn how to renew your registration, see xref::flex-gateway-renew-certificate.adoc[].
+
+== Update your Flex Gateway
+
+MuleSoft regularly provides security updates for Flex Gateway. Keep your Flex Gateway updated to the latest version to ensure vulnerabilities are addressed. To reduce the risk of incompatibilities, follow a safe change process and upgrade sandbox runtimes ahead of production. 
+
+To learn more about how to update your Flex Gateway, see xref:flex-gateway-upgrade.adoc[].
+
+== Avoid Logging Payload Data
+
+Don't log payload data in runtime logs to ensure client information is not leaked if runtime logs become compromised. Runtime logs are available in the runtime layer through the `stdout` of the Flex Gateway pods and also in the Anypoint control plane. 
+
+== Secure Flex Gateway Service Pods
+
+Restrict access to Flex Gateway runtime pods to ensure unauthorized personel cannot access Flex Gateway configuration data or tamper with the runtime.
+
+For Kubernetes deployments, use Kubernetes Role-based access control (RBAC) to restrict access to execute commands in the pod. For more information, see https://kubernetes.io/docs/reference/access-authn-authz/rbac/[Using RBAC Authorization].
+
+In non-Kubernetes deployments, restrict access to the Flex Gateway virtual machine to open sessions.
+
+== Secure Redis Shared Storage
+
+Flex Gateway caches both request data and runtime configurations (Connected Mode only) using Redis shared storage. An unauthorized user could obtain cached configuration data including Flex configuration or request processing caches or possibly disrupt the runtime. Secure the Redis service to ensure there is no unauthorized access.
+
+To secure the Redis shared storage, see https://redis.io/docs/latest/operate/rs/security/recommended-security-practices/[Redis Recommended security practices]. Ensure you enable access control to limit access to Redis from sources other than Flex Gateway. Deploy the Redis as close as possible to the Flex Gateway to further limit access.
+
+== Best Practices for the Flow of Traffic
+
+== A: Protecting Flex From Incoming Traffic (API Consumer to Flex Gateway)
+
+The protections necessary to protect Flex Gateway from incoming traffic is dependent on the source of incoming traffic.
+
+For requests coming from the public internet, ensure there are first line of defense systems to intercept the traffic before it reaches the Flex Gateway. While Flex Gateway does provides API level protection policies, it expects other general first line protections are in front of it. Ensure both:
+
+* Network level protections, such as Network ACLs, Network and DNS Firewalls, and other network protections available. Cloud providers or a third party may provide these protections.
+* First line application level protections, such as threat protection against DDoS attacks and Web Application Firewall.
+
+== B: Protecting the Upstream Service (Flex Gateway to API Provider)
+
+Protecting the upstream service is 
+
+The protections necessary to protect Flex Gateway from incoming traffic is dependent on the source of incoming traffic.
+
+When the upstream flows (Flex accessing services to process requests, flow B in the diagram) recommendations will vary depending on the location of the target service.
+
+=== Services Available Locally to Flex Gateway
+
+For services in the same network as Flex Gateway, security restrictions might be lower.
+
+The organization must define whether plain or TLS connections are in place. If using TLS, configure mTLS via Flex Gateway Outbound TLS contexts. To learn more about configuring TLS, see xref:
+
+* xref:flex-conn-tls-config.adoc[]
+* xref:flex-local-tls-config.adoc[]
+
+Additionally, configure the upstream service to only accept traffic incoming from Flex Gateway. This protects the upstream service from other services in the same network. For Kubernetes, configure this using Network Policies. 
+
+=== External Services
+
+When protecting external services not in the same network, connect to the service using mTLS communication. Additionally, configure a trusted network link (private VPC link or other) between the networks to enable Flex Gateway to securely access the upstream service without exposing the service to the public internet. 
+
+
+== See Also
+
+* xref:flex-architecture-uc-overview.adoc[]
+* xref:flex-architecture-shared-storage.adoc[]
