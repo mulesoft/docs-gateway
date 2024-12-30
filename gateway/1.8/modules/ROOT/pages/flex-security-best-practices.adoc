@@ -88,6 +88,8 @@ For requests coming from the public internet, ensure there are first line of def
 * Network level protections, such as Network ACLs, Network and DNS Firewalls, and other network protections available. Cloud providers or a third party may provide these protections.
 * First line application level protections, such as threat protection against DDoS attacks and Web Application Firewall.
 
+NOTE: To find reference architecture detailing how to handle incoming requests from external sources, see xref:flex-architecture-uc2.adoc[] and xref:flex-architecture-uc4.adoc[]. 
+
 === Terminate External TLS at Point of Entry
 
 Terminate external TLS connections at the firewall level to enable the firewall to perform any required L7 traffic security inspection. A valid Certificate Authority (CA) recognized by the consumers should provide the certificates at this point of entry.
@@ -119,11 +121,14 @@ The organization must define whether plain or TLS connections are in place. If u
 
 Additionally, configure the upstream service to only accept traffic incoming from Flex Gateway. This protects the upstream service from other services in the same network. For Kubernetes, configure this using Network Policies. 
 
+NOTE: To find reference architecture detailing communication to an internal upstream service, see xref:flex-architecture-uc1.adoc[] and xref:flex-architecture-uc3.adoc[].
+
 [[protect-external-services]]
 === Protect External Services
 
 When protecting external services not in the same network, connect to the service using mTLS communication. Additionally, configure a trusted network link (private VPC link or other) between the networks to enable Flex Gateway to securely access the upstream service without exposing the service to the public internet. 
 
+NOTE: To find reference architecture detailing communication to an external upstream service, see xref:flex-architecture-uc2.adoc[] and xref:flex-architecture-uc4.adoc[].
 
 == See Also
 
