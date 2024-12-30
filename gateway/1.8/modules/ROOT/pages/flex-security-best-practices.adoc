@@ -58,7 +58,9 @@ To learn more about how to update your Flex Gateway, see xref:flex-gateway-upgra
 [[avoid-logging-payload-data]]
 == Avoid Logging Payload Data
 
-Don't log payload data in runtime logs to ensure client information is not leaked if runtime logs become compromised. Runtime logs are available in the runtime layer through the `stdout` of the Flex Gateway pods and also in the Anypoint control plane. 
+Runtime logs are available in the runtime layer through the `stdout` of the Flex Gateway pods and also in the Anypoint control plane for Connected Mode.
+
+To ensure client information is not leaked if runtime logs become compromise don't log payload data in runtime logs.  
 
 [[secure-flex-gateway-service-pods]]
 == Secure Flex Gateway Service Pods
@@ -85,6 +87,16 @@ For requests coming from the public internet, ensure there are first line of def
 
 * Network level protections, such as Network ACLs, Network and DNS Firewalls, and other network protections available. Cloud providers or a third party may provide these protections.
 * First line application level protections, such as threat protection against DDoS attacks and Web Application Firewall.
+
+=== Terminate External TLS at Point of Entry
+
+Terminate external TLS connections at the firewall level to enable the firewall to perform any required L7 traffic security inspection. A valid Certificate Authority (CA) recognized by the consumers should provide the certificates at this point of entry.
+
+Use a separate set of certificates for internal communications between the firewall, Flex Gateway, and other services in the infrastructure. For this communication, use mTLS security with both certificates issued by a trusted authority (internal authority or PKI).
+
+Certificates exposed to the internet are never used internally and certificates that are used internally are never exposed to the internet. Separating internal and external certificates prevents potential leakage of the internal credentials.
+
+You can use Flex Gateway as at both the runtime environment ingress layer or at the inner environment layer. For Flex Gateways at the ingress layer, limit the gateways scope to TLS termination, routing, and other basic protections. Push more CPU and memory intensive operations to inner Flex Gateways.
 
 [[protect-the-upstream-service]]
 == Protect the Upstream Service (Flex Gateway to API Provider)
