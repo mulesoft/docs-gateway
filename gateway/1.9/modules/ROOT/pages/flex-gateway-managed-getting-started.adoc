@@ -1,11 +1,12 @@
-= Getting Started with Self-Managed Flex Gateway
+= Getting Started with Managed Flex Gateway
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
-:page-aliases: runtime-manager::flex-gateway-add.adoc, runtime-manager::flex-gateway-api-add.adoc
 :imagesdir: ../assets/images
 
-The goal of this tutorial is to quickly get started with Anypoint Flex Gateway. Using Docker, the tutorial describes how to install, register, and run Flex Gateway in Connected Mode. Additionally, the tutorial describes how to publish an API that is secured with a basic authentication policy.
+The goal of this tutorial is to quickly get started with Anypoint Managed Flex Gateway. The tutorial describes how to create and run Managed Flex Gateway. 
+
+Additionally, the tutorial describes how to publish an API that is secured with a basic authentication policy.
 
 == Before You Begin
 
@@ -13,113 +14,30 @@ Before getting started with Flex Gateway, ensure that you have:
 
 * A username and password for your Anypoint Platform organization. If you don’t have Anypoint Platform yet, https://anypoint.mulesoft.com/login/signup[create a Trial organization^] on Anypoint Platform.
 
-* A Linux machine with an x86 processor. M1 and M2 processors are not supported.
-+
-include::partial$prerequisites.adoc[tag=intro]
+* Created a private space or have access to a private space created by someone else. To create a private space, see xref::cloudhub-2::ps-create-configure.adoc[].
 
-** {empty}
-include::partial$prerequisites.adoc[tag=amazon-linux]
-
-** {empty}
-include::partial$prerequisites.adoc[tag=centos]
-
-** {empty}
-include::partial$prerequisites.adoc[tag=debian]
-
-** {empty}
-include::partial$prerequisites.adoc[tag=red-hat]
-
-** {empty}
-include::partial$prerequisites.adoc[tag=red-hat-ibm]
-
-** {empty}
-include::partial$prerequisites.adoc[tag=suse]
-
-** {empty}
-include::partial$prerequisites.adoc[tag=suse-ibm]
-
-** {empty}
-include::partial$prerequisites.adoc[tag=ubuntu]
-
-* A Docker installation. See https://www.docker.com/products/docker-desktop/[Docker Desktop^] for an example.
-
-== Download Flex Gateway
-
-To download the Flex Gateway Docker image, run the following command in a terminal window:
-
-[source,ssh,subs=attributes+]
-----
-docker pull mulesoft/flex-gateway:{gateway-ver-var}
-----
-
-[NOTE]
-Use `sudo` if you encounter file permission issues when running this command.
-
-== Register Flex Gateway
-
-. Create a new directory by running:
-+
-[source,ssh]
-----
-mkdir flex-registration
-----
-
-. Navigate to the new directory by running:
-+
-[source,ssh]
-----
-cd flex-registration
-----
+== Deploy a Managed Flex Gateway
 
 . Log in to https://anypoint.mulesoft.com/login/[Anypoint Platform^] with your Anypoint username and password.
 . Select *Runtime Manager*.
-. Click on the *Self-Managed Flex Gateways* tab in the side navigation panel.
-. Click *Add Gateway*.
-. Select *Docker*.
-. Copy the code block in the *Register your gateway* section. The code block contains your unique organization ID and token.
+. Click *Flex Gateways* in the side navigation panel.
+. Click *Managed Flex Gateway*.
+. Click *Add Managed Flex Gateway*.
+. Enter a *Gateway name*.
+. Select a your private space as your *Deployment target*.
+. Select *Edge* for *Release channel*.
+. Select *Small Managed Flex Gateway* for *Gateway type*.
+. Click *Save & deploy*.
 +
-The following screenshot of the *Add a Flex Gateway* page highlights the code block to copy:
-+
-image::gateway-quickstart-add-gateway.png["Add a Flex Gateway page with code block to copy selected",width=90%]
-
-. Run the copied code block in your terminal window, making sure to first replace `<gateway-name>` with a name, such as `my-gw`.
-+
-[NOTE]
-Use `sudo` if you encounter file permission issues when running this command.
-
-. In Runtime Manager, select *Flex Gateways* from the side navigation panel.
-+
-Your registered Flex Gateway now appears in the list of gateways.
-
-== Run Flex Gateway
-
-To run Flex Gateway, run the following in a terminal window:
-
-[source,ssh]
-----
-docker run --rm \
-  -v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
-  -p 8081:8081 \
-  mulesoft/flex-gateway
-----
-
-[NOTE]
-Use `sudo` if you encounter file permission issues when running this command.
-
-A new Flex Gateway instance is now running in your terminal window.
-
-[NOTE]
-The Flex Gateway instance will continue running in the terminal window until the process is stopped, or until the window is closed.
+The UI returns to the *Flex Gateways* page.
+. In the list of Managed Gateways, find your new gateway and wait until it's status is *Running*.
 
 == Publish a Simple API
 
 . Select *API Manager* from the Anypoint Platform menu.
 . Click *Add API*, followed by *Add new API*:
-+
-image::gateway-quickstart-add-new-api.png["Add new API page with Add new API selected",width=35%]
-
 . From the *Add API* page, select *Flex Gateway* as your runtime.
-. Select your registered gateway in the *Select a gateway* section.
+. Select your deplyoed Managed Flex Gateway in the *Select a gateway* section.
 . Click *Next*.
 +
 The following screenshot of the *Add API* page highlights the specified options:
