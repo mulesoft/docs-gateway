@@ -1,0 +1,113 @@
+= Getting Started with Managed Flex Gateway on CloudHub 2.0
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+The goal of this tutorial is to quickly get started with Anypoint Managed Flex Gateway deployed on CloudHub 2.0. The tutorial describes how to create and run Managed Flex Gateway. 
+
+Additionally, the tutorial describes how to publish an API that is secured with a basic authentication policy.
+
+== Before You Begin
+
+Before getting started with Flex Gateway, ensure that you have:
+
+* Created a private space in CloudHub 2.0 or have access to a private space created by someone else. To create a private space, see xref::cloudhub-2::ps-create-configure.adoc[].
+
+== Deploy a Managed Flex Gateway
+
+. Log in to https://anypoint.mulesoft.com/login/[Anypoint Platform^] with your Anypoint username and password.
+. Select *Runtime Manager*.
+. Click *Flex Gateways* in the side navigation panel.
+. Click *Managed Flex Gateway*.
+. Click *Add Managed Flex Gateway*.
+. Enter a *Gateway name*.
+. Select a your private space as your *Deployment target*.
+. Select *Edge* for *Release channel*.
+. Select *Small Managed Flex Gateway* for *Gateway type*.
+. Click *Save & deploy*.
++
+The UI returns to the *Managed Flex Gateway* page.
+. In the list of Managed Gateways, find your new gateway and wait until its status is *Running*.
+
+== Publish a Simple API
+
+. Select *API Manager* from the Anypoint Platform menu.
+. Click *Add API*, followed by *Add new API*.
+. From the *Add API* page, select *Flex Gateway* as your runtime.
+. Select your deployed Managed Flex Gateway in the *Select a gateway* section.
+. Click *Next*.
+. Click *Create New API*.
+. Specify an API name and select *HTTP API* as the asset type.
+. Click *Next*.
+. From the *Downstream* page:
+.. Select *HTTP*.
+.. Enter `8081` in the *Port* field.
+. Click *Next*.
+. From the *Upstream* page:
+.. Enter the following in the *Upsream URL* field:
++
+[source]
+----
+https://jsonplaceholder.typicode.com/
+----
+. Click *Next*.
+. Click *Save & Deploy*.
++
+The UI takes you to the *API Summary* page of the newly created API instance.
++
+Inside the private space the Managed Flex Gateway is deployed in, all HTTP requests made to `localhost` on port `8081` are now proxied to the `jsonplaceholder` service.
+. To test the API Instance, run the following command in a new terminal window:
++
+[source,ssh]
+----
+curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://localhost:8081/'
+----
++
+The command executes a `GET` request to the API, and then prints the resulting `200` status code, indicating success.
+
+
+
+== Secure Your API Using the Basic Authentication Policy
+
+. From the *API Summary* page, select *Policies* from the side navigation panel.
+. In the *Policies* page, click *Add policy*.
++
+The following screenshot of the *Policies* page highlights the specified options:
++
+image::gateway-quickstart-add-policy.png["Add Policy page with Add policy button",width=65%]
+
+. Select the *Basic Authentication - Simple* policy.
+. Click *Next*.
+. For *User Name*, enter `user`.
+. For *User Password*, enter `password`.
+. Click *Apply*.
++
+The following screenshot of the *Configure Basic Authentication - Simple policy* page highlights the specified options:
++
+image::gateway-quickstart-config-basic-auth.png["Configure Basic Authentication Policy page with User Password field selected",width=65%]
+
+. To test the API Instance _without_ authentication, run the following `curl` command in the terminal window:
++
+[source,ssh]
+----
+curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://localhost:8081/'
+----
++
+The command prints a resulting `401 (Unauthorized)` status code, because the request does not include the Authentication context.
+. To test the API Instance _with_ authentication, run the following command in the terminal window:
++
+[source,ssh]
+----
+curl -s -o /dev/null -w "%{http_code}\n" --request GET 'http://localhost:8081/' -u user:password
+----
++
+[NOTE]
+The `user` and `password` parameters must match what was specified when you applied the policy via *API Manager*.
++
+The command prints the resulting `200` status code, indicating success.
+
+== Next Steps
+
+* xref:flex-review-prerequisites.adoc[]
+* xref:flex-gateway-set-up.adoc[]
