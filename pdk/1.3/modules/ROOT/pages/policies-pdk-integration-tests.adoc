@@ -184,6 +184,21 @@ async fn say_hello() -> anyhow::Result<()> {
 
 NOTE: If the Docker engine is properly configured, this test passes. Run `make test` to ensure proper configuration.
 
+[[alternative-httpmock-docker-images]]
+=== Configure an alternative httpmock Docker image
+If you want to use an `httpmock` Docker image from another source instead of the one provided by default,
+the configuration builder provides an `image_name()` method  to define it explicitly:
+
+[source,rust]
+----
+// Configure HttpMock service
+let backend_config = HttpMockConfig::builder()
+    .image_name("myrepo/httpmock") // Custom image name setting
+    .hostname("backend")
+    .port(80)
+    .build();
+----
+
 [[get-a-services-hande]]
 === Get a Service's Handle
 
@@ -292,6 +307,9 @@ The `FlexConfig` struct has the following properties:
 |`version`
 |Flex Gateway version to test.
 
+|`image_name`
+|Flex Gateway Docker image name, by default, "mulesoft/flex-gateway".
+
 |`hostname`
 |Hostname of the `Flex` service, by default, "local-flex".
 
@@ -397,6 +415,27 @@ async fn say_hello() -> anyhow::Result<()> {
         .await?;
 }
 ----
+
+[[alternative-flex-docker-images]]
+=== Configure an alternative Flex Docker image
+If you want to use an `flex` Docker image from another source instead of the one provided by default,
+the configuration builder provides an `image_name()` method  to define it explicitly:
+
+[source,rust]
+----
+// Configure the Flex service
+let flex_config = FlexConfig::builder()
+    .image_name("myrepo/flex-gateway") // Custom image name setting
+    .version("1.6.1")
+    .hostname("local-flex")
+    .config_mounts([
+        (POLICY_DIR, "policy"),
+        (COMMON_CONFIG_DIR, "common")
+    ])
+    .with_api(api_config)
+    .build();
+----
+
 
 [NOTE] 
 ====
