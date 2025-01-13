@@ -29,6 +29,16 @@ The `make build` command outputs the generated files to the `target` directories
 
 You can execute the `make build` command as many times as necessary to generate compiled artifacts. You must compile the custom policy for your source code and configuration edits to be present in the compiled artifacts.
 
+[NOTE]
+====
+When compiling your policy the first time, Rust fetches the lastest version dependencies. If a dependency requires a Rust version later than {rust-ver-max-var}, pin the latest compatible version of the dependency with this command:
+
+----
+cargo update -p <conflicting_crate> --precise <major.minor.patch>
+----
+
+====
+
 == See Also
 
 * xref:policies-pdk-debug-local.adoc[]
