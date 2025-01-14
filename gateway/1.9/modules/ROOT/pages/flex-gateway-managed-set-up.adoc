@@ -65,13 +65,31 @@ Click *Add Endpoint* to add an additional endpoint to a different domain. Manage
 +
 * *Ingress options*:
 +
-[cols="1a,1a"]
+** *Forward SSL Session*:
++
+Enables SSL forwarding during a session.
+
+SSL forwarding is mostly used with client authentication. See xref:anypoint-security::enable-client-authentication.adoc[].
+SSL forwarding forwards client certificate details in HTTP request headers so they are available to the application.
+These fields can identify an authenticated client and allow an application to determine and use the identity.
++
+The following headers are available:
++
+[%header,cols="2*a"]
 |===
-| Parameter | Description
-| *Forward SSL session* | Enables SSL forwarding during a session. + 
-SSL forwarding is mostly used with client authentication. See Enable Client Authentication. SSL forwarding forwards client certificate details in HTTP request headers so they are available to the application. These fields can identify an authenticated client and allow an application to determine and use the identity.
-| *Last-mile security* | Specifies that TLS termination and decryption for the forwarded HTTPS connections occurs in the application. This option requires that the Flex Gateway application include an SSL certificate and also requires more CPU resources.
+| Header Name | Value
+| x-ssl-client-verify | SUCCESS/FAIL
+| x-ssl-issuer | Client certificate issuer
+| x-ssl-client-serial | Client certificate serial number
+| x-ssl-client-dn | Contents of the client certificate DN field
+| x-ssl-client-cert | Contents of the client certificate
 |===
++
+** *Last-mile Security*:
++
+Specifies that TLS termination and decryption for the forwarded HTTPS connections occurs in the application.
++
+This option requires that the Flex Gateway include an SSL certificate and also requires more CPU resources.
 +
 Properties::
 +
