@@ -33,12 +33,11 @@ Before getting started with Flex Gateway, ensure that you have:
 +
 To learn more about the differences between release channels, see xref:flex-gateway-version-lifecycle.adoc[].
 
-. If you chose *Long-Term Support*, select *Version*.
+. Select *Version*.
 +
 Select the latest version unless if a later version is specifically needed.
 
-
-. Select *Gateway type*:
+. Select *Flow Plans*:
 +
 [cols="1a,1a"]
 |===
@@ -49,13 +48,11 @@ Select the latest version unless if a later version is specifically needed.
 +
 To learn more about Managed Flex Gateway sizing, see xref:flex-managed-sizing-guide.adoc[].
 ps-create-configure
-. Optionally, click *Advanced options* to configure additional gateway details:
+. Configure *Advanced options*:
 +
-** *Ingress*:
+Ingress::
 +
-Configure a public endpoint to expose your Flex Gateway hosted on a CloudHub 2.0 private pace to the public internet:
-+
-*** *Public endpoint*: 
+* *Public endpoint*:
 +
 [cols="1a,1a"]
 |===
@@ -64,22 +61,21 @@ Configure a public endpoint to expose your Flex Gateway hosted on a CloudHub 2.0
 | *Host* | CloudHub 2.0 host your endpoint is accessible from.
 |===
 +
-Add additional endpoints by clicking *Add endpoint*.
+Managed Flex Gateway supports one *Public endpoint* per domain in your private space.
 +
-*** *Ingress options*:
+* *Ingress options*:
 +
 [cols="1a,1a"]
 |===
 | Parameter | Description
 | *Forward SSL session* | Enables SSL forwarding during a session. + 
 SSL forwarding is mostly used with client authentication. See Enable Client Authentication. SSL forwarding forwards client certificate details in HTTP request headers so they are available to the application. These fields can identify an authenticated client and allow an application to determine and use the identity.
-
 | *Last-mile security* | Specifies that TLS termination and decryption for the forwarded HTTPS connections occurs in the application. This option requires that the Flex Gateway application include an SSL certificate and also requires more CPU resources.
 |===
 +
-To learn more about CloudHub 2.0 public endpoints, see xref:cloudhub-2::ch2-deploy-private-space.adoc#configure-endpoint-path[Configure Endpoints and Paths for the App]. Flex Gateway does not support all parameters mentioned here.
+Properties::
 +
-** *Properties*:
+To configure how long Managed Flex Gateway waits for response or idle connections, configure the timeout properties:
 +
 [cols="1a,1a"]
 |===
@@ -88,19 +84,43 @@ To learn more about CloudHub 2.0 public endpoints, see xref:cloudhub-2::ch2-depl
 | *Upstream response timeout* | The time the upstream service has to respond from when Flex Gateway sends a request.
 | *Stream idle timeout* | The time a stream can remain idle without receiving additional client requests or upstream responses.
 |===
-+
-** *Logging*
-+
-[cols="1a,1a"]
-|===
-| Parameter | Description
-| *Forward application logs to Anypoint Monitoring* | Forwards Flex Gateway logs to Anypoint Monitoring. When disabled, logs are only available in Runtime Manager.
-| *Additional log levels* | Configures the log level.
-|===
 . Click *Save & deploy*.
 +
-The UI returns to the *Managed Flex Gateway* page.
-. In the list of Managed Gateways, find your new gateway and wait until its status is *Running*.
+Logging::
++
+* *Forward application logs to Anypoint Monitoring*:
++
+Forwards Flex Gateway logs to Anypoint Monitoring. When disabled, logs are only available in Runtime Manager.
++
+* *Additional Log Levels*:
++
+** *INFO*: Informative messages
+** *DEBUG*: Debugging messages
+** *WARNING*: Warning messages
+** *ERROR*: Error messages, such as when an exception occurs
+** *FATAL*: Fatal messages for when an application fails
+* Click *Save & deploy*.
+
+== Edit a Managed Flex Gateway Settings
+
+To edit a Managed Flex Gateway settings:
+
+. From Anypoint Platform, select *Runtime Manager > Flex Gateways*.
+. Click the Managed Flex Gateway name.
+. In the navigation menu, click Settings.
+. Make the necessary edits.
+. Click *Apply changes*.
+
+== Remove an Endpoint
+
+To remove an endpoint:
+
+. From Anypoint Platform, select *Runtime Manager > Flex Gateways*.
+. Click the Managed Flex Gateway name.
+. In the navigation menu, click Settings.
+. Click *Advanced options*.
+. In the *Public endpoint* row, click *X* (Delete).
+. Click *Apply changes*.
 
 
 == Next Steps
