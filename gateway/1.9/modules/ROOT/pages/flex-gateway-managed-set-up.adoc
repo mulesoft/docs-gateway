@@ -5,7 +5,7 @@ endif::[]
 :imagesdir: ../assets/images
 
 
-Deploy a Managed Flex Gateway to a CloudHub 2.0 private space to launch a completely cloud hosted gateway. Configure the Managed Flex Gateway as an ingress to you private space by exposing a public endpoint, or configure the gateway to only handle internal traffic.
+Deploy a Managed Flex Gateway to a CloudHub 2.0 private space to launch a completely cloud hosted gateway. Configure the Managed Flex Gateway as an ingress to you private space by exposing a public endpoint, or configure the gateway to only handle internal traffic. You can have one or more Managed Gateway in each Environment that the private space is shared with. Gateways can protect any API from the same Environment of the gateway.
 
 == Before You Begin
 
@@ -17,6 +17,7 @@ Before getting started with Flex Gateway, ensure that you have:
 
 . Log in to https://anypoint.mulesoft.com/login/[Anypoint Platform^] with your Anypoint username and password.
 . Select *Runtime Manager*.
+. Ensure you're in environment where you would like to deploy your Managed Gateway
 . Click *Flex Gateways* in the side navigation panel.
 . Click *Managed Flex Gateway*.
 . Click *Add Managed Flex Gateway*.
@@ -70,8 +71,8 @@ Click *Add Endpoint* to add an additional endpoint to a different domain. Manage
 Enables SSL forwarding during a session.
 
 SSL forwarding is mostly used with client authentication. See xref:anypoint-security::enable-client-authentication.adoc[].
-SSL forwarding forwards client certificate details in HTTP request headers so they are available to the application.
-These fields can identify an authenticated client and allow an application to determine and use the identity.
+SSL forwarding forwards client certificate details in HTTP request headers so they are available to the gateway.
+These fields can identify an authenticated client and allow the gateway policies to determine and use the identity.
 +
 The following headers are available:
 +
@@ -87,7 +88,7 @@ The following headers are available:
 +
 ** *Last-mile Security*:
 +
-Specifies that TLS termination and decryption for the forwarded HTTPS connections occurs in the application.
+Specifies that TLS termination and decryption for the forwarded HTTPS connections occurs in the gateway.
 +
 Properties::
 +
