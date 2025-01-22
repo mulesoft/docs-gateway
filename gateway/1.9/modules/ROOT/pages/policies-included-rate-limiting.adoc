@@ -157,7 +157,7 @@ You can configure the policy for multiple groups of requests by using identifier
 
 To understand how the Rate Limiting policy works, consider an example in which the configuration of 3 requests every 10 seconds allows or restricts incoming requests, based on the quota available in that window:
 
-image::rate-limiting-generic-example.png[Rate Limiting Policy Example,80%]
+image::rate-limiting-generic-example.png["A timeline of accepted and rejected requests in two time windows",80%]
 
 In the first window, because the quota is reached with the third request, all subsequent requests are rejected until the window closes. In the second window, only two of the three requests are processed and the quota remaining is dropped after the window time has elapsed.
 
@@ -191,7 +191,7 @@ The identifier, if not sent in the request, defaults to an empty value, having i
 
 The following example shows the order of events that occur over a period of time using the identifier `#[attributes.method]` for a limit of 3 requests every 10 seconds:
 
-image::rate-limiting-configure-identifiers-example.png[Rate Limiting Configure Identifiers Example,80%]
+image::rate-limiting-configure-identifiers-example.png["A line chart illustrating the acceptance and rejection of GET and POST requests over time",80%]
 In the example:
 
 * Every HTTP method is allowed 3 requests every 10 seconds (in this example, only GET and POST requests are made to the API).
@@ -207,7 +207,7 @@ The rate-limiting engine, which is HTTP agnostic, depends solely on the resoluti
 
 For example, you can configure a Rate Limiting policy with an identifier that uses one bucket for all Class A and Class C LAN requests and another bucket for everything else. The following image illustrates the second bucket in the previous sentence, which corresponds to 3 requests per 10 seconds quota with the DataWeave expression `#[attributes.queryParam[‘customIdentifier’]]` as the policy identifier:
 
-image::rate-limiting-configure-identifiers-dataweave.png[Rate Limiting Configure Identifiers with DataWeave,80%]
+image::rate-limiting-configure-identifiers-dataweave.png["A timeline that displays both accepted and rejected requests, organized by time intervals",80%]
 
 In the example:
 
