@@ -6,14 +6,117 @@ endif::[]
 
 == Edge and LTS Release Channels
 
-Starting with Flex Gateway 1.9, MuleSoft introduces two new release channels, Edge and Long-term Support (LTS).
+Flex Gateway includes two new release channels, Edge and Long-term Support (LTS). The Edge and LTS channels, and associated support policies, apply to all types of Flex Gatways (managed, connected, and local gateways).
 
 Consider the following factors to determine which release channel is the best choice for your requirements.
+
+=== Edge Channel
+
+Mulesoft releases Flex Gateway Edge versions three times per year. Use the Edge channel if you want to stay on top of the latest features and feel comfortable with a more frequent release cycle and auto-upgrade cycle. The Edge channel includes the latest features and innovations available on the MuleSoft platform.
+
+=== LTS Channel
+
+MuleSoft releases Flex Gateway Long-Term Support (LTS) versions once a year. Use the LTS channel if you want to avoid upgrading to a new version frequently. The LTS channel adopts new capabilities after they have been introduced via Edge releases.
+
+[%header,cols="4*a"]
+|===
+| Channel Type | Release Cadence | Differentiators | Support Coverage
+
+| Edge 
+a| Three times per year
+
+a| Includes new features on a frequent release cadence with shorter maintenance coverage.
+
+a| 
+
+* 4 months of Standard Support
+* 4 months of Extended Support
+
+| LTS
+
+a| Annual
+
+a| Includes new features introduced in prior Edge releases, along with new features introduced in the current year Edge release. This release is maintained for an extended period.
+
+a|
+* 12 months of Standard Support
+* 12 months of Extended Support
+
+|===
+
+When a gateway version is outside of the Standard Support and Extended Support timeframes, MuleSoft will provide End of Life Support. End of Life Support will be provided for an additional 12 months after Standard Support and Extended Support end for Self-Managed Gateways.
 
 == Flex Gateway Release Cadence Support
 
 The following table shows the Flex Gateway release cadence support:
 
-== Deployment Models and Gateway Lifecycle Management
+[%header%autowidth.spread]
+|===
+| Release Channel | Gateway Version |Release Date | End of Standard Support | End of Extended Support
+| Edge | 1.9 | March 2025 | July 2025 | November 2025
+| LTS | 1.9 | March 2025 | March 2026 | June 2027
+|===
 
-Application lifecycle management depends on the deployment model.
+
+== Flex Gateway Version Lifecycle Management
+
+Flex Gateway lifecycle management varies depending on the type of gateway you are using.
+
+// create the table adding only the name of your product + action column + tags.
+[%header,="4*a"]
+|===
+| Action |  Managed | Connected | Local
+| Auto-upgrade
+a| Patches: Monthly auto-upgrade if a new patch version is available.
+
+Channels: All gateways are auto-upgraded to the latest version within their respective channels (Edge or LTS) during the monthly auto-upgrade when previous version goes out of Standard Support.
+
+* Edge: Gateways are auto-upgraded to the latest Edge release during the first monthly update after the release is available. You can upgrade to a new release as soon as it is available, if you want to use it before auto-upgrade occurs.
+* LTS: Gateways are auto-upgraded .
+| Applications aren't auto-upgraded by MuleSoft without customer-initiated actions.
+| No auto-upgrade capabilities
+
+| Self-upgrade
+a| The auto-upgrade takes place during a fixed patching schedule after the version's standard support ends. See patching schedule for xref:cloudhub/cloudhub-runtimes-release-notes.adoc[CloudHub] and xref:cloudhub-2/cloudhub-2-runtimes-release-notes.adoc[CloudHub 2.0].
+
+* Edge: six weeks
+* LTS: six months
+| Always available
+| Using the xref:mule-runtime::mule-upgrade-tool.adoc[]
+
+| Rollback
+| Available to the previously used version
+| Available to the previously used version
+| Available to the previous used version using the xref:mule-runtime::mule-upgrade-tool.adoc[].
+
+| Restart apps
+| Always
+| Always
+| Always while the version is within the support period
+
+| Keep running applications
+| Until End of Extended Support
+| Always
+| Always
+
+| End of Extended Support
+| Shutdown running apps. +
+Starting with Mule 4.7, CloudHub and CloudHub 2.0 applications in the Edge or LTS channels that are still running https://www.salesforce.com/content/dam/web/en_us/www/documents/legal/Agreements/versioning-back-support-policy.pdf[End of Life versions] will undergo a forced upgrade to the latest version during the monthly upgrade window (See upgrade window for xref:cloudhub/cloudhub-runtimes-release-notes.adoc[CloudHub] and xref:cloudhub-2/cloudhub-2-runtimes-release-notes.adoc[CloudHub 2.0]).
+| Cannot deploy new apps
+| Can deploy new apps 
+
+| Retirement
+| Mule apps do not reach End of Life because they are always auto-upgraded. 
+| When Mule apps reach End of Life, you can still restart or redeploy them using the same runtime version the apps are currently running on.
+| When Mule apps reach End of Life, MuleSoft reserves the right to close the connection of the Mule runtime server to Anypoint Platform.
+
+| Supportability
+| All Mule apps are under Standard Support.
+| Supported while Mule apps are within the assigned support period.
+| Supported while Mule apps are within the assigned support period.
+
+| Redeployment / Applying changes / Upgrades
+| Supported until End of Extended Support.
+| Supported when a build tag is provided. If a build tag is not provided, the application defaults to the latest patch of the minor version being used. If a wrong, invalid, or unsupported build tag is provided, the deployment fails. 
+| Supported under Hybrid Stansalone.
+|===
