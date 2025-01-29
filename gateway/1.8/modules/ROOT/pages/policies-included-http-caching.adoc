@@ -20,6 +20,11 @@ endif::[]
 
 The HTTP Caching policy enables you to cache HTTP responses for reuse. Caching these responses speeds up the response time for user requests and reduces the load on the backend. For example, if your backend exposes an endpoint for which the responses to requests are not likely to change, you can reuse the HTTP responses and bypass the backend request processing by using the HTTP Caching policy.
 
+[NOTE]
+====
+Policies applied after the HTTP Caching policy in the policy order are not applied to responses served from the cache. For example, a rate limiting policy applied after the HTTP Caching policy only limits the responses served by the upstream service but not the responses served by the cache. Apply all policies needed for the cached response before the HTTP Caching policy.
+====
+
 [[cpp]]
 == Configuring Policy Parameters
 
