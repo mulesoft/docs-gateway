@@ -1,0 +1,122 @@
+= Circuit Breaker Outbound Policy
+
+[%autowidth.spread,cols="a,a"]
+|===
+>s| Policy name | Rate Limiting
+>s| Summary      | Prevents an API from making outbound requests to an unresponsive or failing service.
+>s| Category | Quality of Service
+>s| First Flex Gateway version available | v1.2.0
+.4+>.^s| Returned Status Codes
+|502 - Bad Gateway, requests are blocked due to circuit breaker activation
+|===
+
+== Summary
+
+The Circuit Breaker policy helps prevent an API from making outbound requests to an unresponsive or failing service. By monitoring response failures, this policy automatically blocks requests to the failing service for a defined period, preventing unnecessary load on both the API and the backend service.
+
+When you configure the Rate Limiting policy, you can specify any number of pairs of quota (number of requests) and time window (time period) values.
+
+[NOTE]
+====
+A Rate Limiting policy applied to a Flex Gateway API is scoped to replicas, not the gateway.
+====
+
+== Configuring Policy Parameters
+
+=== Flex Gateway Local Mode
+
+In Local Mode, you apply the Rate Limiting policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
+
+----
+- policyRef:
+    name: circuit-breaker-flex
+  config:
+      - maximumConnections: <int> // OPTIONAL
+        maximumPendingRequests: <int> // OPTIONAL
+        maximumRequests: <int> // OPTIONAL
+        maximumRetries: <int> // OPTIONAL, 
+        maximumConnectionPools: <int> // OPTIONAL
+----
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+|Parameter | Required or Optional | Description
+
+
+| `maximumConnections`
+| Optional
+| Maximum number of connections to all hosts in an upstream.
+
+| `maximumPendingRequests`
+| Optional
+| The maximum number of requests queued while waiting for a connection.
+
+| `maximumRequests`
+| Optional
+| The maximum number of requests that can be outstanding to all hosts in a cluster.
+| `maximumretries`
+| Optional
+| The maximum number of retries in a cluster.
+| `maximumConnectionPools`
+| Optional
+| The maximum number of connection pools that can be concurrently initiated.
+
+|===
+
+==== Resource Configuration Example
+
+The following example defines a rate limit of three requests every six seconds:
+
+----
+- policyRef:
+    name: circuit-breaker-flex
+  config:
+      - maximumConnections: 5 
+        maximumPendingRequests: 3
+        maximumRequests: 4
+        maximumRetries: 1
+        maximumConnectionPools: 1
+----
+
+
+=== Flex Gateway Connected Mode
+
+When you apply the Rate Limiting policy to your API from the UI, you can configure the following parameters:
+
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+|Parameter | Required or Optional | Description
+
+
+| Maximum Connections
+| Optional
+| Maximum number of connections to all hosts in an upstream.
+
+| Maximum Pending Requests
+| Optional
+| The maximum number of requests queued while waiting for a connection.
+
+| Maximum Requests
+| Optional
+| The maximum number of requests that can be outstanding to all hosts in a cluster.
+| Maximum Retries
+| Optional
+| The maximum number of retries in a cluster.
+| Maximum Connection Pools
+| Optional
+| The maximum number of connection pools that can be concurrently initiated.
+
+|===
+
+== How This Policy Works
+
+The Circuit Breaker policy monitors outbound requests and tracks failures. If the number of failures exceeds the defined threshold within the sliding window, the circuit breaker is triggered, and all further requests are blocked. After the reset timeout period, the circuit breaker enters a half-open state, allowing limited requests to test if the backend has recovered.
+
+To understand how the Circuit Breaker policy works, consider an example where it is configured to trigger after 5 failed requests and reset after 10 seconds:
+
+In this scenario:
+. The first 5 failures cause the circuit breaker to open, blocking all outbound requests.
+. The system waits for the reset timeout before allowing test requests.
+. If the test requests succeed, the circuit breaker resets and normal operation resumes.
+. If failures persist, the circuit breaker remains open and blocks further requests.

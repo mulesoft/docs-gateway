@@ -1,0 +1,246 @@
+= Message Logging Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: message logging, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy name | Message Logging
+>s|Summary      | Logs custom messages using information from outgoing requests, responses sent to the client, or information from other policies applied to the same API endpoint.
+>s|Category | Troubleshooting
+>s|First Flex Gateway version available | v1.0.0
+.1+>.^s| Returned Status Codes
+| No return codes exist for this policy
+|===
+
+== Summary
+
+The Message Logging policy logs custom messages using information from outgoing requests, responses sent to the client, or information from other policies applied to the same API endpoint.
+
+== Prerequisites
+
+You must have the Anypoint Platform Organization Administrators role or have permission to create or manage APIs.
+
+== Configuring Policy Parameters
+
+=== Flex Gateway Local Mode
+
+In Local Mode, you apply the Message Logging policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
+
+----
+- policyRef:
+    name: message-logging-flex
+  config:
+    loggingConfiguration: <array>
+      - itemName: <string> // REQUIRED
+        itemData: //REQUIRED
+          message: <dataweave> // REQUIRED
+          conditional: <dataweave> // OPTIONAL
+          category: <string> // OPTIONAL
+          level: <string> // REQUIRED
+          firstSection: <bool> // OPTIONAL
+          secondSection: <bool> // OPTIONAL
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+
+|Parameter | Required or Optional | Default Value | Description
+
+| `loggingConfiguration`
+| Required
+| N/A
+| Array of configurations
+
+| `loggingConfiguration.itemName`
+| Required
+| N/A
+| Configuration name.
+
+| `loggingConfiguration.itemData.message`
+| Required
+| N/A
+| DataWeave expression that resolves to the message log. To learn more about supported DataWeave expressions, see <<dataweave-support>>.
+
+| `loggingConfiguration.itemData.conditional`
+| Optional
+| `true`
+| DataWeave expression that resolves to whether the message should be logged. To learn more about supported DataWeave expressions, see <<dataweave-support>>.
+
+| `loggingConfiguration.itemData.category`
+| Optional
+| Default category
+| Log message prefix that indicates the package and class where the log is executed.
+
+| `loggingConfiguration.itemData.level`
+| Required
+| N/A
+| Defines the level of message to log: `INFO`, `WARN`, `ERROR`, or `DEBUG` + 
+For more information, see <<severity-levels>>.
+
+| `loggingConfiguration.itemData.firstSection`
+| Optional
+| `false`
+| Boolean that indicates if messages are logged before the API endpoint is called, taking into account the order in which this policy is applied.
+
+| `loggingConfiguration.itemData.secondSection`
+| Optional
+| `false`
+| Boolean that indicates if messages are logged after the API endpoint is called, taking into account the order in which this policy is applied.
+
+|===
+
+==== Resource Configuration Example
+
+----
+- policyRef:
+    name: message-logging-flex
+  config:
+    loggingConfiguration:
+      - itemName: "Config 1"
+        itemData:
+          message: "#[payload]"
+          conditional: "#[attributes.queryParams['QueryParam']=='someValue']"
+          level: "ERROR"
+          firstSection: true
+      - itemName: "Config 2"
+        itemData:
+          message: "#['literal string']"
+          level: "WARN"
+          secondSection: true
+          firstSection: true
+----
+
+=== Flex Gateway Connected Mode
+
+When you use the UI to apply the Message Logging policy to your API, you can configure the following parameters:
+
+[%header%autowidth.spread]
+|===
+|Parameter |Description | Required?
+|Message |A DataWeave expression to use for extracting the message to be logged. To learn more about supported DataWeave expressions, see <<dataweave-support>>.
+|Required
+|Conditional |A DataWeave Boolean expression used to specify whether a message is to be logged. To learn more about supported DataWeave expressions, see <<dataweave-support>>. |Optional
+|Category |A prefix in the log message that indicates the package and class where the log is executed. |Optional
+|Level |The level of message to log: INFO, WARN, ERROR, or DEBUG. + 
+For more information, see <<severity-levels>>.|Required
+|Before Calling API |Set to cause your logging policy to log messages before the API endpoint is called, taking into account the order in which this policy is applied. |Optional
+|After Calling API |Set to cause your logging policy to log messages after the API endpoint is called, taking into account the order in which this policy is applied. |Optional
+|===
+
+==== Example of Message Logging Outbound Policy Configured from the UI
+
+To better understand how to use the Message Logging policy in an outbound context, consider a fictional retail clothier named Les Vetements. To successfully run its e-commerce portal, Les Vetements must audit the status codes of the responses sent back to customers.
+
+For example, when a customer completes a purchase or requests a refund, or when the company updates its product catalog, the API must log the response data. The IT manager at Les Vetements applies the Message Logging policy to the company's APIs to capture response status codes, headers, and payloads without modifying the application's code.
+
+To log the attributes of outgoing HTTP messages, Les Vetements applies the Message Logging policy to the API with the following UI configurations:
+
+
+* *Message*: #[attributes]
++
+The attributes in the payload must be logged.
+* *Conditional*: Blank
++
+Since all attributes need to be logged, no filtering expression is required.
+* *Category*: Blank
++
+No prefix is required in the log sentence.
+* *Level*: Info
++
+All types of messages are to be logged. The Info log level also includes Warn, Error, or Debug log messages.
+* *Before Calling API*: Unchecked
++
+Logging is not required before sending a request to the backend.
+* *After calling API*: Checked
++
+All transactions that occur after the API is called are to be logged.
+
+With this configuration, whenever a customer purchases an item, requests a refund, or an administrator updates the product catalog, logs are generated to capture the API's outbound responses:
+
+[source,text,linenums]
+----
+**********************************************************************
+* Policy: message-logging-1351146-proxy                              *
+* OS encoding: UTF-8, Mule encoding: UTF-8                           *
+**********************************************************************
+21:56:50.254     11/30/2020     Worker-0     [MuleRuntime].uber.07: [logging-policy].proxy.CPU_LITE @f0ce617     INFO
+event:184152a0-3370-11eb-b732-0a8c1820c088 org.mule.extension.http.api.HttpResponseAttributes
+{
+   Status Code=200
+   Reason Phrase=OK
+   Headers=[
+      date=Tue, 01 Dec 2020 00:56:50 GMT
+      content-type=application/json; charset=utf-8
+      x-powered-by=Express
+      x-ratelimit-limit=1000
+      x-ratelimit-remaining=999
+   ]
+   Payload={"message":"Success","orderId":12345}
+}
+
+----
+
+To log only response headers, Les Vetements uses the following code snippet in the *Message* field:
+
+`#[attributes.headers]`
+
+To customize log messages based on the response and the client request, Les Vetements applies the following DataWeave expression in the Message field:
+
+`#['Client ' ++ authentication.clientId ++ ' received status ' ++ attributes.statusCode ++ ' for request on ' ++ attributes.requestPath ++ ' with Response: ' ++ payload]`
+
+[[dataweave-support]]
+== DataWeave Expressions Support
+
+The Message Logging policy supports the xref:policies-flex-dataweave-support.adoc[standard DataWeave Expressions supported by Flex Gateway policies] and the following additional xref:dataweave::dataweave-variables-context.adoc[`vars`] DataWeave expressions. Format the following expressions `#[vars.<expressions>]`, for example `#[vars.orgId]`:
+
+* `orgId`
+* `masterOrgId`
+* `envId`
+* `apiId`
+* `apiName`
+* `apiInstanceName`
+* `apiVersion`
+* `receivedTs` (rfc3339)
+* `repliedTs` (rfc3339, only available in request context)
+* `runtimeVersion` (For example: `v1.7.0`)
+* `hostId` (For example: `my-host`)
+* `remoteAddress`
+* `method`
+* `requestPath`
+* `reqId` (Referred to as `traceId` in Flex Gateway logs)
+* `requestDisposition` (`PROCESSED` or `VIOLATION`, only available in request context)
+* `request.headers` (all request headers)
+* `violation.clientId` (Only available in response context)
+* `violation.clientName` (Only available in response context)
+* `violation.policyName` (Only available in response context)
+* `violation.violationType` (`VIOLATION` or `ERROR`, only available in response context)
+
+
+== How This Policy Works
+
+Logging an outbound policy consists of the following sequence:
+
+. A request is processed by the API.
+. The response message is logged if the following conditions are true:
+** The level and category of the log defined in the policy are included in the logger defined in the configuration file.
+*+ Either the conditional field of the policy was not set, or was set and the condition was met.
+. The API response is sent back to the client. The Message Logging Policy does not interfere with the execution of any policy nor its flow.
+. The message appears in the application log.
+
+== About the Logging Format
+
+A message log uses the following format:
+
+`<date> [flex-gateway-envoy][<level>] wasm log <policy-name>.default.<api-name>.default.svc main: [req: <request uuid>] [accessLog] <message>`
+
+* `policy-name`: displays the name of the policy binding:
+
+* `api-name`: displays the name of the api instance:
+
+* `request uuid`: displays a unique identifier for the request that triggered the message.
+
+// Severity Level Table
+include::partial$logging-severity-level.adoc[]
