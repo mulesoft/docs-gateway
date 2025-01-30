@@ -19,7 +19,7 @@ image:security-best-practices.png[]
 . <<renew-the-flex-certificate>>
 . <<avoid-logging-payload-data>>
 . <<secure-redis-shared-storage>>
-. <<protect-flex-from-incoming-traffic>>
+. <<protect-the-flow-of-incoming-traffic>>
 . <<protect-the-upstream-service>>:
 .. <<protect-services-available-locally-to-flex-gateway>>
 .. <<protect-external-services>>
@@ -87,10 +87,10 @@ Flex Gateway caches both request data and runtime configurations (Connected Mode
 
 To secure the Redis shared storage, see https://redis.io/docs/latest/operate/rs/security/recommended-security-practices/[Redis Recommended security practices]. Ensure you enable access control to limit Redis access from sources other than Flex Gateway. Deploy the Redis as close as possible to the Flex Gateway to further limit vulnerabilities.
 
-[[protect-flex-from-incoming-traffic]]
-== Protect Flex From Incoming Traffic (API Consumer to Flex Gateway)
+[[protect-the-flow-of-incoming-traffic]]
+== Protect the Flow of Incoming Traffic (API Consumer to Flex Gateway)
 
-The protections necessary to protect Flex Gateway from incoming traffic is dependent on the source of incoming traffic.
+The protections necessary to protect the flow of incoming traffic from external attacks is dependent on the source of incoming traffic.
 
 For requests coming from the public internet, ensure there are first line of defense systems to intercept the traffic before it reaches the Flex Gateway. While Flex Gateway does provides API level protection policies, it expects other general first line protections are in front of it. Ensure both:
 
@@ -123,11 +123,7 @@ Use xref:api-governance::index.adoc[API Governance] to ensure APIs are designed 
 [[protect-the-upstream-service]]
 == Protect the Upstream Service (Flex Gateway to API Provider)
 
-Protecting the upstream service is 
-
-The protections necessary to protect Flex Gateway from incoming traffic is dependent on the source of incoming traffic.
-
-When the upstream flows (Flex accessing services to process requests, flow B in the diagram) recommendations will vary depending on the location of the target service.
+Protecting the flow of traffic from Flex to the upstream service is dependent on the location of the upstream service.
 
 [[protect-services-available-locally-to-flex-gateway]]
 === Protect Services Available Locally to Flex Gateway
