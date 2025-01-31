@@ -6,7 +6,7 @@ endif::[]
 
 This page provides best practices to ensure your Flex Gateway runtime deployment meets industry standards.
 
-Flex Gateway deployments consist of the runtime and control plane. Information such as configuration data and logging are shared between Anypoint Platform in the control plane to Flex Gateway in the runtime plane via mTLS communication. In the runtime layer, Flex Gateway orchestrates the incoming traffic and protects the upstream service or API. Flex Gateway is registered with Anypoint Platform by using a YAML registration file. Flex Gateway uses Redis shared storage to cache data to communicate with other Flex Replicas and cache request data. This diagram demonstrates a Flex Gateway deployment:
+Flex Gateway deployments consist of the runtime and control plane. Anypoint Platform in the control plane and Flex Gateway in the runtime plane share data such as configuration data and logging via mTLS communication. In the runtime layer, Flex Gateway orchestrates the incoming traffic and protects the upstream service or API. You register Flex Gateway with Anypoint Platform by using a YAML registration file. Flex Gateway uses Redis shared storage to cache data to communicate with other Flex Replicas and cache request data. This diagram demonstrates a Flex Gateway deployment:
 
 image:security-best-practices.png[]
 
@@ -41,7 +41,7 @@ Flex Gateway stores registration information locally. This registration resource
 
 Restrict access to the registration resource to ensure there are no unauthorized execution of replicas. Specifically:
 
-* Ensure Secrets are encrypted at rest and that least privilege access is enforced for the registration resource secret.
+* Ensure you encrypt secrets at rest and you enforce least privilege access for the registration resource secret.
 * Store sensitive data, such as credentials and API keys, in secure vaults, for example, AWS Secrets Manager, Azure Key Vault, or HashiCorp Vault.
 * Avoid hardcoding secrets and only use environment variables for non-sensitive configurations.
 * Encrypt sensitive information in configuration files
@@ -58,7 +58,7 @@ To learn how to renew your registration, see xref:flex-gateway-renew-certificate
 [[update-your-flex-gateway]]
 == Update your Flex Gateway
 
-MuleSoft regularly provides security updates for Flex Gateway. Keep your Flex Gateway updated to the latest version to ensure vulnerabilities are addressed. To reduce the risk of incompatibilities, follow safe change processes and upgrade sandbox runtimes ahead of production. 
+MuleSoft regularly provides security updates for Flex Gateway. Keep your Flex Gateway updated to the latest version to address vulnerabilities. To reduce the risk of incompatibilities, follow safe change processes and upgrade sandbox runtimes ahead of production. 
 
 To learn more about how to update your Flex Gateway, see xref:flex-gateway-upgrade.adoc[].
 
@@ -83,7 +83,7 @@ In non-Kubernetes deployments, restrict access to the Flex Gateway virtual machi
 [[secure-redis-shared-storage]]
 == Secure Redis Shared Storage
 
-Flex Gateway caches both request data and runtime configurations (Connected Mode only) using Redis shared storage. An unauthorized user could obtain cached configuration data including Flex configuration or request processing caches or possibly disrupt the runtime. Secure the Redis service to ensure there is no unauthorized access.
+Flex Gateway caches both request data and runtime configurations (Connected Mode only) using Redis shared storage. Secure the Redis service to ensure that an unauthorized user doesn't obtain cached configuration data including Flex configuration or request processing caches or possibly disrupt the runtime.
 
 To secure the Redis shared storage, see https://redis.io/docs/latest/operate/rs/security/recommended-security-practices/[Redis Recommended security practices]. Ensure you enable access control to limit Redis access from sources other than Flex Gateway. Deploy the Redis as close as possible to the Flex Gateway to further limit vulnerabilities.
 
@@ -94,7 +94,7 @@ Protecting the flow of incoming traffic from external attacks is dependent on th
 
 For requests coming from the public internet, ensure there are first line of defense systems to intercept the traffic before it reaches the Flex Gateway. While Flex Gateway does provides API level protection policies, it expects other general first line protections are in front of it. Ensure both:
 
-* Network level protections, such as Network ACLs, Network and DNS Firewalls, and other network protections available. Cloud providers or a third party may provide these protections.
+* Network level protections, such as Network ACLs, Network and DNS Firewalls, and other network protections available. Some cloud providers or a third parties provide these protections.
 * First line application level protections, such as threat protection against DDoS attacks and Web Application Firewall.
 
 NOTE: To find reference architecture detailing how to handle incoming requests from external sources, see xref:flex-architecture-uc2.adoc[] and xref:flex-architecture-uc4.adoc[]. 
@@ -102,7 +102,7 @@ NOTE: To find reference architecture detailing how to handle incoming requests f
 [[terminate-external-tls-at-point-of-entry]]
 === Terminate External TLS at Point of Entry
 
-Terminate external TLS connections at the firewall level to enable the firewall to perform any required L7 traffic security inspection. A valid Certificate Authority (CA) recognized by the consumers should provide the certificates at this point of entry.
+Terminate external TLS connections at the firewall level to enable the firewall to perform any required L7 traffic security inspection. A valid Certificate Authority (CA) recognized by the consumers provides the certificates at this point of entry.
 
 Use a separate set of certificates for internal communications between the firewall, Flex Gateway, and other services in the infrastructure. For this communication, use mTLS security with both certificates issued by a trusted authority (internal authority or PKI).
 
@@ -111,14 +111,14 @@ Certificates exposed to the internet are never used internally and certificates 
 You can use Flex Gateway as at both the runtime environment ingress layer or at the inner environment layer. For Flex Gateways at the ingress layer, limit the gateways scope to TLS termination, routing, and other basic protections. Push more CPU and memory intensive operations to inner Flex Gateways.
 
 [[protect-apis-by-using-policies]]
-=== Protect APIs by using Policies
+=== Protect APIs by Using Policies
 
 To further configure API protections, apply policies. Flex Gateway offers xref:policies-included-directory.adoc[Included Policies] and enables you to develop custom policies by using xref:pdk::policies-pdk-overview.adoc[].
 
 [[govern-apis-by-using-api-governance]]
-=== Govern APIs by using API Governance
+=== Govern APIs by Using API Governance
 
-Use xref:api-governance::index.adoc[API Governance] to ensure APIs are designed and deployed in line with MuleSoft, industry, and your organization's best practices. 
+Use xref:api-governance::index.adoc[Anypoint API Governance] to ensure you design and deploy APIs in line with MuleSoft, industry, and your organization's best practices. 
 
 [[protect-the-upstream-service]]
 == Protect the Upstream Service (Flex Gateway to API Provider)
@@ -128,7 +128,7 @@ Protecting the flow of traffic from Flex to the upstream service is dependent on
 [[protect-services-available-locally-to-flex-gateway]]
 === Protect Services Available Locally to Flex Gateway
 
-For services in the same network as Flex Gateway, security restrictions might be lower.
+For services in the same network as Flex Gateway, security restrictions might be less strict.
 
 The organization must define whether plain or TLS connections are in place. If using TLS, configure mTLS via Flex Gateway Outbound TLS contexts. To learn more about configuring TLS, see xref:
 
@@ -142,7 +142,7 @@ NOTE: To find reference architecture detailing communication to an internal upst
 [[protect-external-services]]
 === Protect External Services
 
-When protecting external services not in the same network, connect to the service using mTLS communication. Additionally, configure a trusted network link (private VPC link or other) between the networks to enable Flex Gateway to securely access the upstream service without exposing the service to the public internet. 
+When protecting external services not in the same network, connect to the service using mTLS communication. Additionally, configure a trusted network link (private Anypoint VPC link or other) between the networks to enable Flex Gateway to securely access the upstream service without exposing the service to the public internet. 
 
 NOTE: To find reference architecture detailing communication to an external upstream service, see xref:flex-architecture-uc2.adoc[] and xref:flex-architecture-uc4.adoc[].
 
@@ -151,7 +151,7 @@ NOTE: To find reference architecture detailing communication to an external upst
 
 Perform regular penetration and vulnerability tests to identify new or regressed issues in your Flex Gateway deployment and exposed APIs. When testing, consider:
 
-* User access controls in Anypoint Platform that enable access to Flex registration in Runtime Manager, logs in Monitoring Center, and APIs in API Manager.
+* User access controls in Anypoint Platform that enable access to Flex registration in Runtime Manager, logs in Anypoint Monitoring, and APIs in API Manager.
 * Access to the deployed Flex Gateway that affects its function or data.
 * Access to any configuration files used by the Flex runtime, especially the registration file.
 * Access to the Redis shared storage service.
