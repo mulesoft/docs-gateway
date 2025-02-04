@@ -152,7 +152,7 @@ PDK's test library supports the following services:
 The supported services cover the majority of use cases for integration testing. It is not possible to define different types of service.
 
 [[httpmock-service]]
-=== httpmock Service
+=== Configure an httpmock Service
 
 `httpmock` is a mock server that enables you to write request mocks in Rust. Configure an https://crates.io/crates/httpmock[httpmock^] service by using an `HttpMockConfig` value. It is a best practice to return a `Result` from the test function. The https://crates.io/crates/anyhow:[anyhow^] Rust crate enables you to return different default error types.
 
@@ -185,10 +185,10 @@ async fn say_hello() -> anyhow::Result<()> {
 NOTE: If the Docker engine is properly configured, this test passes. Run `make test` to ensure proper configuration.
 
 [[alternative-httpmock-docker-images]]
-=== Alternative httpmock Docker image
+=== Configure an Alternative httpmock Docker image
 
-To use an `httpmock` Docker image from another source, instead of the one provided by default,
-the configuration builder provides an `image_name()` method to define it explicitly. See the following example:
+To use an `httpmock` Docker image from another source, instead of the provided default, the configuration builder provides an `image_name()` method to define it explicitly. 
+Update your `HttpMockConfig::builder()` code as in the following example:
 
 [source,rust]
 ----
@@ -196,7 +196,7 @@ the configuration builder provides an `image_name()` method to define it explici
 let backend_config = HttpMockConfig::builder()
     .image_name("myrepo/httpmock") // Custom image name setting
     .hostname("backend")
-    .port(80)
+    .port(80) // Port where the service will accept requests
     .build();
 ----
 
@@ -420,8 +420,8 @@ async fn say_hello() -> anyhow::Result<()> {
 [[alternative-flex-docker-images]]
 === Configure an alternative Flex Docker image
 
-If you want to use an `flex` Docker image from another source instead of the one provided by default,
-the configuration builder provides an `image_name()` method  to define it explicitly:
+To use a `flex` Docker image from another source, instead of the provided default, the configuration builder provides an `image_name()` method to define it explicitly. 
+Update your `FlexConfig::builder()` code as in the following example:
 
 [source,rust]
 ----
