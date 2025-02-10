@@ -198,7 +198,7 @@ With this option, the filter affects only the objects immediately subordinate to
 
 In the following  example, the first level has four entries: two users and two groups. These are the only entries that are a part of any search:
 
-image::search-scope.png[]
+image::search-scope.png["Diagram of a hierarchical organizational structure"]
 
 If you set the search filter to `(uid={0})`, only `Jane` and `Paul` are found. The group entries are not considered.
 
@@ -208,7 +208,7 @@ With this option, the Basic Authentication - LDAP policy examines the subtree be
 
 In the previous example, the analyzed area covers the entire organization. The group and user entries are considered at any level of the organization:
 
-image::search-scope2.png[]
+image::search-scope2.png["A flowchart that shows an example organizational structure"]
 
 
 == Creating Requests for APIs with Basic Authentication Policies Applied
@@ -227,10 +227,10 @@ The `username:password` value must be a Base64-encoded string. For example on a 
 
 From the `username` and search filter, LDAP finds the registered user and then verifies credentials. The valid result is returned:
 
-image::ldap-verification.png[height=358,width=488]
+image::ldap-verification.png["Here's a sequence diagram that illustrates the message flow for client authentication through an LDAP Server",height=358,width=488]
 
 The following diagram illustrates an invalid request:
 
-image::ldap-verification-invalid.png[height=245,width=484]
+image::ldap-verification-invalid.png["A sequence diagram that illustrates the message flow for authorization",height=245,width=484]
 
 The Basic Authentication: LDAP policy throws an HTTP 401 status code to indicate that the authorization header is malformed, not provided, or invalid.
