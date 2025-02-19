@@ -75,3 +75,164 @@ Possible Solutions::
 .. Modify the Private Space *Environments* configuration to include the target organization and environment.
 .. Allow a few minutes for the changes to propagate and reflect in the target selection dropdown.
 --
+
+[[troubleshooting-managed-gateway-operations]]
+== Troubleshooting Managed Gateway Operations
+
+[[managed-gateway-failed-after-creation]]
+=== New Managed Gateway Failed
+
+Symptoms::
+* A recently created Managed Gateway ended up in `FAILED` status.
+
+Causes::
+* Concurrent Managed Gateway creation exceeding quota. Multiple Managed Gateways of the same size were created simultaneously, resulting in quota exhaustion detected during asynchronous checks after creation.
+
+Troubleshooting Steps::
+. Check Quota Availability:
++
+--
+.. In Access Management, go to Subscriptions > Runtime Manager to review the current Managed Gateway quota.
+.. Determine if the quota has been exhausted for the relevant Managed Gateway size.
+--
+
+Possible Solutions::
+* Increase Quota:
++
+--
+.. Delete existing Managed Gateways to free up quota.
+.. Upgrade to a subscription plan with a higher Managed Gateway quota.
+.. Trigger a gateway re-deploy by editing the configuration, or delete and recreate the gateway.
+--
+
+[[obtain-gateways-flow]]
+=== Obtain Gateways Flow
+
+//This section is a placeholder, as the provided details are just a title. More information needed.
+
+[[view-update-gateway-flows]]
+=== View and Update Gateway Flows
+
+[[gateway-metrics-not-showing]]
+==== Gateway Metrics Not Showing
+
+Symptoms::
+* The Managed Gateway main dashboard is not displaying metrics data.
+
+Causes::
+* Insufficient user permissions. The user lacks the *Usage Viewer* permission required to retrieve usage metrics.
+
+Troubleshooting Steps::
+. Verify User Permissions:
++
+--
+.. Navigate to Access Management and check the user's assigned roles and permissions within Runtime Manager.
+.. Confirm the user has the *Usage Viewer* permission.
+--
+
+Possible Solutions::
+* Grant Necessary Permissions:
++
+--
+Your Anypoint Platform Admin must grant you the *Usage Viewer* permission in Access Management.
+See xref:access-management::configure-teams.adoc#manage-team-permissions[Manage Team Permissions] for more information. 
+
+[[fields-not-editable]]
+==== Some Fields Are Not Editable
+
+Symptoms::
+* Cannot edit certain fields in the Managed Gateway configuration.
+
+Causes::
+* Design limitation. Fields such as *Gateway name*, *Target*, and *Flow plan (size)* are intentionally non-editable.
+
+Possible Solutions::
+* Create a New Gateway:
++
+--
+Create a new Managed Gateway with the desired values for the non-editable fields.
+--
+
+[[update-timeout]]
+==== Timeout While Waiting for Update
+
+Symptoms::
+* Status poller timed out while waiting for the gateway to return to `STARTED` status after an update.
+
+Causes::
+* Anypoint Platform service overload. High traffic and demand on involved services.
+
+Possible Solutions::
+* Refresh and Retry:
++
+--
+Refresh the status after some time to check the gateway's current state.
+--
+
+[[deletion-flow]]
+=== Deletion Flow
+
+[[deletion-taking-long]]
+==== Taken a While to Delete
+
+Symptoms::
+* Gateway shown as *Deleting* for an extended period and continues to consume quota.
+
+Causes::
+* Anypoint Platform service overload. High traffic and demand on involved services. Quota is not released until the gateway is fully deleted.
+
+Possible Solutions::
+* Refresh and Retry:
++
+--
+Refresh the status after some time to check if the gateway has been successfully deleted.
+--
+
+[[api-management-flows]]
+=== APIs Management Flows
+
+[[gateway-not-appearing-in-target-list]]
+==== Gateway Does Not Appear or Appears Disabled in Target's List
+
+Symptoms::
+* Cannot select the desired Managed Gateway as a target for an API.
+
+Causes::
+* Gateway status or readiness. The Managed Gateway must be `STARTED` and have at least one replica running in the cluster to receive traffic.
+
+Troubleshooting Steps::
+. Verify Gateway Status:
++
+--
+.. Confirm the Managed Gateway's status in Runtime Manager.
+.. Ensure the gateway is `STARTED`.
+--
+. Verify Cluster Health:
++
+--
+.. If the gateway is `STARTED` but still unavailable, a cluster issue might be the cause.
+--
+
+Possible Solutions::
+* Contact Support:
++
+--
+If the gateway is `STARTED` and still not selectable, contact MuleSoft Support for assistance with potential cluster issues.
+--
+
+[[cannot-create-apis-with-same-path]]
+==== Cannot Create APIs with Same Path
+
+Symptoms::
+* An error occurs when trying to specify an API path, indicating that the path is already in use.
+
+Causes::
+* API path uniqueness. API paths are unique per Managed Gateway and cannot be shared with other APIs associated with the same gateway.
+
+Possible Solutions::
+* Change or Edit API Path:
++
+--
+.. Change the API path to a unique value.
+.. Edit the path of the conflicting API to resolve the conflict.
+--
