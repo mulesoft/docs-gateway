@@ -6,10 +6,8 @@ endif::[]
 
 When using Anypoint Managed Flex Gateway, you might encounter issues. The following topics provide possible causes and solutions:
 
-[[troubleshooting-managed-gateway-creation]]
 == Troubleshooting Managed Gateway Creation
 
-[[creation-button-disabled]]
 === Creation Button Disabled
 
 The *Add Managed Gateway* button is disabled in the Anypoint Runtime Manager interface.
@@ -50,9 +48,9 @@ See xref:access-management::configure-teams.adoc#manage-team-permissions[Manage 
 .. Upgrade to a subscription plan with a higher Managed Gateway quota.
 --
 
-=== Private Space Not Showing in Dropdown Menu
+=== Private Space Not Available for New Managed Flex Gateway Deployment
 
-The desired Private Space is absent from the target selection dropdown menu during Managed Gateway creation.
+The desired Private Space is not available in the *Deployment Target* list for a new Managed Flex Gateway.
 
 Cause::
 
@@ -63,7 +61,7 @@ Troubleshooting Steps::
 . Verify Private Space Permissions:
 +
 --
-.. In Runtime Manager, access the details of the Private Space.
+.. In Runtime Manager, access the details of the Private Space you are trying to use.
 .. Navigate to the *Environments* tab.
 .. Confirm that the target organization and environment are within the allowed environments for that private space.
 --
@@ -73,13 +71,11 @@ Possible Solutions::
 +
 --
 .. Modify the Private Space *Environments* configuration to include the target organization and environment.
-.. Allow a few minutes for the changes to propagate and reflect in the target selection dropdown.
+.. Allow a few minutes for the changes to propagate and reflect in the *Deployment Target* list.
 --
 
-[[troubleshooting-managed-gateway-operations]]
 == Troubleshooting Managed Gateway Operations
 
-[[managed-gateway-failed-after-creation]]
 === New Managed Gateway Failed
 
 A recently created Managed Gateway ended up in `FAILED` status.
@@ -104,19 +100,12 @@ Possible Solutions::
 .. Trigger a gateway re-deploy by editing the configuration, or delete and recreate the gateway.
 --
 
-[[obtain-gateways-flow]]
-=== Obtain Gateways Flow
-
-//This section is a placeholder, as the provided details are just a title. More information needed.
-
-[[view-update-gateway-flows]]
 === View and Update Gateway Flows
 
 [[gateway-metrics-not-showing]]
 ==== Gateway Metrics Not Showing
 
-Symptoms::
-* The Managed Gateway main dashboard is not displaying metrics data.
+The Managed Flex Gateway dashboard does display metrics data.
 
 Causes::
 * Insufficient user permissions. The user lacks the *Usage Viewer* permission required to retrieve usage metrics.
@@ -136,11 +125,9 @@ Possible Solutions::
 Your Anypoint Platform Admin must grant you the *Usage Viewer* permission in Access Management.
 See xref:access-management::configure-teams.adoc#manage-team-permissions[Manage Team Permissions] for more information. 
 
-[[fields-not-editable]]
-==== Some Fields Are Not Editable
+==== Fields Are Not Editable
 
-Symptoms::
-* Cannot edit certain fields in the Managed Gateway configuration.
+You can't edit some of the fields in the Managed Gateway configuration.
 
 Causes::
 * Design limitation. Fields such as *Gateway name*, *Target*, and *Flow plan (size)* are intentionally non-editable.
@@ -152,11 +139,9 @@ Possible Solutions::
 Create a new Managed Gateway with the desired values for the non-editable fields.
 --
 
-[[update-timeout]]
 ==== Timeout While Waiting for Update
 
-Symptoms::
-* Status poller timed out while waiting for the gateway to return to `STARTED` status after an update.
+Status poller times out while waiting for the gateway to return to `STARTED` status after an update.
 
 Causes::
 * Anypoint Platform service overload. High traffic and demand on involved services.
@@ -168,14 +153,11 @@ Possible Solutions::
 Refresh the status after some time to check the gateway's current state.
 --
 
-[[deletion-flow]]
 === Deletion Flow
 
-[[deletion-taking-long]]
-==== Taken a While to Delete
+==== Deleting Gateway Completion Delay
 
-Symptoms::
-* Gateway shown as *Deleting* for an extended period and continues to consume quota.
+Gateway shown as *Deleting* for an extended period and continues to consume quota.
 
 Causes::
 * Anypoint Platform service overload. High traffic and demand on involved services. Quota is not released until the gateway is fully deleted.
@@ -187,14 +169,11 @@ Possible Solutions::
 Refresh the status after some time to check if the gateway has been successfully deleted.
 --
 
-[[api-management-flows]]
 === APIs Management Flows
 
-[[gateway-not-appearing-in-target-list]]
-==== Gateway Does Not Appear or Appears Disabled in Target's List
+==== Gateway Does Not Appear is Disabled in Target List
 
-Symptoms::
-* Cannot select the desired Managed Gateway as a target for an API.
+You can't select the desired Managed Gateway as a target for an API.
 
 Causes::
 * Gateway status or readiness. The Managed Gateway must be `STARTED` and have at least one replica running in the cluster to receive traffic.
@@ -209,24 +188,19 @@ Troubleshooting Steps::
 . Verify Cluster Health:
 +
 --
-.. If the gateway is `STARTED` but still unavailable, a cluster issue might be the cause.
---
-
-Possible Solutions::
+.. If the gateway is `STARTED` but still unavailable, a cluster issue might be the causPossible Solutions::
 * Contact Support:
 +
 --
 If the gateway is `STARTED` and still not selectable, contact MuleSoft Support for assistance with potential cluster issues.
 --
 
-[[cannot-create-apis-with-same-path]]
-==== Cannot Create APIs with Same Path
+==== Same Path Error Creating API
 
-Symptoms::
-* An error occurs when trying to specify an API path, indicating that the path is already in use.
+An error occurs when trying to specify an API path, indicating that the path is already in use.
 
 Causes::
-* API path uniqueness. API paths are unique per Managed Gateway and cannot be shared with other APIs associated with the same gateway.
+* API path uniqueness. API paths are unique per Managed Gateway and can't be shared with other APIs associated with the same gateway.
 
 Possible Solutions::
 * Change or Edit API Path:
