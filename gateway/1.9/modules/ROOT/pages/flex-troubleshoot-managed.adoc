@@ -1,0 +1,77 @@
+= Troubleshoot Managed Gateway
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+When using Anypoint Managed Flex Gateway, you might encounter issues. The following topics provide possible causes and solutions:
+
+[[troubleshooting-managed-gateway-creation]]
+== Troubleshooting Managed Gateway Creation
+
+[[creation-button-disabled]]
+=== Creation Button Disabled
+
+The *Add Managed Gateway* button is disabled in the Anypoint Runtime Manager interface.
+
+Causes::
+
+* Insufficient permissions. Managed Flex Gateway requires the _Manage Servers_ and _Read Servers_ permissions in Runtime Manager.
+* Quota limitations. Your organization has reached its maximum allowed number of Managed Gateways for all available sizes.
+
+Troubleshooting Steps::
+
+. Verify User Permissions:
++
+--
+.. Inspect the `/permissions` API call response in the browser's developer tools to confirm the your permissions.
+.. Navigate to Access Management and check your assigned roles and permissions for Runtime Manager.
+--
+. Check Quota Availability:
++
+--
+. In Anypoint Platform, go to *Access Management*.
+. Click *Runtime Manager* in the *Subscription* section.
+. Review the current Managed Gateway quota to determine if the quota has been exhausted for all Managed Flex Gateway sizes.
+--
+
+Possible Solutions::
+
+* Grant Necessary Permissions:
++
+--
+Your Anypoint Platform Admin must grant you the Runtime Manager *Manage Servers* permission in Access Management.
+See xref:access-management::configure-teams.adoc#manage-team-permissions[Manage Team Permissions] for more information. 
+--
+* Increase Quota:
++
+--
+.. Delete existing Managed Gateways to free up quota.
+.. Upgrade to a subscription plan with a higher Managed Gateway quota.
+--
+
+=== Private Space Not Showing in Dropdown Menu
+
+The desired Private Space is absent from the target selection dropdown menu during Managed Gateway creation.
+
+Cause::
+
+* Insufficient Private Space permissions. The Private Space lacks the necessary permissions for the organization and environment where the Managed Gateway is being created.
+
+Troubleshooting Steps::
+
+. Verify Private Space Permissions:
++
+--
+.. In Runtime Manager, access the details of the Private Space.
+.. Navigate to the *Environments* tab.
+.. Confirm that the target organization and environment are within the allowed environments for that private space.
+--
+
+Possible Solutions::
+* Grant Private Space Permissions:
++
+--
+.. Modify the Private Space *Environments* configuration to include the target organization and environment.
+.. Allow a few minutes for the changes to propagate and reflect in the target selection dropdown.
+--
