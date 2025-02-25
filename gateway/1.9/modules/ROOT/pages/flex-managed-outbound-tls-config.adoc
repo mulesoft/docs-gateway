@@ -11,7 +11,6 @@ include::partial$task-tls-config.adoc[tag=share-contexts]
 
 After you xref:anypoint-security::asm-secret-group-creation-task.adoc[create a secret group], you can add a TLS context or a mutual authentication TLS (mTLS) context and apply the TLS context to upstreams in API Manager to encrypt outbound traffic.
 
-When you add a TLS context, you can also select the ciphers to use with the TLS context and configure different inbound and outbound validation settings.
 
 include::partial$task-tls-config.adoc[tags=defaultOutboundTLS]
 
@@ -56,7 +55,7 @@ To simplify your configurations, you can create different TLS contexts for the d
 [[add-a-tls-context]]
 == Add a TLS Context for Flex Gateway
 
-Adding a TLS context to your secret group requires supplying a name, target, version, and a keystore or truststore. Optionally, you can add context expiration date and ALPN Protocols and configure the inbound and outbound settings. 
+Adding a TLS context to your secret group requires supplying a name, target, version, and a keystore or truststore. Optionally, you can add context expiration date and ALPN Protocols and configure the outbound settings. 
 
 [WARNING]
 ====
@@ -84,14 +83,14 @@ Select *Flex Gateway* to use the TLS context as the SSL validation for Flex Gate
 * *Min TLS Version* and *Max TLS Version* +
 You can choose to support a range of TLS versions or a single version by selecting the same version for both the minimum and maximum.  
 * *Keystore* +
-If necessary for your configuration, from the drop-down list, select the keystore to store in the TLS context. Only PEM type keystores are visible. The keystore contains the certificate Flex Gateway presents to the remote party for both inbound and outbound TLS.
+If necessary for your configuration, from the drop-down list, select the keystore to store in the TLS context. Only PEM type keystores are visible. The keystore contains the certificate Flex Gateway presents to the remote party for outbound TLS.
 +
 [NOTE]
 ====
 To comply with security standards, all certificates must be 2048 bits or longer.
 ====
 * *Truststore* +
-If necessary for your configuration, from the drop-down list, select a truststore to store certificates trusted by the client. Only PEM type truststores are visible. The truststore contains the CA path that Flex uses to validate the remote party certificate for both inbound and outbound TLS. 
+If necessary for your configuration, from the drop-down list, select a truststore to store certificates trusted by the client. Only PEM type truststores are visible. The truststore contains the CA path that Flex uses to validate the remote party certificate for outbound TLS. 
 +
 [NOTE]
 ====
@@ -103,8 +102,6 @@ Flex Gateway supports the SAN extension of type `dNSName`.
 Optionally, enter an expiration date for the TLS context.
 * *ALPN Protocols* +
 By default, *H2 - HTTP/1.1* are the selected ALPN protocols. Change this value to support different protocols. 
-* *Inbound Settings* +
-If you want to support mTLS for inbound traffic, select *Validate Client certificate*.
 * *Outbound Settings* +
 If you do not want support mTLS for outbound traffic, select *Skip server certificate validation*.
 
