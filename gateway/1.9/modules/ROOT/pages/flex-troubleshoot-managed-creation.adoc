@@ -1,4 +1,4 @@
-= Troubleshoot Managed Gateway Creation Issues
+= Troubleshoot Managed Gateway Creation
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -17,7 +17,7 @@ Causes::
 
 Troubleshooting Steps::
 
-* Check Quota Availability:
+* Check Quota Availability
 +
 --
 . In Anypoint Platform, go to *Access Management*.
@@ -25,7 +25,7 @@ Troubleshooting Steps::
 . Review the current Managed Gateway quota to determine if the quota has been exhausted for all Managed Flex Gateway sizes.
 --
 
-* Verify User Permissions using one of these methods:
+* Verify User Permissions
 +
 --
     * Check your assigned roles and permissions for Runtime Manager, in Access Management.
@@ -34,20 +34,20 @@ Troubleshooting Steps::
 
 Possible Solutions::
 
-* Grant Necessary Permissions:
+* Grant Necessary Permissions
 +
 --
 Your Anypoint Platform Admin must grant you the Runtime Manager *Manage Servers* permission in Access Management.
 See xref:access-management::configure-teams.adoc#manage-team-permissions[Manage Team Permissions] for more information. 
 --
-* Increase Quota, using one of these methods:
+* Increase Quota
 +
 --
     * Delete existing Managed Gateways to free up quota.
     * Upgrade to a subscription plan with a higher Managed Gateway quota.
 --
 
-== Private Space Not Available for New Managed Flex Gateway Deployment
+== Private Space Not Available
 
 The desired Private Space is not available in the *Deployment Target* list for a new Managed Flex Gateway.
 
@@ -57,7 +57,7 @@ Insufficient Private Space permissions. The Private Space lacks the necessary pe
 
 Troubleshooting Steps::
 
-. Verify Private Space Permissions:
+. Verify Private Space Permissions
 +
 --
 .. In Runtime Manager, access the details of the Private Space you are trying to use.
@@ -66,21 +66,24 @@ Troubleshooting Steps::
 --
 
 Possible Solutions::
-* Grant Private Space Permissions:
+
+* Grant Private Space Permissions
 +
 --
 .. Modify the Private Space *Environments* configuration to include the target organization and environment.
 .. Allow a few minutes for the changes to propagate and reflect in the *Deployment Target* list.
 --
 
-== Deploying a New Managed Gateway Fails
+== Failure During Creation or Deployment
 
-A new Managed Flex Gateway fails to deploy.
+An error occurs and the new Managed Flex Gateway instance fails to deploy, or fails during creation.
 
 Cause::
-Managed Flex Gateway creation exceeding quota. Multiple Managed Gateways of the same size were created simultaneously, resulting in quota exhaustion detected during asynchronous checks after creation.
+
+Managed Flex Gateway *Flow Plan* quota is exhausted. Another Managed Flex Gateway of the same size (*Small Flex Gateway* or *Large Flex Gateway*) was created at the same time, and was detected only after attempted creation and deployment .
 
 Troubleshooting Steps::
+
 * Check Quota Availability:
 +
 --
@@ -91,8 +94,9 @@ Troubleshooting Steps::
 . Check whether you have used the entire quota for for your Managed Flex Gateway *Flow Plan* size.
 --
 
-Possible Solutions::
-* Increase Quota:
+Possible Solution::
+
+* Increase Quota
 +
 --
 .. Delete existing Managed Gateways to free up quota.

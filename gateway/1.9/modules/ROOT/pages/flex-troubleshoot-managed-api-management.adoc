@@ -1,211 +1,52 @@
-= Troubleshoot Managed Gateway
+= Troubleshoot Creating and Adding API Instances
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-When using Anypoint Managed Flex Gateway, you might encounter issues. The following topics provide possible causes and solutions:
+When you add an API to an Anypoint Managed Flex Gateway instance, you might encounter issues. Check these topics for possible causes and solutions.
 
-== Troubleshooting Managed Gateway Creation
+== Gateway is Missing or Disabled
 
-=== Creation Button Disabled
-
-The *Add Managed Gateway* button is disabled in the Anypoint Runtime Manager interface.
+When adding an API instance to a Managed Flex Gateway, you can't select the desired Managed Gateway as a target.
 
 Causes::
-
-* Insufficient permissions. Managed Flex Gateway requires the _Manage Servers_ and _Read Servers_ permissions in Runtime Manager.
-* Quota limitations. Your organization has reached its maximum allowed number of Managed Gateways for all available sizes.
+* The gateway status or readiness. The Managed Gateway instance must successfully start and have at least one replica running in the cluster to receive traffic.
 
 Troubleshooting Steps::
 
-. Verify User Permissions:
+* Verify Gateway Status
 +
 --
-.. Inspect the `/permissions` API call response in the browser's developer tools to confirm the your permissions.
-.. Navigate to Access Management and check your assigned roles and permissions for Runtime Manager.
+    * Confirm the Managed Gateway status in Runtime Manager.
+    * Ensure the gateway status is *Running*.
 --
-. Check Quota Availability:
+* Verify Cluster Health:
 +
 --
-. In Anypoint Platform, go to *Access Management*.
-. Click *Runtime Manager* in the *Subscription* section.
-. Review the current Managed Gateway quota to determine if the quota has been exhausted for all Managed Flex Gateway sizes.
+If the gateway is *Running* but is still unavailable, a cluster issue might be the cause.
 --
 
 Possible Solutions::
 
-* Grant Necessary Permissions:
+* Contact Support
 +
 --
-Your Anypoint Platform Admin must grant you the Runtime Manager *Manage Servers* permission in Access Management.
-See xref:access-management::configure-teams.adoc#manage-team-permissions[Manage Team Permissions] for more information. 
---
-* Increase Quota:
-+
---
-.. Delete existing Managed Gateways to free up quota.
-.. Upgrade to a subscription plan with a higher Managed Gateway quota.
+If the gateway is *Running* but still not selectable, contact MuleSoft Support for assistance.
 --
 
-=== Private Space Not Available for New Managed Flex Gateway Deployment
-
-The desired Private Space is not available in the *Deployment Target* list for a new Managed Flex Gateway.
-
-Cause::
-
-* Insufficient Private Space permissions. The Private Space lacks the necessary permissions for the organization and environment where the Managed Gateway is being created.
-
-Troubleshooting Steps::
-
-. Verify Private Space Permissions:
-+
---
-.. In Runtime Manager, access the details of the Private Space you are trying to use.
-.. Navigate to the *Environments* tab.
-.. Confirm that the target organization and environment are within the allowed environments for that private space.
---
-
-Possible Solutions::
-* Grant Private Space Permissions:
-+
---
-.. Modify the Private Space *Environments* configuration to include the target organization and environment.
-.. Allow a few minutes for the changes to propagate and reflect in the *Deployment Target* list.
---
-
-== Troubleshooting Managed Gateway Operations
-
-=== New Managed Gateway Failed
-
-A recently created Managed Gateway ended up in `FAILED` status.
-
-Cause::
-* Concurrent Managed Gateway creation exceeding quota. Multiple Managed Gateways of the same size were created simultaneously, resulting in quota exhaustion detected during asynchronous checks after creation.
-
-Troubleshooting Steps::
-. Check Quota Availability:
-+
---
-.. In Access Management, go to Subscriptions > Runtime Manager to review the current Managed Gateway quota.
-.. Determine if the quota has been exhausted for the relevant Managed Gateway size.
---
-
-Possible Solutions::
-* Increase Quota:
-+
---
-.. Delete existing Managed Gateways to free up quota.
-.. Upgrade to a subscription plan with a higher Managed Gateway quota.
-.. Trigger a gateway re-deploy by editing the configuration, or delete and recreate the gateway.
---
-
-=== View and Update Gateway Flows
-
-[[gateway-metrics-not-showing]]
-==== Gateway Metrics Not Showing
-
-The Managed Flex Gateway dashboard does display metrics data.
-
-Causes::
-* Insufficient user permissions. The user lacks the *Usage Viewer* permission required to retrieve usage metrics.
-
-Troubleshooting Steps::
-. Verify User Permissions:
-+
---
-.. Navigate to Access Management and check the user's assigned roles and permissions within Runtime Manager.
-.. Confirm the user has the *Usage Viewer* permission.
---
-
-Possible Solutions::
-* Grant Necessary Permissions:
-+
---
-Your Anypoint Platform Admin must grant you the *Usage Viewer* permission in Access Management.
-See xref:access-management::configure-teams.adoc#manage-team-permissions[Manage Team Permissions] for more information. 
-
-==== Fields Are Not Editable
-
-You can't edit some of the fields in the Managed Gateway configuration.
-
-Causes::
-* Design limitation. Fields such as *Gateway name*, *Target*, and *Flow plan (size)* are intentionally non-editable.
-
-Possible Solutions::
-* Create a New Gateway:
-+
---
-Create a new Managed Gateway with the desired values for the non-editable fields.
---
-
-==== Timeout While Waiting for Update
-
-Status poller times out while waiting for the gateway to return to `STARTED` status after an update.
-
-Causes::
-* Anypoint Platform service overload. High traffic and demand on involved services.
-
-Possible Solutions::
-* Refresh and Retry:
-+
---
-Refresh the status after some time to check the gateway's current state.
---
-
-=== Deletion Flow
-
-==== Deleting Gateway Completion Delay
-
-Gateway shown as *Deleting* for an extended period and continues to consume quota.
-
-Causes::
-* Anypoint Platform service overload. High traffic and demand on involved services. Quota is not released until the gateway is fully deleted.
-
-Possible Solutions::
-* Refresh and Retry:
-+
---
-Refresh the status after some time to check if the gateway has been successfully deleted.
---
-
-=== APIs Management Flows
-
-==== Gateway Does Not Appear is Disabled in Target List
-
-You can't select the desired Managed Gateway as a target for an API.
-
-Causes::
-* Gateway status or readiness. The Managed Gateway must be `STARTED` and have at least one replica running in the cluster to receive traffic.
-
-Troubleshooting Steps::
-. Verify Gateway Status:
-+
---
-.. Confirm the Managed Gateway's status in Runtime Manager.
-.. Ensure the gateway is `STARTED`.
---
-. Verify Cluster Health:
-+
---
-.. If the gateway is `STARTED` but still unavailable, a cluster issue might be the causPossible Solutions::
-* Contact Support:
-+
---
-If the gateway is `STARTED` and still not selectable, contact MuleSoft Support for assistance with potential cluster issues.
---
-
-==== Same Path Error Creating API
+== Same Path Error Creating API
 
 An error occurs when trying to specify an API path, indicating that the path is already in use.
 
-Causes::
-* API path uniqueness. API paths are unique per Managed Gateway and can't be shared with other APIs associated with the same gateway.
+Cause::
+
+* The API path must be unique. API paths must be unique within the gateway, and can't be shared with other APIs associated with the same gateway.
 
 Possible Solutions::
-* Change or Edit API Path:
+* Change or Edit API Path
 +
 --
-.. Change the API path to a unique value.
-.. Edit the path of the conflicting API to resolve the conflict.
+* Change the API path to a unique value.
+* Edit the path of the conflicting API to resolve the conflict.
 --
