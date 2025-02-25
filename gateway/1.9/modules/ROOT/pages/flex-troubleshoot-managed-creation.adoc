@@ -1,100 +1,47 @@
-= Troubleshoot Managed Gateway Creation
+= Troubleshooting Managed Flex Gateway Creation
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-When you create an Anypoint Managed Flex Gateway instance, you might encounter issues. Check these topics for possible causes and solutions.
+Find possible causes and solutions for issues that can occur when creating a Managed Flex Gateway.
 
-== Creation Button is Disabled
+* xref:#add-button-disabled[Add Managed Flex Gateway Button is Disabled]
+* xref:#private-space[Private Space Not Available]
 
-The *Add Managed Gateway* button is disabled in the Anypoint Runtime Manager interface.
+[[add-button-disabled]]
+== Add Managed Flex Gateway Button is Disabled
 
-Causes::
+The *Add Managed Flex Gateway* button in the Anypoint Runtime Manager interface could be disabled due to quota limitations or insufficient permissions. This issue can occur when you've reached the maximum number of Managed Gateways allowed for all sizes in your organization, or if you do not have the required _Manage Servers_ and _Read Servers_ permissions in Runtime Manager. 
 
-* Quota limitations. Your organization has reached its maximum allowed number of Managed Gateways for all available sizes.
-* Insufficient permissions. Managed Flex Gateway requires the _Manage Servers_ and _Read Servers_ permissions in Runtime Manager.
+Check Managed Flex Gateway quotas for your organization: 
 
-Troubleshooting Steps::
-
-* Check Quota Availability
-+
---
 . In Anypoint Platform, go to *Access Management*.
 . Click *Runtime Manager* in *Subscription* section of the side navigation panel.
-. Review the current Managed Gateway quota to determine if the quota has been exhausted for all Managed Flex Gateway sizes.
---
+. Review the Managed Gateway quotas to determine if the quota has been exhausted for all Managed Flex Gateway sizes.
 
-* Verify User Permissions
+If necessary, you can delete existing Managed Gateways to free up quota. You can also upgrade to a subscription plan with a higher Managed Gateway quota.
+
+Verify your permissions:
+
+* Check your assigned roles and permissions for Runtime Manager, in Access Management to verify that you have the required _Manage Servers_ and _Read Servers_ permissions.
+
+Your Anypoint Platform Admin can add these permissions in Access Management.
 +
---
-    * Check your assigned roles and permissions for Runtime Manager, in Access Management.
-    * Inspect the `/permissions` API call response in your browser's developer tools to check your permissions.
---
+See xref:access-management::configure-teams.adoc#manage-team-permissions[_Read Servers_] for more information.
 
-Possible Solutions::
-
-* Grant Necessary Permissions
-+
---
-    * Your Anypoint Platform Admin must grant you the Runtime Manager *Manage Servers* permission in Access Management. See xref:access-management::configure-teams.adoc#manage-team-permissions[Manage Team Permissions] for more information. 
---
-* Increase Quota
-+
---
-    * Delete existing Managed Gateways to free up quota.
-    * Upgrade to a subscription plan with a higher Managed Gateway quota.
---
-
+[[private-space]]
 == Private Space Not Available
 
-The desired Private Space is not available in the *Deployment Target* list for a new Managed Flex Gateway.
+If, when creating a new Managed Flex Gateway, you do not see the desired Private Space in the *Deployment Target* list, you may not have the necessary permissions for that Private Space. 
 
-Cause::
+Verify the Private Space permissions:
 
-Insufficient Private Space permissions. The Private Space lacks the necessary permissions for the organization and environment where the Managed Gateway is being created.
-
-Troubleshooting Steps::
-
-* Verify Private Space Permissions
-+
---
 . In Runtime Manager, access the details of the Private Space you are trying to use.
 . Navigate to the *Environments* tab.
 . Confirm that the target organization and environment are within the allowed environments for that private space.
---
 
-Possible Solutions::
-
-* Grant Private Space Permissions
+If necessary, update the Private Space Environments configuration to include the target organization and environment:
 
 . Modify the Private Space *Environments* configuration to include the target organization and environment.
-. Allow a few minutes for the changes to propagate and reflect in the *Deployment Target* list.
-
-== Failure During Creation or Deployment
-
-An error occurs and the new Managed Flex Gateway instance fails to deploy, or fails during creation.
-
-Cause::
-
-Managed Flex Gateway *Flow Plan* quota is exhausted. Another Managed Flex Gateway of the same size (*Small Flex Gateway* or *Large Flex Gateway*) was created at the same time, and was detected only after attempted creation and deployment .
-
-Troubleshooting Steps::
-
-* Check Quota Availability
-+
---
-    . Note your gateway *Flow Plan* size (*Small Flex Gateway* or *Large Flex Gateway*) in Runtime Manager *Managed Flex Gateway* > *Settings*.   
-    . In *Access Management*, go to *Subscription* > *Runtime Manager* to review the current Managed Gateway quota.
-    . In Anypoint Platform, go to *Access Management*.
-    . Click *Runtime Manager* in the *Subscription* section of the side navigation panel.
-    . Check whether you have used the entire quota for for your Managed Flex Gateway *Flow Plan* size.
---
-
-Possible Solution::
-
-* Increase Quota
-
-    * Delete existing Managed Gateways to free up quota.
-    * Upgrade to a subscription plan with a higher Managed Gateway quota.
-    * Trigger a gateway re-deploy by editing the configuration, or delete and recreate the gateway.
+. Wait a few minutes for the changes to propagate and be reflected in the *Deployment Target* list.

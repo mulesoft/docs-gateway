@@ -1,4 +1,4 @@
-= Troubleshoot Managed Gateway Maintenance
+= Troubleshooting Managed Gateway Maintenance
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -6,79 +6,35 @@ endif::[]
 
 When viewing or maintaining Anypoint Managed Flex Gateway instances, you might encounter issues. Check these topics for possible causes and solutions.
 
-== Viewing and Updating Settings
+* xref:#gateway-metrics-not-showing[Missing Gateway Metrics]
+* xref:#cant-change-gateway-properties[Gateway Properties Not Editable]
+* xref:#timeout-while-waiting-for-update[Timeout While Waiting for Update]
+* xref:#gateway-missing-disabled[Gateway is Missing or Disabled]
+* xref:#same-path-error[API Path Conflict]
 
-=== Gateway Metrics Not Showing
+[[gateway-metrics-not-showing]]
+== Missing Gateway Metrics
 
-Metrics are missing from the Managed Flex Gateway dashboard.
-
-Causes::
-
-* Insufficient user permissions. You must have the *Usage Viewer* permission to view gateway metrics.
-
-Troubleshooting Steps::
-
-* Verify User Permissions
+In Runtime Manager, if you can't see metrics for your gateway from the Managed Flex Gateway dashboard, verify that you have the _Usage Viewer_ permission. Your Anypoint Platform Admin can add these permissions in Access Management.
 +
---
-    . Navigate to Access Management and check your assigned roles and permissions for Runtime Manager.
-    . Check whether you  have the *Usage Viewer* permission.
---
+See xref:access-management::configure-teams.adoc#manage-team-permissions[Manage Team Permissions] for more information.
 
-Possible Solution::
+[[cant-change-gateway-properties]]
+== Gateway Properties
 
-* Grant Necessary Permissions
-+
---
-    * Your Anypoint Platform Admin must grant you the *Usage Viewer* permission in Access Management. See xref:access-management::configure-teams.adoc#manage-team-permissions[Manage Team Permissions] for more information. 
---
+Some Managed Flex Gateway properties, such as such as *Gateway Name*, *Deployment Target*, and *Flow plans*, can't be edited after the gateway instance is created. If you need to change one of these properties, you must delete and recreate your Managed Flex Gateway with the desired values.
 
-=== Can't Change Gateway Properties
+[[timeout-while-waiting-for-update]]
+== Timeout While Waiting for Update
 
-You can't edit some of the Managed Flex Gateway properties in the .
+If you experience delays in updating or deleting Managed Flex Gateway instances, refresh the status. Wait for a few minutes and then recheck the status. Delays may be caused by Anypoint Platform service overload from high traffic and demand.
 
-Cause::
+[[gateway-missing-disabled]]
+== Gateway is Missing or Disabled in API Manager
 
-* Fields such as *Gateway Name*, *Deployment Target*, and *Flow plans* can't be changed.
+In API Manager, when adding an API instance to a gateway, if you do not find your Managed Flex Gateway in the API Manager *Select a gateway* list, or the Managed Flex Gateway is disabled, verify the gateway status in Runtime Manager. If the gateway status isn't *Running*, you can the probelm from Runtime Manager. If the gateway status is *Running*, but still unavailable in API Manager, there might be a cluster issue, and you should contact MuleSoft Support for assistance.
 
-Possible Solutions::
+[[same-path-error]]
+== API Path Conflict
 
-* Create a New Gateway
-+
---
-    * Create a new Managed Flex Gateway with the desired values for the read-only fields.
---
-
-=== Timeout While Waiting for Update
-
-The status poller times out while waiting for the gateway to return to `STARTED` status after an update.
-
-Cause::
-
-* Anypoint Platform service overload, due to high traffic and demand on services.
-
-Possible Solutions::
-
-* Refresh and Retry
-+
---
-    * Refresh the status after some time to check the gateway's current state.
---
-
-== Deleting Gateway
-
-=== Delay Deleting Gateway
-
-Gateway shown as *Deleting* for an extended period and continues to consume quota.
-
-Causes::
-
-* Anypoint Platform service overload, due to high traffic and demand on services. The quota is not released until the gateway is fully deleted.
-
-Possible Solutions::
-
-* Refresh and Retry
-+
---
-    * Refresh the status after some time to check if the gateway has been successfully deleted.
---
+If you see the *This path conflicts with another API* error in API Manager when an API to a Managed Flex Gateway, you must choose a different base path. Each API instance in a Flex gateway must be unique (within the gateway). To fix this problem, change the API path to a unique value or edit the path of the conflicting API. Click *API* in the error message to view or edit the API instance with the conflicting path.
