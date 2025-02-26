@@ -6,7 +6,7 @@ endif::[]
 
 To execute certain policies before others, configure the order of execution of included and custom policies. 
 
-You can configure both included and custom policies to execute as automated policies or API-level policies. Automated policies are policies that are applied to all API instances deployed on the Flex Replica and execute before API-level policies. API-level policies are policies that are only applied to a specific API instance.
+You can configure both included and custom policies to execute as automated policies, API-level policies, or upstream-level policies. Automated policies are policies that are applied to all API instances deployed on the Flex Replica and execute before API-level policies. API-level policies are inbound policies that are only applied to a specific API instance. Upstream level policies are outbound policies applied to specific upstreams.
 
 For Flex Gateway running in Connected Mode, use API Manager to order policies. For Flex Gateway running in Local Mode, use a `PolicyBinding` YAML resource to order policies.
 
@@ -22,9 +22,13 @@ For example, if you have four policies ordered:
 . Automated Policy 2
 . API-Level Policy 1
 . API-Level Policy 2
+. Upstream-Level Policy 1
+. Upstream-Level Policy 2
 
 The policies execute in the following order on the response:
 
+. Upstream-Level Policy 2
+. Upstream-Level Policy 1
 . API-Level Policy 2
 . API-Level Policy 1
 . Automated Policy 2
