@@ -4,60 +4,118 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-== Edge and LTS Release Channels
+Starting with Flex Gateway 1.9, MuleSoft introduces two new release channels, Edge and Long-term Support (LTS). These release channels are available for both Managed and Self-Managed Flex Gateway.
 
-Flex Gateway releases are available in two release channels, Edge and Long-term Support (LTS). 
+== Edge and LTS Releases for Flex Gateway
+
+Consider the information in this table to determine which release channel best suits your requirements. 
 
 [%header,cols="4*a"]
 |===
 
 | Channel Type | Release Cadence | Differentiators | Support Coverage
 
-| *Edge* 
-| Three times per year 
+| *Edge*
+
+a| Three times per year
+
+    * March
+    * July
+    * November
+
 | Includes new features more often and has a shorter support period for each release.
-a| 
-* 4 months of Standard Support
-* 4 months of Extended Support
+
+a| Flex Gateway 1.9 and later
+
+    * Four months Standard Support
+    * Four months Extended Support
+
+Flex Gateway 1.8 and earlier
+
+    * See https://www.salesforce.com/content/dam/web/en_us/www/documents/legal/Agreements/versioning-back-support-policy.pdf[MuleSoft Support Policy]. 
 
 | *LTS*
-| Once per year
+
+| Once a year
+    
+    * March
+
 | Bundles new features in an annual release and has a longer support period for each release.
-a|
-* 12 months of Standard Support
-* 12 months of Extended Support
+
+a| Flex Gateway 1.9 and later
+
+    * Twelve months Standard Support
+    * Twelve months Extended Support
+
+Flex Gateway 1.8 and earlier
+
+    * See https://www.salesforce.com/content/dam/web/en_us/www/documents/legal/Agreements/versioning-back-support-policy.pdf[MuleSoft Support Policy]. 
 
 |===
 
-Consider these factors to determine which release channel is the best choice for your requirements.
+For detailed information and support timeframes for Flex Gateway 1.8 and earlier, see the https://www.salesforce.com/content/dam/web/en_us/www/documents/legal/Agreements/versioning-back-support-policy.pdf[MuleSoft Support Policy]. 
 
-* Edge release channel
-+ 
-MuleSoft releases Flex Gateway Edge versions three times per year. Use the Edge channel if you want to stay on top of the latest features and feel comfortable with a more frequent release cycle and auto-upgrade cycle. The Edge channel includes the latest features and innovations available on the MuleSoft platform.
+== Deployment Models and Lifecycle Management
 
-* LTS release channel
-+ 
-MuleSoft releases Flex Gateway Long-Term Support (LTS) versions once a year. Use the LTS channel if you want to avoid upgrading to a new version frequently. The LTS channel adopts new capabilities after they've been introduced via Edge releases.
+Flex Gateway lifecycle management varies depending on the release channel and the type of gateway. Managed gateways are auto-upgraded regularly, and any available patches are applied once a month. Self-managed gateways are never patched or upgraded automatically.
 
-This table shows the length of support for Flex Gateway releases:
-
-[%header%autowidth.spread]
+[%header,cols="3*a"]
 |===
-| Release Channel | Gateway Version |Release Date | End of Standard Support | End of Extended Support
-| Edge | 1.9 | Mar 2025 | Jul 2025 | Nov 2025
-| Edge | 1.10 | Jul 2025 | Nov 2025 | Mar 2026
-| Edge | 1.11 | Nov 2025 | Mar 2026 | Jul 2026
-| Edge | 1.12 | Mar 2026 | Jul 2026 | Nov 2026
-| LTS | 1.9 | Mar 2025 | Mar 2026 | Mar 2027
-| LTS | 1.12 | Mar 2026 | Mar 2027 | Mar 2028
+| Action | Managed Gateway | Self-Managed Gateway
+
+// Action
+| Auto-upgrade
+// Managed Gateway
+a| 
+Managed Gateways are auto-upgraded to the latest minor version within their respective channels (Edge or LTS).
+
+    * Edge: Three times per year
+    * LTS: Once a year
+// Self-Managed Gateway
+| No auto-upgrade capabilities
+
+// Action
+| Patches
+// Managed Gateway
+| Monthly auto-patching
+// Self-Managed Gateway
+| Available for Flex Gateway versions that are within the support period for their respective channels (Edge or LTS).
+
+// Action
+| Self-upgrade
+// Managed Gateway
+| You can manually upgrade to the latest version that matches your release channel (Edge or LTS) before the scheduled automatic upgrade.
+// Self-Managed Gateway
+| Always available
+
+// Action
+| Rollback
+// Managed Gateway
+| You can revert to the previous version if it's still within the release channel support period.
+// Self-Managed Gateway
+| Available to the previously used version
+
+// Action
+| Restart
+// Managed Gateway
+| Always
+// Self-Managed Gateway
+| Until End of Extended Support
+
+// Action
+| Keep running 
+// Managed Gateway
+| Always
+// Self-Managed Gateway
+| Until End of Extended Support
+
+// Action
+| Supportability
+// Managed Gateway
+| Standard Support (auto-upgrade ensures that managed gateways are always on the latest Edge or LTS version).
+// Self-Managed Gateway
+| Until End of Extended Support. See the https://www.salesforce.com/content/dam/web/en_us/www/documents/legal/Agreements/versioning-back-support-policy.pdf[MuleSoft Support Policy] for more information.
+
 |===
 
-In March, the Edge and LTS channels release with the same underlying version.
-
-For more information about the support policy that aligns with the release periods and types of releases, see the https://www.salesforce.com/content/dam/web/en_us/www/documents/legal/Agreements/versioning-back-support-policy.pdf[MuleSoft Support Policy]. 
-
-== Flex Gateway Version Lifecycle Management
-
-Flex Gateway lifecycle management varies depending on the release channel and the type of gateway. Managed gateways are auto-upgraded regularly, and any available patches are applied once per month. Self-managed gateways are never never patched or upgraded automatically.
-
-For information on how to patch, upgrade, or roll back your gateway version, see xref:flex-gateway-upgrade.adoc[].
+For information on patching, upgrading, rolling back, or deleting a gateway, see xref:flex-gateway-maintain.adoc[Maintaining a Flex Gateway]. 
