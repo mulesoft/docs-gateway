@@ -19,8 +19,7 @@ endif::[]
 
 == Summary
 
-
-The Credential Injection OAuth 2.0 policy injects an authorization token from an OAuth 2.0 service as a header. You can use any third-party OAuth 2.0 Identify Provider (IdP), such as Okta, AWS, Azure or Google Cloud Platform.
+The Credential Injection OAuth 2.0 policy injects an `Authorization` token from an OAuth 2.0 service into a request as a header. You can use any third-party OAuth 2.0 Identify Provider (IdP), such as Okta, AWS, Azure or Google Cloud Platform.
 The policy allows for tokens based on the OAuth 2.0 Authorization Framework to be injected into requests without having to register an external IdP server in the Anypoint Platform.
 
 == Configuring Policy Parameters
@@ -50,37 +49,37 @@ In Flex Gateway Local Mode, you apply the Basic Authentication: Simple policy to
 | `oauthService`
 | Required
 | `<https://oauth-server/tokens>`
-| 
+| URL of the OAuth 2.0 service.
 
 | `clientId`
 | Required
 | N/A
-| 
+| Client ID.
 
 | `clientSecret`
 | Required
 | N/A
-| 
+| Client Secret.
 
 | `scope`
 | Optional
 | N/A
-| 
+| Scopes to include in the token.
 
 | `overwrite`
 | Required
 | `true`
-| 
+| When enabled, if the `Authorization` header is present, the policy overwrites it with the new authorization token.
 
 | `tokenFetchTimeout`
 | Required
 | 10
-| 
+| Time in seconds to wait for the service to return the token.
 
 | `allowRequestWithoutCredential`
 | Required
 | `false`
-| 
+| When enabled, if the policy can't retrieve the token, Flex Gateway still sends the request.
 |===
 
 ==== Resource Configuration Example
@@ -89,8 +88,13 @@ In Flex Gateway Local Mode, you apply the Basic Authentication: Simple policy to
 - policyRef:
     name: http-basic-authentication-flex
   config:
-    username: chris
-    password: admin
+    oauthService: <https://oauth-server/tokens>
+    clientId: id
+    clientSecret: secret
+    scope:
+      - user
+    tokenFetchTimeout: 20
+    allowRequestWithoutCredential: ture
 ----
 
 === Flex Gateway Connected Mode
@@ -100,13 +104,12 @@ When you use the UI to apply the Message Logging policy to your API, you can con
 [%header%autowidth.spread]
 |===
 |Parameter |Description | Required?
-|Username |The username for the basic authentication credentials
-|Optional
-|Password |The password for the basic authentication credentials |Optional
-|Category |A prefix in the log message that indicates the package and class where the log is executed. |Optional
-|Overwrite header |Whether you want to overwrite the authorization header present in the request.|Optional
-|Custom Header |A custom header instead of an authorization header +
-Example: `Authorization: Basic <username:password>`
-|Optional
+|OAuth 2.0 service URL |URL of the OAuth 2.0 service. |Required
+|Client ID |Client ID. |Required
+|Client secret |Client Secret. |Required
+|Scope |Scopes to include in the token. |Optional
+|Overwrite header |When enabled, if the `Authorization` header is present, the policy overwrites it with the new authorization token. | Required
+|Token fetch timeout |Time in seconds to wait for the service to return the token. | Required
+|Allow request without credential |When enabled, if the policy can't retrieve the token, Flex Gateway still sends the request. | Required
 |===
 
