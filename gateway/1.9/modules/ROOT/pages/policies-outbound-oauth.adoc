@@ -19,11 +19,9 @@ endif::[]
 
 == Summary
 
-The Basic Authentication: Simple policy protects the API by enabling automatic injection of Basic Authentication credentials into outbound requests. This policy ensures that requests sent from Flex Gateway to an upstream service include the correct authentication headers.
 
-The policy follows https://tools.ietf.org/html/rfc7617[basic HTTP authentication standards^].
-
-When an error is encountered, the policy returns an "WWW-Authenticate" HTTP header field.
+The Credential Injection OAuth 2.0 policy injects an authorization token from an OAuth 2.0 service as a header. You can use any third-party OAuth 2.0 Identify Provider (IdP), such as Okta, AWS, Azure or Google Cloud Platform.
+The policy allows for tokens based on the OAuth 2.0 Authorization Framework to be injected into requests without having to register an external IdP server in the Anypoint Platform.
 
 == Configuring Policy Parameters
 
@@ -35,24 +33,54 @@ In Flex Gateway Local Mode, you apply the Basic Authentication: Simple policy to
 - policyRef:
     name: http-basic-authentication-flex
   config:
-    username: <string> // REQUIRED
-    password: <string> // REQUIRED
+    oauthService: <string> // REQUIRED
+    clientId: <string> // REQUIRED
+    clientSecret: <string> // REQUIRED
+    scope:
+      - <string> // OPTIONAL
+    overwrite: <boolean> // REQUIRED
+    tokenFetchTimeout: <number> // REQUIRED
+    allowRequestWithoutCredential: <boolean> // REQUIRED
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
 |Parameter | Required or Optional | Default Value | Description
 
-| `username`
+| `oauthService`
+| Required
+| `<https://oauth-server/tokens>`
+| 
+
+| `clientId`
 | Required
 | N/A
-| A base-64 encoded string
+| 
 
-| `password`
+| `clientSecret`
 | Required
 | N/A
-| A base-64 encoded string
+| 
 
+| `scope`
+| Optional
+| N/A
+| 
+
+| `overwrite`
+| Required
+| `true`
+| 
+
+| `tokenFetchTimeout`
+| Required
+| 10
+| 
+
+| `allowRequestWithoutCredential`
+| Required
+| `false`
+| 
 |===
 
 ==== Resource Configuration Example
