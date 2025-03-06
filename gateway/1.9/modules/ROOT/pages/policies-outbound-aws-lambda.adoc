@@ -3,7 +3,7 @@
 [%autowidth.spread,cols="a,a"]
 |===
 >s| Policy name | AWS Lambda
->s| Summary | Prevents an API from making outbound requests to an unresponsive or failing service.
+>s| Summary | Triggers an AWS Lambda function from a standard HTTP request
 >s| Category | Transformation
 >s| First Flex Gateway version available | v1.9.0
 .4+>.^s| Returned Status Codes
@@ -12,7 +12,7 @@
 
 == Summary
 
-The HTTP AWS Lambda policy triggers an AWS Lambda function from a standard HTTP request. You can either pass the HTTP request payload as is or wrapped in a JSON schema. After the request is  
+The AWS Lambda policy triggers an AWS Lambda function from a standard HTTP request. You can either pass the HTTP request payload as is or wrapped in a JSON schema. After the request is  
 
 The AWS Lambda policy is an extension of the AWS Lambda filter native to Envoy. To learn more about the AWS Lambda filter, see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/aws_lambda_filter[AWS Lambda Filter]. Not all AWS Lambda filter parameters are available to the AWS Lambda policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>. 
 
@@ -55,7 +55,7 @@ In Local Mode, you apply the Rate Limiting policy to your API via declarative co
 | `authenticationMode`
 | Required
 | N/A
-| 
+| The origin of credentials
 
 | `credantialProfile`
 | Optional
@@ -65,22 +65,22 @@ In Local Mode, you apply the Rate Limiting policy to your API via declarative co
 | `credentials`
 | Optional
 | N/A
-| 
+| Only configure if using `static` credentials.
 
 | `credentials.accessKeyId`
 | Required
 | N/A
-| 
+| AWS access key ID
 
 | `credentials.secretAccessKey`
 | Required
 | N/A
-| 
+| AWS access key
 
 | `credentials.sessionToken`
 | Optional
 | N/A
-| 
+| Session token
 
 
 |===
