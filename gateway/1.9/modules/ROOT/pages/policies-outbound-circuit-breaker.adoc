@@ -25,18 +25,29 @@ A Rate Limiting policy applied to a Flex Gateway API is scoped to replicas, not 
 
 === Flex Gateway Local Mode
 
-In Local Mode, you apply the Rate Limiting policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
+In Local Mode, you apply the Circuit Breaker policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
 
 ----
-- policyRef:
-    name: circuit-breaker-flex
-  config:
-      - maximumConnections: <int> // OPTIONAL
-        maximumPendingRequests: <int> // OPTIONAL
-        maximumRequests: <int> // OPTIONAL
-        maximumRetries: <int> // OPTIONAL, 
-        maximumConnectionPools: <int> // OPTIONAL
+apiVersion: gateway.mulesoft.com/v1alpha1  
+kind: PolicyBinding  
+metadata:  
+  name: upstream-policy  
+spec:  
+  targetRef:  
+    Kind: Service  
+    name: upstream  
+  policyRef:  
+    name: circuit-breaker-flex  
+  config:  
+    thresholds:  
+      maxConnections: <number> // OPTIONAL 
+      maxPendingRequests: <number> // OPTIONAL  
+      maxRequests: <number> // OPTIONAL
+      maxRetries: <number> // OPTIONAL  
+      maxConnectionPools: <number> // OPTIONAL
 ----
+
+<number> // OPTIONAL
 
 [%header%autowidth.spread,cols="a,a,a"]
 |===
@@ -49,14 +60,16 @@ In Local Mode, you apply the Rate Limiting policy to your API via declarative co
 
 | `maximumPendingRequests`
 | Optional
-| The maximum number of requests queued while waiting for a connection.
+| The maximum number of requests that can be queued while waiting for a connection.
 
 | `maximumRequests`
 | Optional
 | The maximum number of requests that can be outstanding to all hosts in a cluster.
+
 | `maximumretries`
 | Optional
 | The maximum number of retries in a cluster.
+
 | `maximumConnectionPools`
 | Optional
 | The maximum number of connection pools that can be concurrently initiated.
@@ -65,17 +78,22 @@ In Local Mode, you apply the Rate Limiting policy to your API via declarative co
 
 ==== Resource Configuration Example
 
-The following example defines a rate limit of three requests every six seconds:
+The following example defines a  of three requests every six seconds:
 
 ----
-- policyRef:
-    name: circuit-breaker-flex
-  config:
-      - maximumConnections: 5 
-        maximumPendingRequests: 3
-        maximumRequests: 4
-        maximumRetries: 1
-        maximumConnectionPools: 1
+apiVersion: gateway.mulesoft.com/v1beta1  
+kind: Configuration  
+metadata:  
+  name: circuit-breaker  
+  namespace: test-ns  
+spec:  
+  circuitBreaker:  
+    thresholds:  
+      maxConnections: 1  
+      maxPendingRequests: 1  
+      maxRequests: 1  
+      maxRetries: 1  
+      maxConnectionPools: 1  
 ----
 
 
@@ -88,21 +106,22 @@ When you apply the Rate Limiting policy to your API from the UI, you can configu
 |===
 |Parameter | Required or Optional | Description
 
-
 | Maximum Connections
 | Optional
 | Maximum number of connections to all hosts in an upstream.
 
 | Maximum Pending Requests
 | Optional
-| The maximum number of requests queued while waiting for a connection.
+| The maximum number of requests than can be queued while waiting for a connection.
 
 | Maximum Requests
 | Optional
 | The maximum number of requests that can be outstanding to all hosts in a cluster.
+
 | Maximum Retries
 | Optional
 | The maximum number of retries in a cluster.
+
 | Maximum Connection Pools
 | Optional
 | The maximum number of connection pools that can be concurrently initiated.

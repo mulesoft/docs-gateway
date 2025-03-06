@@ -2,24 +2,19 @@
 
 [%autowidth.spread,cols="a,a"]
 |===
->s| Policy name | Rate Limiting
->s| Summary      | Prevents an API from making outbound requests to an unresponsive or failing service.
->s| Category | Quality of Service
->s| First Flex Gateway version available | v1.2.0
+>s| Policy name | AWS Lambda
+>s| Summary | Prevents an API from making outbound requests to an unresponsive or failing service.
+>s| Category | Transformation
+>s| First Flex Gateway version available | v1.9.0
 .4+>.^s| Returned Status Codes
 |502 - Bad Gateway, requests are blocked due to circuit breaker activation
 |===
 
 == Summary
 
-The Circuit Breaker policy helps prevent an API from making outbound requests to an unresponsive or failing service. By monitoring response failures, this policy automatically blocks requests to the failing service for a defined period, preventing unnecessary load on both the API and the backend service.
+The HTTP AWS Lambda policy triggers an AWS Lambda function from a standard HTTP request. You can either pass the HTTP request payload as is or wrapped in a JSON schema. After the request is  
 
-When you configure the Rate Limiting policy, you can specify any number of pairs of quota (number of requests) and time window (time period) values.
-
-[NOTE]
-====
-A Rate Limiting policy applied to a Flex Gateway API is scoped to replicas, not the gateway.
-====
+The AWS Lambda policy is an extension of the AWS Lambda filter native to Envoy. To learn more about the AWS Lambda filter, see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/aws_lambda_filter[AWS Lambda Filter]. Not all AWS Lambda filter parameters are available to the AWS Lambda policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>. 
 
 == Configuring Policy Parameters
 
@@ -38,28 +33,55 @@ In Local Mode, you apply the Rate Limiting policy to your API via declarative co
         maximumConnectionPools: <int> // OPTIONAL
 ----
 
-[%header%autowidth.spread,cols="a,a,a"]
+[%header%autowidth.spread,cols="a,a,a,a"]
 |===
-|Parameter | Required or Optional | Description
+|Parameter | Required or Optional | Default Value | Description
 
+| `arn`
+| Required
+| N/A
+| 
 
-| `maximumConnections`
-| Optional
-| Maximum number of connections to all hosts in an upstream.
+| `payloadPassthrough`
+| Required
+| false
+| By default, Flex sends the request to the AWS Lambda function wrapped in JSON. When `payloadPassthrough` is enabled, the request is sent as is.
 
-| `maximumPendingRequests`
-| Optional
-| The maximum number of requests queued while waiting for a connection.
+| `invocationMode`
+| Required
+| sync
+| The way to invoke the Lambda function, either `sync` or `async`
+.
+| `authenticationMode`
+| Required
+| N/A
+| 
 
-| `maximumRequests`
+| `credantialProfile`
 | Optional
-| The maximum number of requests that can be outstanding to all hosts in a cluster.
-| `maximumretries`
+| N/A
+| 
+
+| `credentials`
 | Optional
-| The maximum number of retries in a cluster.
-| `maximumConnectionPools`
+| N/A
+| 
+
+| `credentials.accessKeyId`
+| Required
+| N/A
+| 
+
+| `credentials.secretAccessKey`
+| Required
+| N/A
+| 
+
+| `credentials.sessionToken`
 | Optional
-| The maximum number of connection pools that can be concurrently initiated.
+| N/A
+| 
+
 
 |===
 
