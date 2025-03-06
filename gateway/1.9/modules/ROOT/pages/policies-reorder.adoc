@@ -6,7 +6,7 @@ endif::[]
 
 To execute certain policies before others, configure the order of execution of included and custom policies. 
 
-You can configure both included and custom policies to execute as automated policies, API-level policies, or upstream-level policies. Automated policies are policies that are applied to all API instances deployed on the Flex Replica and execute before API-level policies. API-level policies are inbound policies that are only applied to a specific API instance. Upstream level policies are outbound policies applied to specific upstreams.
+You can configure both included and custom policies to execute as automated policies, API-level policies, or upstream-level policies. Automated policies are policies that are applied to all API instances deployed on the Flex Replica and execute before API-level policies. API-level policies are inbound policies that are only applied to a specific API instance. Upstream level policies are outbound policies applied to specific upstreams. 
 
 For Flex Gateway running in Connected Mode, use API Manager to order policies. For Flex Gateway running in Local Mode, use a `PolicyBinding` YAML resource to order policies.
 
@@ -14,9 +14,9 @@ IMPORTANT: You cannot configure the execution order of the xref:policies-include
 
 == Policy Execution Order
 
-Policies can either execute on the API request, the API response, or both. Policies execute in order during the API request and in inverse order during the API response. If a policy does not execute in a certain direction, Flex Gateway skips the policy in that direction.
+Policies can either execute on the API request, the API response, or both. Policies execute in order during the API request and in inverse order during the API response. If a policy does not execute in a certain direction, Flex Gateway skips the policy in that direction. On the requests policies execute in the order of automated policies, API-level policies, and then outbound policies. This order is inverted for the response.
 
-For example, if you have four policies ordered:
+For example, if you have policies ordered:
 
 . Automated Policy 1
 . Automated Policy 2
@@ -47,9 +47,9 @@ To apply a resource-level policy to all API instances, refer to xref:flex-local-
 
 To order automated resource-level policies, edit the `order` parameter to match when you want the policy to execute. Ensure that this order does not conflict with the order of any other policies. For example, if you apply two automated resource-level policies with `order: 1` and `order: 2`, any API-level policy must start at `order: 3`.
 
-== Order API-Level Policies in Connected Mode
+== Order Inbound API-Level Policies for Managed Flex Gateway and Connected Mode
 
-To reorder API-level policies in Flex Gateway running in Connected Mode:
+To reorder API-level policies:
 
 . Go to *Anypoint Platform > API Manager*.
 
@@ -63,7 +63,25 @@ To reorder API-level policies in Flex Gateway running in Connected Mode:
 
 . Click *Apply order*.
 
-== Order API-Level Policies in Local Mode
+== Order Outbound Policies for Managed Flex Gateway and Connected Mode
+
+To reorder outbound policies:
+
+. Go to *Anypoint Platform > API Manager*.
+
+. In *API Administration*, click the name of the API instance whose policies you want to reorder.
+
+. From the left navigation menu, click *Policies*.
+
+. Click the *Outbound policies* tab.
+
+. Click the more options button (image:more-options-menu.png[1%,1%]) of the upstream service whose policies you want to reorder.
+
+. Use the up and down arrows to rearrange the order of policies.
+
+. Click *Apply order*.
+
+== Order Policies in Local Mode
 In Flex Gateway running in Local Mode, configure policy ordering via a `PolicyBinding` YAML resource.
 
 When defining a policy using a `PolicyBinding` YAML resource, edit the `order` parameter to match when you want the policy to execute. Ensure that you do not assign the same order number to different policies.
