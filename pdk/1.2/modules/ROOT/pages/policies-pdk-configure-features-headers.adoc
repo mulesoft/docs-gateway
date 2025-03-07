@@ -82,6 +82,8 @@ To access the body in both the request and the response, transform the `RequestS
 let body_state = request_state.into_body_state().await;
 ----
 
+NOTE: The previous `.await` introduces a cancellation point. During a request, a xref:policies-pdk-configure-features.adoc#flow-cancellation[Flow Cancellation] might cause the `.await` to never resume.
+
 If the original state was already transformed into a header state, transform the state into a body state by calling the same function, for example:
 
 [source,Rust]
@@ -96,6 +98,7 @@ After calling `into_body_state()`, access and manipulate the headers by calling 
 ----
 pub trait BodyHandler {
     fn body(&self) -> Vec<u8>;
+    fn set_body(&self, body: &[u8]) -> Result<(), BodyError>;
 }
 ----
 
@@ -124,11 +127,19 @@ async fn request_filter(request_state: RequestState) {
     logger::info!("User: {agent} sent: {}", String::from_utf8_lossy(body.as_slice()));
 	
     let new_body = "new body".as_bytes();
-    body_handler.set_body(&new_body);
+    match body_handler.set_body(&new_body) {
+        Ok(_) => logger::info!("Body updated"),
+        Err(e) => logger::info!("Unable to set body. Reason: {e:?}),
+    }
 }
 ----
 
 NOTE: This code removes the `content-length` header. This is required to modify the body.
+
+`BodyHandler::set_body()` method returns a `Result<(), BodyError>` object. Body updating might fail due to:
+
+* `BodyError::BodyNotSent`: The current HTTP Flow doesn't have a body (for example, `GET` request).
+* `BodyError::ExceededBodySize`: The new body exceeds the maximum body buffer size supported by Envoy.
 
 == See Also
 
