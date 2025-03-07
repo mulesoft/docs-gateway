@@ -106,8 +106,7 @@ To access the body in both the request and the response, transform the `RequestS
 let body_state = request_state.into_body_state().await;
 ----
 
-NOTE: The previous statement introduces a cancellation point after `.await`.
-During a request, `.await` could never be resumed due to a xref:policies-pdk-configure-features.adoc#flow-cancellation[flow cancellation].
+NOTE: The previous `.await` introduces a cancellation point. During a request, a xref:policies-pdk-configure-features.adoc#flow-cancellation[Flow Cancellation] might cause the `.await` to never resume.
 
 If the original state was already transformed into a header state, transform the state into a body state by calling the same function, for example:
 
@@ -161,10 +160,10 @@ async fn request_filter(request_state: RequestState) {
 
 NOTE: This code removes the `content-length` header. This is required to modify the body.
 
-`BodyHandler::set_body()` method returns a `Result<(), BodyError>`, what means that it is fallible. Body updating can fail due to two reasons:
+`BodyHandler::set_body()` method returns a `Result<(), BodyError>` object. Body updating might fail due to:
 
-. `BodyError::BodyNotSent`: The current HTTP Flow does not have a body (e.g. a `GET` request).
-. `BodyError::ExceededBodySize`: The new body exceeds the maximum body buffer size allowed by Envoy.
+* `BodyError::BodyNotSent`: The current HTTP Flow doesn't have a body (for example `GET` request).
+* `BodyError::ExceededBodySize`: The new body exceeds the maximum body buffer size supported by Envoy.
 
 == See Also
 
