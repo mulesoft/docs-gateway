@@ -120,6 +120,7 @@ After calling `into_body_state()`, access and manipulate the headers by calling 
 ----
 pub trait BodyHandler {
     fn body(&self) -> Vec<u8>;
+    fn set_body(&self, body: &[u8]) -> Result<(), BodyError>;
 }
 ----
 
@@ -148,11 +149,19 @@ async fn request_filter(request_state: RequestState) {
     logger::info!("User: {agent} sent: {}", String::from_utf8_lossy(body.as_slice()));
 	
     let new_body = "new body".as_bytes();
-    body_handler.set_body(&new_body);
+    match body_handler.set_body(&new_body) {
+        Ok(_) => logger::info!("Body updated"),
+        Err(e) => logger::info!("Unable to set body. Reason: {e:?}),
+    }
 }
 ----
 
 NOTE: This code removes the `content-length` header. This is required to modify the body.
+
+`BodyHandler::set_body()` method returns a `Result<(), BodyError>`, what means that it is fallible. Body updating can fail due to two reasons:
+
+. `BodyError::BodyNotSent`: The current HTTP Flow does not have a body (e.g. a `GET` request).
+. `BodyError::ExceededBodySize`: The new body exceeds the maximum body buffer size allowed by Envoy.
 
 == See Also
 
