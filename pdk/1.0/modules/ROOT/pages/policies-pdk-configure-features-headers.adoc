@@ -82,6 +82,9 @@ To access the body in both the request and the response, transform the `RequestS
 let body_state = request_state.into_body_state().await;
 ----
 
+NOTE: The previous statement introduces a cancellation point after `.await`.
+During a request, `.await` could never be resumed due to a xref:policies-pdk-configure-features.adoc#flow-cancellation[flow cancellation].
+
 If the original state was already transformed into a header state, transform the state into a body state by calling the same function, for example:
 
 [source,Rust]
