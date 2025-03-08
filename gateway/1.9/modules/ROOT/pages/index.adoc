@@ -38,16 +38,11 @@ The control plane is a MuleSoft-hosted platform that centralizes management and 
 [[runtime]]
 === Runtime
 
-The gateway runtime is a customer-hosted distributed entity installed in any cloud data center or, for testing purposes, on your local laptop. The runtime receives commands from the control plane and routes and protects the backend APIs. Built with security in mind, Flex Gateway secures communications between the runtime and the control plane through mTLS and HTTPs.
+The gateway runtime receives commands from the control plane and routes and protects the backend APIs. Built with security in mind, Flex Gateway secures communications between the runtime and the control plane through mTLS and HTTPs.
 
-Fluent Bit implementation enables log output to local files, or to aggregators such as New Relic, Sumo Logic, and Splunk.
+== Scaling
 
-== Replicas
-A runtime unit is called a `replica`. While a single runtime can support {gateway-api-max} backend APIs for high availability, it is best to deploy Flex Gateway as a cluster with multiple replicas running in parallel. Using clusters increases gateway performance and robustness, and is recommended for high-performance applications that must scale.
-
-A single Flex Gateway can support multiple backend APIs. To support more backend APIs, you can deploy multiple replicas or additional Flex Gateways. Increase replica CPU and memory for higher throughput and increased performance.
-
-You can configure an optional external REDIS storage for features such as distributed rate limiting and distributed caching. Gateway replicas use the REDIS storage as a scratchpad to coordinate rate-limiting across multiple replicas, so customer SLAs are adhered to.
+A single Flex Gateway can support up to {gateway-api-max} backend APIs. For high availability, it is best to deploy multiple gateways running in parallel. Deploying multiple gateways increases gateway performance and robustness, and is recommended for high-performance applications that must scale.
 
 == API Instances
 
@@ -57,21 +52,42 @@ Flex Gateway does not natively support SOAP APIs and does not provide any schema
 
 To publish a SOAP API, refer to xref:flex-troubleshoot-soap-apis.adoc[].
 
-== Connected Mode vs. Local Mode
+== Deployment Types
 
-Flex Gateway can be deployed in two ways:
+You can deploy Flex Gateway as a Managed or Self-Managed Flex Gateway. Managed Flex Gateway on CloudHub 2.0 provides a fully managed option, and Self-Managed Flex Gateway provides more options and control.
 
-* <<connected_mode,Connected Mode>>
-* <<local_mode,Local Mode>>
+* <<managed, Managed Flex Gateway>>
+* <<self_managed, Self-Managed Flex Gateway>>
+
+[[managed]]
+=== Managed Flex Gateway
+
+Managed Flex Gateway is a fully hosted version of Flex Gateway on CloudHub 2.0, hosted and managed on the Anypoint Platform by MuleSoft. Managed Flex Gateway provides high availability, autoscaling, less operational overhead, and regular automatic patches and upgrades. It is designed to simplify API gateway operation through point-and-click setup, and monitoring, and MuleSoft handles the maintenance and infrastructure.
+
+In Managed Flex Gateway, each runtime unit is called a gateway instance.
+
+[[self_managed]]
+=== Self-Managed Flex Gateway
+
+Self-Managed Flex Gateway is a distributed runtime entity that you can install in any cloud data center or, for testing purposes, on your local laptop. Self-Managed Flex Gateway requires you to manage the underlying infrastructure. Various installation options are available for the Self-Managed Flex Gateway, including Docker containers, as a sidecar to a backend application in a Docker container, as a Kubernetes Deployment, or on various Linux environments.
+
+In Self-Managed Flex Gateway, each runtime unit is called a replica. For high availability, it is best to deploy Self-Managed Flex Gateway as a cluster with multiple replicas running in parallel. Using clusters increases gateway performance and robustness, and is recommended for high-performance applications that must scale.
+
+Self-Managed Flex Gateway includes a Fluent Bit implementation, which enables log output to local files, or to aggregators such as New Relic, Sumo Logic, and Splunk. You can also configure external REDIS storage for use with distributed rate limiting and caching. Gateway replicas utilize this storage as a temporary workspace for rate limit coordination, which is pivotal in preserving customer service level agreements.
+
+Self-Managed Flex Gateway can be installed in either of these two modes:
+
+* <<connected_mode,Self-Managed Flex Gateway in Connected Mode>>
+* <<local_mode,Self-Managed Flex Gateway in Local Mode>>
 
 [[connected_mode]]
-=== Connected Mode
+=== Self-Managed Flex Gateway in Connected Mode
 In Connected Mode, the gateway is fully connected to the MuleSoft control plane. This connection allows for centralized management, observability, and security. Anypoint API Manager enables full API lifecycle management and policy configuration. Anypoint Runtime Manager enables you to deploy and configure your gateway.
 
 Choose Connected Mode for a UI-based experience to deploy policies, and for managing and monitoring the gateway.
 
 [[local_mode]]
-=== Local Mode
+=== Self-Managed Flex Gateway in Local Mode
 
 You can also configure and manage a standalone gateway that is mostly disconnected from the control plane. Choose Local Mode for this experience.
 
@@ -104,9 +120,15 @@ The following table summarizes the differences between Connected Mode and Local 
 
 |===
 
-== Installation Options
+== Deployment and Installation Options
 
-You can install Flex Gateway in a variety of ways:
+=== Managed Deployment Options
+
+You can deploy Managed Flex Gateway on CloudHub 2.0 using Runtime Manager. For details see xref:flex-gateway-managed-set-up.adoc[].
+
+=== Self-Managed Installation Options
+
+You can install Self-Managed Flex Gateway in a variety of ways:
 
 * A standalone runtime in a Docker container deployed on Heroku from Salesforce
 +
