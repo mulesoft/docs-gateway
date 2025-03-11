@@ -3,16 +3,18 @@
 [%autowidth.spread,cols="a,a"]
 |===
 >s| Policy name | Circuit Breaker
->s| Summary      | Prevents an API from making outbound requests to an unresponsive or failing service.
+>s| Summary | Prevents an upstream from receiving too many requests or connection
 >s| Category | Quality of Service
->s| First Flex Gateway version available | v1.2.0
+>s| First Flex Gateway version available | v1.9.0
 .4+>.^s| Returned Status Codes
 |503 - Service Unavailable
 |===
 
 == Summary
 
-The Circuit Breaker policy helps prevent an API from making outbound requests to an unresponsive or failing service. By monitoring response failures, this policy automatically blocks requests to the failing service for a defined period, preventing unnecessary load on both the API and the backend service.
+The Circuit Breaker policy helps prevent an upstream service from receiving too many requests or connections at a time. If any defined maximums are reached, Flex Gateway rejects the request or connection with a `503 - Service Unavailable` error code.
+
+For Managed Flex Gateways or Connected Mode, if different API instances request the same upstream, the limits are independent, so each API instance can use a full maximum. For Local Mode, the limits are not independent, so different API instances share the maximums for an upstream. For all modes, maximums are not distributed across replicas, so each Gateway can use can use a full maximum.
 
 The Circuit Breaker policy is an extension of the Envoy upstream clusters circuit breaking feature. To learn more about the Envoy's circuit breaking, see https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/circuit_breaking.html[Circuit Breaking].
 
@@ -42,7 +44,7 @@ spec:
       maxConnectionPools: <number> // OPTIONAL
 ----
 
-<number> // OPTIONAL
+NOTE: For Local Mode, the limits are not independent, so different API instances share the maximums for an upstream.
 
 [%header%autowidth.spread,cols="a,a,a"]
 |===
@@ -51,23 +53,23 @@ spec:
 
 | `maximumConnections`
 | Optional
-| Maximum number of connections to all hosts in an upstream.
+| Maximum number of connections per API to an upstream.
 
 | `maximumPendingRequests`
 | Optional
-| The maximum number of requests that can be queued while waiting for a connection.
+| Maximum number of queued requests while waiting for a connection.
 
 | `maximumRequests`
 | Optional
-| The maximum number of requests that can be outstanding to all hosts in a cluster.
+| Maximum number of outstanding requests to an upstream.
 
-| `maximumretries`
+| `maximumRetries`
 | Optional
-| The maximum number of retries in a cluster.
+| Maximum number of outstanding retries.
 
 | `maximumConnectionPools`
 | Optional
-| The maximum number of connection pools that can be concurrently initiated.
+| Maximum number of connection pools concurrently initiated to an upstream.
 
 |===
 
@@ -101,36 +103,26 @@ When you apply the Rate Limiting policy to your API from the UI, you can configu
 |===
 |Parameter | Required or Optional | Description
 
-| Maximum Connections
+| Maximum connections
 | Optional
-| Maximum number of connections to all hosts in an upstream.
+| Maximum number of connections per API to an upstream.
 
-| Maximum Pending Requests
+| Maximum pending requests
 | Optional
-| The maximum number of requests than can be queued while waiting for a connection.
+| Maximum number of queued requests while waiting for a connection.
 
-| Maximum Requests
+| Maximum requests
 | Optional
-| The maximum number of requests that can be outstanding to all hosts in a cluster.
+| Maximum number of outstanding requests to an upstream.
 
-| Maximum Retries
+| Maximum retries
 | Optional
-| The maximum number of retries in a cluster.
+| Maximum number of outstanding retries.
 
-| Maximum Connection Pools
+| Maximum connection pools
 | Optional
-| The maximum number of connection pools that can be concurrently initiated.
+| Maximum number of connection pools concurrently initiated to an upstream.
 
 |===
 
-== How This Policy Works
-
-The Circuit Breaker policy monitors outbound requests and tracks failures. If the number of failures exceeds the defined threshold within the sliding window, the circuit breaker is triggered, and all further requests are blocked. After the reset timeout period, the circuit breaker enters a half-open state, allowing limited requests to test if the backend has recovered.
-
-To understand how the Circuit Breaker policy works, consider an example where it is configured to trigger after 5 failed requests and reset after 10 seconds:
-
-In this scenario:
-. The first 5 failures cause the circuit breaker to open, blocking all outbound requests.
-. The system waits for the reset timeout before allowing test requests.
-. If the test requests succeed, the circuit breaker resets and normal operation resumes.
-. If failures persist, the circuit breaker remains open and blocks further requests.
+NOTE: For Managed Flex Gateways or Connected Mode, if different API instances request the same upstream, the limits are independent, so each API instance can use a full maximum.
