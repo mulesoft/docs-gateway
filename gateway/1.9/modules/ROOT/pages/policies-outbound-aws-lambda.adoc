@@ -20,17 +20,22 @@ The AWS Lambda policy is an extension of the AWS Lambda filter native to Envoy. 
 
 === Flex Gateway Local Mode
 
-In Local Mode, you apply the Rate Limiting policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
+In Local Mode, you apply the AWS Lambda policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
 
+[source, yaml]
 ----
 - policyRef:
-    name: circuit-breaker-flex
+    name: native-aws-lambda
   config:
-      - maximumConnections: <int> // OPTIONAL
-        maximumPendingRequests: <int> // OPTIONAL
-        maximumRequests: <int> // OPTIONAL
-        maximumRetries: <int> // OPTIONAL, 
-        maximumConnectionPools: <int> // OPTIONAL
+      arn: <string> // REQUIRED
+      payloadPassthrough: <boolean> // REQUIRED
+      invocationMode: <string> // REQUIRED
+      authenticationMode: <string> // REQUIRED
+      credantialProfile: <string> // OPTIONAL
+      credentials:
+        accessKeyId: <string> // OPTIONAL
+        secretAccessKey: <string> // OPTIONAL
+        sessionToken: <string> // OPTIONAL
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -40,7 +45,7 @@ In Local Mode, you apply the Rate Limiting policy to your API via declarative co
 | `arn`
 | Required
 | N/A
-| 
+| AWS Lambda ARN in this format: `arn:&lt;partition&gt;:lambda:&lt;region&gt;:&lt;account-number&gt;:function:&lt;function-name&gt;`.
 
 | `payloadPassthrough`
 | Required
@@ -50,22 +55,22 @@ In Local Mode, you apply the Rate Limiting policy to your API via declarative co
 | `invocationMode`
 | Required
 | sync
-| The way to invoke the Lambda function, either `sync` or `async`
-.
+| The way to invoke the Lambda function, either `sync` or `async`. For `sync`, Flex Gateway awaits the AWS response. For `async`, Flex Gateway doesn't wait for the response from AWS.
+
 | `authenticationMode`
 | Required
 | N/A
-| The origin of credentials
+| Determines the mode of authentication. Options are: `default`, uses in order credential AWS environment variables, AWS credential file, AWS roles;  `profile`, profile from AWS credential file; `static`, credentials configured in the policy.
 
 | `credantialProfile`
 | Optional
 | N/A
-| 
+| Specifies the credential `profile`. Only for `profile` authentication mode.
 
 | `credentials`
 | Optional
 | N/A
-| Only configure if using `static` credentials.
+| Configures the `static` credentials object. Only for `static` authentication mode.
 
 | `credentials.accessKeyId`
 | Required
@@ -89,15 +94,19 @@ In Local Mode, you apply the Rate Limiting policy to your API via declarative co
 
 The following example defines a rate limit of three requests every six seconds:
 
+[source, yaml]
 ----
 - policyRef:
-    name: circuit-breaker-flex
+    name: native-aws-lambda
   config:
-      - maximumConnections: 5 
-        maximumPendingRequests: 3
-        maximumRequests: 4
-        maximumRetries: 1
-        maximumConnectionPools: 1
+      arn: rn:&lt;partition&gt;:lambda:&lt;region&gt;:&lt;account-number&gt;:function:&lt;function-name&gt;
+      payloadPassthrough: true
+      invocationMode: sync
+      authenticationMode: static
+      credentials:
+        accessKeyId: id
+        secretAccessKey: secret
+        sessionToken: token
 ----
 
 
@@ -111,34 +120,43 @@ When you apply the Rate Limiting policy to your API from the UI, you can configu
 |Parameter | Required or Optional | Description
 
 
-| Maximum Connections
-| Optional
-| Maximum number of connections to all hosts in an upstream.
+| The ARN of the AWS Lambda
+| Required
+| AWS Lambda ARN in this format: `arn:&lt;partition&gt;:lambda:&lt;region&gt;:&lt;account-number&gt;:function:&lt;function-name&gt;`.
 
-| Maximum Pending Requests
-| Optional
-| The maximum number of requests queued while waiting for a connection.
+| Payload passthrough
+| Required
+| By default, Flex sends the request to the AWS Lambda function wrapped in JSON. When enabled, the request is sent as is.
 
-| Maximum Requests
+| Determines the way to invoke the Lambda function
+| Required
+| The way to invoke the Lambda function. For *Sync*, Flex Gateway awaits the AWS response. For *Async*, Flex Gateway doesn't wait for the response from AWS.
+
+| Determines origin of credentials
+| Required
+| Determines the mode of authentication. Options are: *Default*, uses in order credential AWS environment variables, AWS credential file, AWS roles; *Profile*, profile from AWS credential file; *Static*, credentials configured in the policy.
+
+| Credentials profile
 | Optional
-| The maximum number of requests that can be outstanding to all hosts in a cluster.
-| Maximum Retries
+| Specifies the credential profile. Only for *Profile* authentication mode.
+
+| Credentials
 | Optional
-| The maximum number of retries in a cluster.
-| Maximum Connection Pools
+| Configures the static credentials. Only for *Static* authentication mode.
+
+| AccessKeyId
+| Required
+| AWS access key ID
+
+| SecretAccessKey
+| Required
+| AWS access key
+
+| SessionToken
 | Optional
-| The maximum number of connection pools that can be concurrently initiated.
+| Session token
 
 |===
 
 == How This Policy Works
 
-The Circuit Breaker policy monitors outbound requests and tracks failures. If the number of failures exceeds the defined threshold within the sliding window, the circuit breaker is triggered, and all further requests are blocked. After the reset timeout period, the circuit breaker enters a half-open state, allowing limited requests to test if the backend has recovered.
-
-To understand how the Circuit Breaker policy works, consider an example where it is configured to trigger after 5 failed requests and reset after 10 seconds:
-
-In this scenario:
-. The first 5 failures cause the circuit breaker to open, blocking all outbound requests.
-. The system waits for the reset timeout before allowing test requests.
-. If the test requests succeed, the circuit breaker resets and normal operation resumes.
-. If failures persist, the circuit breaker remains open and blocks further requests.
