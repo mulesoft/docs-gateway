@@ -8,7 +8,7 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | Stream Idle Timeout
->s|Summary  | Sets a maximum amount of a time a stream can remain idle without receiving a request or response
+>s|Summary  | Sets a maximum duration stream can remain idle without receiving a request or response
 >s|Category | Quality of Service
 >s|First Flex Gateway version available | v1.9.0
 ^s| Returned Status Codes | 504 - Stream timeout
@@ -16,7 +16,7 @@ endif::[]
 
 == Summary
 
-The Stream Idle Timeout policy enables you to set a maximum amount of a time a stream can remain idle without receiving any data in either direction either the inbound (client to Flex Gateway) or outbound (Flex Gateway to upstream service) direction. This policy prevents idle connections from consuming resources. The timeout time starts at the last request or response received be Flex Gateway. 
+The Stream Idle Timeout policy enables sets a maximum duration a stream can remain idle without receiving any data in either direction either the inbound (client to Flex Gateway) or outbound (Flex Gateway to upstream service) direction. This policy prevents idle connections from consuming resources unnecessarily. The timeout time starts at the last activity (request or response) on the stream. 
 
 By default, all Flex Gateway API instances have a stream timeout of 300 seconds. Apply the policy overrides this default.
 
@@ -28,7 +28,7 @@ In Flex Gateway Local Mode, you apply the policy to your API via declarative con
 
 ----
 - policyRef:
-    name: stream-idle-timeout
+    name: stream-idle-timeout-flex
   config:
     timeout: number // REQUIRED
 ----
@@ -48,7 +48,7 @@ In Flex Gateway Local Mode, you apply the policy to your API via declarative con
 
 ----
 - policyRef:
-    name: stream-idle-timeout
+    name: stream-idle-timeout-flex
   config:
     timeout: 3
 ----
