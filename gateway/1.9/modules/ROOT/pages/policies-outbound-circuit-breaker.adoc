@@ -3,7 +3,7 @@
 [%autowidth.spread,cols="a,a"]
 |===
 >s| Policy name | Circuit Breaker
->s| Summary | Prevents an upstream from receiving too many requests or connection
+>s| Summary | Prevents an upstream from receiving too many requests or connections
 >s| Category | Quality of Service
 >s| First Flex Gateway version available | v1.9.0
 .4+>.^s| Returned Status Codes
@@ -12,11 +12,11 @@
 
 == Summary
 
-The Circuit Breaker policy helps prevent an upstream service from receiving too many requests or connections at a time. If any defined maximums are reached, Flex Gateway rejects the request or connection with a `503 - Service Unavailable` error code.
+The Circuit Breaker policy prevents upstream services from receiving too many requests or connections at a time. If the defined maximums are reached, Flex Gateway returns a `503 - Service Unavailable` error.
 
-For Managed Flex Gateways or Connected Mode, if different API instances request the same upstream, the limits are independent, so each API instance can use a full maximum. For Local Mode, the limits are not independent, so different API instances share the maximums for an upstream. For all modes, maximums are not distributed across replicas, so each Gateway can use can use a full maximum.
+For Managed Flex Gateways or Connected Mode, each API instance has its own independent limit when requesting the same upstream, allowing each to use the full maximum. In Local Mode, the limits are shared among different API instances, so they must all adhere to the same upstream maximum. For all modes, maximums are not distributed across replicas; each Gateway can use the full maximum.
 
-The Circuit Breaker policy is an extension of the Envoy upstream clusters circuit breaking feature. To learn more about the Envoy's circuit breaking, see https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/circuit_breaking.html[Circuit Breaking].
+The Circuit Breaker policy is an extension of the Envoy upstream clusters circuit breaking feature. To learn more about the Envoy's circuit breaking, see https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/circuit_breaking.html[Circuit Breaking] in the Envoy documentation.
 
 == Configuring Policy Parameters
 
@@ -75,7 +75,7 @@ NOTE: For Local Mode, the limits are not independent, so different API instances
 
 ==== Resource Configuration Example
 
-The following example defines a  of three requests every six seconds:
+This example defines a policy of three requests every six seconds:
 
 ----
 apiVersion: gateway.mulesoft.com/v1beta1  
@@ -125,4 +125,4 @@ When you apply the Rate Limiting policy to your API from the UI, you can configu
 
 |===
 
-NOTE: For Managed Flex Gateways or Connected Mode, if different API instances request the same upstream, the limits are independent, so each API instance can use a full maximum.
+NOTE: For Managed Flex Gateways or Connected Mode, each API instance has its own independent limit when requesting the same upstream, allowing each to use the full maximum.
