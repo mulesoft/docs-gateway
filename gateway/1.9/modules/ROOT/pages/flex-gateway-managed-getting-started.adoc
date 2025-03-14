@@ -25,23 +25,22 @@ Before getting started with Flex Gateway, ensure that you have:
 . Enter a *Gateway name*.
 . Select a your private space as your *Deployment target*.
 . Click *Advanced options*.
-. Copy and save the Managed Flex Gateway public endpoint for later testing. This is the http or https URL that appears in the *Public endpoint* UI block. 
+. Copy and save the Managed Flex Gateway public endpoint for later testing. This is the http or https URL that appears in the *Public endpoint* UI block, for example, `https://my-gateway-abc123.edf456.us-east1.anypoint.mulesoft.com/`.
 . Click *Save & deploy*.
 +
-The UI returns to the *Managed Flex Gateway* page.
-. In the list of Managed Gateways, find your new gateway and wait until its status is *Running*.
+The UI returns to the dashboard of your new Managed Flex Gateway.
+. Wait until your gateway's *Status* is *Running*.
 
 == Publish a Simple API
 
-. Select *API Manager* from the Anypoint Platform menu.
-. Click *Add API*, followed by *Add new API*.
+. From your Managed Gateway's dashboard, click *Add API instance*.
 . From the *Add API* page, select *Flex Gateway* as your runtime.
 . Select your deployed Managed Flex Gateway in the *Select a gateway* section.
 . Click *Next*.
 . Click *Create New API*.
 . Specify an API name and select *HTTP API* as the asset type.
 . Click *Next*.
-. From the *Downstream* page:
+. Don't configure any downstream options.
 . Click *Next*.
 . From the *Upstream* page:
 .. Enter the following in the *Upsream URL* field:
@@ -60,7 +59,7 @@ All HTTP requests made to the public endpoint are now proxied to the `jsonplaceh
 +
 [source,ssh]
 ----
-curl -s -o /dev/null -w "%{http_code}\n" --request GET 'https://<publicEndpoint>'
+curl -s -o /dev/null -w "%{http_code}\n" --request GET '<publicEndpoint>'
 ----
 +
 The command executes a `GET` request to the API, and then prints the resulting `200` status code, indicating success.
@@ -70,7 +69,7 @@ The command executes a `GET` request to the API, and then prints the resulting `
 == Secure Your API Using the Basic Authentication Policy
 
 . From the *API Summary* page, select *Policies* from the side navigation panel.
-. In the *Policies* page, click *Add policy*.
+. In the *Policies* page, click *Add inbound policy*.
 . Select the *Basic Authentication - Simple* policy.
 . Click *Next*.
 . For *User Name*, enter `user`.
@@ -81,7 +80,7 @@ The command executes a `GET` request to the API, and then prints the resulting `
 +
 [source,ssh]
 ----
-curl -s -o /dev/null -w "%{http_code}\n" --request GET 'https://<publicEndpoint>'
+curl -s -o /dev/null -w "%{http_code}\n" --request GET '<publicEndpoint>'
 ----
 +
 The command prints a resulting `401 (Unauthorized)` status code, because the request does not include the Authentication context.
@@ -89,7 +88,7 @@ The command prints a resulting `401 (Unauthorized)` status code, because the req
 +
 [source,ssh]
 ----
-curl -s -o /dev/null -w "%{http_code}\n" --request GET 'https://<publicEndpoint>' -u user:password
+curl -s -o /dev/null -w "%{http_code}\n" --request GET '<publicEndpoint>' -u user:password
 ----
 +
 [NOTE]
