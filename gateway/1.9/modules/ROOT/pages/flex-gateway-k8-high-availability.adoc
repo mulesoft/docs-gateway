@@ -1,0 +1,245 @@
+= Autoscale and Add Flex Gateway Replicas to a Namespace
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+For high availability (HA) environments, horizontal scaling distributes load across multiple Flex Gateway instances. By default, the Helm chart for Flex Gateway is configured with one replica. To release more Flex Gateway replicas into a namespace, provide one of the following configurations:
+
+* <<replica-count, Set a replica count>>: Set a fixed number of Flex Gateway replicas to create.
+* <<autoscale, Configure autoscaling>>: Generate replicas automatically based on CPU, memory, and other settings. 
+
+//how to view helm chart defaults:
+include::partial$reference-k8-general.adoc[tags=flex-k8-helm-chart-info]
+
+== Before You Begin
+
+Ensure that the following prerequisites are in place:
+
+* A Flex Gateway deployment or a registered Flex Gateway instance (gateway)
++
+For gateway registration and deployment processes, see xref:flex-gateway-set-up.adoc[] or xref:flex-gateway-k8-getting-started.adoc[]. 
+
+* A Kubernetes cluster for your Flex Gateway deployment
+
+[[replica-count]]
+== Set a Replica Count
+
+Configure and verify the number of replicas that you require. Note that new replicas replace existing replicas. If a newer version of Flex Gateway is available, the command replaces your older replica versions with the latest version. 
+
+The steps to take depend on whether a Helm chart is installed. 
+
+. If a Helm chart for your namespace is installed, run the following command:
++
+.Syntax:
+----
+helm -n <namespace> upgrade \
+<release-name> <helm-repository-name>/<helm-chart-name> \
+--reuse-values \
+--set replicaCount=<number of replicas>
+----
++
+.Example:
+[source,helm]
+----
+helm -n gateway upgrade \
+ingress flex-gateway/flex-gateway \
+--reuse-values \
+--set replicaCount=2
+----
++
+When successful, the command prints output similar to this example: 
++
+----
+Release "ingress" has been upgraded. Happy Helming!
+NAME: ingress
+LAST DEPLOYED: Mon Apr 17 15:00:09 2023
+NAMESPACE: gateway
+STATUS: deployed
+REVISION: 27
+TEST SUITE: None
+----
+
+. If the Helm chart is not installed, run the following command:
++
+.Syntax:
+----
+helm -n <namespace> \
+upgrade -i --create-namespace \
+<release-name> <helm-repository-name>/<helm-chart-name> \
+--set-file registration.content=<registration file> \
+--set replicaCount=<number of replicas>
+----
++
+.Example:
+[source,helm]
+----
+helm -n gateway \
+upgrade -i --create-namespace \
+ingress flex-gateway/flex-gateway \
+--set-file registration.content=registration.yaml \
+--set replicaCount=2
+----
++
+When successful, the command prints output similar to this example: 
++
+----
+Release "ingress" does not exist. Installing it now.
+NAME: ingress
+LAST DEPLOYED: Mon Apr 17 15:32:50 2023
+NAMESPACE: gateway
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+----
+
+. Verify creation of the replicas by running the following command:
++
+.Syntax:
+----
+kubectl get rs -n <namespace>
+----
++
+.Example:
+----
+kubectl get rs -n gateway
+----
++
+When successful, the command prints output similar to this example: 
++
+----
+NAME                  DESIRED   CURRENT   READY   AGE
+ingress-5b7474b8f6    2         2         2       70s
+----
+
+[[autoscale]]
+== Configure Autoscaling
+
+Horizontal Pod autoscaling generates Flex Gateway replicas automatically based on CPU, memory, and other target and behavioral settings. For descriptions of these settings, see <<autoscaling-parameters>>. 
+
+[[autoscaling-config]]
+=== Update Your Helm Chart with an Autoscaling Configuration
+
+To update your Helm chart with autoscaling parameters:
+
+. Create a YAML file with your autoscaling configuration, modifying the settings to meet your requirements.
++
+.Example:
+[source,yaml]
+----
+autoscaling:
+  enabled: true
+----
++
+NOTE: This configuration file is the minimum autoscaling configuration. To configure autoscaling with more detail, see <<autoscaling-parameters>>.
+
+. If a Helm chart for your namespace is installed, run the following command to apply your autoscaling configuration:
++
+.Syntax:
+----
+helm -n <namespace> upgrade \
+<release-name> <helm-repository-name>/<helm-chart-name> \
+--reuse-values \
+-f <your-autoscaling-configuration-yaml>
+----
++
+.Example:
+[source,helm]
+----
+helm -n gateway upgrade \
+ingress flex-gateway/flex-gateway \
+--reuse-values \
+-f autoscaling.yaml
+----
++
+When successful, the command prints output similar to this example: 
++
+----
+Release "ingress" has been upgraded. Happy Helming!
+NAME: ingress
+LAST DEPLOYED: Tue Apr 18 15:46:38 2023
+NAMESPACE: gateway
+STATUS: deployed
+REVISION: 33
+TEST SUITE: None
+----
+
+. If the Helm chart is not installed, run the following command to apply the your autoscaling configuration:
++
+.Syntax:
+----
+helm -n <namespace> \
+upgrade -i --create-namespace \
+<release-name> <helm-repository-name>/<helm-chart-name> \
+--set-file registration.content=<registration file> \
+-f <your-autoscaling-configuration-yaml>
+----
++
+.Example:
+[source,helm]
+----
+helm -n gateway \
+upgrade -i --create-namespace \
+ingress flex-gateway/flex-gateway \
+--set-file registration.content=registration.yaml \
+-f autoscaling.yaml
+----
++
+When successful, the command prints output similar to this example: 
++
+----
+NAME: ingress
+LAST DEPLOYED: Tue Apr 18 15:50:29 2023
+NAMESPACE: gateway
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+----
+
+. Verify your autoscaling configuration by running the following command:
++
+.Syntax:
+[source, kubectl]
+----
+kubectl get hpa -n <namespace>
+----
++
+.Example:
+[source, kubectl]
+----
+kubectl get hpa -n gateway
+----
++
+The command prints output similar to this example: 
++
+----
+NAME     REFERENCE           TARGETS          MINPODS  MAXPODS  REPLICAS  AGE
+ingress  Deployment/ingress  66%/50%, 5%/50%  2        11       2         59s
+----
+//TODO: TIME PERMITTING, IT WOULD BE GOOD TO ADD SOME TROUBLESHOOTING INFO
+
+[[autoscaling-parameters]]
+=== Autoscaling Parameters
+
+To use autoscaling, enable Horizontal Pod Autoscaler (HPA), and configure other Helm chart settings to define autoscaling behavior.
+
+[%header,cols="1a,2a"]
+|===
+| Parameter | Description
+| `autoscaling.enabled` | Boolean that indicates whether the Horizontal Pod Autoscaler (HPA) is enabled. Defaults to `false`.
+| `autoscaling.minReplicas` | The minimum number of replicas that the HPA scaler is allowed to create. Defaults to `2`.
+| `autoscaling.maxReplicas` | The maximum number of replicas that the HPA scaler is allowed to create. Defaults to `11`.
+| `autoscaling.targetCPUUtilizationPercentage` | A resource metric that sets the average CPU usage percentage of all deployed Pods. Defaults to `50`.
+| `autoscaling.targetMemoryUtilizationPercentage` | A string representing the average memory usage percentage of all deployed Pods. Defaults to `nil`.
+| `autoscaling.behavior` | A setting that supports the `HorizontalPodAutoscaler` (HPA) object in Kubernetes. HPA settings control autoscaling behavior, such as the number of application resources based on the rate of change to the workload. 
+| `autoscaling.behavior.scaleUp`, `autoscaling.behavior.scaleDown` | Settings for autoscaling behavior when the HPA scaler increases (`scaleUp`) or decreases (`scaleDown`) the number of replicas. Define scaling behavior with nested parameters: 
+
+* `selectPolicy`: If a metric of configured resources indicates that scaling is required, this setting determines when to scale Pods. This setting is necessary because Pods can contain different numbers of replicas. Valid values are `Disabled`, `Min`, and `Max`. Defaults to `Max`. The `Min` and `Max` values indicate whether to scale Pods with the lowest (`Min`) or highest (`Max`) number of replicas.
+* `stabilizationWindowSeconds`: The minimum number of seconds to wait to rescale an application after a change to the workload. The goal is to prevent an overly aggressive or unstable response by HPA when scaling too frequently. 
+* `policies`: A list of policies that determine scaling behavior:
+** `type`: The type of value for a given policy, 'Percent' or 'Pods'.
+** `value`: The value of the type for a given policy.
+** `periodSeconds`: The number of seconds between scaling operations for a given policy.
+|===
+
+For more information about autoscaling, see the https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/[Kubernetes documentation^].

@@ -1,0 +1,144 @@
+= JSON Threat Protection Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: json threat protection, api gateway, flex gateway, gateway, policy
+:page-aliases: api-manager::apply-configure-json-threat-task.adoc, policies::policies-included-json-threat-protection.adoc
+
+[width="100%", cols="5,15"]
+|===
+>s|Policy Name| JSON Threat Protection
+>s|Summary| Protects against malicious JSON in API requests
+>s|Category| Security
+>s|First Flex Gateway version available | v1.4.0
+>s|Returned Status Codes| 400 - Bad Request
+|===
+
+== Summary
+
+Applications processing JSON requests are susceptible to attacks characterized by unusual inflation of elements and nesting levels. Attackers use recursive techniques to consume memory resources. Dramatic swings in the size of the application data often signal a security problem. The JSON Threat Protection policy helps protect your applications from such intrusions.
+
+If you find that attacks on your Anypoint Platform setup are difficult to detect, design your services architecture with layers of protection in addition to JSON Threat Protection.
+
+== Configuring Policy Parameters
+
+=== Flex Gateway Local Mode
+
+In Local Mode, you apply the JSON Threat Protection policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
+
+----
+- policyRef:
+    name: json-threat-protection-flex
+  config:
+    maxContainerDepth: <int> // OPTIONAL
+    maxObjectEntryCount: <int> // OPTIONAL
+    maxObjectEntryNameLength: <int> // OPTIONAL
+    maxArrayElementCount: <int> // OPTIONAL
+    maxStringValueLength: <int> // OPTIONAL
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+
+|Parameter | Required or Optional | Default Value | Description
+
+| `maxContainerDepth`
+| Optional
+| -1
+| Specifies the maximum nested depth. JSON allows you to nest the containers (object and array) in any order to any depth. Specifying -1 indicates that the field value has no limits.
+
+| `maxObjectEntryCount`
+| Optional
+| -1
+| Specifies the maximum string length of an object's entry name. Specifying -1 indicates that the field value has no limits.
+
+| `maxObjectEntryNameLength`
+| Optional
+| -1
+| Specifies the maximum number of entries in an object. Specifying -1 indicates that the field value has no limits.
+
+| `maxArrayElementCount`
+| Optional
+| -1
+| Specifies the maximum number of elements in an array. Specifying -1 indicates that the field value has no limits.
+
+| `maxStringValueLength`
+| Optional
+| -1
+| Specifies the maximum string value length. Specifying -1 indicates that the field value has no limits.
+
+|===
+
+==== Resource Configuration Example
+
+[source,yaml]
+----
+- policyRef:
+    name: json-threat-protection-flex
+  config:
+    maxContainerDepth: 10
+    maxObjectEntryCount: 10000
+    maxObjectEntryNameLength: 80
+    maxArrayElementCount: 10000
+    maxStringValueLength: 255
+----
+
+=== Flex Gateway Connected Mode
+
+When you apply the JSON Threat Protection policy to your API from the UI, the following parameters are displayed:
+
+[width="100%", cols="2,6,1,1"]
+|===
+s|Field s|Description s|Default s|Required
+|Maximum Container Depth|Specifies the maximum nested depth. JSON allows you to nest the containers (object and array) in any order to any depth ^|-1 ^|false
+|Maximum String Value Length|Specifies the maximum length of a string value ^|-1 ^|false
+|Maximum Object Entry Name Length|Specifies the maximum string length of an object's entry name ^|-1 ^|false
+|Maximum Object Entry Count|Specifies the maximum number of entries in an object ^|-1 ^|false
+|Maximum Array Element Count|Specifies the maximum number of elements in an array ^|-1 ^|false
+|===
+
+[NOTE]
+====
+A value of -1 indicates that the field value has no limits.
+====
+
+== Payload Example
+
+If your payload contains the following example JSON:
+
+----
+{
+   "Players":[
+      {
+         "Name":"Sachin",
+         "Email":"sachin.tendulkar@example.com"
+      },
+      {
+         "Name":"Suryakumar",
+         "email":"Surya@example.com"
+      },
+      {   "Name":"Bhuvi",
+          "email":"bhuvi@example.com"
+      },
+      {
+         "Name":"Jonty",
+         "Email":"jonty@example.com"
+      }
+   ]
+}
+----
+
+The policy defines the example parameter values as follows:
+
+[%header%autowidth.spread]
+|===
+|Parameter |Value |Explanation
+
+|Maximum Container Depth |3 |The depth of the `Name` and `Email` entries
+|Maximum String Value Length |28 |The length of `sachin.tendulkar@example.com`
+|Maximum Object Entry Name Length |7 |The length of the `Players` object entry name
+|Maximum Object Entry Count |2 | The number of entries in each `Players` object
+|Maximum Array Element Count |4 | The number of elements in the `Players` array
+|===
+

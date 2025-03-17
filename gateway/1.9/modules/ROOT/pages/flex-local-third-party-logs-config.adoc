@@ -1,0 +1,52 @@
+= Configuring External Logs for Flex Gateway in Local Mode
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:page-mode: local
+:page-aliases: gateway::flex-local-view-manage-logs.adoc
+
+include::partial$task-config-logs-third-party.adoc[tags=intro1;intro2-local]
+
+include::partial$task-config-logs-third-party.adoc[tags=icon-table]
+
+include::partial$task-config-logs-third-party.adoc[tags=byb]
+
+include::partial$task-config-logs-third-party.adoc[tags=runtime-access-logs]
+
+include::partial$task-config-logs-third-party.adoc[tags=file-example]
+
+include::partial$task-config-logs-third-party.adoc[tags=linux;view-logs-local;configure-message-logging-step]
+
+include::partial$task-config-logs-third-party.adoc[tags=docker]
++
+include::partial$task-reg-run-flex-gateway.adoc[tags=start-command-local]
++
+include::partial$task-config-logs-third-party.adoc[tags=docker2;view-logs-local;configure-message-logging-step]
+
+include::partial$task-config-logs-third-party.adoc[tags=k8s;view-logs-local;configure-message-logging-step]
+
+include::partial$task-config-logs-third-party.adoc[tags=file-configuration-example]
+
+include::partial$task-config-logs-third-party.adoc[tags=http-configuration-example]
+
+include::partial$task-config-logs-third-party.adoc[tags=splunk-configuration-example]
+
+include::partial$task-config-logs-third-party.adoc[tags=dynatrace-configuration-example]
+
+[[configure-access-logs]]
+== Configure Access Logs
+To configure access logs in your log output, you must apply a Message Logging policy to the APIs whose request and response data you want to monitor. If you have previously applied a Message Logging policy to an API instance, you do not need to configure another. 
+
+Configuring a Message Logging policy makes access logs visible in both standard output logs and your third-party log services.
+
+To apply a Message Logging policy, see xref:policies-included-apply.adoc[] and use the xref:gateway::policies-included-message-logging.adoc[Message Logging Configuration Parameters].
+
+If your access logs are not visible, it is possible that a policy with a higher execution order is causing an error before the Message Logging policy can execute. To reorder policy execution, see xref:policies-reorder.adoc[].
+
+include::partial$task-config-logs-third-party.adoc[tags=log-output-examples]
+
+
+== See Also
+
+* xref:policies-included-message-logging.adoc[]

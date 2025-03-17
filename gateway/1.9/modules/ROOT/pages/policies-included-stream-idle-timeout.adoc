@@ -1,0 +1,65 @@
+= Stream Idle Timeout Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: basic authentication, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Stream Idle Timeout
+>s|Summary  | Sets the maximum duration a stream can remain idle without receiving a request or response
+>s|Category | Quality of Service
+>s|First Flex Gateway version available | v1.9.0
+^s| Returned Status Codes | 504 - Stream timeout
+|===
+
+== Summary
+
+The Stream Idle Timeout policy sets a maximum duration for which a stream can remain idle without receiving any data, either inbound from the client to Flex Gateway or outbound from Flex Gateway to the upstream service. The policy prevents idle connections from consuming resources unnecessarily. The timeout period starts at the last activity on the stream, whether the activity is a request or a response. 
+
+By default, all Flex Gateway API instances have a stream timeout of 300 seconds. Apply the policy to override the default timeout.
+
+== Configuring Policy Parameters
+
+=== Flex Gateway Local Mode
+
+In Flex Gateway Local Mode, you apply the policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
+
+----
+- policyRef:
+    name: stream-idle-timeout-flex
+  config:
+    timeout: number // REQUIRED
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `timeout`
+| Required
+| 300
+| Time in seconds before Flex Gateway closes the connection.
+
+|===
+
+==== Resource Configuration Example
+
+----
+- policyRef:
+    name: stream-idle-timeout-flex
+  config:
+    timeout: 3
+----
+
+=== Flex Gateway Connected Mode
+
+When you apply the policy to your API from the UI, the following parameters are displayed:
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Description | Required
+| Stream idle timeout | Time in seconds before Flex Gateway closes the connection. | Yes
+|===
+
