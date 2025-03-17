@@ -1,0 +1,254 @@
+= Using CORS Library Functions
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+NOTE: To view an example policy project that uses Flex Gateway Policy Development Kit (PDK)'s Cross-origin resource sharing (CORS) library, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/cors-validation/README.md[CORS Validation Policy Example^].
+
+CORS is a mechanism for web applications to access resources defined in another domain. Browsers support CORS by default. The PDK CORS library complies with the https://fetch.spec.whatwg.org/[CORS W3C recommendation^] standards and provides a set of tools to validate incoming requests and protect resources.
+
+[[cors-configuration]]
+== Define a CORS Configuration Instance
+
+The CORS library is available from the `pdk::cors` module. The module provides the `cors::Configuration`, `cors::OriginGroup`, and `cors::AllowedMethod` structs and their builders to define how to validate incoming requests. For example, the following code snippet defines a function that hardcodes the `cors::Configuration` instance:
+
+[source,Rust]
+----
+use pdk::cors;
+
+fn create_cors_configuration() -> cors:Configuration {
+    cors::Configuration::builder()
+        .public_resource(false)
+        .support_credentials(true)
+        .origin_groups(vec![cors::OriginGroup::builder()
+            .origin_group_name("default group".to_string())
+            .plain_origins(vec!["http://www.the-origin-of-time.com".to_string()])
+            .access_control_max_age(60)
+            .headers(vec![
+                "x-allow-origin".to_string(),
+                "x-yet-another-valid-header".to_string(),
+            ])
+            .exposed_headers(vec!["x-forwarded-for".to_string()])
+            .allowed_methods(vec![
+                cors::AllowedMethod::builder()
+                    .method_name("POST".to_string())
+                    .allowed(true)
+                    .build()
+                    .unwrap(),
+                cors::AllowedMethod::builder()
+                    .method_name("PUT".to_string())
+                    .allowed(true)
+                    .build()
+                    .unwrap(),
+            ])
+            .build()
+            .unwrap()])
+        .build()
+        .unwrap();
+}
+----
+
+[[configuration-methods]]
+=== cors::Configuration Struct Configuration Parameters
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Property | Required or Optional | Default Value | Description
+
+| `origin_groups`
+| Optional
+| Empty `Vec`
+| `Vec` containing groups of origins configurable with `cors::OriginGroup`.
+
+| `public_resource`
+| Optional
+| `false`
+| A boolean indicating if the CORS configuration is applied as a public resource.
+
+| `support_credentials`
+| Optional
+| `false`
+| A boolean indicating if the CORS configuration supports credentials, such as cookies, authorization headers, and TLS client certificates.
+
+|===
+
+[[origin-group-methods]]
+=== cors::OriginGroup Struct Configuration Parameters
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Property | Required or Optional | Default Value | Description
+
+| `plain_origins`
+| Optional
+| Empty `Vec`
+| `Vec` of origins included in the group. For example, `+http://www.the-origin-of-time.com+`.
+
+| `access_control_max_age`
+| Optional
+| 30
+| Duration in seconds to cache a preflight response before sending another preflight request.
+
+| `allowed_methods`
+| Optional
+| Empty `Vec`
+| `Vec` of allowed HTTP methods configurable with `cors::AllowedMethod`.
+
+| `headers`
+| Optional
+| Empty `Vec`
+| `Vec` of HTTP headers for preflight requests.
+
+| `exposed_headers`
+| Optional
+| Empty `Vec`
+| `Vec` of headers that browser JavaScript can access.
+
+|===
+
+[[allowed-methods]]
+=== cors::AllowedMethod Struct Configuration Parameters
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+|Property | Required or Optional | Description
+
+| `method_name`
+| Required
+| Method name.
+
+| `is_allowed`
+| Required
+| A boolean indicating if a method is allowed. Supported values are `CONNECT`, `DELETE`, `GET`, `OPTIONS`, `PATCH`, `POST`, `PUT`, or `TRACE`.
+
+|===
+
+[[applying-cors-to-an-incoming-request]]
+== CORS Validation Methods
+
+The `cors::Cors` struct contains the `check_headers()` method to validate incoming headers against a provided `cors::Configuration` instance. The `cors::Cors::check_headers()` method returns the `Result<cors::Check, cors::CorsError>` struct. The result is `Err` when the CORS validation fails. If the validation passes, the request is `Ok` and you can evaluate the `cors::Check` struct.
+
+=== `cors::Check` Struct Available Methods
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Method | Type | Description
+
+| `response_type()`
+| `cors::ResponseType`
+| Returns an enum containing the type of action needed for the incoming request. For more details about the enum values, see <<enum-response>>.
+
+| `headers()`
+| `&[(String, String)]`
+| A list of headers to add to the response.
+
+| `into_headers()`
+| `Vec<(String, String)>`
+| Consumes the `cors::Check` struct and returns the list of headers to add to the response.
+
+|===
+
+[[enum-response]]
+=== `cors::ResponseType` Enum Response Values
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Value | Description
+
+| `Preflight`
+| The incoming request is a CORS preflight request, and the policy must respond early.
+
+| `Main`
+| The incoming request is a CORS main request, and the request must continue to the upstream.
+|===
+
+
+== Write a CORS Validation Policy
+
+To write a CORS validation policy:
+
+. Define an `#[entrypoint]` function that defines the `cors::Configuration` instance. In the following example, `create_cors_configuration()` is the function defined in the xref:cors-configuration[] example:
++
+[source,rust]
+----
+use pdk::*;
+use pdk::cors;
+
+#[entrypoint]
+async fn configure(launcher: Launcher) -> Result<(), LaunchError> {
+
+    let cors_configuration = create_cors_configuration();
+
+    let filter = on_request(|rs| request_filter(rs, &cors_configuration))
+        .on_response(response_filter);
+
+    launcher.launch(filter).await
+}
+----
+
+. Define a `request_filter()` function to validate the incoming requests by using the CORS validation methods. The `Flow` returned must contain a `Vec<(String, String)>` to pass the headers returned from `cors::Cors::check_headers()` to the `response_filter()`:
++
+[source,rust]
+----
+
+async fn request_filter(
+    request_headers_state: RequestHeadersState,
+    cors_configuration: &cors::Configuration<'_>,
+) -> Flow<Vec<(String, String)>> {
+
+    // Create a new CORS checker.
+    let cors = cors::Cors::new(cors_configuration);
+
+    let request_headers = request_headers_state.handler().headers();
+
+    let cors_result = cors.check(&request_headers);
+
+    match cors_result {
+
+        // The CORS validation was succesful.
+        Ok(cors_check) => match cors_check.response_type() {
+
+            // A CORS preflight fetch was requested, return an early response.
+            cors::ResponseType::Preflight => {
+                Flow::Break(Response::new(200).with_headers(check.into_headers()))
+            }
+
+            // This is a CORS main request, continue and pass the headers to the response.
+            cors::ResponseType::Main => {
+                logger::info!("Main CORS response.");
+                Flow::Continue(check.into_headers())
+            }
+        },
+
+        // The CORS validation failed. The request must be refused.
+        Err(cors_error) => {
+            Flow::Break(Response::new(200))
+        }
+    }
+}
+----
+
+. Define a `response_filter()` function that validates the response by using the CORS validation methods. `RequestData` contains the headers returned by `cors::Cors::check_headers()`:
++
+[source,rust]
+----
+
+async fn response_filter(state: ResponseHeadersState, data: RequestData<Vec<(String, String)>>) {
+
+    // Take the headers to add from the request data.
+    let RequestData::Continue(headers_to_add) = data else {
+        return;
+    };
+
+    // Add the headers to the response
+    for (name, value) in headers_to_add.iter() {
+        state.handler().set_header(name, value);
+    }
+}
+----
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]
+
