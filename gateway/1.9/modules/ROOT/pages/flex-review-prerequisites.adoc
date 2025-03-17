@@ -19,13 +19,13 @@ See xref:access-management::configure-teams.adoc#manage-team-permissions[Manage 
 Your Anypoint Platform Admin can also add a Connected App with the appropriate permissions.
 See xref:access-management::connected-apps-overview.adoc[Connected Apps] for more information.
 
-To register Flex Gateway using a Connected App, the following scopes are required:
+To use Managed Flex Gateway or to register Self-Managed Flex Gateway using a Connected App, the following scopes are required:
 
 * Manage Servers
 * Read Servers
 * View Organization
 
-== Software Requirements
+== Software Requirements for Self-Managed Flex Gateway
 
 Flex Gateway isn't supported on Windows or in Docker running on Windows.
 
@@ -77,7 +77,7 @@ include::partial$prerequisites.adoc[tag=suse-ibm]
 * {empty}
 include::partial$prerequisites.adoc[tag=ubuntu]
 
-Flex Gateway is designed to run in cloud-native architectures. You can therefore only install one gateway instance per Linux VM. Multiple installations on a single VM are not supported.
+Flex Gateway is designed to run in cloud-native architectures. Therefore, multiple installations on a single Linux VM aren't supported. You can install only one gateway instance per Linux VM.
 
 === Software Requirements for Container Deployments
 
@@ -93,14 +93,14 @@ Additionally, Flex Gateway supports the following container orchestration servic
 * Google Cloud Run
 * AWS Fargate
 
-== Hardware Requirements
+== Hardware Requirements for Self-Managed Flex Gateway
 
 A single Flex Gateway can support multiple backend APIs. To support more backend APIs, you can deploy multiple replicas or additional Flex Gateways. For information about sizing, refer to xref:flex-sizing-guide.adoc[].
 
 Flex Gateway requires either an Intel or AMD-64 processor.
 
 [[limits]]
-== Limits
+== Flex Gateway Limits
 
 [%header%autowidth.spread,cols="a,>.<a,a"]
 |===
@@ -108,11 +108,31 @@ Flex Gateway requires either an Intel or AMD-64 processor.
 | Request header | 60 KB | Requests that exceed this limit receive a `431` response.
 | Payload | 1 MB | This limit applies only to buffering the payload (such as logging the payload using message logging). If you're not accessing the payload, the payload size has no limit. + 
 Payloads that exceed this limit receive a 413 response.
-| APIs per gateway instance | {gateway-api-max} | Exceeding this limit isn’t supported but doesn't cause errors.
 | Upstreams per API | 50 | The 50 upstreams is a combination of different routes. +
 To learn more, see xref:api-manager::create-instance-task-flex.adoc#limits[Multiple Upstream Limits].
 | Contracts per API | 1,000 | Exceeding this limit isn’t supported but doesn't cause errors.
 | Contracts per gateway instance | 10,000 | Exceeding this limit isn’t supported and causes no error.
+|===
+
+[[managed-flex-gateway-limits]]
+=== Managed Flex Gateway Limits
+
+[%header%autowidth.spread,cols="a,>.<a,a"]
+|===
+| Limit | Value | Notes
+| APIs per Large Managed Gateway instance | 500 | Exceeding this limit isn’t supported but doesn't cause errors.
+| APIs per Small Managed Gateway instance | 50 | Exceeding this limit isn’t supported but doesn't cause errors.
+| Requests per second for Large Managed Gateway | 500 | 
+| Requests per second for Small Managed Gateway | 100 | 
+|===
+
+=== Self-Managed Flex Gateway Limits
+
+[%header%autowidth.spread,cols="a,>.<a,a"]
+|===
+| Limit | Value | Notes
+| Request header | 60 KB | Requests that exceed this limit receive a `431` response.
+| APIs per Self-Managed Gateway instance | {gateway-api-max} | Exceeding this limit isn’t supported but doesn't cause errors.
 |===
 
 == Ports, IPs, and Hostnames Allowlist Requirements
