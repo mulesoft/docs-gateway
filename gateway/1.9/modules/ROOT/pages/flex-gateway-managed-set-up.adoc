@@ -4,21 +4,19 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-
-Deploy a Managed Flex Gateway to a CloudHub 2.0 private space to launch a completely cloud hosted gateway. Configure the Managed Flex Gateway as an ingress to you private space by exposing a public endpoint, or configure the gateway to only handle internal traffic. You can have one or more Managed Gateway in each environment that the private space is shared with. Gateways can protect any API from the same environment of the gateway or APIs in an external network.
+Deploy a Managed Flex Gateway to a CloudHub 2.0 private space to launch a completely cloud-hosted gateway. Configure the Managed Flex Gateway as an ingress to your private space by exposing a public endpoint, or configure the gateway to only handle internal traffic. You can have one or more Managed Gateways in each environment that the private space is shared with. Gateways can protect any API from the same environment as the gateway or APIs in an external network.
 
 == Before You Begin
 
-Before getting started with Flex Gateway, ensure:
+Before getting started with Flex Gateway:
 
-* The business group you want to deploy your gateway to has Managed Flex Gateway Resources. To redestribute Managed Flex Gateway resources to a business group, see xref:access-management::business-groups.adoc#redistribute-resources[Redistribute Resources Between Existing Business Groups].
-* You have created a private space in CloudHub 2.0 or have access to a private space created by someone else. To create a private space, see xref:cloudhub-2::ps-create-configure.adoc[].
+* Make sure that the business group you want to deploy your gateway to has Managed Flex Gateway Resources. If necessary, you can redistribute Managed Flex Gateway resources to a business group. See xref:access-management::business-groups.adoc#redistribute-resources[Redistribute Resources Between Existing Business Groups].
+* Make sure you have access to a private space in CloudHub 2.0. To create a private space, see xref:cloudhub-2::ps-create-configure.adoc[].
 
 == Deploy a Managed Flex Gateway
 
-. Log in to https://anypoint.mulesoft.com/login/[Anypoint Platform^] with your Anypoint username and password.
-. Select *Runtime Manager*.
-. Ensure you're in environment where you would like to deploy your Managed Gateway
+. From Anypoint Platform, select *Runtime Manager*.
+. Verify that you're using the environment where you want to deploy your Managed Gateway. See xref:runtime-manager::runtime-manager-switch-env[].
 . Click *Flex Gateways* in the side navigation panel.
 . Click *Managed Flex Gateway*.
 . Click *Add Managed Flex Gateway*.
@@ -29,15 +27,15 @@ Before getting started with Flex Gateway, ensure:
 [cols="1a,1a"]
 |===
 | Release channel | Description
-| *Edge* | This channel releases a new minor version every four months. It has the latest features and shorter support windows.
+| *Edge* | This channel releases a new minor version every four months. It has the latest features and a shorter support windows.
 | *Long-Term Support* | This channel releases a new minor version once a year.
 |===
 +
-To learn more about the differences between release channels, see xref:flex-gateway-version-lifecycle.adoc[].
+To learn more about Edge and Long-Term Support (LTS) release channels, see xref:flex-gateway-version-lifecycle.adoc[].
 
 . Select *Version*.
 +
-Select the latest version unless if a later version is specifically needed.
+Select the latest version.
 
 . Select *Flow Plans*:
 +
@@ -56,13 +54,13 @@ Ingress::
 +
 * *Public endpoint*:
 +
-.. Select your desired private space *Domain*.
+.. Select a private space *Domain*.
 +
 To learn more, see xref:cloudhub-2::ps-create-configure.adoc[].
 +
 .. Enter a *Host*.
 +
-.. Click *Add Endpoint* to add an additional endpoint to a different domain. 
+.. Click *Add Endpoint* to add an endpoint to a different domain. 
 +
 Managed Flex Gateway supports one *Public endpoint* per domain in your private space.
 +
@@ -73,10 +71,10 @@ Managed Flex Gateway supports one *Public endpoint* per domain in your private s
 Enables SSL forwarding during a session.
 +
 SSL forwarding is mostly used with client authentication. See xref:anypoint-security::enable-client-authentication.adoc[].
-SSL forwarding forwards client certificate details in HTTP request headers so they are available to the gateway.
+SSL forwarding forwards client certificate details in HTTP request headers so they're available to the gateway.
 These fields can identify an authenticated client and allow the gateway policies to determine and use the identity.
 +
-The following headers are available:
+These headers are available:
 +
 [%header,cols="2*a"]
 |===
@@ -99,8 +97,8 @@ To configure how long Managed Flex Gateway waits for response or idle connection
 [cols="1a,1a"]
 |===
 | Parameter | Description
-| *Upstream Connection Idle Timeout* | The time a upstream connection can remain idle without receiving client requests. Upstream responses are not included in this timeout.
-| *Upstream Response Timeout* | The time the upstream service has to respond from when Flex Gateway sends a request.
+| *Upstream Connection Idle Timeout* | The time an upstream connection can remain idle without receiving client requests. Upstream responses aren't included in this timeout.
+| *Upstream Response Timeout* | The time the upstream service has to respond after Flex Gateway sends a request.
 | *Stream Idle Timeout* | The time a stream can remain idle without receiving additional client requests or upstream responses.
 |===
 +
@@ -108,7 +106,7 @@ Logging::
 +
 * *Forward application logs to Anypoint Monitoring*:
 +
-Forwards Flex Gateway logs to Anypoint Monitoring. When disabled, logs are only available in Runtime Manager.
+Forwards Flex Gateway logs to Anypoint Monitoring. If disabled, logs are only available in Runtime Manager.
 +
 * *Additional Log Levels*:
 +
@@ -116,7 +114,7 @@ Forwards Flex Gateway logs to Anypoint Monitoring. When disabled, logs are only 
 ** *DEBUG*: Debugging messages
 ** *WARNING*: Warning messages
 ** *ERROR*: Error messages, such as when an exception occurs
-** *FATAL*: Fatal messages for when an application fails
+** *FATAL*: Fatal messages for when an application fails.
 . Click *Save & deploy*.
 
 == Edit a Managed Flex Gateway Settings
