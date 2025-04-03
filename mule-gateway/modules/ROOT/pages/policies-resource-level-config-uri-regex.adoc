@@ -86,9 +86,18 @@ Because resource-level policies work in compatibility mode in Mule versions 4.2.
 
 == Feature Limitations
 
+=== Base Path Requirements
+
 * The root path of an API must be well defined to calculate the base path of the API. Ensure that the path attribute of the HTTP Listener in the Mule application ends with `*`. Otherwise, resource-level policy matching works as if `ignoreBasePath` is set to `false`.
 
-* The regex is only matched against the URI path and doesn't look at the query parameters, if any.
+=== Query Parameter Exclusion
+
+The URI regex patterns used for resource-level policy configuration match only against the URI path component of the request. Query parameters are ignored. For example, a regex pattern like `/api/users.*123` will match requests to `/api/users/123` but won't match a request to `/api/users?id=123`. 
+
+If your API requires policy application based on query parameter values, consider:
+
+* Restructuring your API to use path parameters instead of query parameters for critical filtering.
+* Implementing custom policy code that evaluates query parameters after the initial URI matching.
 
 == See Also
 
