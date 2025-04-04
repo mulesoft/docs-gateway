@@ -5,9 +5,9 @@ endif::[]
 :keywords: policy, custom, ootb, offline, resource level
 :page-aliases: api-manager::configure-uri-template-regex.adoc, policies::policies-resource-level-config-uri-regex.adoc
 
-You can specify a regular expression (regex) to include multiple paths when you apply a policy to a subset of resources exposed by an API. The `URI template regex` field in the policy enables you to specify this expression.
+You can specify a regular expression (regex) to include multiple paths when you apply a policy to a subset of resources exposed by an API. The *URI template regex* field in the policy enables you to specify this expression.
 
-When configuring `URI template regex`, you must consider the base path of the Mule runtime engine (Mule) application that implements (or proxies) the API. This is because Mule 4 resource-level policies depend on where an API is deployed.
+When configuring *URI template regex*, you must consider the base path of the Mule runtime engine (Mule) application that implements (or proxies) the API. This is because Mule 4 resource-level policies depend on where an API is deployed.
 
 This diagram displays the list of methods used to specify the resource subset to apply to a policy:
 
@@ -34,9 +34,9 @@ In this example, `http:listener-config` defines both a `basePath` attribute and 
 
 To invoke the first resource of the API `resource-1`, you must use the base path in combination with the resource path `resource-1: http://localhost:80/api/v1/resource-1`.
 
-Subsequently, if you want to protect `resource-1` with a policy, you must use a resource-level policy. Therefore, the URI template regex that you specify when applying the policy must also include the base path in it:
+Subsequently, if you want to protect `resource-1` with a policy, you must use a resource-level policy. Therefore, the *URI template regex* that you specify when applying the policy must also include the base path in it:
 
-The diagram illustrates how to configure a URI template regex:
+The diagram illustrates how to configure a *URI template regex*:
 
 image:configure-uri-regex-example.png["A form that allows you to apply configurations to specific API methods and resources"]
 
@@ -48,7 +48,7 @@ You can also use a regex to avoid having to explicitly specify the base path, fo
 
 Including the base path in the full path of the resource when applying resource-level policies forces a coupling between the API in design time and the API in runtime. This is because you are required to know the base path where the API is going to reside when applying resource-level policies.
 
-To avoid this coupling issue, Mule 4.3.0 includes a new configuration that allows the Mule policy engine to ignore the base path of the API resource when matching the incoming HTTP request with the policy's URI template regex.
+To avoid this coupling issue, Mule 4.3.0 includes a new configuration that allows the Mule policy engine to ignore the base path of the API resource when matching the incoming HTTP request with the policy's *URI template regex*.
 
 The configuration is exposed on the Mule application implementing the API:
 
@@ -82,11 +82,11 @@ Because resource-level policies work in compatibility mode in Mule versions 4.2.
 
 === Base Path Requirements
 
-* The root path of an API must be well defined to calculate the base path of the API. Ensure that the path attribute of the HTTP Listener in the Mule application ends with `*`. Otherwise, resource-level policy matching works as if `ignoreBasePath` is set to `false`.
+The root path of an API must be well-defined to calculate the base path of the API. Make sure that the path attribute of the HTTP Listener in the Mule application ends with `*`. Otherwise, resource-level policy matching works as if `ignoreBasePath` is set to `false`.
 
 === Query Parameter Exclusion
 
-The URI regex patterns used for resource-level policy configuration match only against the URI path component of the request. Query parameters are ignored. For example, a regex pattern like `/api/users.*123` will match requests to `/api/users/123` but won't match a request to `/api/users?id=123`. 
+The regex will match only against the URI path component of the request. Query parameters are ignored. For example, a regex pattern like `/api/users.*123` will match requests to `/api/users/123` but won't match a request to `/api/users?id=123`. 
 
 == See Also
 
