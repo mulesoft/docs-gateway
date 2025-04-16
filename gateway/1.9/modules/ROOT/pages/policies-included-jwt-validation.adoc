@@ -148,11 +148,7 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 //   config:
 // ----
 
-=== Flex Gateway Connected Mode
-
-==== Configuring the Parameters
-
-When you use the UI to apply the policy to your API, you can configure the following parameters:
+include::partial$policy-title-headers.adoc[tag=ui]
 
 [%header%autowidth.spread,cols="20,50,30"]
 |===
@@ -231,34 +227,6 @@ The default value is 10 seconds.
 `foo : #[vars.claimSet.foo == 'fooValue']`
 
 Note that all DataWeave expressions must return a boolean value or they will always fail.
-|===
-
-==== Configuring the Parameters for Anypoint Service Mesh (Non-Mule Applications)
-
-For Anypoint Service Mesh (non-Mule applications), you configure the JWT Validation policy in the same way, excluding the following differences:
-
-* The policy does not accept DataWeave expressions for claim validations.
-* The token retrieving and client ID validation parameters differ, as explained in the following table.
-
-[%header%autowidth.spread,cols="a,a,a"]
-|===
-| Element | Description | Example
-| JWT Origin
-| Specifies from where in the request to extract the JWT:
-
-* `jwt Header` to extract the JWT from that header
-* `HTTP Bearer Authentication Header` for the JWT to be expected as bearer
-* `Custom Header` to obtain the name of the header where the JWT is expected as input
-|
-
-| Token Header
-| If you set the *JWT Origin* to `Custom Header`, specify the name of the header containing the JWT.
-| `myJwtHeader`
-
-| Client ID Claim
-| If *Skip Client Id Validation* is not set, the client ID is extracted from the token.
-| By default, this value is extracted from the `client_id` claim.
-
 |===
 
 == How This Policy Works
