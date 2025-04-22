@@ -32,15 +32,11 @@ A Rate-Limiting SLA policy applied to a Flex Gateway API is scoped to replicas, 
 
 == Configuring Policy Parameters
 
-=== Flex Gateway Local Mode
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
 The Rate-Limiting SLA policy is not supported in Local Mode.
 
-=== Flex Gateway Connected Mode
-
-When you apply the policy to your API from the UI, a list of parameters are displayed.
-
-=== Configuring Policy Parameters
+include::partial$policy-title-headers.adoc[tag=ui]
 
 [%header%autowidth.spread,cols="a,a,a"]
 |===
@@ -55,35 +51,10 @@ Example: `#[attributes.headers['client_secret']]`
 | Expose Headers| Defines whether to expose the <<response-header,x-ratelimit headers,>> as part of the response | Checked or unchecked
 |===
 
-==== Distributed Rate Limit SLA Resource Configuration Example
+== Enable Shared Storage
 
-Distributed Rate-Limiting requires Shared Storage to be enabled. For more information about Shared Storage, refer to xref:flex-conn-shared-storage-config.adoc[Configuring Shared Storage for Flex Gateway in Connected Mode].
+Distributed Rate-Limiting requires Shared Storage to be enabled. For more information about Shared Storage, refer to xref:flex-conn-shared-storage-config.adoc[].
 
-=== Configuring Policy Parameters for Anypoint Service Mesh (Non-Mule Applications)
-
-The Rate-Limiting SLA policy works in the same way for Anypoint Service Mesh (non-Mule applications), excluding the following differences:
-
-* The policy does not offer the option to expose headers
-* The client ID and client secret retrieving parameters differ, as explained in the following table.
-
-[%header%autowidth.spread,cols="a,a,a"]
-|===
-| Element | Description | Required
-| Credentials Origin
-| Origin of the client ID and client secret credentials:
-
-* `client_id` and `client_secret` headers
-* Custom headers
-| Yes
-
-| Client ID Header
-| The header name from where to extract the client ID in API requests
-| Yes, if you set the credentials origin to *Custom Headers*
-
-| Client Secret Header
-| The header name from where to extract the client secret in API requests
-| No
-|===
 
 == How This Policy Works
 
