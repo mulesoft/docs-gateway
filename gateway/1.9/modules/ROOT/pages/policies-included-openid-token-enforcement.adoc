@@ -27,9 +27,7 @@ This policy is available only to an organization that is configured to use the O
 
 == Configuring Policy Parameters
 
-=== Flex Gateway Local Mode
-
-In Local Mode, you apply the OpenID Connect Access Token Enforcement policy to your API via declarative configuration files. Refer to the following policy definition and table of parameters:
+include::partial$policy-title-headers.adoc[tag=configFile]
 
 ----
 - policyRef:
@@ -112,13 +110,7 @@ See <<token-caching,Token Caching>> for more information about this parameter.
     skipClientIdValidation: false
 ----
 
-=== Flex Gateway Connected Mode
-
-When you apply the policy to your API from the UI, a list of parameters is displayed:
-
-==== Configuring Parameters for Flex Gateway
-
-The following parameters are displayed:
+include::partial$policy-title-headers.adoc[tag=ui]
 
 [%header%autowidth.spread,cols="30,40,30"]
 |===
@@ -130,17 +122,6 @@ If the 'Contains all scopes' value is selected, the tokens with the scopes `READ
 | Expose Headers | In a proxy scenario, specifies whether headers must be exposed in the request to the backend. User properties returned by the federation server are prefixed with 'X-AGW-' and sent as headers to the backend. |
 | Skip Client Id Validation | Skips the client application's API contract validation. | If selected, Step 4 of the diagram in the <<how-this-policy-works,How This Policy Works>> section is skipped.
 | Authentication request timeout | Sets the maximum time, in milliseconds, to wait for a response when authenticating with the Access Token validation endpoint. | `10000`
-|===
-
-==== Configuring Parameters for Non-Mule Applications (Anypoint Service Mesh)
-
-For non-Mule applications that are managed by Anypoint Service Mesh, the following parameters are displayed:
-
-[%header%autowidth.spread,cols="30,40,30"]
-|===
-| Element | Description | Example
-| Scopes | Displays a space-separated list of supported scopes. | `READ`, `WRITE`, `READ AND WRITE`
-| Skip Client Id Validation | Skips the client application's API contract validation. | If selected, the Step 4 of the diagram in the <<how-this-policy-works,How This Policy Works>> section is skipped.
 |===
 
 [[how-this-policy-works]]
