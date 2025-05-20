@@ -4,61 +4,21 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Anypoint Flex Gateway supports the Model Context Protocol (MCP) and Agent2Agent (A2A) protocols, enabling you to secure, manage, and govern agent-to-tool and agent-to-agent interactions. Use Flex Gateway with MCP and A2A to protect both your agents and systems.
+Flex Gateway supports both the Model Context Protocol (MCP) and the Agent2Agent (A2A) Protocol, enabling you to protect your agents and systems. Using Flex Gateway with A2A and MCP, you can enforce policies across agent connections and monitor agent activities for enhanced visibility. This comprehensive approach provides centralized oversight, agent visibility, logging, and valuable insights, ensuring effective governance and security for your agent-based architecture.
 
 == Flex Gateway A2A Support
-A2A is an open standard that defines how agents interact with each other. Enable interoperability among agents built by different teams, using different technologies, and hosted by different organizations with A2A.
-
-Use Flex Gateway with A2A to:
-
-Protect agent interactions::
-  Require that agents are invoked with appropriate authentication and authorization.
-
-Enhance agent requests::
-  Modify incoming prompts with additional context to improve server agent execution.
-
-Provide centralized oversight::
-  Enable frictionless agent visibility, logging, and insights for debugging and optimization.
+A2A is an open standard that defines how agents interact with each other, enabling interoperability for agents built by different teams, using different technologies, and hosted by different organizations. With Flex Gateway and A2A, you can protect agent interactions by requiring appropriate authentication and authorization for agent requests. You can also enhance agent requests by modifying incoming prompts with additional context to improve server agent execution. 
 
 == Flex Gateway MCP Support
-MCP is an open protocol that defines how agents interact with tools or external context. Connect agents with the data and tools they need with MCP.
+MCP is an open protocol that defines how agents interact with tools or external context, enabling agents to connect with the data and tools they need. Using Flex Gateway with MCP, you can secure connections by restricting MCP endpoint access to authorized agents only, enforce rate limits to help your organization meet performance requirements, and simplify governance by providing centralized visibility and control over all interactions.
 
-Use Flex Gateway with MCP to:
+== Use Flex Gateway A2A and MCP Policies
 
-Secure connections::
-  Restrict MCP endpoint access to authorized agents only.
+Flex Gateway A2A and MCP policies provide enhanced security and control over agent interactions. For A2A, you can proxy agents by rewriting Agent Cards, log or block sensitive information in messages, modify prompt behavior, and use server-sent events (SSE) content logging for audit and compliance needs. For MCP, you can use attribute-based access control to manage access to MCP servers.
 
-Enforce rate limits::
-  Help your organization meet performance requirements by controlling the number of requests.
+You can use most Flex Gateway included policies to secure and manage MCP and A2A connections. Use policies such as Rate Limiting and Spike Control policies to manage the number of requests to MCP and A2A servers. Use the Message Logging policy to monitor agent interactions. All Flex Gateway included policies work with MCP and A2A, with the exception of the xref:policies-included-http-caching.adoc[] and the xref:policies-included-schema-validation.adoc[].
 
-Simplify governance::
-  Provide centralized visibility and control over all interactions.
-== Use MCP and A2A with Flex Gateway
-
-These Flex Gateway policies provide support for the MCP and A2A protocols:
-
-A2A Specific Policies:
-
-* Schema Validation: Verify requests conform to the A2A schema. +
-See xref:policies-included-a2a-schema.adoc[].
-* Agent Card Policy: Proxy the agent through Flex Gateway by rewriting the agent card. +
-See xref:policies-included-agent-card.adoc[].
-* PII Detector: Detect sensitive information in messages sent to and from agents. +
-See xref:policies-included-pii-detector.adoc[].
-* Prompt Decorator: Modify prompt behavior by injecting custom prompts into requests. +
-See xref:policies-included-prompt-decorator.adoc[].
-* Server-Sent Events (SSE) Content Logging: Log content sent by agents for audit and compliance needs. +
-See xref:policies-included-sse-logging.adoc[].
-
-MCP Specific Policies:
-
-* Schema Validation: Verify requests conform to the MCP schema. +
-See xref:policies-included-mcp-schema.adoc[].
-* Protocol Support: Enable MCP support and enable Server-Sent Events (SSE). +
-See xref:policies-included-enable-mcp.adoc[].
-* Attribute-based access control: Enable access to MCP servers based on Anypoint access tiers. +
-See xref:policies-included-attrib-access-control.adoc[].
-
+See xref:flex-agent-policies.adoc[] to learn about available A2A and MCP policies.
 
 == See Also
 
