@@ -16,8 +16,13 @@ endif::[]
 
 == Summary
 
+The A2A Prompt Decorator policy injects additional content into the user provided prompt. This enables you to provide custom prompts you want your upstream server to receive. Configure the text you want to inject as either a DataWeave string parameter or as a file containing the text you want to inject. You can filter what requests you want to inject prompts into by using a DataWeave expression.
 
 == Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The A2A Prompt Decorator policy is not supported in Local Mode.
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
@@ -25,5 +30,13 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 |===
 | Element | Description
-|  |  
+| Text Decorators | List of text decorations you want to add to the prompts.
+| Prompt Text | DataWeave Expression that generates the prompt text injected into the request. For example: `#['Use Imperial metric units']`.
+| Condition | DataWeave Expression that filters which prompts to decorate. For example: `#[attributes.headers['id']==1]`.
+| File Decorators | File Decorators
+| Condition | DataWeave Expression that filters which prompts to decorate. For example: `#[attributes.headers['id']==1]`.
+| File Name | DataWeave Expression with the File Name
+| File Mime Type | DataWeave Expression with the Mime Type of the file to inject
+| File Source | Select *Base64* if the file Content is base64-encoded data, or *Uri* if the file Content is a URL to an external file.
+| Content | DataWeave Expression containing either base64-encoded file content or a URL to download the content file
 |===
