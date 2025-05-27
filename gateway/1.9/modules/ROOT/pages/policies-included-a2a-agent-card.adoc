@@ -8,7 +8,7 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | A2A Agent Card
->s|Summary      | Rewrites the Agent card URL to match the server instance public URL
+>s|Summary      | Rewrites the Agent card URL to match the public URL of the gateway
 >s|Category | A2A
 >s|First Flex Gateway version available | v1.9.3
 >s| Returned Status Codes |
@@ -16,6 +16,21 @@ endif::[]
 
 == Summary
 
-The A2A Agent Card Policy rewrites the URL in the A2A Agent Card responses= so that the exposed URL points to the public endpoint of the Flex Gateway A2A server instance, rather than directly to backend services. This ensures that all client requests are routed through Flex Gateway, enabling it to enforce security and access controls while preventing direct access to backend resources.
+The A2A Agent Card Policy rewrites the URL in the A2A Agent Card responses so that the exposed URL points to the public endpoint of the Flex Gateway A2A server instance, rather than directly to backend services. This ensures that all client requests are routed through Flex Gateway, enabling it to enforce security and access controls while preventing direct access to backend resources.
 
-There are no configuration parameters required for this policy.
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The A2A Agent Card policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+
+|===
+| Element | Description
+|  Consumer URL | The consumer URL of the agent's A2A service where JSON-RPC requests are sent. +
+If the consumer URL isn't set, the server instance public endpoint is used.
+|  Card Path | The path where the agent presents the card.
+|===
