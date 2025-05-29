@@ -18,15 +18,7 @@ endif::[]
 
 The MCP Attribute-Based Access Control policy controls access to server tools, resources, and prompts based on user information such as Tiers, IP, Headers, or Claims. Use the https://docs.cedarpolicy.com/[Cedar policy language] to define access rules.
 
-The MCP Attribute-Based Access Control policy requires that another authentication policy be applied before it. The authentication policy can be one of the following included policies or a custom policy:
-
-xref:policies-included-basic-auth-ldap.adoc[]
-xref:policies-included-basic-auth-simple.adoc[]
-xref:policies-included-client-id-enforcement.adoc[]
-xref:policies-included-jwt-validation.adoc[]
-xref:policies-included-oauth-token-introspection.adoc[]
-xref:policies-included-openid-token-enforcement.adoc[]
-xref:policies-included-rate-limiting-sla.adoc[]
+The MCP Attribute-Based Access Control policy requires that another authentication policy be applied before it. For more information, see <<writing-cedar-rules>>.
 
 For custom authentication policies, the custom policy must authenticate by using the `Authentication` injectable. To learn more, see pdk::policies-pdk-configure-features-authentication.adoc[].
 
@@ -47,3 +39,41 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Cedar Expression | Cedar expression defining the access rule. For example: `permit(principal,action == Action::"tools/call` or `resource == Tool::"calculator");`
 | Authentication Type | Type of authentication used by the authentication policy applied before this policy.
 |===
+
+
+[[writing-cedar-rules]]
+== Writing Cedar Rules
+
+The MCP Attribute-Based Access Control policy requires that another authentication policy be applied before it. You can apply a included policy or custom policy.
+
+The authentication policy you apply affects the available Cedar `principal` bindings:
+
+* xref:policies-included-client-id-enforcement.adoc[]
+** `principal.client_name`: Name of the contract's client application
+** `principal.principal`: ID of the contract's client application
+** `principal.properties.slaId`: SLA ID assigned to the contract
+
+* xref:policies-included-jwt-validation.adoc[]:
+** `principal.properties.claims.<<claimName>>`: Claims contained in the JWT
+
+* xref:policies-included-basic-auth-simple.adoc[]
+** `principal.principal`: Username passed as basic auth user
+
+For custom authentication policies, the custom policy must authenticate by using the `Authentication` injectable. To learn more, see pdk::policies-pdk-configure-features-authentication.adoc[].
+
+The authentication policy can be one of the following included policies or a custom policy:
+
+xref:policies-included-basic-auth-ldap.adoc[}
+xref:policies-included-oauth-token-introspection.adoc[]
+xref:policies-included-openid-token-enforcement.adoc[]
+xref:policies-included-rate-limiting-sla.adoc[]
+
+
+Any policy doing Client Enforcement will have
+principal.client_name: Name of the contract's client application
+principal.principal: ID of the contract's client application
+principal.properties.slaId: SLA ID assigned to the contract
+JWT
+principal.properties.claims.<<claimName>>: Claims contained in the JWT
+Basic Auth
+principal.principal: Username passed as basic auth user
