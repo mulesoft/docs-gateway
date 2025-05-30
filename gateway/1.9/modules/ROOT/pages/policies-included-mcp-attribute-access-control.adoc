@@ -36,7 +36,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |===
 | Element | Description
 | Rules | Rules to grant requests access to tools, resources, and prompts written in the https://docs.cedarpolicy.com/[Cedar policy language].
-| Cedar Expression | Cedar expression defining the access rule. For example: `permit(principal,action == Action::"tools/call` or `resource == Tool::"calculator");`
+| Cedar Expression | Cedar expression defining the access rule. For example: `permit(principal,action == Action::"tools/call` or `resource == Tool::"calculator");`. To learn more about the Cedar bindings provided by the requests, see <<writing-cedar-rule>>.
 | Authentication Type | Type of authentication used by the authentication policy applied before this policy.
 |===
 
@@ -46,34 +46,52 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 The MCP Attribute-Based Access Control policy requires that another authentication policy be applied before it. You can apply a included policy or custom policy.
 
+=== Included Policies
+
 The authentication policy you apply affects the available Cedar `principal` bindings:
 
-* xref:policies-included-client-id-enforcement.adoc[]
+* Multiple policies can validating Client ID:
+** xref:policies-included-client-id-enforcement.adoc[]
+** xref:policies-included-rate-limiting-sla.adoc[]
+** xref:policies-included-oauth-token-introspection.adoc[] (If Client ID enforcement is configured)
+** xref:policies-included-openid-token-enforcement.adoc[] (If Client ID enforcement is configured)
+** xref:policies-included-jwt-validation.adoc[] (If Client ID enforcement is configured)
++ 
+Policies validating Client ID provide these Cedar bindings:
++
 ** `principal.client_name`: Name of the contract's client application
 ** `principal.principal`: ID of the contract's client application
 ** `principal.properties.slaId`: SLA ID assigned to the contract
 
-* xref:policies-included-jwt-validation.adoc[]:
-** `principal.properties.claims.<<claimName>>`: Claims contained in the JWT
+* xref:policies-included-jwt-validation.adoc[]
+** `principal.properties.claims.<<claimName>>`: All claims provided by the JWT
 
-* xref:policies-included-basic-auth-simple.adoc[]
+* Multiple policies validate basic authentication credentials:
+** xref:policies-included-basic-auth-simple.adoc[]
+** xref:policies-included-basic-auth-ldap.adoc[]
++ 
+Policies validating basic authentication credentials provide these Cedar bindings:
++
 ** `principal.principal`: Username passed as basic auth user
 
-For custom authentication policies, the custom policy must authenticate by using the `Authentication` injectable. To learn more, see pdk::policies-pdk-configure-features-authentication.adoc[].
+== Custom Policies
 
-The authentication policy can be one of the following included policies or a custom policy:
+For custom authentication policies, the custom policy must authenticate by using the `Authentication` injectable. To configure the `Authentication` injectable, see pdk::policies-pdk-configure-features-authentication.adoc[].
 
-xref:policies-included-basic-auth-ldap.adoc[}
-xref:policies-included-oauth-token-introspection.adoc[]
-xref:policies-included-openid-token-enforcement.adoc[]
-xref:policies-included-rate-limiting-sla.adoc[]
+For the Rust `AuthenticationData` struct:
 
+[source, rust]
+----
+pub struct AuthenticationData {
+    pub principal: Option<String>,
+    pub client_id: Option<String>,
+    pub client_name: Option<String>,
+    pub properties: Value,
+}
+----
 
-Any policy doing Client Enforcement will have
-principal.client_name: Name of the contract's client application
-principal.principal: ID of the contract's client application
-principal.properties.slaId: SLA ID assigned to the contract
-JWT
-principal.properties.claims.<<claimName>>: Claims contained in the JWT
-Basic Auth
-principal.principal: Username passed as basic auth user
+The `AuthenticationData` parameters map to these Cedar bindings:
+
+* `principal`: `principal.principal`
+* `client_name`: `principal.client_name`
+* `properties`: `principal.properties.*`
