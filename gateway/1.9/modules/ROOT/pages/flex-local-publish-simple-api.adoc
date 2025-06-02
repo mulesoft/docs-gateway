@@ -1,0 +1,241 @@
+= Publishing a Simple API in Local Mode
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Publish a simple API running behind Flex Gateway in Local Mode, modifying YAML configuration data by one of the following methods:
+
+* Linux and Docker: `.yaml` files
+* Kubernetes: `kubectl apply`
+
+The following procedures demonstrate applying a simple YAML configuration for an unsecured API with a single upstream service. 
+
+//TODO: IS THERE AN OPENSHIFT OPTION HERE?
+[cols="1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="#linux"]
+|image:install-docker-logo.png[25%,25%,xref="docker"]
+|image:install-kubernetes-logo.png[20%,20%,xref="kubernetes"]
+
+|<<linux>>
+|<<docker>>
+|<<kubernetes>>
+|===
+
+[[linux]]
+== Publish an API Running Behind Flex Gateway on Linux 
+
+//TODO: NEED INTRO HERE
+
+=== Before You Begin
+
+Before getting started, ensure that you have:
+
+* Flex Gateway installed and running in Local Mode. See xref:flex-install.adoc[] for more information about installing and running the gateway. 
+* Your upstream service URL. The following example refers to a fictional `orders-api` service, but you can specify your own API name in `metadata.name` and your service details in `spec.services`.
+
+=== Publish an API
+
+. Create a configuration file with a `.yaml` file extension:
+.. Give the file a custom name.
+.. Save the file in the Flex Gateway configuration directory `/etc/mulesoft/flex-gateway/conf.d/custom`. This directory can contain multiple configuration files.
+
+. Copy and paste the following YAML snippet into the file, substituting your values where indicated:
++
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: orders-api
+spec:
+  address: http://0.0.0.0:8080
+  services:       
+    orders:
+      address: https://<your orders URL>:<your port>/
+      routes:
+        - rules:
+            - path: /api/orders(/.*)
+----
+
+. Save the file. The gateway automatically refreshes the configuration. 
+
+. View the logs by executing the following command:
++
+----
+journalctl -u flex-gateway-*
+----
++
+The response looks something like this: 
++
+----
+[agent][info] Generating config
+[agent][info] Gateway default/18b4e890fe7d: Adding ApiInstance default/animal-facts-api http://0.0.0.0:8080
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/orders(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:orders-api-orders Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Policy default/envoy.filters.http.router
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/monitoring_metrics http://0.0.0.0:9881
+[agent][debug] generating service monitoring_metrics.default.svc hostname: 0.0.0.0 port: 9881
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/orders-api-orders https://<your orders URL>:<your port>/
+[agent][debug] generating service orders-api-orders.default.svc hostname: <your orders URL> port: <your port>
+[agent][info] Writing envoy bootstrap configuration to /tmp/envoy.json
+[envoy][info] cds: add 2 cluster(s), remove 2 cluster(s)
+[envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
+----
+
+A simple API is now running behind Flex Gateway.
+
+[[docker]]
+== Publish an API Running Behind Flex Gateway in a Docker Container 
+
+//TODO: NEED INTRO HERE
+
+=== Before You Begin
+
+Before getting started, ensure that you have:
+
+* Flex Gateway installed. See xref:flex-install.adoc[] for more information. 
+* Flex Gateway registered and running in Local Mode. See xref:flex-local-reg-run.adoc[Register and Run in Local Mode] for more information. 
+* Your upstream service URL. The following example refers to a fictional `orders-api` service, but you can specify your own API name in `metadata.name` and your service details in `spec.services`.
+
+=== Publish an API
+
+. Open a terminal and navigate to the directory that will contain your Flex Gateway configuration files. This directory was specified when you started Flex Gateway.
+
+. Create a configuration file with a `.yaml` file extension:
+.. Give the file a custom name.
+.. Save the file.
+
+. Copy and paste the following YAML snippet into the file, substituting your values where indicated: 
++
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: orders-api
+spec:
+  address: http://0.0.0.0:8080
+  services:       
+    orders:
+      address: https://<your orders URL>:<your port>/
+      routes:
+        - rules:
+            - path: /api/orders(/.*)
+----
+
+. Save the file. The gateway automatically refreshes the configuration.
+
+. View the Docker container logs, which look something like this: 
++
+----
+[agent][info] Generating config
+[agent][info] Gateway default/18b4e890fe7d: Adding ApiInstance default/animal-facts-api http://0.0.0.0:8080
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/orders(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:orders-api-orders Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Policy default/envoy.filters.http.router
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/monitoring_metrics http://0.0.0.0:9881
+[agent][debug] generating service monitoring_metrics.default.svc hostname: 0.0.0.0 port: 9881
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/orders-api-orders https://<your orders URL>:<your port>/
+[agent][debug] generating service orders-api-orders.default.svc hostname: <your orders URL> port: <your port>
+[agent][info] Writing envoy bootstrap configuration to /tmp/envoy.json
+[envoy][info] cds: add 2 cluster(s), remove 2 cluster(s)
+[envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
+----
+
+A simple API is now running behind Flex Gateway.
+
+[[kubernetes]]
+== Publish an API Running Behind Flex Gateway in a Kubernetes Cluster 
+
+//TODO: NEED INTRO HERE
+
+=== Before You Begin
+
+Before getting started, ensure that you have:
+
+* Flex Gateway installed and running in Local Mode. See xref:flex-install.adoc[] for more information about installing and running the gateway. 
+* A Docker image stored in a Docker repository. The following example refers to a fictional `orders-api` application, but you can specify your own Docker repository and Docker image in the `Deployment` configuration resource (in `spec.spec.image`).
+
+include::partial$kubernetes-service-note.adoc[]
+
+=== Publish an API
+
+. Using the `kubectl apply` command, install a Docker image named "orders-api" from a given repository. 
++
+The following YAML snippet defines two configuration resources: `Service`, and `Deployment`. The `Service` resource declares the `orders-api` service. The `Deployment` resource declares the desired deployment state by specifying information such as the number of replicas to create, and the Docker image to sideload.
++
+----
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders-api
+  labels:
+    app: orders-api
+    service: orders-api
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  selector:
+    app: orders-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orders-api
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: orders-api
+        version: v1
+    spec:
+      containers:
+      - image: <repository>/<dockerfile>
+        imagePullPolicy: IfNotPresent
+        name: orders-api
+        ports:
+        - name: http
+          containerPort: 3000
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+EOF
+----
+
+. Again using `kubectl apply`, create the ingress to route traffic. 
++
+The following YAML example defines one configuration resource: `Ingress`.
++
+----
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: orders-api
+spec:
+  ingressClassName: ingress-http.gateway
+  rules:
+  - http:
+      paths:
+      - path: /api/orders(/.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: orders-api
+            port:
+              number: 80
+EOF
+----
+
+A simple API is now running behind Flex Gateway.
+
+//TODO: IS THERE AN OPENSHIFT OPTION HERE?

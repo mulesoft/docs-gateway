@@ -1,0 +1,87 @@
+= Configure Flex Gateway as an Ingress Controller in Local Mode
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+For Kubernetes deployments in Local Mode, Flex Gateway typically acts as an ingress controller that manages external access to your Kubernetes cluster.
+
+By default, Flex Gateways deployed on Kubernetes in Local Mode are configured as ingress controllers and can consume `Ingress` resources. The ingress controller configuration is defined in the `IngressClass` resource parameters in the Flex Gateway Helm chart.
+
+In Kubernetes terminology, `IngressClass` resources configure a gateway as an ingress controller, and `Ingress` resources configure a routing between the ingress controller and the Kubernetes services it controls. For a detailed explanation of Kubernetes `IngressClass` resources and `Ingress` resources, see https://kubernetes.io/docs/concepts/services-networking/ingress/[Kubernetes Ingress^].
+
+In the Helm chart, you can edit the `IngressClass` configuration or disable the ingress controller functionality.
+
+== Before You Begin
+
+. xref:flex-install.adoc#kubernetes[Download Flex Gateway for Use in a Kubernetes Cluster].
+. xref:flex-local-reg-run.adoc[Register and Run Flex Gateway in a Kubernetes Cluster in Local Mode].
+
+== Ingress Class Parameters
+The Helm chart includes the following default `IngressClass` parameters and values:
+
+[source,helm]
+----
+ingressClass.enabled: true
+ingressClass.name: "{releaseName}-{namespace}"
+ingressClass.setAsDefault: false
+----
+
+[cols="1,2,2"]
+|===
+| Parameter | Description | Possible values
+| `ingressClass.enabled` | Enables Flex Gateway as an `IngressClass` resource | `true` or `false`
+| `ingressClass.name` | The name of the `IngressClass` | Any string
+| `ingressClass.setAsDefault` | Sets Flex Gateway as the default `IngressClass` | `true` or `false`
+|===
+
+Setting `ingressClass.setAsDefault: true` defines the Flex Gateway instance as the default `IngressClass` resource for the cluster. The default `IngressClass` is the default ingress controller for all `Ingress` resources you create in the cluster. 
+
+If there is no default `IngressClass`, or if the default `IngressClass` resource shouldn't be the ingress controller for a specific resource, you must manually define the ingress controller in the `Ingress` resource.
+
+You can modify the default `IngressClass` parameters during or after the initial installation of the Helm chart. For more information about how to modify a Helm chart, see xref:flex-gateway-k8-change-helm-settings.adoc[]
+
+== Creating Ingress Resources
+
+After you xref:flex-local-reg-run-up.adoc#kubernetes[install a Helm chart into a namespace], you can verify your new `IngressClass` resource by running the following command:
+
+[source,helm]
+----
+kubectl get ingressclasses
+----
+
+To create an ingress routing:
+
+. xref:flex-local-publish-simple-api.adoc#kubernetes[Publish an API in Local Mode].
+. Define the new API as a Kubernetes Service. +
+For more information about Kubernetes Service definitions, see https://kubernetes.io/docs/concepts/services-networking/service/#defining-a-service[Defining a Service^].
+. Using `kubectl apply`, create an `Ingress` resource to define routing rules between the `IngressClass` Flex Gateway and the new Kubernetes Service:
++
+[source,ssh]
+----
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: <metadata-name>
+  annotations:
+    flex-gateway.ingress.kubernetes.io/api-instance: <api-instance-name>.<namespace>
+spec:
+  ingressClassName: <ingress-class-name>
+  rules:
+  - http: ...
+EOF
+----
++
+The `annotations` field value must match the API instance name and namespace specified when the API was defined.
++
+Omit the `ingressClassName` field if the gateway instance is configured as the default ingress controller.
++
+For more information about `Ingress` resources, see https://kubernetes.io/docs/concepts/services-networking/ingress/[Kubernetes Ingress^].
+
+
+== See Also
+
+* xref:flex-gateway-k8-change-helm-settings.adoc[]
+* xref:flex-gateway-k8-management.adoc[]

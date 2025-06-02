@@ -20,6 +20,11 @@ endif::[]
 
 The HTTP Caching policy enables you to cache HTTP responses for reuse. Caching these responses speeds up the response time for user requests and reduces the load on the backend. For example, if your backend exposes an endpoint for which the responses to requests are not likely to change, you can reuse the HTTP responses and bypass the backend request processing by using the HTTP Caching policy.
 
+[NOTE]
+====
+Policies applied after the HTTP Caching policy in the policy order are not applied to responses served from the cache. For example, a rate limiting policy applied after the HTTP Caching policy only limits the responses served by the upstream service but not the responses served by the cache. Apply all policies needed for the cached response before the HTTP Caching policy.
+====
+
 [[cpp]]
 == Configuring Policy Parameters
 
@@ -67,7 +72,7 @@ When an HTTP request reaches an endpoint, what happens next depends on whether t
 
 In a cache miss scenario, the HTTP Caching policy checks whether a response to the submitted request is already cached. The request reaches the backend and the process is initiated only when it's a cache miss. The diagram illustrates the flow of events that occur in this scenario:
 
-image:http-policy-cache-miss.png[]
+image:http-policy-cache-miss.png["A flowchart that illustrates the data flow between a web browser and a backend system"]
 
 . The client (user) sends a request to the API.
 . The request proceeds through other policies in the policy chain before reaching the HTTP Caching policy.
@@ -87,7 +92,7 @@ In a cache hit scenario, the HTTP Caching policy searches for the key in the obj
 
 Subsequently, all the policies that must be executed in the policy chain after caching are not executed, in case of a cache hit:
 
-image:http-policy-cache-hit.png[]
+image:http-policy-cache-hit.png["A flowchart illustrating the data flow from a web browser through an API gateway to the backend and the object store"]
 
 . The client (user) sends a request to the API.
 . The request crosses other policies before reaching the HTTP Caching policy.
@@ -188,11 +193,11 @@ For example, imagine that the following values are configured in the policy for 
 
 The following command invalidates the entry with key “/my/policy" from the cache:
 
-`curl http://<MyAppURL>/my/policy -H “myInvalidationHeader:invalidate”`
+`curl \http://<MyAppURL>/my/policy -H “myInvalidationHeader:invalidate”`
 
 The following request invalidates all entries from the cache:
 
-`curl http://<MyAppURL>/my/policy -H “myInvalidationHeader:invalidate-all”`
+`curl \http://<MyAppURL>/my/policy -H “myInvalidationHeader:invalidate-all”`
 
 == Conditional Caching
 

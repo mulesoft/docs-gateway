@@ -4,10 +4,34 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Flex Gateway Policy Development Kit (PDK) enables you to both:
+With Flex Gateway Policy Development Kit (PDK), you can read and write to request and response headers and bodies.
 
-* <<read-and-write-headers>>
-* <<read-and-write-request-bodies>>
+[[event-flow]]
+== Event Flow
+
+When filtering requests and responses, Proxy Wasm splits handling the headers and body into two main events that must happen in a specific order. Before the policy can handle the body, the header event has to fully propagate through all policies. For example, the event flow for an API with two policies applied is:
+
+. Policy 1 handles the request header event.
+. Policy 2 handles the request header event.
+. The backend service receives the request headers.
+. Policy 1 handles the request body event.
+. Policy 2 handles the request body event.
+. The backend receives the request body.
+. The backend sends the response.
+. Policy 2 handles the response header event.
+. Policy 1 handles the response header event.
+. The client receives the response headers.
+. Policy 2 handles the response body event.
+. Policy 1 handles the response body event.
+. The client receives the response body.
+
+This order creates the following limitations:
+
+* Policies can’t modify headers after reading the body.
+* All policies must fully process the header event before reading the body. Saving data of the body on one policy and then modifying the headers using that body data in a different policy isn’t possible.
+* When all policies process the header event, it reaches the backend service. To ensure no data from a rejected request reaches the backend service, you must reject the headers based on only the request headers. When rejecting requests based on their body, most servers and clients can detect interrupted requests and discard the headers of the request.
+
+In the policy source code, reading the body separates the header and body event. For example, if the declaration `let body_state = headers_state.into_body_state().await;` is used to read the body, everything prior to the declaration occurs in the header event, and everything after occurs in the body event.
 
 [[read-and-write-headers]]
 == Read and Write Request Headers
@@ -82,6 +106,8 @@ To access the body in both the request and the response, transform the `RequestS
 let body_state = request_state.into_body_state().await;
 ----
 
+NOTE: The previous `.await` introduces a cancellation point. During a request, a xref:policies-pdk-configure-features.adoc#flow-cancellation[Flow Cancellation] might cause the `.await` to never resume.
+
 If the original state was already transformed into a header state, transform the state into a body state by calling the same function, for example:
 
 [source,Rust]
@@ -96,6 +122,7 @@ After calling `into_body_state()`, access and manipulate the headers by calling 
 ----
 pub trait BodyHandler {
     fn body(&self) -> Vec<u8>;
+    fn set_body(&self, body: &[u8]) -> Result<(), BodyError>;
 }
 ----
 
@@ -124,11 +151,19 @@ async fn request_filter(request_state: RequestState) {
     logger::info!("User: {agent} sent: {}", String::from_utf8_lossy(body.as_slice()));
 	
     let new_body = "new body".as_bytes();
-    body_handler.set_body(&new_body);
+    match body_handler.set_body(&new_body) {
+        Ok(_) => logger::info!("Body updated"),
+        Err(e) => logger::info!("Unable to set body. Reason: {e:?}),
+    }
 }
 ----
 
 NOTE: This code removes the `content-length` header. This is required to modify the body.
+
+`BodyHandler::set_body()` method returns a `Result<(), BodyError>` object. Body updating might fail due to:
+
+* `BodyError::BodyNotSent`: The current HTTP Flow doesn't have a body (for example, `GET` request).
+* `BodyError::ExceededBodySize`: The new body exceeds the maximum body buffer size supported by Envoy.
 
 == See Also
 
