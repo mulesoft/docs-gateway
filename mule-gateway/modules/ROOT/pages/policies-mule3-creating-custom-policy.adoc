@@ -113,7 +113,7 @@ Mule Gateway/Mule Runtimes:
 
 As shown in the following flow, content between the *before* tags executes every time there's an incoming request to your API, as soon as the request reaches the inbound endpoint, and before your API executes any of the remaining message processors in your flows. Content between the *after* tags likewise executes every time there's a request to your API, right before reaching the outbound endpoint in your API, and after having executed every other one of the message processors in your flows.
 
-image::basic-flow.png[basic+flow]
+image::basic-flow.png["A diagram that shows a project flow with four steps, from HTTP to Property"]
 
 In addition to the `<before></before>` and `<after></after>` tags, you can also add `<mule:processor-chain></mule:processor-chain>` tags as additional flows where you can perform more procedures. These flows don't execute on their own, they must be referenced one way or another by either the *before* or the *after* sections of your policy. When writing a policy, unlike when writing a Mule application, you must add a `mule:` suffix to the name of the element.
 
@@ -145,7 +145,7 @@ You can define before and after exception blocks in custom policy definitions to
 
 The following diagram shows the default path `Before > Flow > After` and the error path `Before Exception > Exception Strategy > After Exception`.
 
-image::before-after-exception.png[before after exception paths]
+image::before-after-exception.png["A flowchart that outlines error handling within an API gateway runtime"]
 
 Any exception in any part of the default path stops the execution of that path and triggers the execution of the error path. Any exception in either the before-exception or after-exception stops the execution of the error path. If the error is raised in the exception strategy, the after-exception is executed.
 
@@ -194,7 +194,7 @@ The following example custom policy shows how to implement before and after exce
 . In the *Name* field, type the name of your new policy version.
 . Upload your YAML and XML files for your custom policy's new version.
 +
-image::upgrade-custom-policy-mule3-08395.png[align=center]
+image::upgrade-custom-policy-mule3-08395.png["A form for configuring a runtime policy",align=center]
 . Click *Add*.
 
 == See Also
