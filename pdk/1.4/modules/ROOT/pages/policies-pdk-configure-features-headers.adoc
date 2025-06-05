@@ -170,16 +170,16 @@ NOTE: This code removes the `content-length` header. This is required to modify 
 
 NOTE: To view an example policy that uses the streaming body state, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/{template-policies-url-ver-var}/stream-payload/README.md[Stream Payload Policy].
 
-To handle request or response bodies that exceed the 1MB size limit, use the streaming body state. The streaming body state enables you to process the body in chunks as they arrive instead of waiting for the entire body. When using the streaming body state, you cannot write to the payload.
+To handle request or response bodies larger than 1MB, use the streaming body state. The streaming body state enables the body to be processed as chunks as data arrives. When using the streaming body state, you cannot modify the payload directly.
 
-To access the streaming body state, transform the `RequestState` or `ResponseState` into the body stream state by calling the `into_body_stream_state()` method and awaiting it:
+To use the streaming body state, convert the `RequestState` or `ResponseState` into a body stream state by calling the `into_body_stream_state()` method and awaiting it:
 
 [source,Rust]
 ----
 let body_stream_state = request_state.into_body_stream_state().await;
 ----
 
-After calling `into_body_stream_state()`, access the stream of body chunks using the `stream()` method:
+After conversion, access the incoming chunks through the `stream()` method:
 
 [source,Rust]
 ----
@@ -191,17 +191,16 @@ while let Some(chunk) = stream.next().await {
 }
 ----
 
-NOTE: For an example of how to access body chunks, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/{template-policies-url-ver-var}/stream-payload/src/lib.rs#L30[Stream Payload Policy Chunks].
+NOTE: For an example of chunk processing, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/{template-policies-url-ver-var}/stream-payload/src/lib.rs#L30[Stream Payload Policy Chunks].
 
-If you need the complete body, use the `collect()` method to collect all chunks before processing the payload and sending it to the upstream service:
+If you need the complete body before processing the payload, use the `collect()` method to collect all chunks:
 
 [source,Rust]
 ----
 let collect = stream.collect().await;
 ----
 
-NOTE: For an example of how to access body chunks, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/{template-policies-url-ver-var}/stream-payload/src/lib.rs#L54[Stream Payload Policy Collect].
-
+NOTE: For an example of how to collect and process full payloads, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/{template-policies-url-ver-var}/stream-payload/src/lib.rs#L54[Stream Payload Policy Collect].
 
 == See Also
 
