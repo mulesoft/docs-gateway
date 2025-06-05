@@ -1,0 +1,91 @@
+= Uninstalling Flex Gateway
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+//TODO: IS THERE AN OPENSHIFT OPTION HERE?
+You can uninstall Flex Gateway as a Linux service, in a Docker container, or from a Kubernetes cluster.
+
+//TODO: IS THERE AN OPENSHIFT OPTION HERE?
+[cols="1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="#linux"]
+|image:install-docker-logo.png[25%,25%,xref="#docker"]
+|image:install-kubernetes-logo.png[20%,20%,xref="#kubernetes"]
+
+|<<linux>>
+|<<docker>>
+|<<kubernetes>>
+|===
+
+[[linux]]
+== Uninstall as a Linux Service
+
+Flex Gateway can be uninstalled as any other package:
+
+[source,ssh]
+----
+sudo apt remove -y flex-gateway
+----
+
+[[docker]]
+== Uninstall in a Docker Container
+
+If you are finished with your Flex Gateway instance in a Docker Container, stop and remove the container.
+
+. Determine the container ID.
++
+[source,ssh]
+----
+docker ps
+----
+
+. Stop the container:
++
+[source,ssh]
+----
+docker rm <container id>
+----
+
+. Optionally, remove the Docker image as well:
++
+[source,ssh]
+----
+docker rmi mulesoft/flex-gateway
+----
+
+[[kubernetes]]
+== Uninstall from a Kubernetes Cluster
+
+To uninstall Flex Gateway from a Kubernetes cluster:
+
+. Uninstall the Helm release. The following example removes a release called “my-release”:
++
+[source,ssh]
+----
+helm delete my-release
+----
++
+NOTE: Update `my-release` to the release you have running. To see a list of all releases, use the command `helm list -A`.
+
+. Delete the release namespace if one was specified:
++
+[source,ssh]
+----
+kubectl delete namespace gateway
+----
+
+. Delete the custom resource definitions:
++
+[source,ssh]
+----
+kubectl delete crds \
+     apiinstances.gateway.mulesoft.com \
+     configurations.gateway.mulesoft.com \
+     extensions.gateway.mulesoft.com \
+     policybindings.gateway.mulesoft.com \
+     services.gateway.mulesoft.com
+----
+
+//TODO: IS THERE AN OPENSHIFT OPTION HERE?

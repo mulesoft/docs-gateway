@@ -1,0 +1,270 @@
+= Publishing an API with Multiple Upstream Services in Local Mode
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Flex Gateway running in Local Mode supports API instances that expose multiple upstream services through a single consumer endpoint.
+
+Flex Gateway manages traffic by using multiple routes with a defined route order and individual rulesets to direct traffic to different sets of upstream services. Each API instance supports multiple routes that can each direct traffic to multiple upstream services.
+
+For Flex Gateways running in Local Mode, API instances with multiple upstream services are configured by using the `ApiInstance` and the `PolicyBinding` YAML configuration resources. The `ApiInstance` resource defines an API instance, and the `route-weighted` policy resource defines a single route to one or multiple upstream services. To add additional routes, add multiple `route-weighted` resources.
+
+The following tutorials use a preconfigured `route-weighted` policy resource. For information about how to configure the resource, see xref:policies-included-traffic-management.adoc[].
+
+[cols="1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="#linux"]
+|image:install-docker-logo.png[25%,25%,xref="docker"]
+|image:install-kubernetes-logo.png[20%,20%,xref="kubernetes"]
+
+|<<linux>>
+|<<docker>>
+|<<kubernetes>>
+|===
+
+[[linux]]
+== Publish an API Running Behind Flex Gateway on Linux 
+
+=== Before You Begin
+
+Before getting started, ensure that you have:
+
+* Downloaded Flex Gateway. For more information, see xref:flex-install.adoc[]. 
+* Registered Flex Gateway and are running it in Local Mode. For more information, see xref:flex-local-reg-run.adoc[Register and Run in Local Mode]. 
+* Your upstream service URLs.
+
+=== Publish an API
+
+. Create a configuration file with a `.yaml` file extension:
+.. Give the file a custom name.
+.. Save the file in the Flex Gateway configuration directory `/etc/mulesoft/flex-gateway/conf.d/custom`. This directory can contain multiple configuration files.
+
+. Copy and paste the following YAML snippet into the file, substituting the configuration field values with your values.
++
+The snippet refers to the fictional `products-api` and `products-api-beta` services and a fictional `json-http` API instance. Specify your own API name and your own service details:
++
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: json-http
+spec:
+  address: http://0.0.0.0:8080/json
+​
+---
+​
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: weight-routing-test
+spec:
+  targetRef:
+    name: json-http
+  policyRef:
+    name: route-weighted
+  config:
+    routes:
+    - weight: 75 # max_value=100, min_value=1
+      destinationPath: /posts/
+      destinationRef:
+        name: products-api
+    - weight: 25 
+      destinationPath: /posts/
+      destinationRef:
+        name: products-api-beta
+  rules:
+  - path: (.*)
+    methods: POST
+    headers:
+      x-test: true
+    host: test.com
+  - methods: GET|POST
+    headers:
+      x-test: true
+      y-test: false
+    host: test.com
+----
+
+. Save the file. The gateway automatically refreshes the configuration.
++
+. View the logs by executing the following command:
++
+----
+journalctl -u flex-gateway-*
+----
++
+The response looks something like this: 
++
+----
+[agent][info] Generating config
+[agent][info] Gateway default/18b4e890fe7d: Adding ApiInstance default/products-users-api http://0.0.0.0:8080
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/products(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-products Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/users(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-users Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Policy default/envoy.filters.http.router
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/monitoring_metrics http://0.0.0.0:9881
+[agent][debug] generating service monitoring_metrics.default.svc hostname: 0.0.0.0 port: 9881
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/products-users-api-products https://<your products URL>:<your port>/
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/products-users-api-users https://<your users URL>:<your port>/
+[agent][debug] generating service products-users-api-products.default.svc hostname: <your products URL> port: <your port>
+[agent][debug] generating service products-users-api-users.default.svc hostname: <your users URL> port: <your port>
+[agent][info] Writing envoy bootstrap configuration to /tmp/envoy.json
+[envoy][info] cds: add 2 cluster(s), remove 2 cluster(s)
+[envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
+----
+
+An API with multiple upstream services now runs behind Flex Gateway.
+
+[[docker]]
+== Publish an API Running Behind Flex Gateway in a Docker Container 
+
+=== Before You Begin
+
+Before getting started, ensure that you have:
+
+* Downloaded Flex Gateway. For more information, see xref:flex-install.adoc[]. 
+* Registered Flex Gateway and are running it in Local Mode. For more information, see xref:flex-local-reg-run.adoc[Register and Run in Local Mode]. 
+* Your upstream service URLs.
+
+=== Publish an API
+
+. Open a terminal and navigate to the directory that will contain your Flex Gateway configuration files. This directory was specified when you started Flex Gateway.
+
+. Create a configuration file with a `.yaml` file extension:
+.. Give the file a custom name.
+.. Save the file.
+
+. Copy and paste the following YAML snippet into the file, substituting configuration fields with your values. 
++
+The snippet refers to the fictional `products-api` and `products-api-beta` services and a fictional `json-http` API instance. Specify your own API name and your own service details:
++
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: json-http
+spec:
+  address: http://0.0.0.0:8080/json
+​
+---
+​
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: weight-routing-test
+spec:
+  targetRef:
+    name: json-http
+  policyRef:
+    name: route-weighted
+  config:
+    routes:
+    - weight: 75 # max_value=100, min_value=1
+      destinationPath: /posts/
+      destinationRef:
+        name: products-api
+    - weight: 25 
+      destinationPath: /posts/
+      destinationRef:
+        name: products-api-beta
+  rules:
+  - path: (.*)
+    methods: POST
+    headers:
+      x-test: true
+    host: test.com
+  - methods: GET|POST
+    headers:
+      x-test: true
+      y-test: false
+    host: test.com
+----
+
+. Save the file. The gateway automatically refreshes the configuration.
+
+. View the Docker container logs, which look something like this: 
++
+----
+[agent][info] Generating config
+[agent][info] Gateway default/18b4e890fe7d: Adding ApiInstance default/products-users-api http://0.0.0.0:8080
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/products(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-products Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Route: &{host: path:/api/users(/.*) methods: headerConditions:[] profile:0xc0030529f0} => {Kind:Service Name:products-users-api-users Namespace:default}
+[agent][info] Gateway default/18b4e890fe7d: Adding Policy default/envoy.filters.http.router
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/monitoring_metrics http://0.0.0.0:9881
+[agent][debug] generating service monitoring_metrics.default.svc hostname: 0.0.0.0 port: 9881
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/products-users-api-products https://<your products URL>:<your port>/
+[agent][info] Gateway default/18b4e890fe7d: Adding Service default/products-users-api-users https://<your users URL>:<your port>/
+[agent][debug] generating service products-users-api-products.default.svc hostname: <your products URL> port: <your port>
+[agent][debug] generating service products-users-api-users.default.svc hostname: <your users URL> port: <your port>
+[agent][info] Writing envoy bootstrap configuration to /tmp/envoy.json
+[envoy][info] cds: add 2 cluster(s), remove 2 cluster(s)
+[envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
+----
+
+An API with multiple upstream services is now running behind Flex Gateway.
+
+[[kubernetes]]
+== Publish an API Running Behind Flex Gateway in a Kubernetes Cluster 
+
+=== Before You Begin
+
+Before getting started, ensure that you have:
+
+* Downloaded Flex Gateway. For more information, see xref:flex-install.adoc[]. 
+* Registered Flex Gateway and are running it in Local Mode. For more information, see xref:flex-local-reg-run.adoc[Register and Run in Local Mode]. 
+* Your upstream service URLs.
+
+include::partial$kubernetes-service-note.adoc[]
+
+=== Publish an API
+
+. Use the `kubectl apply` command to apply the following `.yaml` configuration file, substituting the configuration field values with your values.
++
+The snippet refers to the fictional `products-api` and `products-api-beta` services and a fictional `json-http` API instance. Specify your own API name and your own service details:
++
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: json-http
+spec:
+  address: http://0.0.0.0:8080/json
+​
+---
+​
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: weight-routing-test
+spec:
+  targetRef:
+    name: json-http
+  policyRef:
+    name: route-weighted
+  config:
+    routes:
+    - weight: 75 # max_value=100, min_value=1
+      destinationPath: /posts/
+      destinationRef:
+        name: products-api
+    - weight: 25 
+      destinationPath: /posts/
+      destinationRef:
+        name: products-api-beta
+  rules:
+  - path: (.*)
+    methods: POST
+    headers:
+      x-test: true
+    host: test.com
+  - methods: GET|POST
+    headers:
+      x-test: true
+      y-test: false
+    host: test.com
+----
+
+. Enter the following command to view the pods logs and ensure that the API was created successfully: +
+----
+kubectl logs -f <pod-name>
+----

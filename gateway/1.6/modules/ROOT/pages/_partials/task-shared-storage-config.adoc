@@ -1,0 +1,221 @@
+//tag::intro1[]
+Anypoint Flex Gateway enables you to configure shared storage for distributed caching and rate limiting policies. Redis also provides extra memory for caching.
+
+Production workflows should use https://redis.io/[Redis^]. If Redis is not defined, shared storage services at port 4000 are still available but use an in-memory implementation. You must configure Redis for distributed policies to share data. All other policies use replica memory for storage.
+
+//end::intro1[]
+//tag::intro2[]
+You configure shared storage via a custom YAML file.
+
+The following steps demonstrate Redis-based storage support for Flex Gateway running in a Docker container, as a Linux Service,
+or as a Kubernetes cluster.
+
+To configure Redis Sentinel or a TLS connection to your Redis shared storage, refer to:
+
+* <<redis-sentinel>>
+* <<redis-tls>>
+//end::intro2[]
+//tag::icon-table[]
+
+[cols="1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="#linux"]
+|image:install-docker-logo.png[25%,25%,xref="#docker"]
+|image:install-kubernetes-logo.png[20%,20%,xref="#kubernetes"]
+
+|<<linux>>
+|<<docker>>
+|<<kubernetes>>
+|===
+
+//end::icon-table[]
+//tag::byb[]
+
+== Before You Begin
+
+Before configuring shared storage for Flex Gateway, complete the following tasks:
+
+. xref:flex-install.adoc[Download Flex Gateway]
+. xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
+
+//end::byb[]
+//tag::linux[]
+
+[[linux]]
+== Configure Shared Storage for Flex Gateway as a Linux Service
+
+. Create a folder in the `/etc/mulesoft/flex-gateway/conf.d` directory and name it `custom`:
++
+[source,ssh]
+----
+sudo mkdir /etc/mulesoft/flex-gateway/conf.d/custom
+----
+
+. Create a YAML configuration file in the `custom` folder:
++
+[source,ssh]
+----
+sudo touch /etc/mulesoft/flex-gateway/conf.d/custom/shared-storage-config.yaml
+----
+
+. Update the file with your Redis storage configuration details. For example:
++
+[source,ssh]
+----
+sudo vi /etc/mulesoft/flex-gateway/conf.d/custom/shared-storage-config.yaml
+----
++
+//end::linux[]
+//tag::docker-intro[]
+
+[[docker]]
+== Configure Shared Storage for Flex Gateway in a Docker Container
+
+NOTE: If you have already added a volume for a folder with your
+Flex Gateway configuration files, skip to the last step.
+
+. Stop your Flex Gateway and any replicas.
+. Create a folder named `app` in the directory with your Flex Gateway configuration files.
+. Restart your Flex Gateway with an additional volume for the new `app` directory:
+//end::docker-intro[]
+
+//tag::docker-config-file-step[]
+. Create and save a YAML configuration file in your `app` folder with your shared storage details.
++
+//end::docker-config-file-step[]
+//tag::k8s[]
+
+[[kubernetes]]
+== Configure Shared Storage for Flex Gateway in a Kubernetes Cluster
+
+To configure shared storage for Flex Gateway, create a new resource using
+a YAML configuration file with your storage details.
+
+//end::k8s[]
+//tag::sample-config-all-intro[]
+Sample configuration for adding Redis-based shared storage:
+//end::sample-config-all-intro[]
+//tag::sample-config-all[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+ name: shared-storage-redis
+spec:
+ sharedStorage:
+   redis:
+     address: redis.e-commerce.svc:6379
+     username: ecomm-user
+     password: ecomm-pwd-123
+     DB: 7
+----
+//end::sample-config-all[]
+
+//tag::sentinel-intro[]
+[[redis-sentinel]]
+== Configure Redis Sentinel
+
+Redis Sentinel provides high availability for Redis shared storage. For more information about Redis Sentinel, refer to https://redis.io/docs/management/sentinel/[Redi Sentinel^].
+
+Configure Redis Sentinel using the steps described in the previous sections.
+
+Sample configuration for adding Redis Sentinel:
+//end::sentinel-intro[]
+
+//tag::sentinel-sample-config[]
+[source, yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: shared-storage
+  namespace: test-ns
+spec:
+  sharedStorage:
+    redis:
+      username: "user"
+      password: "pass"
+      sentinel:
+        addresses:
+          - internal.redis.com:6379
+        masterName: "name"
+        password: "pass"
+      db: 0
+----
+//end::sentinel-sample-config[]
+
+//tag::tls-intro[]
+[[redis-tls]]
+== Configure TLS for Redis-Based Shared Storage
+
+Use TLS with Redis to ensure data security between Flex Gateway and the Redis instance. Configuring TLS enables you to protect sensitive data, prevent unauthorized access, and maintain the reliability of your services. Additionally, configuring TLS helps organizations meet compliance requirements and build trust with users.
+
+TLS works with both Redis and Redis Sentinel.
+
+Configure TLS for Redis-based shared storage using the steps described in the previous sections.
+
+Sample configuration for adding Redis-based shared storage with TLS:
+//end::tls-intro[]
+
+//tag::tls-sample-config[]
+[source, yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: shared-storage-redis
+spec:
+  sharedStorage:
+    redis:
+      address: internal.redis.com:6379
+      tls:
+        skipValidation: false
+        minVersion: "1.1"
+        maxVersion: "1.3"
+        alpn:
+          - h2
+          - http/1.1
+        ciphers:
+          - TLS_AES_128_GCM_SHA256
+          - TLS_AES_256_GCM_SHA384
+          - TLS_CHACHA20_POLY1305_SHA256
+          - TLS_RSA_WITH_3DES_EDE_CBC_SHA
+          - TLS_RSA_WITH_AES_128_CBC_SHA
+          - TLS_RSA_WITH_AES_256_CBC_SHA
+          - TLS_RSA_WITH_AES_128_CBC_SHA256
+          - TLS_RSA_WITH_AES_128_GCM_SHA256
+          - TLS_RSA_WITH_AES_256_GCM_SHA384
+          - TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+          - TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+          - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+          - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+          - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+          - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+          - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+          - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+          - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+          - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+        trustedCA: |
+          -----BEGIN CERTIFICATE-----
+          ...
+          -----END CERTIFICATE-----
+
+        certificate:
+          keyPassphrase: "****"
+          key: |
+            -----BEGIN RSA PRIVATE KEY-----
+            ...
+            -----END RSA PRIVATE KEY-----
+
+          crt: |
+            -----BEGIN CERTIFICATE-----
+            ...
+            -----END CERTIFICATE-----
+
+----
+//end::tls-sample-config[]
+
+//tag::tls-more-information[]
+For information about configuration parameters, see the xref:flex-local-configuration-reference-guide.adoc#shared-storage[Declarative Configuration Reference (Shared Storage)].
+//end::tls-more-information[]

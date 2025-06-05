@@ -1,0 +1,32 @@
+= Shared Storage Models
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+When configuring shared storage, MuleSoft recommends placing the Redis shared storage service as close to Flex Gateway as possible.
+
+If the Redis shared storage service is available locally in the same cluster or the same Virtual Private Cloud (VPC), a mutual authentication Transport Layer Security (mTLS) connection is not required to communicate with the shared storage. 
+
+To configure the connection between Flex Gateway and the shared storage service, see:
+
+* xref:flex-conn-shared-storage-config.adoc[Configure Shared Storage in Connected Mode]
+* xref:flex-local-shared-storage-config.adoc[Configure Shared Storage in Local Mode]
+
+The following diagrams use Kubernetes terminology, but you can extend the architecture to other technology stacks that have the appropriate network controls applied.
+
+You can place the Redis shared storage within the same Kubernetes cluster as Flex Gateway or instantiated within the same VPC as Flex Gateway:
+
+
+== Shared Storage in the Same Cluster
+
+image:redis-same-cluster.png["The redis shared storage is in the same cluster as the Flex Gateway replicas."]
+
+== Shared Storage in the Same VPC
+
+image:redis-same-vpc.png["The redis shared storage is in the same VPC as the Flex Gateway replicas but is not in the same cluster."]
+
+== See Also
+
+* xref:flex-architecture-basic-deployments.adoc[]
+* xref:flex-architecture-uc-overview.adoc[]
