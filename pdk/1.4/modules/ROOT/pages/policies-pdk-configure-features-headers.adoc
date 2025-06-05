@@ -172,10 +172,7 @@ NOTE: To view an example policy that uses the streaming body state, see https://
 
 To handle request or response bodies that exceed the 1MB size limit, use the streaming body state. The streaming body state enables you to process the body in chunks as they arrive instead of waiting for the entire body. When using the streaming body state, you cannot write to the payload.
 
-The policy processes data in chunks via a buffer. Each chunk can either be retained in the buffer for modification or sent to the backend, clearing it from the buffer. If the buffer becomes full, Envoy rejects the request. The "collect" operation copies each chunk from the buffer to the policy's local memory, clearing the buffer between chunks until the final one is received.
-
-
-To access the streaming body state, transform the `RequestState` or `ResponseState` into a body stream state by calling the method `into_body_stream_state()` and awaiting it:
+To access the streaming body state, transform the `RequestState` or `ResponseState` into the body stream state by calling the `into_body_stream_state()` method and awaiting it:
 
 [source,Rust]
 ----
