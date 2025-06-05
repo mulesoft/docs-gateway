@@ -165,6 +165,47 @@ NOTE: This code removes the `content-length` header. This is required to modify 
 * `BodyError::BodyNotSent`: The current HTTP Flow doesn't have a body (for example, `GET` request).
 * `BodyError::ExceededBodySize`: The new body exceeds the maximum body buffer size supported by Envoy.
 
+[[streaming-bodies]]
+== Streaming Bodies
+
+NOTE: To view an example policy that uses the streaming body state, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/{template-policies-url-ver-var}/stream-payload/README.md[Stream Payload Policy].
+
+To handle request or response bodies that exceed the 1MB size limit, use the streaming body state. The streaming body state enables you to process the body in chunks as they arrive instead of waiting for the entire body. When using the streaming body state, you cannot write to the payload.
+
+The policy processes data in chunks via a buffer. Each chunk can either be retained in the buffer for modification or sent to the backend, clearing it from the buffer. If the buffer becomes full, Envoy rejects the request. The "collect" operation copies each chunk from the buffer to the policy's local memory, clearing the buffer between chunks until the final one is received.
+
+
+To access the streaming body state, transform the `RequestState` or `ResponseState` into a body stream state by calling the method `into_body_stream_state()` and awaiting it:
+
+[source,Rust]
+----
+let body_stream_state = request_state.into_body_stream_state().await;
+----
+
+After calling `into_body_stream_state()`, access the stream of body chunks using the `stream()` method:
+
+[source,Rust]
+----
+let mut stream = body_stream_state.stream();
+while let Some(chunk) = stream.next().await {
+    // Process each chunk as it arrives
+    let chunk_bytes = chunk.into_bytes();
+    // ... process chunk_bytes ...
+}
+----
+
+NOTE: For an example of how to access body chunks, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/{template-policies-url-ver-var}/stream-payload/src/lib.rs#L30[Stream Payload Policy Chunks].
+
+If you need the complete body, use the `collect()` method to collect all chunks before processing the payload and sending it to the upstream service:
+
+[source,Rust]
+----
+let collect = stream.collect().await;
+----
+
+NOTE: For an example of how to access body chunks, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/{template-policies-url-ver-var}/stream-payload/src/lib.rs#L54[Stream Payload Policy Collect].
+
+
 == See Also
 
 * xref:policies-pdk-configure-features.adoc[]
