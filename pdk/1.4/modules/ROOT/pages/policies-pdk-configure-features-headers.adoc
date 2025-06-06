@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-With Flex Gateway Policy Development Kit (PDK), you can read and write to request and response headers and bodies.
+With Flex Gateway Policy Development Kit (PDK), you can read and write to request and response headers and bodies and read from a streamed body.
 
 [[event-flow]]
 == Event Flow
@@ -97,7 +97,7 @@ async fn response_filter(response_state: ResponseState, _config: &Config) {
 [[read-and-write-request-bodies]]
 == Read and Write Request Bodies
 
-NOTE: Reading and writing bodies is limited to payloads of size 1MB or smaller.
+NOTE: Reading and writing bodies is limited to payloads of size 1MB or smaller. For larger payloads, see <<streaming-bodies>>.
 
 To access the body in both the request and the response, transform the `RequestState` or `ResponseState` to a body state by calling the method `into_body_state()` and awaiting it:
 
@@ -164,6 +164,43 @@ NOTE: This code removes the `content-length` header. This is required to modify 
 
 * `BodyError::BodyNotSent`: The current HTTP Flow doesn't have a body (for example, `GET` request).
 * `BodyError::ExceededBodySize`: The new body exceeds the maximum body buffer size supported by Envoy.
+
+[[streaming-bodies]]
+== Streaming Bodies
+
+NOTE: To view an example policy that uses the streaming body state, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/{template-policies-url-ver-var}/stream-payload/README.md[Stream Payload Policy].
+
+To handle request or response bodies larger than 1MB, use the streaming body state. The streaming body state enables the body to be processed as chunks as data arrives. When using the streaming body state, you cannot write to the body. Using the stream body state doesn't affect reading and writing headers
+
+To use the streaming body state, convert the `RequestState` or `ResponseState` into a body stream state by calling the `into_body_stream_state()` method and awaiting it:
+
+[source,Rust]
+----
+let body_stream_state = request_state.into_body_stream_state().await;
+----
+
+After conversion, access the incoming chunks through the `stream()` method:
+
+[source,Rust]
+----
+let mut stream = body_stream_state.stream();
+while let Some(chunk) = stream.next().await {
+    // Process each chunk as it arrives
+    let chunk_bytes = chunk.into_bytes();
+    // ... process chunk_bytes ...
+}
+----
+
+NOTE: For an example of chunk processing, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/{template-policies-url-ver-var}/stream-payload/src/lib.rs#L30[Stream Payload Policy Chunks].
+
+If you need the complete body before processing the payload, use the `collect()` method to collect all chunks:
+
+[source,Rust]
+----
+let collect = stream.collect().await;
+----
+
+NOTE: For an example of how to collect and process full payloads, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/{template-policies-url-ver-var}/stream-payload/src/lib.rs#L54[Stream Payload Policy Collect].
 
 == See Also
 
