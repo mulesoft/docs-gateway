@@ -137,9 +137,9 @@ Flex Gateway supports a subset of DataWeave in policy configuration expressions.
 
 [NOTE]
 ====
-Flex Gateway doesn't support DataWeave expressions with binary type results. To use the `dw::Binaries::fromBase64('dXNlcjpwYXNz')` function, transform the result to a string.. Transform the binary output to string with the `dw::util::Coercions::toString(binary: Binary, encoding: String): String` function. For example; `#[dw::util::Coercions::toString(dw::core::Binaries::fromBase64('dXNlcjpwYXNz'), 'UTF-8')]`. 
+Flex Gateway doesn't support DataWeave expressions with binary type results. To use the `dw::Binaries::fromBase64('dXNlcjpwYXNz')` function, transform the result to a string. Transform the binary output to a string with the `dw::util::Coercions::toString(binary: Binary, encoding: String): String` function. For example, `#[dw::util::Coercions::toString(dw::core::Binaries::fromBase64('dXNlcjpwYXNz'), 'UTF-8')]`. 
 
-If using a different function that transform the binary by default, such as `#[splitBy(dw::core::Binaries::fromBase64('dXNlcjpwYXNz'), ':')]`, you don't need to manually transform the binary. 
+If using a different function that transforms the binary by default, such as `#[splitBy(dw::core::Binaries::fromBase64('dXNlcjpwYXNz'), ':')]`, you can skip manually transforming the binary. 
 ====
 
 === toBinary
@@ -173,7 +173,7 @@ If using a different function that transform the binary by default, such as `#[s
 ** `authentication.properties`
 
 * `payload`
-** Fields depend on the current payload. For example: `#[payload]` returns the body of the message.
+** Fields depend on the current payload. For example, `#[payload]` returns the body of the message.
 
 * xref:dataweave::dataweave-variables-context.adoc[`vars`]
 ** Individual policies support different sets of variables. For information, refer to the policies listed in xref:policies-included-directory.adoc[].
