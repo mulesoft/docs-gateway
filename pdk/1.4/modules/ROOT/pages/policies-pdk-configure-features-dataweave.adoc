@@ -59,6 +59,13 @@ spec:
 
 ----
 
+[NOTE]
+====
+Flex Gateway doesn't support binary types. For the `dw::util::Coercions::toString(binary: Binary, encoding: String): String` DataWeave function, the result must be a string. Transform the binary output to string with the `dw::util::Coercions::toString(binary: Binary, encoding: String): String` function. For example; `#[dw::util::Coercions::toString(dw::core::Binaries::fromBase64('dXNlcjpwYXNz'), 'UTF-8')]`. 
+
+If using a different function that transform the binary by default, such as `#[splitBy(dw::core::Binaries::fromBase64('dXNlcjpwYXNz'), ':')]`, you don't need to manually transform the binary. 
+====
+
 Use the following Rust snippet:
 
 [source,rust]
@@ -131,18 +138,6 @@ After one of the binding methods is called, you can confirm the expression was c
 evaluator.is_ready()
 ----
 
-=== 
-
-For flex 1.4.0 onwards add to 
-https://docs.mulesoft.com/pdk/latest/policies-pdk-configure-features-dataweave
-
-Note on introduced `dw::core::Binaries::fromBase64(base64String: String): Binary` function.
-To maintain backwards compatibility, if the output of the evaluator is of binary type, and error will be returned. If you want to output the binary type as a string you can manually coerce it using  the provided function `dw::util::Coercions::toString(binary: Binary, encoding: String): String` in your dw expression.
-Eg: 
- instead of #[dw::core::Binaries::fromBase64('dXNlcjpwYXNz')]
-you should write #[dw::util::Coercions::toString(dw::core::Binaries::fromBase64('dXNlcjpwYXNz'), 'UTF-8')]
-If your expression uses another function which automatically coerces the binary to another type, there is no need for manual coercion
-Eg:  #[splitBy(dw::core::Binaries::fromBase64('dXNlcjpwYXNz'), ':')]
 
 == See Also
 
