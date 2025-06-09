@@ -79,6 +79,11 @@ For example, `#[attributes.queryParams['identifier']]` creates an independent co
 | `true`
 | Distributed: When using interconnected runtimes with this flag enabled, quota will be shared among all nodes
 
+|blockOnUnknownQuota
+| Optional
+| `true`
+| For policies using distributed rate limiting (`clusterizable`), block requests if the policy can't retrieve the quota from shared storage. If `false` and the quota can't be retrieved, no rate limiting is applied. 
+
 |===
 
 ==== Resource Configuration Example
@@ -143,6 +148,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |Time Unit | The time in milliseconds, seconds, minutes, or hours | Minutes
 |Distributed | When using interconnected runtimes with this flag enabled, quota will be shared among all nodes. | checked or unchecked
 | Expose Headers| The option that defines whether to expose the  <<response-header,x-ratelimit headers>> as part of the response | checked or unchecked
+|Block on unknown quota  | For policies using distributed rate limiting, block requests if the policy cannot retrieve the quota from shared storage. If not enabled and the quota can't be retrieved, no rate limiting is applied.  
 |===
 
 == How This Policy Works
