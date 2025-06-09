@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-NOTE: To view an example policy project that uses DataWeave expressions, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/query/README.md[Query Policy Example^].
+NOTE: To view an example policy project that uses DataWeave expressions, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/dataweave/README.md[DataWeave Policy Example^].
 
 If the input DataWeave expression parameter is valid, the policy parses the expression and transforms it into a `pdk::script::Script` expression. To obtain the result of the script:
 
@@ -58,6 +58,11 @@ spec:
    - tokenExtractor
 
 ----
+
+[NOTE]
+====
+Flex Gateway doesn't support DataWeave expressions with binary type results. To use the `dw::Binaries::fromBase64('dXNlcjpwYXNz')` function, transform the result to a string. Transform the binary output to a string with the `dw::util::Coercions::toString(binary: Binary, encoding: String): String` function. For example, `#[dw::util::Coercions::toString(dw::core::Binaries::fromBase64('dXNlcjpwYXNz'), 'UTF-8')]`. If using a different function that transforms the binary by default, such as `#[splitBy(dw::core::Binaries::fromBase64('dXNlcjpwYXNz'), ':')]`, you can skip manually transforming the binary. 
+====
 
 Use the following Rust snippet:
 
@@ -130,6 +135,7 @@ After one of the binding methods is called, you can confirm the expression was c
 ----
 evaluator.is_ready()
 ----
+
 
 == See Also
 
