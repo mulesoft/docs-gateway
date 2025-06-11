@@ -11,12 +11,15 @@ endif::[]
 >s|Summary| Validates incoming traffic against a specified WSDL schema
 >s|Category| Security
 >s|First Flex Gateway version available |v1.10.0
->s|Returned Status Codes|400 - Bad Request
+>.^s| Returned Status Codes
+| The policy returns a `400` for a client error or `500` for a server error. Error messages are define by SOAP standard responses.
 |===
 
 == Summary
 
+NOTE: The Schema Validation policy only supports SOAP APIs.
 
+Use the SOAP Schema Validation policy to block incoming requests that don't conform to the the defined WSDL schema. This policy prevents malformed or malicious SOAP messages from reaching the backend and enforces contract compliance between clients and services.
 
 == Configuring Policy Parameters
 
@@ -26,26 +29,24 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 - policyRef:
     name: soap-validation
   config:
-    maxNodeDepth: <number> // OPTIONAL, default: -1
-    maxAttributeCountPerElement: <number> // OPTIONAL, default: -1
+    serviceName: <string> // REQUIRED
+    servicePort: <string> // REQUIRED
     
 ----
-
-NOTE: Defining a parameter as `-1` means the parameter has no limit.
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
 |Parameter | Required | Default Value | Description
 
-| `maxNodeDepth`
-| No
-| -1
-| Specifies the maximum node depth of an XML document.
+| `serviceName`
+| Yes
+| NA
+| The name of the SOAP service to validate, as defined in the WSDL.
 
-| `maxAttributeCountPerElement`
-| No
-| -1
-| Specifies the maximum number of attributes in an element. Attributes used for defining namespaces are not counted.
+| `servicePort`
+| Yes
+| NA
+| The port name of the SOAP service to validate, as defined in the WSDL.
 
 |===
 
@@ -55,8 +56,8 @@ NOTE: Defining a parameter as `-1` means the parameter has no limit.
 - policyRef:
     name: soap-validation
   config:
-    maxNodeDepth: 1
-    maxAttributeCountPerElement: 1
+    serviceName: 1
+    servicePort: 1
 ----
 
 include::partial$policy-title-headers.adoc[tag=ui]
@@ -64,8 +65,8 @@ include::partial$policy-title-headers.adoc[tag=ui]
 [%header%autowidth.spread,cols="a,a"]
 |===
 |Field |Description
-| Service Name | 
-| Service Port | 
+| Service Name | The name of the SOAP service to validate, as defined in the WSDL.
+| Service Port | The port name of the SOAP service to validate, as defined in the WSDL.
 |===
 
 
