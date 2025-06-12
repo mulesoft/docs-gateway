@@ -29,24 +29,38 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 - policyRef:
     name: soap-validation
   config:
+    wsdlUrl: <string> // REQUIRED
+    encoding: <string> // REQUIRED, default 'UTF-8'
     serviceName: <string> // REQUIRED
     servicePort: <string> // REQUIRED
     
 ----
 
+Determines if the schema is specified in this YAML resource, or if it's specified in the API Context from Exchange (Connected Mode only). Supported values: `inline` or `context`. You must specify `inline` when configuring the policy in Local Mode.
+
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
 |Parameter | Required | Default Value | Description
 
+| `wsdlUrl`
+| Yes
+| NA
+| URL of where to access the WSDL
+
+| `encoding`
+| Yes
+| UTF-8
+| Encoding of the WSDL
+
 | `serviceName`
 | Yes
 | NA
-| The SOAP service name defined in the WSDL that validates requests
+| SOAP service name defined in the WSDL that validates requests
 
 | `servicePort`
 | Yes
 | NA
-| The SOAP port name defined in the WSDL that validates requests
+| SOAP port name defined in the WSDL that validates requests
 
 |===
 
@@ -56,8 +70,10 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 - policyRef:
     name: soap-validation
   config:
-    serviceName: 1
-    servicePort: 1
+    wsdlUrl:
+    encoding: UTF-8
+    serviceName: 
+    servicePort: 
 ----
 
 include::partial$policy-title-headers.adoc[tag=ui]
@@ -65,8 +81,11 @@ include::partial$policy-title-headers.adoc[tag=ui]
 [%header%autowidth.spread,cols="a,a"]
 |===
 |Field |Description
-| Service Name | The SOAP service name defined in the WSDL that validates requests
-| Service Port | The SOAP port name defined in the WSDL that validates requests
+| Service Name | SOAP service name defined in the WSDL that validates requests
+| Service Port | SOAP port name defined in the WSDL that validates requests
 |===
 
+== See Also
+
+* xref:policies-included-xml-threat-protection.adoc[]
 
