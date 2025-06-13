@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =============================
-# Script to compare changes between two versioned gateway directories
+# Script to compare changes between two versioned pdk directories using docs-team-wiki/handy-scripts/check-changes.sh script
 #
 # NOTE: This script depends on the main script located at:
 #   docs-team-wiki/handy-scripts/check-changes.sh
@@ -36,9 +36,6 @@ fi
 # To update for a new release, set this to the commit where the new release branch was created.
 # To find the commit hash, use command 'git merge-base latest RELEASE_BRANCH'.
 # For example:
-
-
-#        git merge-base latest pdk-1-4-release
 BASE_COMMIT=ed60617a8219dc89414e71698c77e31d55983a0c
 
 # Name of the main branch (usually 'latest')
@@ -51,23 +48,11 @@ OLD_VERSION=1.3
 # New version directory (e.g., '1.4')
 NEW_VERSION=1.4
 
-# Get the list of changed files in the previous version directory since the split
-
-changed_files=$(git diff --name-only $BASE_COMMIT..$LATEST_BRANCH -- pdk/$OLD_VERSION)
-if [ -z "$changed_files" ]; then
-  echo "No changes found in pdk/$OLD_VERSION since the release branch was created."
-else
-  echo "$changed_files" | while read file; do
-    # Map to new version path by replacing OLD_VERSION with NEW_VERSION in the file path
-    file_new=${file/$OLD_VERSION/$NEW_VERSION}
-    echo "Comparing $file ($LATEST_BRANCH) to $file_new ($RELEASE_BRANCH):"
-    # Store the diff output in a variable
-    diff_output=$(git diff $LATEST_BRANCH:"$file" $RELEASE_BRANCH:"$file_new")
-    if [ -z "$diff_output" ]; then
-      echo "  No missing changes."
-    else
-      echo "$diff_output"
-    fi
-    echo "----------------------------------------"
-  done
-fi
+# Call the generic check-changes.sh script with the appropriate arguments
+../../../docs-team-wiki/handy-scripts/check-changes.sh \
+  --folder pdk \
+  --old-version "$OLD_VERSION" \
+  --new-version "$NEW_VERSION" \
+  --latest-branch "$LATEST_BRANCH" \
+  --release-branch "$RELEASE_BRANCH" \
+  --base-commit "$BASE_COMMIT"
