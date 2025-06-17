@@ -4,115 +4,46 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
+PDK provides functions to report a policy violation. Reported policy violations appear in Anypoint Monitoring.
 
-PDK exposes a `Metadata` injectable that provides metadata about the policy, the Flex instance, the API instance, and the Anypoint Organization. The `Metadata` struct is as follows:
+A request can only have one active policy violation. If a previous policy reports a policy violation, generating a new policy violation overrides the previous violation. If multiple policies generate policy violations for a single request, only one policy violation appears in Anypoint Monitoring. 
 
-[source,Rust]
-----
-pub struct Metadata {
-    pub flex_metadata: FlexMetadata,
     pub policy_metadata: PolicyMetadata,
-    pub api_metadata: ApiMetadata,
-    pub platform_metadata: PlatformMetadata,
-}
-----
+NOTE: Reporting a policy violation doesn't reject the request. To reject requests, see xref:policies-pdk-configure-features-stop.adoc[].
 
-The `Metadata` struct references the following structures:
-
-* `FlexMetadata`:
-+
-[source,Rust]
-----
-pub struct FlexMetadata {
-    pub flex_name: String,
-    pub flex_version: String,
-}
-----
-
-* `PolicyMetadata`:
-+
-[source,Rust]
-----
-pub struct PolicyMetadata {
-    pub policy_name: String,
-    pub policy_namespace: String,
-}
-----
-
-* `ApiMetadata`:
-+
-[source,Rust]
-----
-pub struct ApiMetadata {
-    pub id: Option<String>,
-    pub name: Option<String>,
-    pub version: Option<String>,
-    pub slas: Option<Vec<ApiSla>>, // API SLA tiers in the platform
-}
-
-// Each ApiSla contains the limits for each SLA. 
-pub struct ApiSla {
-    pub id: String,
-    pub tiers: Vec<Tier>, // Limits within an API SLA tier in the platform
-}
-----
-
-* `PlatformMetadata`:
-+
-[source,Rust]
-----
-pub struct PlatformMetadata {
-    pub organization_id: String,
-    pub environment_id: String,
-    pub root_organization_id: String,
-}
-----
-
-== Inject Metadata into the #[entrypoint]
-
-To inject metadata into the `#[entrypoint]` configuration function, see the following code snippet: 
+To view the current policy violation or generate a new policy violation, PDK provides these functions:
 
 [source,Rust]
 ----
-#[entrypoint]
-async fn configure(launcher: Launcher, metadata: Metadata) -> Result<()> {
-    logger::info!("Flex instance name is: {}", metadata.flex_metadata.flex_name.to_string());
+/// Returns the existing policy violation of the current request. Returns None if no violation exists.
+pub fn policy_violation(&self) -> Option<PolicyViolation>;
 
-    launcher
-        .launch(on_request(filter))
-        .await?;
-    Ok(())
-}
+/// Generates a new policy violation for the current request. If a violation was previously generated, the previous violation is overridden.
+pub fn generate_policy_violation(&self);
+
+/// Generates a new policy violation with the client application details for the current request. This overwrites any previous policy violations.
+pub fn generate_policy_violation_for_client_app<T: Into<String>, K: Into<String>>(
+   &self,
+   client_name: T,
+   client_id: K,
+);
 ----
 
-== Inject Metadata into the Wrapped Functions
-
-You cannot directly inject metadata into the wrapped functions. To use metadata in the wrapped functions, first inject the data into the `#[entrypoint]` function and then the wrapped function:
+To retrieve information about the current policy violation, PDK provides these functions:
 
 [source,Rust]
 ----
-#[entrypoint]
-async fn configure(launcher: Launcher, metadata: Metadata) -> Result<()> {
-    launcher
-        .launch(on_request(|r| request_filter(r, &metadata)))
-        .await?;
-    Ok(())
-}
+    /// The name of the policy that generated the violation
+   pub fn get_policy_name(&self) -> &str;
 
-async fn request_filter(_: RequestState, metadata: &Metadata) -> Flow<()> {
-    let mut vec = Vec::new();
-    let headers = &mut vec;
-    headers.push((
-        "flex_name".to_string(),
-        metadata.flex_metadata.flex_name.to_string(),
-    ));
-    headers.push((
-        "policy_name".to_string(),
-        metadata.policy_metadata.policy_name.to_string(),
-    ));
+   /// The type of violation that was generated, either Error or Violation.
+   pub fn get_policy_violation(&self) -> PolicyViolationType;
 
-    Flow::Break(Response::new(201).with_headers(vec))
-}
+   /// Client name associated with the violation, only available if a previous policy reported the client ID
+   pub fn get_client_name(&self) -> Option<&str>;
+
+   /// Client ID associated with the violation, only available if a previous policy reported the client ID
+   pub fn get_client_id(&self) -> Option<&str>;
 ----
 
 == See Also
