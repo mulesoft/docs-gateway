@@ -1,0 +1,88 @@
+= Creating Mule Gateway PDK Policies
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Policy Development Kit (PDK) supports creating Mule Gateway policies to enhance your experience:
+
+* Creating policies
+* Defining the configuration schema 
+* Deploying policies to Exchange
+
+
+
+
+== Before You Begin
+
+* PDK supported Operating with Make
++
+See xref:pdk::policies-pdk-prerequisites.adoc#supported-operating-systems[Supported Operating Systems].
+
+* Anypoint CLI 
++
+See xref:pdk::policies-pdk-prerequisites.adoc#cli[Anypoint CLI PDK Requirements].
+
+* Java
+
+For supported Java versions, see xref:general::java-supportJava[].
+
+* https://maven.apache.org/[Apache Maven]
++
+Apache Maven is a prerequisite for the xref:mule-runtime::mmp-concept.adoc[]. PDK Mule Policy projects include an embedded Mule Maven Plugin so downloading the plugin is not required. To ensure your Maven version is compatible with the latest plugin, see xref:release-notes::mule-maven-plugin/mule-maven-plugin-release-notes.adoc[].
+
+* MuleSoft’s Maven archetype
++
+Configure MuleSoft’s Maven archetype by adding the following code section to Maven’s `settings.xml` file:
++
+[source,xml,linenums]
+----
+ <profiles>
+   <profile>
+     <id>archetype-repository</id>
+     <repositories>
+       <repository>
+         <id>archetype</id>
+         <name>Mule Repository</name>
+         <url>https://repository.mulesoft.org/nexus/content/repositories/public</url>
+         <releases>
+           <enabled>true</enabled>
+           <checksumPolicy>fail</checksumPolicy>
+         </releases>
+         <snapshots>
+           <enabled>true</enabled>
+           <checksumPolicy>warn</checksumPolicy>
+         </snapshots>
+       </repository>
+     </repositories>
+   </profile>
+ </profiles>
+----
+
+== Create a Mule Custom Policy with PDK
+
+To create your custom policy execute:
+
+[source,cmd]
+----
+pdk policy-project create --name <policy-name> --implementation-technology mule4
+----
+
+Running this command generates a custom policy folder with the policy name. The folder contains a makefile that provides all the callable actions required during the policy development lifecycle.
+
+
+== Define a Policy Schema
+
+Use the `gcl.yaml` file inside you policy project to define the policy's schema. PDK generates your policy's UI json from the parameters defined in the schema definition.
+
+To define a schema definition, see xref:policies-pdk-create-schema-definition.adoc[].
+
+
+GCL replaces the older method of manually writing a JSON schema (`config.json`) for your policy parameters. By using `gcl.yaml`, Mule Gateway can automatically generate the necessary metadata for the policy's UI and validation logic.
+
+
+== Publish and Release Policies 
+
+PDK publishes Mule Gateway and Flex Gateway policies in the same way. 
+
+To publish and release policies, see xref:pdk::policies-pdk-publish-policies.adoc[].
