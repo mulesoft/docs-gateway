@@ -16,14 +16,18 @@ endif::[]
 
 == Summary
 
-The Tracing policy sets distributed tracing parameters for an API. You can use this policy to override the global distributed tracing parameters:
+The Tracing policy sets distributed tracing parameters for an API.If you have enabled distributed tracing with a Flex Gateway configuration, you can use this policy to override the global distributed tracing parameters.
 
-* `timeout` - Time in seconds before Flex Gateway closes the connection.
 
-Distributed tracing is disabled by default. If you have enabled distributed tracing with a Flex Gateway configuration, you can use this policy to override the global distributed tracing parameters for an API. See xref:flex-conn-otel-config.adoc[Configure Distributed Tracing] for more information.
+//The `labels` parameters defines an array of labels are used as span attributes in the trace data. Each label has the following properties:
+//* `name` - The name of the label, used as span attribute name
+//* `type` - The type of the label specifies where the value for the label is taken from. 
+//* `description` - The description of the label.
+
 
 == Before You Begin
 
+Distributed tracing is disabled by default. If you have enabled distributed tracing with a Flex Gateway global configuration, you can use this policy to override the global distributed tracing parameters for an API. See xref:flex-conn-otel-config.adoc[Configure Distributed Tracing] for more information.
 
 == Configuring Policy Parameters
 
@@ -31,19 +35,62 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 
 ----
 - policyRef:
-    name: stream-idle-timeout-flex
+    name: tracing-flex
   config:
-    timeout: number // REQUIRED
+    sampling:
+      client: number // REQUIRED
+      random: number // REQUIRED
+      overall: number // REQUIRED
+    labels:
+      - name: <string> // REQUIRED
+        type: <string> // REQUIRED
+        keyName: <string> // REQUIRED
+        defaultValue: <string> // REQUIRED
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
 |Parameter | Required or Optional | Default Value | Description
 
-| `timeout`
+| `sampling.client`
 | Required
-| 300
-| Time in seconds before Flex Gateway closes the connection.
+| 100
+| The target percentage of requests that are force traced if the x-client-trace-id header is set.
+
+| `sampling.random`
+| Required
+| 100
+| The target percentage of requests that are randomly selected for trace generation, if not requested by the client or not forced.
+
+| `sampling.overall`
+| Required
+| 100
+| The target percentage of requests that are traced after all other sampling checks have been applied (client-directed, force tracing, random sampling).
+
+| `labels`
+| Required
+| N/A
+| Array of labels that are added to the trace to be used as span attributes in the trace data
+
+| `labels.name`
+| Required
+| N/A
+| The name of the label, used as span attribute name
+
+| `labels.type`
+| Required
+| N/A
+| The type of the label specifies where the value for the label is taken from. Supported values are `literal`, `environment` and `requestHeader`.
+
+| `labels.keyName`
+| Required
+| N/A
+| The key name of the label.
+
+| `labels.defaultValue`
+| Required
+| N/A
+| The default value of the label.
 
 |===
 
@@ -51,15 +98,22 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 
 ----
 - policyRef:
-    name: stream-idle-timeout-flex
+    name: tracing-flex
   config:
-    timeout: 3
+    sampling:
+      client: 100
+      random: 100
+      overall: 100
+    labels:
+      - name: c-env-tag
+        type: environment
+        keyName: FLEX_NAME
+        defaultValue: DEFAULT_VAL
+      - name: c-header-tag
+        type: requestHeader
+        keyName: :method
+        defaultValue: DEFAULT_METHOD
+      - name: c-literal-tag
+        type: literal
+        defaultValue: the-tag
 ----
-
-include::partial$policy-title-headers.adoc[tag=ui]
-
-[%header%autowidth.spread,cols="a,a,a"]
-|===
-| Element | Description | Required
-| Stream idle timeout | Time in seconds before Flex Gateway closes the connection. | Yes
-|===
