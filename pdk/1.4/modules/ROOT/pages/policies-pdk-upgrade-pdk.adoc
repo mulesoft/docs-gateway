@@ -9,6 +9,7 @@ To update a custom policy project, you must update each of these separately vers
 * Anypoint CLI PDK plugin
 * PDK Rust libraries
 * Anypoint Cargo plugin
+* WASI Crate
 
 When you upgrade your Anypoint CLI PDK plugin, you must manually upgrade the PDK Rust libraries and Anypoint Cargo plugin to be compatible with the new plugin version. All the PDK custom policies on your device use the same Anypoint CLI PDK plugin. When you create a new custom policy project, the PDK Rust libraries and Anypoint Cargo plugin versions are the same as the Anypoint CLI PDK plugin used to create the project and are independent from other policy projects.
 
@@ -17,6 +18,7 @@ To upgrade a custom policy project created with an earlier version of the Anypoi
 . <<anypoint-cli-pdk-plugin>>
 . <<pdk-rust-libraries>>
 . <<anypoint-cargo-plugin>>
+. <<anypoint-wasi-crate>>
 
 [[anypoint-cli-pdk-plugin]]
 == Upgrade the Anypoint CLI PDK Plugin
@@ -96,6 +98,44 @@ NOTE: Executing the `make setup` command for a certain policy installs that poli
 [source,ssh]
 ----
 cargo anypoint --version
+----
+
+[[anypoint-wasi-crate]]
+== Upgrade the WASI Crate
+
+
+
+To upgrade your Rust WebAssembly System Interface (WASI) Crate from `wasm32-wasi` to `wasm32-wasip1`:
+
+. Open the `Makefile` of your custom policy.
+. Find the this line:
++
+----
+TARGET                	:= wasm32-wasi
+----
+. Replace `wasm32-wasi` with `wasm32-wasip1`:
++
+----
+TARGET                	:= wasm32-wasip1
+----
+. Save the `Makefile`.
+. Open the `tests/common/mod.rs` of your custom policy.
+. Find the this line:
++
+----
+pub const POLICY_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/target/wasm32-wasi/release");
+----
+. Replace `wasm32-wasi` with `wasm32-wasip1`:
++
+----
+pub const POLICY_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/target/wasm32-wasip1/release");
+----
+. Save the `mod.rs` file.
+. Execute the `make setup` command:
++
+[source,ssh]
+----
+make setup
 ----
 
 == See Also
