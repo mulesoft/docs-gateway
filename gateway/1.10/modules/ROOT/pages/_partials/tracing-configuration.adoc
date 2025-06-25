@@ -15,23 +15,24 @@ spec:
     provider:
       type: anypoint
       properties:
-        timeout:     10s
+        timeout: 10s
     sampling:
-      client: 0
-      random: 0
-      overall: 0
-    labels:
-      - name: c-env-tag
-        type: environment
-        keyName: FLEX_NAME
-        defaultValue: DEFAULT_VAL
-      - name: c-header-tag
-        type: requestHeader
-        keyName: :method
-        defaultValue: DEFAULT_METHOD
-      - name: c-literal-tag
-        type: literal
-        defaultValue: the-tag
+      client: 0   # no sampling - for the case where you want to configure sampling on a per-API basis using the Tracing policy.
+      random: 0   # no sampling - for the case where you want to configure sampling on a per-API basis using the Tracing policy.
+      overall: 0  # no sampling - for the case where you want to configure sampling on a per-API basis using the Tracing policy.
+      # # Add labels such as these example labels,if you want to configure labels globally. You can also configure labels on a per-API basis using the Tracing policy.
+      # labels:
+      # - name: c-env-tag
+      #   type: environment
+      #   keyName: FLEX_NAME
+      #   defaultValue: DEFAULT_VAL
+      # - name: c-header-tag
+      #   type: requestHeader
+      #   keyName: :method
+      #   defaultValue: DEFAULT_METHOD
+      # - name: c-literal-tag
+      #   type: literal
+      #   defaultValue: the-tag     
 ----
 
 == Configure Distributed Tracing with Policies
