@@ -18,16 +18,9 @@ endif::[]
 
 The Tracing policy sets distributed tracing parameters for an API.If you have enabled distributed tracing with a Flex Gateway configuration, you can use this policy to override the global distributed tracing parameters.
 
-
-//The `labels` parameters defines an array of labels are used as span attributes in the trace data. Each label has the following properties:
-//* `name` - The name of the label, used as span attribute name
-//* `type` - The type of the label specifies where the value for the label is taken from. 
-//* `description` - The description of the label.
-
-
 == Before You Begin
 
-Distributed tracing is disabled by default. If you have enabled distributed tracing with a Flex Gateway global configuration, you can use this policy to override the global distributed tracing parameters for an API. See xref:flex-conn-tracing.adoc[Configure Distributed Tracing] for more information.
+Distributed tracing is disabled by default. If you have enabled distributed tracing with a Flex Gateway global configuration, you can use this policy to override the global distributed tracing parameters for an API. See xref:flex-conn-tracing-config.adoc[Configure Distributed Tracing] for more information.
 
 == Configuring Policy Parameters
 
@@ -41,7 +34,7 @@ include::partial$policy-title-headers.adoc[tag=configFile]
       client: number // REQUIRED
       random: number // REQUIRED
       overall: number // REQUIRED
-    labels:
+    labels: <array> // OPTIONAL, default: []
       - name: <string> // REQUIRED
         type: <string> // REQUIRED
         keyName: <string> // REQUIRED
@@ -68,8 +61,8 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | The target percentage of requests that are traced after all other sampling checks have been applied (client-directed, force tracing, random sampling).
 
 | `labels`
-| Required
-| N/A
+| Optional
+| Empty array
 | Array of labels that are added to the trace to be used as span attributes in the trace data
 
 | `labels.name`
