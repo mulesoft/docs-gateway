@@ -9,6 +9,8 @@ To update a custom policy project, you must update each of these separately vers
 * Anypoint CLI PDK plugin
 * PDK Rust libraries
 * Anypoint Cargo plugin
+* Policy Rust Version
+* WASI Crate
 
 When you upgrade your Anypoint CLI PDK plugin, you must manually upgrade the PDK Rust libraries and Anypoint Cargo plugin to be compatible with the new plugin version. All the PDK custom policies on your device use the same Anypoint CLI PDK plugin. When you create a new custom policy project, the PDK Rust libraries and Anypoint Cargo plugin versions are the same as the Anypoint CLI PDK plugin used to create the project and are independent from other policy projects.
 
@@ -17,6 +19,8 @@ To upgrade a custom policy project created with an earlier version of the Anypoi
 . <<anypoint-cli-pdk-plugin>>
 . <<pdk-rust-libraries>>
 . <<anypoint-cargo-plugin>>
+. <<anypoint-rust-version>>
+. <<anypoint-wasi-crate>>
 
 [[anypoint-cli-pdk-plugin]]
 == Upgrade the Anypoint CLI PDK Plugin
@@ -97,6 +101,57 @@ NOTE: Executing the `make setup` command for a certain policy installs that poli
 ----
 cargo anypoint --version
 ----
+
+[[anypoint-rust-version]]
+== Upgrade a Policy's Rust Version
+
+To upgrade your Policy's Rust version:
+
+. Ensure the Rust version is downloaded on your device.
++
+To update Rust, see xref:policies-pdk-prerequisites.adoc#rust-requirements[Rust Requirements for Using PDK].
+. Open the `cargo.toml` of your custom policy.
+. Find your Rust version. For example:
++
+----
+rust-version = "1.83.0"
+----
+. Update your Rust version. For example:
++
+----
+rust-version = "1.87.0"
+----
+. Save the `cargo.toml` file.
+
+[[anypoint-wasi-crate]]
+== Upgrade a Policy's WASI Crate
+
+To upgrade your Rust WebAssembly System Interface (WASI) Crate from `wasm32-wasi` to `wasm32-wasip1`:
+
+. Open the `Makefile` of your custom policy.
+. Find this line:
++
+----
+TARGET                	:= wasm32-wasi
+----
+. Replace `wasm32-wasi` with `wasm32-wasip1`:
++
+----
+TARGET                	:= wasm32-wasip1
+----
+. Save the `Makefile`.
+. Open the `tests/common/mod.rs` of your custom policy.
+. Find the this line:
++
+----
+pub const POLICY_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/target/wasm32-wasi/release");
+----
+. Replace `wasm32-wasi` with `wasm32-wasip1`:
++
+----
+pub const POLICY_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/target/wasm32-wasip1/release");
+----
+. Save the `mod.rs` file.
 
 == See Also
 
