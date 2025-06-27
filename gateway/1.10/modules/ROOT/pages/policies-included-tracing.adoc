@@ -1,0 +1,119 @@
+= Tracing Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, otel, otel support, OpenTelemetry, distributed tracing
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Tracing
+>s|Summary  | Override global tracing configuration
+>s|Category | Troubleshooting
+>s|First Flex Gateway version available | 1.10.0
+^s| Returned Status Codes | No return codes exist for this policy
+|===
+
+== Summary
+
+The Tracing policy overrides the global distributed tracing parameters for an API.
+
+== Before You Begin
+
+Distributed tracing is disabled by default. After you have enabled distributed tracing with a Flex Gateway global configuration, you can use this policy to override the global distributed tracing parameters for an API. 
+
+For details on how to enable distributed tracing, see:
+
+* xref:flex-local-tracing-config.adoc[]
+* xref:flex-conn-tracing-config.adoc[]
+* xref:flex-managed-tracing-config.adoc[]
+
+
+== Configuring Policy Parameters 
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: tracing-flex
+  config:
+    sampling:
+      client: number // REQUIRED
+      random: number // REQUIRED
+      overall: number // REQUIRED
+    labels: <array> // OPTIONAL, default: []
+      - name: <string> // REQUIRED
+        type: <string> // REQUIRED
+        keyName: <string> // REQUIRED
+        defaultValue: <string> // REQUIRED
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `sampling.client`
+| Required
+| 100
+| The target percentage of requests that are force traced if the `x-client-trace-id` header is set.
+
+| `sampling.random`
+| Required
+| 100
+| The target percentage of requests that are randomly selected for trace generation, if not requested by the client or not forced.
+
+| `sampling.overall`
+| Required
+| 100
+| The target percentage of requests that are traced after all other sampling checks have been applied, such as client-directed, force tracing, and random sampling.
+
+| `labels`
+| Optional
+| Empty array
+| Array of labels that are added to the trace to be used as span attributes in the trace data.
+
+| `labels.name`
+| Required
+| N/A
+| The name of the label, used as a span attribute name.
+
+| `labels.type`
+| Required
+| N/A
+| The type of the label specifies where the value for the label is taken from. Supported values are `literal`, `environment`, and `requestHeader`.
+
+| `labels.keyName`
+| Required
+| N/A
+| The key name of the label.
+
+| `labels.defaultValue`
+| Required
+| N/A
+| The default value of the label.
+
+|===
+
+==== Resource Configuration Example
+
+----
+- policyRef:
+    name: tracing-flex
+  config:
+    sampling:
+      client: 100
+      random: 100
+      overall: 100
+    labels:
+      - name: c-env-tag
+        type: environment
+        keyName: FLEX_NAME
+        defaultValue: DEFAULT_VAL
+      - name: c-header-tag
+        type: requestHeader
+        keyName: :method
+        defaultValue: DEFAULT_METHOD
+      - name: c-literal-tag
+        type: literal
+        defaultValue: the-tag
+----
