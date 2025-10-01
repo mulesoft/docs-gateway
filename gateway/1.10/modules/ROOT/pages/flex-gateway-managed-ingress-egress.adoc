@@ -6,153 +6,26 @@ endif::[]
 
 Flex Gateway Agent Fabric deployments require both an ingress and egress gateway. The ingress Flex Gateway sits in front of broker and API endpoints to manage and enforce policies on traffic entering the network. The egress Flex Gateway sits on outbound paths from brokers and agents to external agents and services to enforce policies, manage connections, and emit telemetry data.
 
+image::agent-fabric-architecture.png[Agent Fabric diagram showing agents and MCP servers defined in YAML and published to Exchange, with traffic through Flex Gateway, governed by API Manager, and observed in Monitoring and Visualizer]
 
-== Deploy a Managed Flex Gateway
+NOTE: For a more detailed description of this architecture diagram, see xref:agent-fabric::index.adoc#architecture[Agent Fabric Architecture].
 
-. Log in to https://anypoint.mulesoft.com/login/[Anypoint Platform^] with your Anypoint username and password.
-. Select *Runtime Manager*.
-. Ensure you're in environment where you would like to deploy your Managed Gateway
-. Click *Flex Gateways* in the side navigation panel.
-. Click *Managed Flex Gateway*.
-. Click *Add Managed Flex Gateway*.
-. Enter a *Gateway Name*.
-. Select the private space where you want to deploy your Managed Flex Gateway as your *Deployment Target*.
-. Select a *Release Channel*:
-+
-[cols="1a,1a"]
-|===
-| Release channel | Description
-| *Edge* | This channel releases a new minor version every four months. It has the latest features and shorter support windows.
-| *Long-Term Support* | This channel releases a new minor version once a year.
-|===
-+
-To learn more about the differences between release channels, see xref:flex-gateway-version-lifecycle.adoc[].
+There is no functional difference between ingress and egress Flex Gateways, except that the egress Gateway doesn't have a public endpoint. Only clients inside the same private space as the egress gateway can make requests to it. All traffic going to external services should pass through the egress gateway. 
 
-. Select *Version*.
-+
-Select the latest version unless if a later version is specifically needed.
+== Deploy Ingress and Egress Managed Flex Gateways
 
-. Select *Flow Plans*:
-+
-[cols="1a,1a"]
-|===
-| Size | Description
-| *Small Managed Flex Gateway* | Use for testing and staging purposes. Small Managed Flex Gateways can deploy up to 50 APIs with a maximum of 100 requests per second.
-| *Large Managed Flex Gateway* | Use for production purposes. Large Managed Flex Gateways can deploy up to 500 APIs with a maximum of 500 requests per second.
-|===
-+
-To learn more about Managed Flex Gateway sizing, see xref:flex-review-prerequisites.adoc#managed-flex-gateway-limits[Managed Flex Gateway Limits].
+The easiest way to deploy your Agent Fabric ingress and egress Flex Gateways is by using Anypoint Code Builder (ACB) or Anypoint Command Line Interface (CLI):
 
-. Configure *Advanced options*:
-+
-Ingress::
-+
-* *Public endpoint*:
-+
-.. Select your desired private space *Domain*.
-+
-To learn more, see xref:cloudhub-2::ps-create-configure.adoc[].
-+
-.. Enter a *Host*.
-+
-.. Click *Add Endpoint* to add an additional endpoint to a different domain. 
-+
-Managed Flex Gateway supports one *Public endpoint* per domain in your private space.
-+
-* *Ingress options*:
-+
-** *Forward SSL Session*:
-+
-Enables SSL forwarding during a session.
-+
-SSL forwarding is mostly used with client authentication. See xref:anypoint-security::enable-client-authentication.adoc[].
-SSL forwarding forwards client certificate details in HTTP request headers so they are available to the gateway.
-These fields can identify an authenticated client and allow the gateway policies to determine and use the identity.
-+
-The following headers are available:
-+
-[%header,cols="2*a"]
-|===
-| Header Name | Value
-| x-ssl-client-verify | SUCCESS/FAIL
-| x-ssl-issuer | Client certificate issuer
-| x-ssl-client-serial | Client certificate serial number
-| x-ssl-client-dn | Contents of the client certificate DN field
-| x-ssl-client-cert | Contents of the client certificate
-|===
-+
-** *Last-mile Security*:
-+
-Specifies that TLS termination and decryption for the forwarded HTTPS connections occurs in the gateway.
-+
-Properties::
-+
-To configure how long Managed Flex Gateway waits for response or idle connections, configure the timeout properties:
-+
-[cols="1a,1a"]
-|===
-| Parameter | Description
-| *Upstream Connection Idle Timeout* | The time a upstream connection can remain idle without receiving client requests. Upstream responses are not included in this timeout.
-| *Upstream Response Timeout* | The time the upstream service has to respond from when Flex Gateway sends a request.
-| *Stream Idle Timeout* | The time a stream can remain idle without receiving additional client requests or upstream responses.
-|===
-+
-Logging::
-+
-* *Forward application logs to Anypoint Monitoring*:
-+
-Forwards Flex Gateway logs to Anypoint Monitoring. When disabled, logs are only available in Runtime Manager.
-+
-* *Additional Log Levels*:
-+
-** *INFO*: Informative messages
-** *DEBUG*: Debugging messages
-** *WARNING*: Warning messages
-** *ERROR*: Error messages, such as when an exception occurs
-** *FATAL*: Fatal messages for when an application fails
-+
-[NOTE]
-====
- You can use Access Management audit logs to track Managed Flex Gateway actions, such as creating, editing, starting, and stopping gateways. Audit logs don't require configuration.
- 
- To learn more, see xref:flex-managed-view-status.adoc#audit-logs[View Managed Flex Gateway Audit Logs].
-====
-+
-Tracing::
-+
-* *Distributed tracing*:
-+
-Enable to generate OpenTelemetry distributed tracing data for the Managed Flex Gateway. When enabled, you can set the sampling percentage.
-+
-* *Sampling percentage*:
-+
-Set the overall distributed tracing sampling percentage. This setting corresponds to the `overall` sampling percentage. The `client` and `random` sampling percentages are set to 100% by default, if the sampling percentage is set to a non-zero value here.
-+
-Set the *Sampling percentage* to 0 if you want to specify the sampling percentage only on a per-API basis, using the Tracing policy.
-+
-. Click *Save & deploy*.
+* xref:anypoint-code-builder::af-get-started#set-up-agent-network-gateways-for-your-target-space[Set Up Agent Network Gateways by Using Anypoint Code Builder (ACB)]
+*xref:anypoint-cli::agent-fabric.adoc#agent-network-setup-gateways[Set Up Agent Network Gateways by Using Anypoint CLI]
 
-== Edit a Managed Flex Gateway Settings
+To manually deploy both ingress and egress managed Flex Gateways by using the Runtime Manager UI, see xref:flex-gateway-managed-set-up.adoc[].
 
-To edit a Managed Flex Gateway setting:
+For ingress gateways, ensure you configure a *Public endpoint* in the advanced options *Ingress* tab. For egress gateways, ensure that there is no *Public endpoint* configured. To prevent confusion, give a descriptive name defining the gateway as either ingress or egress.
 
-. From Anypoint Platform, select *Runtime Manager > Flex Gateways*.
-. Click the Managed Flex Gateway name.
-. In the navigation menu, click Settings.
-. Make the necessary edits.
-. Click *Apply changes*.
+== Applying Inbound and Outbound Policies
 
-== Remove an Endpoint
-
-To remove an endpoint:
-
-. From Anypoint Platform, select *Runtime Manager > Flex Gateways*.
-. Click the Managed Flex Gateway name.
-. In the navigation menu, click Settings.
-. Click *Advanced options*.
-. In the *Public endpoint* row, click *X* (Delete).
-. Click *Apply changes*.
-
+Inbound policies are policies that are enforced on all traffic accessing an instance's endpoint. Outbound Policies are policies that are enforced on all traffic accessing a specific URL and are only applied to that URL. For example, for an agent instance that has multiple upstreams, an inbound Client ID Enforcement policy enforces client ID verification for all traffic accessing the agent instance. However, an outbound policy might be applied to only one of the instance's upstream.
 
 == Next Steps
 
