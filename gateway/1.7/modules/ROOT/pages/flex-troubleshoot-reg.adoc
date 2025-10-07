@@ -1,0 +1,37 @@
+= Troubleshooting Registration Issues
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+When registering Anypoint Flex Gateway, you might encounter issues caused by incorrect access permissions, and so on. The following topics provide possible causes for registration issues and describe how to troubleshoot:
+
+* <<no-permissions,Performing Registration as a User Without Necessary Access Permissions>>
+
+[[no-permissions]]
+== Performing Registration as a User Without Necessary Access Permissions
+
+Executing the registration command without having correct permissions can result in an error:
+----
+Couldn't execute register command successfully: rpc error: code = Internal desc = handler returned neither error nor response message
+----
+
+=== Cause
+
+This issue occurs when the credentials that you provide for registration do not have the required permissions.
+
+=== Solution
+
+To resolve this error, perform the following steps: 
+
+. Navigate to *Access Management* as the organization administrator. 
+. Select *Users* from the main menu.
+. Select the target organization user from the *Users* menu.
+. From the *Permissions* tab, select *Runtime Manager*.
+. Specify the environment in which to apply your permissions.
+. Select the following from the *Select access* dropdown menu:
+* *Manage servers*
+* *Read servers*
+. Click the *+* button.
+
+Re-running the registration command should now result in success.

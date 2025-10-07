@@ -1,0 +1,106 @@
+= Uninstalling Flex Gateway
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+//TODO: IS THERE AN OPENSHIFT OPTION HERE?
+You can uninstall Flex Gateway running as a Linux service, in a container, or in a Kubernetes cluster.
+
+//TODO: IS THERE AN OPENSHIFT OPTION HERE?
+[cols="1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="#linux"]
+|image:install-docker-logo.png[25%,25%,xref="#docker"]
+|image:install-kubernetes-logo.png[20%,20%,xref="#kubernetes"]
+
+|<<linux>>
+|<<docker>>
+|<<kubernetes>>
+|===
+
+[[linux]]
+== Uninstall Flex Gateway Running as a Linux Service
+
+Flex Gateway can be uninstalled as any other package:
+
+[source,ssh]
+----
+sudo apt remove -y flex-gateway
+----
+
+[[docker]]
+== Uninstall Flex Gateway Running in a Docker Container
+
+To uninstall Flex Gateway, stop and remove the Flex Gateway container:
+
+. Determine the Flex Gateway container ID by listing all the running containers:
++
+[source,ssh]
+----
+docker ps
+----
+
+. In the list of containers, note the container ID associated with the Flex Gateway container you want to uninstall.
+
+. Stop the Flex Gateway container:
++
+[source,ssh]
+----
+docker stop <container id>
+----
++
+Replace `<container-id` with the container ID of the Flex Gateway container you want to stop:
+
+. Remove the Flex Gateway container:
++
+[source,ssh]
+----
+docker rm <container id>
+----
++
+Replace `<container-id` with the container ID of the Flex Gateway container you want to remove. The command permanently deletes the container and its associated resources.
+
+. Optionally, remove the Flex Gateway container image:
++
+[source,ssh]
+----
+docker rmi mulesoft/flex-gateway
+----
+
+. To confirm that Flex Gateway is uninstalled, run the `docker ps` command again. The uninstalled container no longer appears in the list.
+
+[[kubernetes]]
+== Uninstall Flex Gateway Running in a Kubernetes Cluster
+
+To uninstall Flex Gateway running in a Kubernetes cluster:
+
+. Uninstall the Helm release. The following example removes a release called “my-release”:
++
+[source,ssh]
+----
+helm delete my-release
+----
++
+NOTE: Update `my-release` to the release you have running. To see a list of all releases, use the command `helm list -A`.
+
+. Delete the release namespace if one was specified:
++
+[source,ssh]
+----
+kubectl delete namespace gateway
+----
+
+. Delete the custom resource definitions:
++
+[source,ssh]
+----
+kubectl delete crds \
+     apiinstances.gateway.mulesoft.com \
+     configurations.gateway.mulesoft.com \
+     extensions.gateway.mulesoft.com \
+     policybindings.gateway.mulesoft.com \
+     services.gateway.mulesoft.com
+----
+
+//TODO: IS THERE AN OPENSHIFT OPTION HERE?

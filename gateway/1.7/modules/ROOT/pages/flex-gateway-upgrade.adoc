@@ -1,0 +1,97 @@
+= Upgrading Flex Gateway
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+//TODO: ARE THERE OPENSHIFT OPTIONS HERE?
+You can upgrade Flex Gateway as a Linux service, in a Docker container, or in a Kubernetes cluster.
+
+//TODO: ARE THERE OPENSHIFT OPTIONS HERE?
+[cols="1a,1a,1a"]
+|===
+|image:install-linux-logo.png[20%,20%,xref="#linux"]
+|image:install-docker-logo.png[25%,25%,xref="#docker"]
+|image:install-kubernetes-logo.png[20%,20%,xref="#kubernetes"]
+
+|<<linux>>
+|<<docker>>
+|<<kubernetes>>
+|===
+
+[[linux]]
+== Upgrade as a Linux Service
+
+Flex Gateway is distributed as a standard package. Use the following steps to upgrade or downgrade Flex Gateway to either a specific version or the latest version. 
+
+To upgrade or downgrade Flex Gateway as a Linux Service:
+
+. Update the list of available packages:
++
+[source,ssh]
+----
+sudo apt update
+----
++
+To list the available versions, run:
++
+[source,ssh]
+----
+apt list -a flex-gateway
+----
+
+. Update Flex Gateway:
+* To the latest version:
++
+[source,ssh]
+----
+sudo apt --only-upgrade -y install flex-gateway
+----
+
+* To a specific version:
++
+[source,ssh]
+----
+sudo apt --only-upgrade -y install flex-gateway=<version>
+----
+
+* To a downgrade version:
++
+[source,ssh]
+----
+sudo apt --only-upgrade -y --allow-downgrades install flex-gateway=<version>
+----
+
+. Restart the services:
++
+[source,ssh]
+----
+sudo systemctl restart flex-gateway
+----
+
+[[docker]]
+== Upgrade in a Docker Container
+
+The docker containers are not updated, if a new version is needed then a new container with the new image version
+should be created to replace the outdated one. 
+
+The new versions of the images will be available in link:https://hub.docker.com/r/mulesoft/flex-gateway[mulesoft/flex-gateway].
+
+[[kubernetes]]
+== Upgrade in a Kubernetes Cluster
+
+. Update charts with the respective chart repositories:
++
+[source,ssh]
+----
+helm repo up
+----
+
+. Upgrade the release to a new version of the Helm chart by executing the following command, replacing example information with your own:
++
+[source,ssh]
+----
+helm upgrade -n <namespace> <release_name> flex-gateway/flex-gateway --wait
+----
+
+//TODO: ARE THERE OPENSHIFT OPTIONS HERE?
