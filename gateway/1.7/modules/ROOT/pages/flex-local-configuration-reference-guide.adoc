@@ -1,0 +1,726 @@
+= Declarative Configuration Reference Guide
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Anypoint Flex Gateway running in Local Mode supports two configuration models:
+
+* The resource-based model, common in Kubernetes, is ideal for granular definitions. Resources each contain one of the following values for configuration `kind`:
+** `ApiInstance`
+** `Service`
+** `PolicyBinding`
+** `Configuration`
+
+* The inline model is ideal for concise definitions, but is less versatile (for example, automated policies can only be applied in resource-based definitions.) 
++
+Inline definitions contain a single `ApiInstance` value for configuration `kind`, under which services and policies are both defined.
+
+image:gateway-configuration-models.png[width=65%]
+
+Refer to the <<examples,Examples>> section for examples of both.
+
+This reference guide describes the available resources that are applicable to either resource-based configurations or inline configurations.
+
+[[api-instance]]
+== API Instance
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: <api instance name>  
+  namespace: # optional namespace name
+spec:
+  address: <proxy address including port and path>
+  services: # optional map of upstream services
+    <name>:
+      address: <service address>
+      routes: # optional array of routes to service
+        - config: # optional route configuration
+            destinationPath: <optional base path to upstream service>
+          rules: # optional route rules
+  policies: # optional array of policies
+    - policyRef:
+        name: <name of the policy>
+        namespace: <optional namespace of the policy>
+      config: # optional policy configuration
+      rules: # optional policy rules
+----
+
+[cols="2,1,1,3"]
+|===
+|Parameter |Required or Optional |Default Value |Description
+
+|`metadata.name`
+|Required
+|N/A
+|The API instance identifier that is used as a target reference for other resources, such as policy bindings.
+
+|`metadata.namespace`
+|Optional
+|`default`
+|
+
+|`spec.address`
+|Required
+|N/A
+|The proxy address URL, including protocol, host, port and optional path. If the base path is specified, it must be absent in any `rules.path` attribute. Supported format:
+`protocol://host:port/path`, where `path` is optional, and `protocol` is either `http` or `https`.
+
+|`spec.services`
+|Optional
+|Empty
+|A map of named services and their routes.
+
+|`spec.services[name].address`
+|Required
+|N/A
+|The service address (and port). Supported format: `protocol://host:port`, where `protocol` is either `http` or `https`.
+
+|`spec.services[name].routes`
+|Optional
+|Empty
+|An array of routes configured for this API instance towards the service. If left empty, a default route will be established to the service that will route all traffic.
+
+|`spec.services[name].routes[#].config`
+|Optional
+|Empty
+|The configuration for this route. If left empty, a default configuration will be applied with an empty `destinationPath`.
+
+|`spec.services[name].routes[#].config.destinationPath`
+|Optional
+|Empty
+|The path to prepend to forwarded requests to the upstream service. For example, if "destinationPath: /api/v1", requests to this API instance with a path like "/orders" will be routed upstream to "/api/v1/orders".
+
+|`spec.services[name].routes[#].rules`
+|Optional
+|Empty
+|An array of rules for this route. Refer to <<policy-binding,spec.rules>> in Policy Binding.
+
+|`spec.policies`
+|Optional
+|Empty
+|An array of policies to apply to this API Instance.
+
+|`spec.policies[#].policyRef.name`
+|Required
+|N/A
+|The policy name.
+
+|`spec.policies[#].policyRef.namespace`
+|Optional
+|The value of `metadata.namespace`
+|The namespace where the policy is defined. For provided policies, the value of this field should be `default`.
+
+|`spec.policies[#].config`
+|Optional
+|Empty
+|The policy's configuration. Refer to <<policy-binding,spec.config>> in Policy Binding. To use environment variables in `policies[#].config` fields, refer to <<environment-variables>>. 
+
+|`spec.policies[#].rules`
+|Optional
+|Empty
+|An array of rules for applying this policy to the API Instance. <<policy-binding,spec.rules>> in Policy Binding.
+
+|===
+
+=== API Instance Examples
+
+The following resource specifies an `ApiInstance` with metadata that describes the instance identifier. The `metadata.name` value is used as the target reference for other resources, such as policy bindings. The `spec.services.routes.config.destinationPath` value prepends `/v1/apps` to the specified paths under `rules`, acting in a similar manner as a base path.
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: hello-flex-gateway-instance
+spec:
+  address: http://0.0.0.0:8080
+  services:
+    json:
+      address: https://<upstream address>:443/
+      routes:
+        - rules:
+            - path: /api(/users/.*)
+            - path: /api(/comments/.*)
+          config:
+            destinationPath: /v1/apps
+
+----
+
+==== Port Sharing
+
+The following `ApiInstance` resources demonstrate API port sharing, with two distinct API instances listening on port 8080.
+
+----
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: httpbin-example
+spec:
+  address: http://0.0.0.0:8080/api/httpbin/
+  services:
+    upstream:
+      address: https://<upstream address>:443
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: json-example
+spec:
+  address: http://0.0.0.0:8080/api/json/
+  services:
+    upstream:
+      address: https://<upstream address>:443
+----
+
+Both services listen on port 8080, for example:
+----
+curl http://localhost:8080/api/httpbin/get -v
+curl http://localhost:8080/api/json/users/1 -v
+----
+
+[NOTE]
+====
+The base path of APIs sharing a port must not clash. For example, the following path combination is not allowed:
+----
+http://0.0.0.0:8080/cats
+http://0.0.0.0:8080/cats/dogs
+----
+====
+
+[NOTE]
+====
+TLS applies to the port. Therefore, the same TLS policy applies to all API instances sharing the port.
+====
+
+[[policy-binding]]
+== Policy Binding 
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: <policy binding name>
+  namespace: <namespace name>
+spec:
+  targetRef:
+    name: <name of api instance or upstream service>
+    namespace: <optional namespace of api instance or upstream service>
+  policyRef:
+    name: <policy name>     
+    namespace: <optional policy namespace>
+  config: # optional policy configuration
+  order: # optional policy read order
+  rules: # optional policy rules
+  - path: <path regular expression> 
+    methods: <methods regular expression>
+    host: <host regular expression>
+    headers: <headers map>
+      <header-name>: <header value regular expression>
+----
+
+[cols="2,1,1,3"]
+|===
+|Parameter |Required or Optional |Default Value |Description
+
+|`metadata.name`
+|Required
+|N/A
+|The identifier of the policy binding.
+
+|`metadata.namespace`
+|Optional
+|`default`
+|
+
+|`spec.targetRef.name`
+|Required
+|N/A
+|The API instance or upstream service identifier to which the policy is bound.
+
+|`spec.targetRef.namespace`
+|Optional
+|The value of `metadata.namespace`
+|The namespace where the target is defined.
+
+|`spec.policyRef.name`
+|Required
+|N/A
+|The policy name. See the list of available policies.
+
+|`spec.policyRef.namespace`
+|Optional
+|The value of `metadata.namespace`
+|The namespace where the policy is defined. For provided policies, the value of this field should be `default`.
+
+|`spec.config`
+|Optional
+|Empty
+|The policy configuration. The content of this field depends on the specified policy. See the list of available policies. To use environment variables in `config` fields, refer to <<environment-variables>>. 
+
+|`spec.order`
+|Optional
+|50
+|The policy read order in the overall policy execution chain.
+
+|`spec.rules`
+|Optional
+|Empty
+|An array of rules that will determine if the policy applies to a given request. These rules are checked in an OR fashion. The first one to hold will enable applying the policy to the request. The attributes in each rule object apply in an AND fashion. If path and host are defined, both must match for that rule to hold true.
+
+|`spec.rules[#].path`
+|Optional
+|`.*`
+|A regular expression to match the request path. 
+ 
+Capture groups in this regular expression will be used to define path rewriting when routing the request upstream. 
+
+If "path: /api(/.*)", requests with the path /api/orders will be routed upstream as /orders.
+
+Multiple capture groups can be specified, and the replacement will be the concatenation of all captured substrings.
+
+|`spec.rules[#].host`
+|Optional
+|`.*`
+|A regular expression to match the request host.
+
+|`spec.rules[#].methods`
+|Optional
+|`.*`
+|A regular expression to match the request method.
+
+|`spec.rules[#].headers`
+|Optional
+|Empty
+|A map of header names and value regular expressions that must be present in the request.
+
+Each entry's key is the expected header name and the value is a regular expression to match the header value.
+
+|===
+
+=== Policy Binding Examples 
+
+The following resource binds a `route` policy to the API instance, routing traffic specified by the `rules` to the proxy address specified in the `Service` configuration snippet:
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: hello-flex-gateway-route
+  namespace: e-commerce 
+spec:
+  targetRef:
+    name: hello-flex-gateway-instance
+  policyRef:
+    name: route
+    namespace: default
+  config:
+    destinationRef:
+      name: json
+      namespace: e-commerce
+  rules:
+  - path: /api/json(/.*)
+----
+
+The following resource binds a `http-basic-authentication-flex` policy to the API instance -  requiring requests to include the basic credentials defined in `config.username` and `config.password`. The policy is given a read order value of `2`.
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: hello-flex-gateway-auth
+  namespace: e-commerce
+spec:
+  targetRef:
+    name: hello-flex-gateway-instance
+    namespace: e-commerce
+  policyRef:
+    name: http-basic-authentication-flex
+    namespace: default
+  config:
+    username: chris
+    password: admin
+  order: 2
+----
+
+[[environment-variables]]
+=== Environment Variables for Policy Bindings
+
+Both policy binding resources and inline policy bindings support environment variables in `config` fields. The environment variables available are dependent on your environment.
+
+To reference your environment variable, specify your environment variable prefixed by `$`, for example:
+
+----
+- policyRef:
+    name: http-basic-authentication-flex
+  config:
+    username: $USERNAME
+    password: $PASSWORD
+----
+
+
+== Service
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Service
+metadata:
+  name: <service name>        
+  namespace: <namespace name> 
+spec:
+  address: <service address including port> 
+----
+
+[cols="2,1,1,3"]
+|===
+|Parameter |Required or Optional |Default Value |Description
+
+|`metadata.name`
+|Required
+|N/A
+|The service identifier.
+
+|`metadata.namespace`
+|Optional
+|`default`
+|
+
+|`spec.address`
+|Required
+|N/A
+|The service address URL, including protocol, host and port. Supported format: `protocol://host:port`, where `protocol` is either `http` or `https`.
+
+|===
+
+=== Service Example
+
+The following resource defines a `Service` with metadata that describes the service identifier. The `metadata.namespace` value matches the namespace specified in the `ApiInstance` configuration. The `spec.address` is the address of the API implementation:
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Service
+metadata:
+  name: json-example
+  namespace: e-commerce
+spec:
+  address: https://<upstream address>:443/
+----
+
+== Configuration
+
+Define a desired gateway state by creating a `Configuration` entity. `Configuration` entities specify several runtime configuration aspects for Flex Gateway itself, such as <<logging, logging>> and <<shared-storage, shared storage>>. The definition includes the following:
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: <value>           
+  namespace: <namespace name>      
+spec: 
+  logging: # logging configuration
+  sharedStorage: # shared storage configuration
+----
+
+[cols="2,1,1,3"]
+|===
+|Parameter |Required or Optional |Default Value |Description
+
+|`metadata.name`
+|Required
+|N/A
+|The Configuration entity.
+
+|`metadata.namespace`
+|Optional
+|`default`
+|The namespace value used to isolate Configuration entities.
+
+|`spec`
+|Required
+|N/A
+|The configuration object that defines gateway characteristics. Objects include: `logging`, `sharedStorage`, `tls`.
+
+|===
+
+[[logging]]
+=== Logging
+
+include::partial$logging-config-file.adoc[]
+
+==== Logging Example
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: logging
+spec:
+  logging:
+    outputs:
+    - name: log-to-file
+      type: file
+      parameters:
+        path: /var/log
+        file: log.txt
+        format: template
+        template: |
+          [{date}][{logger}][{level}][{kind}] {message}
+    runtimeLogs:
+      logLevel: info
+      outputs:
+      - log-to-file
+    accessLogs:
+      outputs:
+      - log-to-file
+----
+
+[[shared-storage]]
+=== Shared Storage
+
+The `sharedStorage` object configures the gateway for shared storage. Production workflows should use https://redis.io/[Redis^] (minimum version 4.0.0), though defining it is optional. If Redis is not defined, shared storage services at port 4000 are still available but will use an in-memory implementation.
+
+Optionally, you can use Redis with Transport Layer Security (TLS) to protect sensitive data, prevent unauthorized access, and maintain the reliability of your services.
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+ name: shared-storage-redis
+spec:
+ sharedStorage:
+   redis:
+     address: <string> // REQUIRED
+     username: <string> // OPTIONAL
+     password: <string> // OPTIONAL
+     db: <string> // OPTIONAL
+     tls: // OPTIONAL
+       trustedCA: <string> // OPTIONAL
+       certificate: // OPTIONAL
+         keyPassphrase <string> // OPTIONAL
+         key: <string> // REQUIRED
+         crt: <string> // REQUIRED
+       alpn: <array> // OPTIONAL
+       skipValidation: <boolean> // OPTIONAL
+       minversion: <string> // OPTIONAL
+       maxversion: <string> // OPTIONAL
+       ciphers: <array> // OPTIONAL
+----
+
+[cols="2,1,1,3"]
+|===
+|Parameter |Required or Optional |Default Value |Description
+
+|`sharedStorage.redis.address`
+|Required
+|N/A
+|The Redis instance address in `host:port` format
+
+|`sharedStorage.redis.username`
+|Optional
+|Empty
+|The Redis user name
+
+|`sharedStorage.redis.password`
+|Optional
+|Empty
+|The Redis user password
+
+|`sharedStorage.redis.db`
+|Optional 
+|0
+|The Redis database number to use
+
+|`sharedStorage.redis.tls`
+|Optional
+|Empty
+|The Redis TLS configuration
+
+| `sharedStorage.redis.tls.trustedCA`
+| Optional
+| N/A
+| Root certificate authority to use when verifying server certificates
+
+| `sharedStorage.redis.tls.certificate`
+| Optional
+| N/A
+| Client certificate to present to the server
+
+| `sharedStorage.redis.tls.keyPassphrase`
+| Optional
+| `none`
+| The certificate key passphrase. If specified, use the private key format that includes a DEK-Info header. If unspecified, the private key must not be encrypted.
+
+| `sharedStorage.redis.tls.certificate.key`
+| Required
+| N/A
+| The private key part of the certificate
+
+| `sharedStorage.redis.tls.certificate.crt`
+| Required
+| N/A
+| The public key part of the certificate
+
+|`sharedStorage.redis.tls.skipValidation`
+| Optional
+| `false`
+| If true, any certificate presented by the server is accepted.
+
+| `sharedStorage.redis.tls.minversion`
+| Optional
+| `1.2`
+| The minimum TLS version allowed
+
+| `sharedStorage.redis.tls.maxversion`
+| Optional
+| `1.3`
+| The maximum TLS version allowed
+
+| `sharedStorage.redis.tls.alpn`
+| Optional
+| Empty list
+| A prioritized list of supported application level protocols; for example, h2, http/1.1
+
+| `sharedStorage.redis.tls.ciphers`
+| Optional
+|
+|
+
+|===
+
+[NOTE]
+====
+TLS/Redis supports the same ciphers as the xref:policies-included-tls.adoc[TLS policy], except the following:
+
+* TLS_RSA_WITH_NULL_SHA
+* TLS_PSK_WITH_AES_256_CBC_SHA
+* TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA
+* TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA
+* TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256
+====
+
+.*Redis Shared Storage Example*
+[%collapsible]
+====
+The Redis storage service is an implementation of a REST API object store that functions as a bridge between the object store interface and a Redis backend.
+
+[source, yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+ name: shared-storage-redis
+spec:
+ sharedStorage:
+   redis:
+     address: redis.e-commerce.svc:6379
+     username: ecomm-user
+     password: ecomm-pwd-123
+     DB: 7
+----
+====
+
+.*Redis with TLS Shared Storage Example*
+[%collapsible]
+====
+Optionally, you can use Redis with TLS to protect data and ensure secure communication.
+
+include::partial$task-shared-storage-config.adoc[tags=tls-sample-config]
+====
+
+.*Local Shared Storage Example*
+[%collapsible]
+====
+The local storage service is an implementation of a REST API object store that saves data in memory. All data is lost when Flex Gateway is stopped or restarted.
+
+[source, yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+ name: rtm-config
+ namespace: sales
+spec:
+ sharedStorage:
+   local:
+     enabled: true
+----
+====
+
+[[examples]]
+== Examples
+
+=== Inline Configuration Example
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: api-example
+spec:
+  address: http://0.0.0.0:8080
+  services:
+    api-example:
+      address: https://<your url>:443/
+      routes:
+        - rules:
+            - path: /api(/users/.*)
+            - path: /api(/comments/.*)
+          config:
+            destinationPath: /v1/apps
+  policies:
+    - policyRef:
+        name: http-basic-authentication-flex
+      config:
+        username: chris
+        password: admin
+----
+
+=== Resource-Based Configuration Example
+
+----
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: ingress-http
+spec:
+  address: http://0.0.0.0:8080
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Service
+metadata:
+  name: json
+spec:
+  address: https://<your url>:443/
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: ingress-http-route
+spec:
+  targetRef:
+    name: ingress-http
+  policyRef:
+    name: route
+  config:
+    destinationRef:
+      name: json
+  rules:
+  - path: /api(/users/.*)
+  - path: /api(/comments/.*)
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: ingress-http-authentication
+spec:
+  targetRef:
+    name: ingress-http
+  policyRef:
+    name: http-basic-authentication-flex
+  config:
+    username: chris
+    password: admin
+----
