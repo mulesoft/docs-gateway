@@ -1,18 +1,29 @@
-= Deploy a Managed Flex Gateway to CloudHub 2.0
+= Deploy a Managed Flex Gateway
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
 
-Deploy a Managed Flex Gateway to a CloudHub 2.0 private space to launch a completely cloud hosted gateway. Configure the Managed Flex Gateway as an ingress to you private space by exposing a public endpoint, or configure the gateway to only handle internal traffic. You can have one or more Managed Gateway in each environment that the private space is shared with. Gateways can protect any API from the same environment of the gateway or APIs in an external network.
+Deploy a Managed Flex Gateway to a CloudHub 2.0 private space or Runtime Fabric namespace to launch a completely managed gateway. Configure the Managed Flex Gateway as an ingress to your target space by exposing a public endpoint, or configure the gateway to only handle internal traffic. You can have one or more Managed Gateway in each environment that the target space is shared with. Gateways can protect any instance from the same environment of the gateway or services in an external network.
 
 == Before You Begin
 
 Before getting started with Flex Gateway, ensure:
 
 * The business group you want to deploy your gateway to has Managed Flex Gateway Resources. To redestribute Managed Flex Gateway resources to a business group, see xref:access-management::business-groups.adoc#redistribute-resources[Redistribute Resources Between Existing Business Groups].
-* You have created a private space in CloudHub 2.0 or have access to a private space created by someone else. To create a private space, see xref:cloudhub-2::ps-create-configure.adoc[].
++ 
+NOTE: Gateways cannot be shared across business groups. A user must be a member of the business group to access the Flex Gateway. 
+* You have created or have access to a deployment space:
+** xref:cloudhub-2::ps-create-configure.adoc[Create a CloudHub 2.0 Private Space]
+** xref:runtime-fabric::create-custom-namespace.adoc[Create a Runtime Fabric Namespace for Deployments]
+
+[[rtf]]
+=== Managed Flex Gateway on Runtime Fabric
+
+IMPORTANT: Flex Gateway is supported on Runtime Fabric as a limited availability GA release. For access, contact your sales representative.
+
+For Flex Gateway Agent Fabric deployments on Runtime Fabric, you must enable Open Telemetry with a `100` percent *Sampling percentage*. You cannot override the sampling percentage for individual APIs.
 
 == Deploy a Managed Flex Gateway
 
@@ -23,7 +34,7 @@ Before getting started with Flex Gateway, ensure:
 . Click *Managed Flex Gateway*.
 . Click *Add Managed Flex Gateway*.
 . Enter a *Gateway Name*.
-. Select the private space where you want to deploy your Managed Flex Gateway as your *Deployment Target*.
+. Select the *Deployment Target* where you want to deploy your Managed Flex Gateway.
 . Select a *Release Channel*:
 +
 [cols="1a,1a"]
@@ -125,7 +136,7 @@ Forwards Flex Gateway logs to Anypoint Monitoring. When disabled, logs are only 
  To learn more, see xref:flex-managed-view-status.adoc#audit-logs[View Managed Flex Gateway Audit Logs].
 ====
 +
-Tracing::
+Distributed Tracing::
 +
 * *Distributed tracing*:
 +
@@ -136,6 +147,8 @@ Enable to generate OpenTelemetry distributed tracing data for the Managed Flex G
 Set the overall distributed tracing sampling percentage. This setting corresponds to the `overall` sampling percentage. The `client` and `random` sampling percentages are set to 100% by default, if the sampling percentage is set to a non-zero value here.
 +
 Set the *Sampling percentage* to 0 if you want to specify the sampling percentage only on a per-API basis, using the Tracing policy.
++
+NOTE: For Flex Gateway Agent Fabric deployments on Runtime Fabric, you must enable Open Telemetry with a `100` percent *Sampling percentage*. You cannot override the sampling percentage for individual APIs.
 +
 . Click *Save & deploy*.
 
