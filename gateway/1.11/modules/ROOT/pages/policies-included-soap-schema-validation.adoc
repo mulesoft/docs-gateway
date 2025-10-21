@@ -1,0 +1,91 @@
+= SOAP Schema Validation Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: xml threat protection, api gateway, flex gateway, gateway, policy 
+
+[width="100%", cols="1,3"]
+|===
+>s|Policy Name| SOAP Schema Validation
+>s|Summary| Validates incoming traffic against a specified WSDL schema
+>s|Category| Security
+>s|First Flex Gateway version available |v1.10.0
+>.^s| Returned Status Codes
+| The policy returns a `400` for a client error or `500` for a server error. Error messages are defined by SOAP standard responses.
+|===
+
+== Summary
+
+NOTE: The Schema Validation policy only supports SOAP 1.1 and 1.2 APIs. 
+
+Use the SOAP Schema Validation policy to block incoming requests that don't conform to the the defined WSDL schema. This policy prevents malformed or malicious SOAP messages from reaching the backend and enforces contract compliance between clients and services.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: soap-validation
+  config:
+    wsdlUrl: <string> // REQUIRED
+    encoding: <string> // REQUIRED, default 'UTF-8'
+    serviceName: <string> // REQUIRED
+    servicePort: <string> // REQUIRED
+    
+----
+
+Determines if the schema is specified in this YAML resource, or if it's specified in the API Context from Exchange (Connected Mode only). Supported values: `inline` or `context`. You must specify `inline` when configuring the policy in Local Mode.
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required | Default Value | Description
+
+| `wsdlUrl`
+| Yes
+| NA
+| URL of where to access the WSDL
+
+| `encoding`
+| Yes
+| UTF-8
+| Encoding of the WSDL
+
+| `serviceName`
+| Yes
+| NA
+| SOAP service name defined in the WSDL that validates requests
+
+| `servicePort`
+| Yes
+| NA
+| SOAP port name defined in the WSDL that validates requests
+
+|===
+
+==== Resource Configuration Example
+
+----
+- policyRef:
+    name: soap-validation
+  config:
+    wsdlUrl:
+    encoding: UTF-8
+    serviceName: 
+    servicePort: 
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+|Field |Description
+| Service Name | SOAP service name defined in the WSDL that validates requests
+| Service Port | SOAP port name defined in the WSDL that validates requests
+|===
+
+== See Also
+
+* xref:policies-included-xml-threat-protection.adoc[]
+
