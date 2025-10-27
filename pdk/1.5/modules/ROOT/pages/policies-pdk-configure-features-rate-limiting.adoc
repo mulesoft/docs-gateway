@@ -11,6 +11,8 @@ Custom policies support both single Flex Replica and multi-replica deployments. 
 * xref:gateway::flex-conn-shared-storage-config.adoc[]
 * xref:gateway::flex-local-shared-storage-config.adoc[]
 
+== Inject the `RateLimitBuilder`
+
 To enable rate limiting functionality, you need to inject the `RateLimitBuilder` in your custom policy's entrypoint and configure it for either local (single-replica) or clustered (multi-replica) mode:
 
 [source,Rust]
@@ -45,6 +47,8 @@ The `RateLimitBuilder` struct provides the following methods to configure the ra
 * `clustered`: Enables the rate limiter to use distributed storage backends. Without it, the rate limiter uses in-memory storage.
 * `shared`: Enables the rate limiter to share state across different policy instances.
 
+== Check Requests Against Rate Limits
+
 After creating the rate limiter instance, use the `is_allowed` method to check if requests are allowed with support for multiple independent rate limit configurations:
 
 [source,Rust]
@@ -57,19 +61,21 @@ match rate_limiter.is_allowed(group, &client_key, request_amount).await {
 }
 ----
 
-== Examples
+== Rate Limiting Configuration Examples
 
-Example of rate limiting configuration:
-https://github.com/mulesoft/pdk-custom-policy-examples/blob/70486b80350ef0c5c47ac3ca020da16565ab1f82/multi-instance-rate-limiting/src/lib.rs#L118[]
+PDK provides the https://github.com/mulesoft/pdk-custom-policy-examples/tree/1.5.0/multi-instance-rate-limiting[Multi-Instance Rate Limiting Example policy] to demonstrate how to configure rate limiting in Rust code.
 
-Example of multiple rate limit request filters:
-https://github.com/mulesoft/pdk-custom-policy-examples/blob/70486b80350ef0c5c47ac3ca020da16565ab1f82/multi-instance-rate-limiting/src/lib.rs#L54[]
+Within the example policy, see these functions for further configuration details:
 
-Example of Redis setup for clustered mode:
-https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/1.5.x/multi-instance-rate-limiting/playground/docker-compose.yaml[]
+* https://github.com/mulesoft/pdk-custom-policy-examples/tree/1.5.0/multi-instance-rate-limiting/src/lib.rs#L118[ `entrypoint` function] for how to configure the `RateLimitBuilder`.
 
-Complete example of Rate Limiting usage:
-https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/1.5.x/multi-instance-rate-limiting[]
+* https://github.com/mulesoft/pdk-custom-policy-examples/tree/1.5.0/multi-instance-rate-limiting/src/lib.rs#L54[`request_filter` function] for how the policy applies rate limits to incoming requests.
+
+== Redis Shared Storage Configuration Example
+
+For an example of how to configure Redis shared storage for testing, see the example https://github.com/mulesoft/pdk-custom-policy-examples/blob/1.5.0/multi-instance-rate-limiting/playground/docker-compose.yaml[`playground/docker-compose.yaml`] file.
+
+
 
 == See Also
 
