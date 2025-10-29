@@ -25,90 +25,12 @@ The OpenID Connect Access Token Enforcement policy restricts access to a protect
 
 This policy is available only to an organization that is configured to use the OpenID Connect dynamic client registration as a xref:access-management::configure-client-management-openid-task.adoc[client-management solution].
 
+
 == Configuring Policy Parameters
 
-include::partial$policy-title-headers.adoc[tag=configFile]
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
-----
-- policyRef:
-    name: openidconnect-access-token-enforcement-flex
-  config:
-    authenticationTimeout: <int> // OPTIONAL, default: 10000
-    scopes: <string> // OPTIONAL, default: ""
-    secureTrustStore: <bool> // OPTIONAL, default: false
-    scopeValidationCriteria: <string> // OPTIONAL, default: "AND"
-    exposeHeaders: <bool> // OPTIONAL, default: false
-    skipClientIdValidation: <bool> // OPTIONAL, default: true
-    maxFederationExpirationTime: <int> // OPTIONAL, default: -1
-    maxCacheSize: <int> // OPTIONAL, default: 1000
-----
-
-[%header%autowidth.spread,cols="a,a,a,a"]
-|===
-
-|Parameter | Required or Optional | Default Value | Description
-
-| `authenticationTimeout`
-| Optional
-| 10000
-|
-
-| `scopes`
-| Optional
-| An empty string
-| A space-separated list of supported scopes: `read` `write`
-
-| `secureTrustStore`
-| Optional
-| `false`
-|
-
-| `scopeValidationCriteria`
-| Optional
-| "AND"
-| Determines if the token must contain all defined scopes or just one
-
-| `exposeHeaders`
-| Optional
-| `false`
-| In a proxy scenario, this specifies whether headers must be exposed in the request to the backend. User properties returned by the federation server are prefixed with 'X-AGW-' and sent as headers to the backend.
-
-See <<leveraging-TVE-information,Leveraging Token Validation Endpoint Information>> for more information about this parameter.
-
-| `skipClientIdValidation`
-| Optional
-| `true`
-| Skips the client application's API contract validation. If `true`, Step 4 of the diagram in the <<how-this-policy-works,How This Policy Works>> section is skipped.
-
-| `maxFederationExpirationTime`
-| Optional
-| -1
-| Max Expiration time in seconds.
-
-See <<token-caching,Token Caching>> for more information about this parameter.
-
-| `maxCacheSize`
-| Optional
-| 1000
-| Amount of tokens to be cached.
-
-See <<token-caching,Token Caching>> for more information about this parameter.
-
-|===
-
-==== Resource Configuration Example
-
-----
-- policyRef:
-    name: openidconnect-access-token-enforcement-flex
-  config:
-    authenticationTimeout: 10000
-    scopes: read write
-    secureTrustStore: false
-    scopeValidationCriteria: OR
-    exposeHeaders: true
-    skipClientIdValidation: false
-----
+The OpenID Connect Access Token Enforcement policy doesn't support in Flex Gateway running in Local Mode.
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
