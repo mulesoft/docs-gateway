@@ -1,0 +1,55 @@
+= Configuring Data Storage
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+For implementing custom policies that require storing data you can use PDK's Data Storage feature. See xref:gateway::flex-conn-shared-storage-config.adoc[Configuring Shared Storage for Flex Gateway in Connected Mode] for more details.
+
+For policies that require persistent data storage, you must configure shared storage. To configure shared storage, see:
+
+* xref:gateway::flex-conn-shared-storage-config.adoc[]
+* xref:gateway::flex-local-shared-storage-config.adoc[]
+
+To access data storage functionality, you need to use the DataStorageBuilder in your policy's entrypoint and pass the storage instance to your request handlers:
+
+[source,Rust]
+----
+// for local storage
+let storage = store_builder.local(namespace);
+// or for remote storage
+let storage = store_builder.remote(namespace, ttl_millis);
+----
+
+Storage builder parameters:
+* `namespace`: a string prefix for key isolation (required)
+* `ttl_millis`: time-to-live in milliseconds for automatic data expiration (only required for remote storage)
+
+After creating the storage instance, you can use it to store and retrieve data with support for Compare-And-Swap (CAS), Absent, Present, and Any operations for thread safety:
+
+[source,Rust]
+----
+// Store data with CAS operation
+let (current_data, version) = storage.get::<MyData>(&key).await?;
+let mode = StoreMode::Cas(version);
+storage.store(&key, &mode, &new_data).await?;
+// Retrieve data - Generic type parameter <MyData> specifies the expected data type
+let (data, version) = storage.get::<MyData>(&key).await?;
+----
+
+Example of storage configuration and setup:
+https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/1.5.x/data-storage-stats/src/lib.rs#L210[]
+
+Example of CAS operations with retry logic:
+https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/1.5.x/data-storage-stats/src/lib.rs#L58[]
+
+Example of iterating over stored keys and retrieving data:
+https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/1.5.x/data-storage-stats/src/lib.rs#L111[]
+
+
+Complete example of Data Storage usage: https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/1.5.x/data-storage-stats[]
+
+== See Also
+
+* xref:policies-pdk-configure-features-share-data.adoc[]
+* xref:policies-pdk-configure-features-rate-limiting.adoc[]
