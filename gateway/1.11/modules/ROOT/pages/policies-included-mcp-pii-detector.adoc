@@ -8,7 +8,7 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | MCP PII Detector Policy
->s|Summary      | Detects, mask, and redacts personally identifiable information (PII) in MCP server requests and responses
+>s|Summary      | Blocks elicitation responses containing personally identifiable information (PII) from reaching MCP servers
 >s|Category | MCP
 >s|First Flex Gateway version available | v1.9.3
 >s| Returned Status Codes | No return codes exist for this policy. The policy reports a policy violation when PII is detected.
@@ -16,7 +16,16 @@ endif::[]
 
 == Summary
 
-The MCP PII Detector policy detects, mask, and redacts personally identifiable information (PII) in MCP server requests and responses. When PII is detected in a JSON-RPC response's `result` field, the policy modifies the response to decline the action and reports a policy violation.
+The MCP PII Detector policy blocks elicitation responses containing personally identifiable information (PII) from reaching MCP servers. 
+
+When PII is detected in the elicitation response `result` field, the policy:
+
+* Reports a policy violation.
+* Sends a modified response to the MCP server that notes the request was declined and includes the reason being `PII data requested or found in user response`.
+
+The policy doesn't send a response to the client when PII is detected.
+
+The policy only scans JSON-RPC responses that contain a `result` field, which represents user responses to MCP server elicitation prompts. JSON-RPC requests with a `method` field aren't scanned and continue normally.
 
 == Configuring Policy Parameters
 
@@ -60,13 +69,4 @@ The following table describes the type of PII this policy can detect:
 |Phone Number
 |United States phone numbers in various formats, with or without country code, parentheses, spaces, hyphens, or dots. Examples: `123-456-7890`, `(123) 456-7890`, `123.456.7890`, `+1 123 456 7890`, or `1234567890`.
 |===
-
-== How It Works
-
-The MCP PII Detector policy intercepts POST requests with JSON content type and scans the JSON-RPC response payload for PII. When the policy detects PII in the `result` field of a JSON-RPC response, it:
-
-* Reports a policy violation
-* Modifies the response to reject the action with the reason: `PII data requested or found in user response`
-
-The policy only scans JSON-RPC responses that contain a `result` field, which represents user responses to MCP server elicitation prompts. JSON-RPC requests (which contain a `method` field) are not scanned and continue normally.
 
