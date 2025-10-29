@@ -21,11 +21,11 @@ The MCP PII Detector policy blocks elicitation responses containing personally i
 When PII is detected in the elicitation response `result` field, the policy:
 
 * Reports a policy violation.
-* Sends a modified response to the MCP server that notes the request was declined and includes the reason being `PII data requested or found in user response`.
+* Sends a modified response to the MCP server that the request was declined and includes the message `PII data requested or found in user response`.
 
 The policy doesn't send a response to the client when PII is detected.
 
-The policy only scans JSON-RPC responses that contain a `result` field, which represents user responses to MCP server elicitation prompts. JSON-RPC requests with a `method` field aren't scanned and continue normally.
+The policy only scans JSON-RPC responses that contain a `result` field. JSON-RPC requests with a `method` field are ignored.
 
 == Configuring Policy Parameters
 
@@ -47,10 +47,9 @@ For more information, see <<pii-types>>.
 [[pii-types]]
 === PII Types
 
-When you configure an MCP PII Detector policy, you can choose which types of PII to detect.
+When you configure an MCP PII Detector policy, you can choose which types of PII to detect:
 
 
-The following table describes the type of PII this policy can detect:
 
 [%header,cols='1a,5a'] 
 |===
@@ -61,12 +60,12 @@ The following table describes the type of PII this policy can detect:
 |Standard email addresses such as `User.Name+tag@example.com`
 
 |US SSN
-|United States Social Security Numbers (SSNs) in the standard format: `XXX-XX-XXXX` where each `X` is a digit. For example: `123-45-6789`.
+|United States Social Security Numbers (SSNs) in the standard format: `XXX-XX-XXXX` where each `X` is a digit. For example, `123-45-6789`.
 
 |Credit Card
-|Credit card numbers in the form of four groups of four digits, separated by optional spaces or hyphens. Examples: `1234-5678-9012-3456`, `1234 5678 9012 3456`, or `1234567890123456`.
+|Credit card numbers in the form of four groups of four digits, separated by optional spaces or hyphens. For example,`1234-5678-9012-3456`, `1234 5678 9012 3456`, or `1234567890123456`.
 
 |Phone Number
-|United States phone numbers in various formats, with or without country code, parentheses, spaces, hyphens, or dots. Examples: `123-456-7890`, `(123) 456-7890`, `123.456.7890`, `+1 123 456 7890`, or `1234567890`.
+|United States phone numbers in various formats, with or without country code, parentheses, spaces, hyphens, or dots. For example, `123-456-7890`, `(123) 456-7890`, `123.456.7890`, `+1 123 456 7890`, or `1234567890`.
 |===
 
