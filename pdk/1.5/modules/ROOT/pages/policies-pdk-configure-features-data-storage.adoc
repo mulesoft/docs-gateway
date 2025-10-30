@@ -38,6 +38,12 @@ storage.store(&key, &mode, &new_data).await?;
 let (data, version) = storage.get::<MyData>(&key).await?;
 ----
 
+The `StoreMode` enum provides the following operations for thread-safe data storage:
+
+* `Cas` (Compare-And-Swap): Updates the value only if the current version matches the expected version. Use this operation for thread-safe conditional updates to ensure data hasn't changed since you last read it.
+* `Absent`: Stores the value only if the key doesn't exist. Use this operation to initialize values without overwriting existing data.
+* `Always`: Always stores the value, overwriting any existing value regardless of version. Use this operation to unconditionally update or create a key.
+
 == Data Storage Configuration Examples
 
 PDK provides the https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/data-storage-stats[Data Storage Stats Policy Example] to demonstrate how to configure data storage in Rust code.
