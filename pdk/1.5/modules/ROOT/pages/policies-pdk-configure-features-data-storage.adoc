@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Use PDK's `DataStorageBuilder` to implement data storage in custom policies. Choose local in-memory storage for single-replica deployments or shared Redis storage for multi-replica deployments or deployments that require persistent data storage. Store and retrieve data with thread-safe operations including Compare-And-Swap (CAS), Absent, Present, and Any modes. Configure namespaces for key isolation and set time-to-live values for automatic data expiration in shared storage.
+Use PDK's `DataStorageBuilder` to implement data storage in custom policies. Choose local in-memory storage for single-replica deployments or shared Redis storage for multi-replica deployments or deployments that require persistent data storage. Store and retrieve data with thread-safe operations including Compare-And-Swap (CAS), Absent, and Always operations. Configure namespaces for key isolation and set time-to-live values for automatic data expiration in shared storage.
 
 For multi-replica deployments or persistent data storage, you must configure shared storage. To configure shared storage, see:
 
@@ -22,10 +22,11 @@ let storage = store_builder.remote(namespace, ttl_millis);
 ----
 
 Storage builder parameters:
+
 * `namespace`: a string prefix for key isolation (required)
 * `ttl_millis`: time-to-live in milliseconds for automatic data expiration (only required for remote storage)
 
-After creating the storage instance, you can use it to store and retrieve data with support for Compare-And-Swap (CAS), Absent, Present, and Any operations for thread safety:
+After creating the storage instance, you can use it to store and retrieve data with support for CAS, Absent, and Always operations for thread safety:
 
 [source,Rust]
 ----
