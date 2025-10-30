@@ -11,7 +11,7 @@ For multi-replica deployments or persistent data storage, you must configure sha
 * xref:gateway::flex-conn-shared-storage-config.adoc[]
 * xref:gateway::flex-local-shared-storage-config.adoc[]
 
-To access data storage functionality, you need to use the DataStorageBuilder in your policy's entrypoint and pass the storage instance to your request handlers:
+To use data storage functionality, inject the `DataStorageBuilder` in your the `entrypoint` and pass the storage instance to your request handlers:
 
 [source,Rust]
 ----
@@ -45,9 +45,9 @@ Within the example policy, see these functions for further configuration details
 
 * https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/data-storage-stats/src/lib.rs#L210[`entrypoint` function] for how to configure the `DataStorageBuilder`.
 
-* https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/data-storage-stats/src/lib.rs#L58[`request_filter` function] for how the policy uses CAS operations with retry logic for concurrent updates.
+* https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/data-storage-stats/src/lib.rs#L58[`update_request_stats` function] for how the policy uses CAS operations with retry logic for concurrent updates.
 
-* https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/data-storage-stats/src/lib.rs#L111[`response_filter` function] for how the policy iterates over stored keys and retrieves data.
+* https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/data-storage-stats/src/lib.rs#L111[`get_all_stats` function] for how the policy retrieves stored data.
 
 == Redis Shared Storage Configuration Example
 
