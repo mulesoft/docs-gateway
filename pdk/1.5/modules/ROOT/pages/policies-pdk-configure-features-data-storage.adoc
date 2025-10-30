@@ -26,7 +26,7 @@ Storage builder parameters:
 * `namespace`: a string prefix for key isolation (required)
 * `ttl_millis`: time-to-live in milliseconds for automatic data expiration (only required for remote storage)
 
-After creating the storage instance, you can use it to store and retrieve data with support for CAS, Absent, and Always operations for thread safety:
+After creating the storage instance, store and retrieve data with support for CAS, Absent, and Always operations for thread safety:
 
 [source,Rust]
 ----
@@ -38,7 +38,7 @@ storage.store(&key, &mode, &new_data).await?;
 let (data, version) = storage.get::<MyData>(&key).await?;
 ----
 
-The `StoreMode` enum provides the following operations for thread-safe data storage:
+The `StoreMode` enum supports these operations:
 
 * `Cas` (Compare-And-Swap): Updates the value only if the current version matches the expected version. Use this operation for thread-safe conditional updates to ensure data hasn't changed since you last read it.
 * `Absent`: Stores the value only if the key doesn't exist. Use this operation to initialize values without overwriting existing data.
