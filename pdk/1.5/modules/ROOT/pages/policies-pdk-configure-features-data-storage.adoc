@@ -4,9 +4,9 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-For implementing custom policies that require storing data you can use PDK's Data Storage feature. See xref:gateway::flex-conn-shared-storage-config.adoc[Configuring Shared Storage for Flex Gateway in Connected Mode] for more details.
+Use PDK's `DataStorageBuilder` to implement data storage in custom policies. Choose local in-memory storage for single-replica deployments or shared Redis storage for multi-replica deployments or deployments that require persistent data storage. Store and retrieve data with thread-safe operations including Compare-And-Swap (CAS), Absent, Present, and Any modes. Configure namespaces for key isolation and set time-to-live values for automatic data expiration in shared storage.
 
-For policies that require persistent data storage, you must configure shared storage. To configure shared storage, see:
+For multi-replica deployments or persistent data storage, you must configure shared storage. To configure shared storage, see:
 
 * xref:gateway::flex-conn-shared-storage-config.adoc[]
 * xref:gateway::flex-local-shared-storage-config.adoc[]
@@ -37,17 +37,21 @@ storage.store(&key, &mode, &new_data).await?;
 let (data, version) = storage.get::<MyData>(&key).await?;
 ----
 
-Example of storage configuration and setup:
-https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/1.5.x/data-storage-stats/src/lib.rs#L210[]
+== Data Storage Configuration Examples
 
-Example of CAS operations with retry logic:
-https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/1.5.x/data-storage-stats/src/lib.rs#L58[]
+PDK provides the https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/data-storage-stats[Data Storage Stats Policy Example] to demonstrate how to configure data storage in Rust code.
 
-Example of iterating over stored keys and retrieving data:
-https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/1.5.x/data-storage-stats/src/lib.rs#L111[]
+Within the example policy, see these functions for further configuration details:
 
+* https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/data-storage-stats/src/lib.rs#L210[`entrypoint` function] for how to configure the `DataStorageBuilder`.
 
-Complete example of Data Storage usage: https://github.com/mulesoft/pdk-custom-policy-examples/blob/support/1.5.x/data-storage-stats[]
+* https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/data-storage-stats/src/lib.rs#L58[`request_filter` function] for how the policy uses CAS operations with retry logic for concurrent updates.
+
+* https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/data-storage-stats/src/lib.rs#L111[`response_filter` function] for how the policy iterates over stored keys and retrieves data.
+
+== Redis Shared Storage Configuration Example
+
+For an example of how to configure Redis shared storage for testing, see the example https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/data-storage-stats/playground/docker-compose.yaml[`playground/docker-compose.yaml`] file.
 
 == See Also
 
