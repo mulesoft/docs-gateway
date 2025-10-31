@@ -8,7 +8,7 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy name | Outbound Message Logging
->s|Summary      | Logs custom messages using information from outbound requests sent to upstream services, responses from upstream services, or information from other outbound policies applied to the same upstream service
+>s|Summary      | Logs custom messages from outbound requests sent to upstream services, responses from upstream services, or information from other outbound policies applied to the same upstream service
 >s|Category | Troubleshooting
 >s|First Flex Gateway version available | v1.11.0
 .1+>.^s| Returned Status Codes
@@ -17,11 +17,7 @@ endif::[]
 
 == Summary
 
-The Outbound Message Logging policy logs custom messages using information from outbound requests sent to upstream services, responses from upstream services, or information from other outbound policies applied to the same upstream service. This policy is applied at the upstream level and executes as part of the outbound policy chain.
-
-== Prerequisites
-
-You must have the Anypoint Platform Organization Administrators role or have permission to create or manage APIs.
+The Outbound Message Logging policy logs custom messages from outbound requests sent to upstream services, responses from upstream services, or information from other outbound policies applied to the same upstream service. This policy is applied at the upstream level.
 
 == Configuring Policy Parameters
 
@@ -135,40 +131,12 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |Required
 |Conditional |A DataWeave Boolean expression used to specify whether a message is to be logged. To learn more about supported DataWeave expressions, see <<dataweave-support>>. |Optional
 |Category |A prefix in the log message that indicates the package and class where the log is executed. |Optional
-|Level |The level of message to log: INFO, WARN, ERROR, or DEBUG. + 
+|Level |The level of message to log: `INFO`, `WARN`, `ERROR`, or `DEBUG`. + 
 For more information, see <<severity-levels>>.|Required
 |Before Sending Request |Set to cause your logging policy to log messages before the outbound request is sent to the upstream service, taking into account the order in which this policy is applied. |Optional
 |After Receiving Response |Set to cause your logging policy to log messages after receiving the response from the upstream service, taking into account the order in which this policy is applied. |Optional
 |===
 
-==== Example of Outbound Message Logging Policy Configured from the UI
-
-To better understand how to use the Outbound Message Logging policy, consider a fictional retail clothier named Les Vetments. To successfully monitor communication with its upstream inventory service, Les Vetments must audit all outbound requests and responses sent to upstream services.
-
-For example, when a customer checks product availability or when the company syncs inventory data with upstream services, these outbound transactions must be logged. The IT manager at Les Vetments applies the Outbound Message Logging policy to the upstream services to enable logging and viewing any outbound request or response data without making any modifications to the code.
-
-To log the attributes of the outbound HTTP messages sent to upstream services, Les Vetments applies the Outbound Message Logging policy to the upstream service with the following UI configurations:
-
-* *Message*: #[attributes]
-+
-The attributes in the outbound request payload must be logged.
-* *Conditional*: Blank
-+
-Because Les Vetments requires all attributes, no expression to filter messages is specified.
-* *Category*: Blank
-+
-No prefix is required in the log sentence.
-* *Level*: Info
-+
-All types of messages are to be logged. The Info log level also includes Warn, Error, or Debug log messages.
-* *Before Sending Request*: Checked
-+
-All outbound requests that are sent to the upstream service are to be logged.
-* *After Receiving Response*: Checked
-+
-All responses received from the upstream service are to be logged.
-
-Following this configuration, whenever the Les Vetments gateway sends requests to upstream inventory services or receives responses, logs are generated with detailed information about the outbound communication.
 
 [[dataweave-support]]
 == DataWeave Expressions Support
