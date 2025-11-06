@@ -1,0 +1,232 @@
+= AWS Signature Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: aws signature, aws request signing, authentication, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | AWS Signature
+>s|Summary  | Signs outgoing requests with AWS Signature Version 4 (SigV4) or Signature Version 4A (SigV4A)
+>s|Category | Security
+>s|First Flex Gateway version available | v1.11.0
+>s| Returned Status Codes | No return codes exist for this policy. Error codes are returned from the upstream service.
+|===
+
+== Summary
+
+The AWS Signature policy signs outgoing requests with AWS Signature Version 4 (SigV4) or Signature Version 4A (SigV4A) authentication. This policy injects the required AWS signature headers into requests to authenticate with AWS services, such as Amazon S3, Amazon API Gateway, or other AWS HTTP endpoints.
+
+The AWS Signature policy is an extension of the AWS Request Signing filter native to Envoy. To learn more about the AWS Request Signing filter, see https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/aws_request_signing/v3/aws_request_signing.proto[AWS Request Signing Filter]. Not all AWS Request Signing filter parameters are available to the AWS Signature policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+[source, yaml]
+----
+- policyRef:
+    name: native-aws-signature
+  config:
+    serviceName: <string> // REQUIRED
+    region: <string> // OPTIONAL
+    hostRewrite: <string> // OPTIONAL
+    useUnsignedPayload: <boolean> // OPTIONAL
+    signingAlgorithm: <string> // OPTIONAL
+    queryString:
+      expirationTime: <string> // OPTIONAL
+    credentialProvider: <object> // OPTIONAL
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `serviceName`
+| Required
+| N/A
+| The service namespace of the HTTP endpoint. Examples: `s3`, `execute-api`, `ec2`.
+
+| `region`
+| Optional
+| Retrieved from environment or AWS configuration files
+| The AWS region string for the service hosting the HTTP endpoint. +
+When `signingAlgorithm` is `AWS_SIGV4`, this is a standard AWS region string (e.g., `us-west-2`). +
+When `signingAlgorithm` is `AWS_SIGV4A`, this is a region set (comma-separated list of regions, wildcard `*`, or region strings with wildcards like `us-east-*`). +
+For SigV4A, configuring a region set allows a signed request to be sent to multiple regions.
+
+| `hostRewrite`
+| Optional
+| N/A
+| Indicates that before signing headers, the host header will be swapped with this value. If not set or empty, the original host header value is used and no rewrite happens. +
+Note: This rewrite affects both signing and host header forwarding. This option should not be used with HCM host rewrite.
+
+| `useUnsignedPayload`
+| Optional
+| `false`
+| Instead of buffering the request to calculate the payload hash, use the literal string `UNSIGNED-PAYLOAD` to calculate the payload hash. Not all services support this option. See the S3 policy for details.
+
+| `signingAlgorithm`
+| Optional
+| `AWS_SIGV4`
+| The signing algorithm to use, either `AWS_SIGV4` or `AWS_SIGV4A`. +
+`AWS_SIGV4`: Use SigV4 for signing (default). +
+`AWS_SIGV4A`: Use SigV4A for signing, which supports multi-region requests.
+
+| `queryString`
+| Optional
+| N/A
+| If set, use the query string to store output of SigV4 or SigV4A calculation, rather than HTTP headers. The `Authorization` header will not be modified if `queryString` is configured.
+
+| `queryString.expirationTime`
+| Optional
+| `5s`
+| Expiration time for the query string parameters. As query string parameter based requests are replayable, it is recommended to keep this expiration time as short as feasible. Defaults to 5 seconds with a maximum value of 3600 seconds (1 hour). Format: duration string (e.g., `10s`, `1m`).
+
+| `credentialProvider`
+| Optional
+| Retrieved using AWS credential chain
+| The credential provider for signing the request. If not set, credentials are retrieved using the AWS credential chain (environment variables, AWS credential file, or AWS roles). See <<credential-provider-configuration, Credential Provider Configuration>> for details.
+|===
+
+[[credential-provider-configuration]]
+=== Credential Provider Configuration
+
+The `credentialProvider` object allows you to configure how AWS credentials are retrieved for signing requests. If not specified, the policy uses the default AWS credential chain.
+
+[source, yaml]
+----
+credentialProvider:
+  environmentCredentials: {} // OPTIONAL
+  staticCredentials:
+    accessKeyId: <string> // REQUIRED
+    secretAccessKey: <string> // REQUIRED
+    sessionToken: <string> // OPTIONAL
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `environmentCredentials`
+| Optional
+| N/A
+| Use AWS credentials from environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`).
+
+| `staticCredentials`
+| Optional
+| N/A
+| Use statically configured credentials.
+
+| `staticCredentials.accessKeyId`
+| Required when using `staticCredentials`
+| N/A
+| AWS access key ID.
+
+| `staticCredentials.secretAccessKey`
+| Required when using `staticCredentials`
+| N/A
+| AWS secret access key.
+
+| `staticCredentials.sessionToken`
+| Optional
+| N/A
+| AWS session token (required for temporary credentials).
+|===
+
+==== Resource Configuration Examples
+
+* Basic configuration with service name and region:
++
+[source, yaml]
+----
+- policyRef:
+    name: native-aws-signature
+  config:
+    serviceName: s3
+    region: us-west-2
+----
+
+* Configuration with static credentials:
++
+[source, yaml]
+----
+- policyRef:
+    name: native-aws-signature
+  config:
+    serviceName: execute-api
+    region: us-east-1
+    credentialProvider:
+      staticCredentials:
+        accessKeyId: AKIAIOSFODNN7EXAMPLE
+        secretAccessKey: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+----
+
+* Configuration with SigV4A and unsigned payload:
++
+[source, yaml]
+----
+- policyRef:
+    name: native-aws-signature
+  config:
+    serviceName: s3
+    region: "*"
+    signingAlgorithm: AWS_SIGV4A
+    useUnsignedPayload: true
+----
+
+* Configuration with query string signing:
++
+[source, yaml]
+----
+- policyRef:
+    name: native-aws-signature
+  config:
+    serviceName: s3
+    region: us-west-2
+    queryString:
+      expirationTime: 10s
+----
+
+* Configuration with host rewrite:
++
+[source, yaml]
+----
+- policyRef:
+    name: native-aws-signature
+  config:
+    serviceName: execute-api
+    region: us-east-1
+    hostRewrite: api.example.com
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread]
+|===
+|Parameter |Description | Required?
+
+|Service name |The service namespace of the HTTP endpoint (e.g., `s3`, `execute-api`, `ec2`). |Required
+
+|Region |The AWS region string for the service. For SigV4, use a standard region (e.g., `us-west-2`). For SigV4A, use a region set (comma-separated list or wildcard). |Optional
+
+|Host rewrite |Indicates that before signing headers, the host header will be swapped with this value. |Optional
+
+|Use unsigned payload |Instead of buffering the request to calculate the payload hash, use the literal string `UNSIGNED-PAYLOAD`. |Optional
+
+|Signing algorithm |The signing algorithm to use: `AWS_SIGV4` or `AWS_SIGV4A`. |Optional
+
+|Query string |If set, use the query string to store output of SigV4 or SigV4A calculation, rather than HTTP headers. |Optional
+
+|Query string expiration time |Expiration time for the query string parameters (e.g., `10s`, `1m`). Maximum is 3600 seconds. |Optional
+
+|Credential provider |The credential provider for signing the request. If not set, credentials are retrieved using the AWS credential chain. |Optional
+
+|Access key ID |AWS access key ID (when using static credentials). |Required when using static credentials
+
+|Secret access key |AWS secret access key (when using static credentials). |Required when using static credentials
+
+|Session token |AWS session token (when using static credentials with temporary credentials). |Optional
+|===
+
