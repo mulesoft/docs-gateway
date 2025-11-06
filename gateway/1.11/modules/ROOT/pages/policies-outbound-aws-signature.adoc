@@ -14,12 +14,14 @@ endif::[]
 >s| Returned Status Codes | No return codes exist for this policy. Error codes are returned from the upstream service.
 |===
 
+[[summary]]
 == Summary
 
 The AWS Request Signature policy signs outgoing requests with AWS Signature Version 4 (SigV4) or Signature Version 4A (SigV4A) authentication. This policy injects the required AWS signature headers into requests to authenticate with AWS services, such as Amazon S3, Amazon API Gateway, or other AWS HTTP endpoints.
 
 The AWS Request Signature policy is an extension of the AWS Request Signing filter native to Envoy. To learn more about the AWS Request Signing filter, see https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/aws_request_signing/v3/aws_request_signing.proto[AWS Request Signing Filter]. Not all AWS Request Signing filter parameters are available to the AWS Request Signature policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>.
 
+[[configuring-policy-parameters]]
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]
@@ -47,42 +49,47 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `serviceName`
 | Required
 | N/A
-| The service namespace of the HTTP endpoint. Examples: `s3`, `execute-api`, `ec2`.
+| The service namespace of the HTTP endpoint. For example: `s3`, `execute-api`, or `ec2`.
 
 | `region`
 | Required
 | N/A
-| The AWS region string for the service hosting the HTTP endpoint. +
-When `signingAlgorithm` is `AWS_SIGV4`, this is a standard AWS region string (e.g., `us-west-2`). +
-When `signingAlgorithm` is `AWS_SIGV4A`, this is a region set (comma-separated list of regions, wildcard `*`, or region strings with wildcards like `us-east-*`). +
-For SigV4A, configuring a region set allows a signed request to be sent to multiple regions.
+| The AWS region of the service hosting the HTTP endpoint. +
+For `AWS_SIGV4`, this is a standard AWS region. For example: `us-west-2`. +
+For `AWS_SIGV4A`, this is a region set of comma-separated region names (`us-west-2`), wildcards (`*`), or region strings with wildcards (`us-east-*`). A region set enables a signed request to be sent to multiple regions.
 
 | `useUnsignedPayload`
 | Optional
 | `false`
-| Instead of buffering the request to calculate the payload hash, use the literal string `UNSIGNED-PAYLOAD` to calculate the payload hash. Not all services support this option. See the S3 policy for details.
+| Use the literal string `UNSIGNED-PAYLOAD` to calculate the payload hash instead of buffering the request to calculate the hash. Not all services support this option.
 
 | `matchExcludedHeaders`
 | Optional
 | N/A
-| A list of request header string matchers that will be excluded from signing. The excluded header can be matched by any patterns defined in the StringMatcher (e.g., exact string, prefix, regex). +
-Example: `matchExcludedHeaders: - prefix: x-envoy - exact: x-custom-header - exact: x-trace-id` +
-When applied, all headers that start with "x-envoy" and headers "x-custom-header" and "x-trace-id" will not be signed.
+| A list of request header to exclude from signing. Match by any https://www.envoyproxy.io/docs/envoy/latest/api-v3/type/matcher/v3/string.proto#envoy-v3-api-msg-type-matcher-v3-stringmatcher[Envoy StringMatcher pattern]. For example: 
++
+[source, yaml]
+----
+matchExcludedHeaders: 
+  - prefix: x-envoy 
+  - exact: x-custom-header 
+  - exact: x-trace-id
+----
++
+In the example, the policy does not sign headers that start with "x-envoy" and the "x-custom-header" and "x-trace-id" headers.
 
 | `signingAlgorithm`
 | Required
 | `AWS_SIGV4`
-| The signing algorithm to use, either `AWS_SIGV4` or `AWS_SIGV4A`. +
-`AWS_SIGV4`: Use SigV4 for signing (default). +
-`AWS_SIGV4A`: Use SigV4A for signing, which supports multi-region requests.
+| The signing algorithm to use, either `AWS_SIGV4` or `AWS_SIGV4A`. `AWS_SIGV4A` supports multi-region requests.
 
 | `authenticationMode`
 | Required
 | `default`
 | Determines the mode of authentication for AWS credentials. Options are: +
-`default`: Uses the AWS credential chain in order (environment variables, AWS credential file, AWS roles). +
-`profile`: Uses a specific profile from the AWS credential file. +
-`static`: Uses statically configured credentials provided in `inlineCredentialProvider`.
+* `default`: Uses the AWS credential chain in order (environment variables, AWS credential file, AWS roles). +
+* `profile`: Uses a specific profile from the AWS credential file. +
+* `static`: Uses statically configured credentials provided in `inlineCredentialProvider`.
 
 | `credentialsFileProvider`
 | Optional
@@ -106,6 +113,7 @@ The credential provider configuration depends on the `authenticationMode` settin
 
 * **`static`**: Use `inlineCredentialProvider` to provide credentials directly in the configuration.
 
+[[credentials-file-provider]]
 ==== Credentials File Provider
 
 Use `credentialsFileProvider` when `authenticationMode` is set to `profile`:
@@ -125,7 +133,7 @@ credentialsFileProvider:
 | `credentialsDataSource.filename`
 | Required
 | N/A
-| Path to the AWS credential file (typically `~/.aws/credentials`).
+| Path to the AWS credential file. For example: `~/.aws/credentials`.
 
 | `profile`
 | Optional
@@ -133,6 +141,7 @@ credentialsFileProvider:
 | The AWS profile name to use from the credential file.
 |===
 
+[[inline-credential-provider]]
 ==== Inline Credential Provider
 
 Use `inlineCredentialProvider` when `authenticationMode` is set to `static`:
@@ -165,6 +174,7 @@ inlineCredentialProvider:
 | AWS session token (required for temporary credentials).
 |===
 
+[[resource-configuration-examples]]
 ==== Resource Configuration Examples
 
 * Basic configuration with default authentication:
@@ -248,23 +258,23 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 [%header%autowidth.spread]
 |===
-|Parameter |Description | Required?
+|Parameter |Description | Required or Optional
 
-|Service name |The service namespace of the HTTP endpoint (e.g., `s3`, `execute-api`, `ec2`). |Required
+|Service name |The service namespace of the HTTP endpoint. For example: `s3`, `execute-api`, or `ec2`. |Required
 
-|Region |The AWS region string for the service. For SigV4, use a standard region (e.g., `us-west-2`). For SigV4A, use a region set (comma-separated list or wildcard). |Required
+|Region |The AWS region string for the service. For SigV4, use a standard region. For example: `us-west-2`. For SigV4A, use a region set of comma-separated region names (`us-west-2`), wildcards (`*`), or region strings with wildcards (`us-east-*`). |Required
 
 |Use unsigned payload |Instead of buffering the request to calculate the payload hash, use the literal string `UNSIGNED-PAYLOAD`. |Optional
 
-|Signing algorithm |The signing algorithm to use: `AWS_SIGV4` or `AWS_SIGV4A`. |Required
+|Signing algorithm |The signing algorithm to use: `AWS_SIGV4` or `AWS_SIGV4A`. `AWS_SIGV4A` supports multi-region requests. |Required
 
-|Match excluded headers |A list of request header string matchers that will be excluded from signing. Headers can be matched by exact string, prefix, or regex patterns. |Optional
+|Match excluded headers |A list of request headers to exclude from signing. Match by any Envoy StringMatcher pattern. For example: `prefix: x-envoy`, `exact: x-custom-header`, or `exact: x-trace-id`. |Optional
 
-|Authentication mode |Determines the mode of authentication: `default`, `profile`, or `static`. |Required
+|Authentication mode |Determines the mode of authentication for AWS credentials. Options: `default` (uses AWS credential chain: environment variables, AWS credential file, AWS roles), `profile` (uses a specific profile from the AWS credential file), or `static` (uses statically configured credentials). |Required
 
 |Credentials file provider |Configuration for using credentials from an AWS credential file (required when authentication mode is `profile`). |Optional
 
-|Credentials file |Path to the AWS credential file (typically `~/.aws/credentials`). |Required when using credentials file provider
+|Credentials file |Path to the AWS credential file. For example: `~/.aws/credentials`. |Required when using credentials file provider
 
 |Profile |The AWS profile name to use from the credential file. |Optional
 
