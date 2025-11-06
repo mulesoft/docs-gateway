@@ -54,7 +54,7 @@ spec:
 | `loggingConfiguration`
 | Required
 | N/A
-| Array of configurations
+| Array of configurations.
 
 | `loggingConfiguration.itemName`
 | Required
@@ -126,7 +126,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 [%header%autowidth.spread]
 |===
-|Parameter |Description | Required?
+|Parameter |Description | Required or Optional
 |Message |A DataWeave expression for extracting the message to be logged from outbound requests or upstream responses. To learn more about supported DataWeave expressions, see <<dataweave-support>>.
 |Required
 |Conditional |A DataWeave Boolean expression used to specify whether a message is to be logged. To learn more about supported DataWeave expressions, see <<dataweave-support>>. |Optional
@@ -173,26 +173,26 @@ The Outbound Message Logging policy supports the xref:policies-flex-dataweave-su
 Logging an outbound policy consists of the following sequence:
 
 . An outbound request is prepared to be sent to an upstream service.
-. The message is logged if the following conditions are true:
+. The message is logged if these conditions are `true`:
 ** The level and category of the log defined in the policy are included in the logger defined in the configuration file.
-** Either the conditional field of the policy was not set, or was set and the condition was met.
+** Either the conditional field of the policy is not set, or is set and the condition is met.
 ** The `firstSection` flag is enabled (if logging before sending the request).
 . The request is sent to the upstream service.
 . The upstream service responds.
-. The message is logged if the following conditions are true:
+. The message is logged if these conditions are `true`:
 ** The level and category of the log defined in the policy are included in the logger defined in the configuration file.
-** Either the conditional field of the policy was not set, or was set and the condition was met.
+** Either the conditional field of the policy is not set, or is set and the condition is met.
 ** The `secondSection` flag is enabled (if logging after receiving the response).
 . The response is returned to the client. Outbound Message Logging Policy does not interfere with the execution of any policy nor its flow.
 . The message appears in the application log.
 
 == About the Logging Format
 
-A message log uses the following format:
+A message log uses this format:
 
 `<date> [flex-gateway-envoy][<level>] wasm log <policy-name>.default.<api-name>.default.svc main: [req: <request uuid>] [accessLog] <message>`
 
-* `policy-name`: displays the name of the policy binding:
-* `api-name`: displays the name of the api instance:
+* `policy-name`: displays the name of the policy binding.
+* `api-name`: displays the name of the api instance.
 * `request uuid`: displays a unique identifier for the request that triggered the message.
 
