@@ -41,11 +41,11 @@ To verify your current plugin version, execute the following command:
 anypoint-cli-v4 plugins
 ----
 
-For example, the following PDK plugin version is `1.4.1`:
+For example, the following PDK plugin version is `1.6.0`:
 
 [source,ssh]
 ----
-anypoint-cli-pdk-plugin 1.4.1
+anypoint-cli-pdk-plugin 1.6.0
 ├─ anypoint-cli-command 1.5.2
 │  └─ @oclif/plugin-help 5.1.12
 └─ @oclif/plugin-version 1.0.4
@@ -58,15 +58,15 @@ The PDK Rust library is the Rust code library used by a specific custom policy. 
 
 To upgrade the PDK Rust code libraries, modify the `pdk` `dependency` and `pdk-test` `dev-dependency` versions in the `cargo.toml` file of the custom policy. The `pdk` and `pdk-test` versions must match and your Anypoint CLI PDK plugin must support the specified version.
 
-In the following example, both dependency versions are `1.0.0`. Modify it to your required version:
+In the following example, both dependency versions are `1.6.0`. Modify it to your required version:
 
 [source,toml]
 ----
 [dependencies]
-pdk = { version = "1.0.0", registry = "anypoint" }
+pdk = { version = "1.6.0" }
 
 [dev-dependencies]
-pdk-test = { version = "1.0.0", registry = "anypoint" }
+pdk-test = { version = "1.6.0" }
 ----
 
 [[anypoint-cargo-plugin]]
@@ -81,7 +81,7 @@ To upgrade your Anypoint Cargo plugin:
 +
 ----
 install-cargo-anypoint:
-	cargo install cargo-anypoint@1.0.0 --registry anypoint --config .cargo/config.toml
+	cargo install cargo-anypoint@1.6.0
 ----
 
 . Change the version after the `@` character to the required version.
@@ -114,12 +114,12 @@ To update Rust, see xref:policies-pdk-prerequisites.adoc#rust-requirements[Rust 
 . Find your Rust version. For example:
 +
 ----
-rust-version = "1.83.0"
+rust-version = "1.87.0"
 ----
 . Update your Rust version. For example:
 +
 ----
-rust-version = "1.87.0"
+rust-version = "1.88.0"
 ----
 . Save the `cargo.toml` file.
 
@@ -152,6 +152,76 @@ pub const POLICY_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/target/wasm32
 pub const POLICY_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/target/wasm32-wasip1/release");
 ----
 . Save the `mod.rs` file.
+
+[[upgrade-versions-earlier-1.6.0]]
+== Upgrade Policies with Versions Earlier Than 1.6.0
+
+In PDK 1.6.0, the PDK libraries moved from the Anypoint platform to https://crates.io/crates/pdk[crates.io]. When upgrading from versions earlier than 1.6.0, you must update the dependencies to point to the new location. To upgrade policies with versions earlier than 1.6.0:
+
+. <<anypoint-cli-pdk-plugin, Upgrade the Anypoint CLI PDK plugin>>.
+. <<anypoint-rust-version, Upgrade the PDK Rust libraries>>.
+. Upgrade the PDK Rust libraries:
+.. Locate the `dependencies` and `dev-dependencies` in your policy's `cargo.toml`:
++
+[source,toml]
+----
+[dependencies]
+pdk = { version = "1.5.0", registry = "anypoint" }
+
+[dev-dependencies]
+pdk-test = { version = "1.5.0", registry = "anypoint" }
+----
+.. Update the version and remove the `registry = "anypoint"`:
++
+[source,toml]
+----
+[dependencies]
+pdk = { version = "1.6.0" }
+
+[dev-dependencies]
+pdk-test = { version = "1.6.0" }
+----
+.. Save the `cargo.toml` file.
+
+. Upgrade the Anypoint Cargo Plugin:
+.. Open the `Makefile` of your custom policy.
+.. Find the `install-cargo-anypoint` target, for example:
++
+----
+install-cargo-anypoint:
+	cargo install cargo-anypoint@1.5.0 --registry anypoint --config .cargo/config.toml
+----
+.. Update the version and remove the `--registry` and `--config` flags:
++
+----
+install-cargo-anypoint:
+	cargo install cargo-anypoint@1.6.0
+----
+.. Save the `Makefile` file.
+
+. Remove the Anypoint Platform registry references from your `setup` command:
+.. Open the `Makefile` of your custom policy.
+.. Find the `setup` target, for example:
++
+----
+.PHONY: setup
+setup: registry-creds login install-cargo-anypoint ## Setup all required tools to build
+	cargo fetch
+----
+.. Remove the Anypoint Platform registry references:
++
+----
+.PHONY: setup
+setup: install-cargo-anypoint ## Setup all required tools to build
+	cargo fetch
+----
+.. Delete the `login` and `registry-creds` targets. For example:
++
+To find an example of the targets, see the https://github.com/mulesoft/pdk-custom-policy-examples/blob/1.5.0/certs/Makefile#L68-L85[`login` and `registry-creds` targets in the Certification Policy].
+
+.. Save the `Makefile` file.
+. Execute `make setup` to install the updated versions.
+
 
 == See Also
 
