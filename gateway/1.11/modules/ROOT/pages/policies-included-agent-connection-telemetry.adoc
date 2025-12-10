@@ -1,0 +1,133 @@
+= Agent Connection Telemetry Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, agent, telemetry, agent connection, A2A, MCP
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Agent Connection Telemetry
+>s|Summary  | Collects and reports telemetry data for agent connections
+>s|Category | Troubleshooting
+>s|First Flex Gateway version available | 1.11.0
+^s| Returned Status Codes | No return codes exist for this policy
+|===
+
+== Summary
+
+The Agent Connection Telemetry policy enables you to collect and report telemetry data for agent connections, providing visibility into agent interactions, connection health, and performance metrics.
+
+
+== Configuring Policy Parameters 
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: agent-connection-telemetry-flex
+  config:
+    enabled: <boolean> // REQUIRED
+    metrics:
+      connectionCount: <boolean> // OPTIONAL, default: true
+      requestLatency: <boolean> // OPTIONAL, default: true
+      errorRate: <boolean> // OPTIONAL, default: true
+    labels: <array> // OPTIONAL, default: []
+      - name: <string> // REQUIRED
+        type: <string> // REQUIRED
+        keyName: <string> // REQUIRED
+        defaultValue: <string> // REQUIRED
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `enabled`
+| Required
+| false
+| Enables or disables agent connection telemetry collection for the API.
+
+| `metrics.connectionCount`
+| Optional
+| true
+| Collects metrics on the number of active agent connections.
+
+| `metrics.requestLatency`
+| Optional
+| true
+| Collects metrics on request latency for agent connections.
+
+| `metrics.errorRate`
+| Optional
+| true
+| Collects metrics on error rates for agent connections.
+
+| `labels`
+| Optional
+| Empty array
+| Array of labels that are added to the telemetry data to be used as attributes in the metrics.
+
+| `labels.name`
+| Required
+| N/A
+| The name of the label, used as a metric attribute name.
+
+| `labels.type`
+| Required
+| N/A
+| The type of the label specifies where the value for the label is taken from. Supported values are `literal`, `environment`, and `requestHeader`.
+
+| `labels.keyName`
+| Required
+| N/A
+| The key name of the label.
+
+| `labels.defaultValue`
+| Required
+| N/A
+| The default value of the label.
+
+|===
+
+==== Resource Configuration Example
+
+----
+- policyRef:
+    name: agent-connection-telemetry-flex
+  config:
+    enabled: true
+    metrics:
+      connectionCount: true
+      requestLatency: true
+      errorRate: true
+    labels:
+      - name: agent-env-tag
+        type: environment
+        keyName: FLEX_NAME
+        defaultValue: DEFAULT_VAL
+      - name: agent-header-tag
+        type: requestHeader
+        keyName: :method
+        defaultValue: DEFAULT_METHOD
+      - name: agent-literal-tag
+        type: literal
+        defaultValue: the-tag
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Description | Required
+| Enabled | Enables or disables agent connection telemetry collection for the API. | Yes
+| Connection Count Metrics | Collects metrics on the number of active agent connections. | No
+| Request Latency Metrics | Collects metrics on request latency for agent connections. | No
+| Error Rate Metrics | Collects metrics on error rates for agent connections. | No
+| Labels | Array of labels that are added to the telemetry data to be used as attributes in the metrics. | Optional
+| Label Name | The name of the label, used as a metric attribute name. | Yes
+| Label Type | The type of the label specifies where the value for the label is taken from. Supported values are `literal`, `environment`, and `requestHeader`. | Yes
+| Label Key Name |The key used to retrieve the value, such as an environment variable or request header name. | Yes
+| Label Default Value | Default value to use if the key is not found or the retrieved value is empty. | Yes 
+|===
+
