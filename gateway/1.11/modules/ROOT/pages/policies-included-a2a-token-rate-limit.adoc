@@ -1,0 +1,128 @@
+= A2A Token Based Rate Limit Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, rate limiting, token, a2a
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | A2A Token Based Rate Limit
+>s|Summary      | Controls API usage by enforcing token-based rate limits. Token usage is measured per request and response, but tokens generated in the response are counted toward the rate limit of the next request.
+>s|Category | A2A
+>s|First Flex Gateway version available | v1.11.0
+.3+>.^s| Returned Status Codes
+|400 - Bad Request: Failed to evaluate keySelector
+|429 - Too Many Requests: Token limit exceeded, requests are blocked until the current window finishes
+|500 - Internal Server Error: Tokenizer error or rate limit check failure
+|===
+
+include::partial$a2a-version-support.adoc[]
+
+== Summary
+
+The A2A Token Based Rate Limit policy enforces rate limiting on API requests based on the number of tokens consumed by the agents. Unlike traditional rate limiting policies that count requests, this policy counts tokens using the GPT-4o-mini tokenizer model, providing more accurate control over API usage based on the actual content being processed.
+
+The policy counts tokens from both request and response payloads. Tokens generated in the response are counted toward the rate limit of the next request, ensuring that the total token consumption across the conversation is properly tracked.
+
+If a request exceeds the allowed token limit, the policy blocks the call and returns a 429 status code.
+
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The A2A Token Based Rate Limit policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+| Maximum Tokens | Yes | The maximum number of tokens allowed within the specified time period. Must be a positive integer (minimum: 1).
+| Time Period (ms) | Yes | The time period in milliseconds for the rate limit window. Must be at least 1000 milliseconds.
+| Key Selector | Yes | A DataWeave expression that selects the key for rate limiting. This creates independent rate limit counters for each unique value resolved by the expression. +
++
+Examples:
+* `#[attributes.headers['ClientId']]` - Rate limit per client ID
+* `#[attributes.principal]` - Rate limit per user
+* `#[attributes.headers['X-Forwarded-For']]` - Rate limit per IP address
+* `#[attributes.requestPath]` - Rate limit per API path
+|===
+
+
+== How This Policy Works
+
+The A2A Token Based Rate Limit policy monitors token consumption in the current window (the available quota), allowing requests to reach the backend only if the available token quota is greater than zero.
+
+=== Token Counting
+
+The policy uses the GPT-4o-mini tokenizer model to count tokens in:
+
+* **Request payloads**: Tokens are counted from the `params.message.parts` array in JSON-RPC requests. The policy extracts text from parts with `kind: "text"` or `type: "text"`, and data from parts with `kind: "data"` or `type: "data"`.
+* **Response payloads**: Tokens are counted from response content including:
+** Direct message parts in `result.parts`
+** Status message parts in `result.status.message.parts`
+** Artifact parts in `result.artifacts[*].parts`
+** Server-Sent Events (SSE) stream data
+
+=== Rate Limit Window
+
+The policy uses a fixed-window rate limiting algorithm:
+
+* The window starts with the first request after the policy is successfully applied
+* Each request consumes tokens from the current window's quota
+* Tokens from response payloads are counted toward the next request's rate limit
+* When the token quota is exhausted, subsequent requests are rejected with a 429 status code
+* When the time window closes, the token quota is reset and a new window of the same fixed size starts
+
+=== Key Selector
+
+The `keySelector` parameter allows you to create independent rate limit counters for different groups of requests. Each unique value resolved by the DataWeave expression gets its own token quota and time window.
+
+For example, if you configure `keySelector: "#[attributes.headers['ClientId']]"` with a limit of 100 tokens per 5 seconds:
+
+* Client A can consume up to 100 tokens in a 5-second window
+* Client B has its own independent 100-token quota in a 5-second window
+* Each client's rate limit is tracked separately
+
+=== Response Headers
+
+When a request is processed, the policy adds the following headers to the response:
+
+* `x-token-limit`: The maximum number of tokens allowed per window
+* `x-token-remaining`: The number of tokens remaining in the current window
+* `x-token-reset`: The remaining time, in milliseconds, until a new window starts
+
+These headers are always included in responses, providing visibility into the current rate limit status.
+
+== FAQ
+
+*How are tokens counted?*
+
+Tokens are counted using the GPT-4o-mini tokenizer model. The policy extracts text content from request and response payloads and counts the tokens. For JSON data, special tokens are used; for plain text, ordinary encoding is used.
+
+*What happens when the token limit is exceeded?*
+
+When the token limit is exceeded, the policy returns a 429 (Too Many Requests) status code and blocks the request from reaching the backend. The response includes headers indicating the current rate limit status.
+
+*How are response tokens handled?*
+
+Tokens generated in the response are counted toward the rate limit of the next request. This ensures that the total token consumption across the conversation is properly tracked, preventing clients from exceeding their token budget through large responses.
+
+*What happens if the keySelector evaluation fails?*
+
+If the keySelector DataWeave expression cannot be evaluated (for example, if a required header is missing), the policy returns a 400 (Bad Request) status code with an error message indicating that the keySelector evaluation failed.
+
+*What type of window does the algorithm use?*
+
+The policy uses a fixed-window algorithm. The window size is determined by the `timePeriodInMilliseconds` parameter, and the window starts with the first request after the policy is applied.
+
+*Can I use this policy with distributed rate limiting?*
+
+The policy supports clustered rate limiting when used with shared storage. When multiple gateway replicas share the same storage backend, they share the token quota across all replicas.
+
+*What happens if a request doesn't contain JSON-RPC content?*
+
+The policy only processes requests with `Content-Type: application/json` and POST method. Other requests pass through without token counting or rate limiting.
+
