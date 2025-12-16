@@ -1,0 +1,135 @@
+= MCP Tool Mapping Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, mcp, tool mapping
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | MCP Tool Mapping
+>s|Summary      | Renames MCP tool names in requests and responses to provide flexible tool naming
+>s|Category | MCP
+>s|First Flex Gateway version available | v1.11.0
+>s| Returned Status Codes | No return codes exist for this policy.
+|===
+
+include::partial$mcp-version-support.adoc[]
+
+== Summary
+
+The MCP Tool Mapping policy intercepts MCP protocol traffic and applies configurable name transformations to tools. It supports both outbound mapping (transforming tool names in `tools/list` responses from backend to client) and inbound mapping (reverse-transforming tool names in `tools/call` requests from client to backend).
+
+This policy enables you to:
+* Add prefixes or suffixes to tool names for namespacing.
+* Rename tools for consistency across different MCP servers
+* Create Pattern-based transformations by using regex.
+* Create custom descriptions for mapped tools
+
+The policy works with both standard JSON over HTTP and Server-Sent Events (SSE) transports.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The MCP Tool Mapping policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Element | Description
+| Tool Name Mappings | Defines the tool name mappings. Each mapping specifies how to transform tool names between the client and backend.
+| Source Tool Name | The original tool name from the MCP server or a regex pattern for pattern-based matching.
+| Mapped Tool Name | The new tool name to use in responses. For regex mappings, use `$1`, `$2`, etc. to reference capture groups.
+| Mapped Tool Description | Optional new description for the tool. If not specified, the original description is used.
+| Mapping Type | Determines how the tool mapping is processed. Supported values are `literal` for exact string matching and `regex` for pattern matching with capture groups. Default is `literal`.
+| Log Mappings | Whether to log tool name mappings for debugging. Default is `false`.
+|===
+
+=== Mapping Types
+
+==== Literal Mapping
+
+Literal mappings perform exact string matching for specific tool names. For example, given the following parameters:
+
+* *Source Tool Name*: `get_weather`
+* *Mapped Tool Name*: `weather_lookup`
+* *Mapped Tool Description*: `Get current weather conditions`
+* *Mapping Type*: `literal`
+
+The policy transforms the tool name in the `tools/list` response and `tools/call` request:
+
+* `tools/list` response: `get_weather` to `weather_lookup`
+* `tools/call` request: `weather_lookup` to `get_weather` (automatic reverse mapping)
+
+==== Regex Mapping
+
+Regex mappings use pattern-based matching with capture group replacementFor example, given the following parameters:
+
+* *Source Tool Name*: `get_(.+)`
+* *Mapped Tool Name*: `fetch_$1`
+* *Mapping Type*: `regex`
+
+The policy transforms the tool name in the `tools/list` response and `tools/call` request:
+
+* `get_weather` to `fetch_weather`
+* `get_user` to `fetch_user`
+* `delete_item` → unchanged (doesn't match pattern)
+
+=== Use Cases
+
+==== Namespace Isolation
+
+Add prefixes to avoid tool name conflicts between multiple MCP servers. For example:
+
+* *Source Tool Name*: `(.+)`
+* *Mapped Tool Name*: `server1_$1`
+* *Mapping Type*: `regex`
+
+==== Consistent Naming
+
+Standardize tool names across different servers. For example:
+
+* Mapping 1:
+** *Source Tool Name*: `fetchWeather`
+** *Mapped Tool Name*: `get_weather`
+** *Mapping Type*: `literal`
+
+* Mapping 2:
+** *Source Tool Name*: `retrieveUser`
+** *Mapped Tool Name*: `get_user`
+** *Mapping Type*: `literal`
+
+== How This Policy Works
+
+The MCP Tool Mapping policy operates in two directions:
+
+=== Outbound Mapping `tools/list` response
+
+The policy transforms tool names when the backend MCP server returns a list of available tools:
+
+. Backend MCP server returns tools: `["get_weather", "get_user", "delete_item"]`
+. Policy applies mappings:
+** `get_weather` → `weather_lookup` (literal match)
+** `get_user` → `user_info` (literal match)
+** `delete_item` → unchanged (no mapping)
+. Client receives: `["weather_lookup", "user_info", "delete_item"]`
+
+=== Inbound Mapping `tools/call `request
+
+The policy reverse-transforms tool names when the client calls a tool:
+
+. Client calls: `weather_lookup` (the mapped name)
+. Policy reverse-maps: `weather_lookup` → `get_weather`
+. Backend receives: `get_weather` (original name)
+
+=== Transport Support
+
+The policy works with both MCP transport types:
+
+* *Standard JSON over HTTP*: Transforms tool names in JSON-RPC messages
+* *Server-Sent Events (SSE)*: Transforms tool names in SSE streaming responses
+
+NOTE: The policy automatically maintains bidirectional mapping, ensuring that tool names are correctly transformed in both directions to maintain consistency between client and backend.
+
