@@ -37,7 +37,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 [%header%autowidth.spread,cols="a,a,a"]
 |===
 | Element | Required | Description
-| Maximum Tokens | Yes | Maximum number of tokens allowed within the specified time period. Must be a positive integer (minimum: 1).
+| Maximum Tokens | Yes | Maximum number of tokens allowed within the specified time period. Must be a positive integer of one or greater.
 | Time Period (ms) | Yes | Time period in milliseconds for the rate limit window. Minimum time period is 1000 milliseconds.
 | Key Selector | Yes | DataWeave expression that selects the key for rate limiting. This creates independent rate limit counters for each unique value resolved by the expression. For example:
 +
@@ -48,10 +48,13 @@ Examples:
 * `#[attributes.requestPath]` - Rate limit per API path
 |===
 
-
 == How This Policy Works
 
-The A2A Token Based Rate Limit policy monitors token consumption in the current window (the available quota), allowing requests to reach the backend only if the available token quota is greater than zero.
+The A2A Token Based Rate Limit policy monitors token consumption in the current window, allowing requests to reach the backend only if the available token quota is greater than zero.
+
+The policy uses a fixed-window rate limiting algorithm. The window starts after it receives the first request. When the quota is exhausted, requests are rejected with a 429 status code until the time window resets.
+
+The `keySelector` parameter enables you to create independent rate limit counters for different groups of requests. Each unique value resolved by the DataWeave expression has its own token quota and time window. For example, if you configure `keySelector: "#[attributes.headers['ClientId']]"` with a limit of 100 tokens per 5 seconds. Each individual client has its own 100-token quota in a 5-second window. If you don't configure a key selector, all requests are counted together.
 
 === Token Counting
 
@@ -64,25 +67,7 @@ The policy uses the GPT-4o-mini tokenizer model to count tokens in:
 ** Artifact parts in `result.artifacts[*].parts`
 ** Server-Sent Events (SSE) stream data
 
-=== Rate Limit Window
-
-The policy uses a fixed-window rate limiting algorithm:
-
-* The window starts with the first request after the policy is successfully applied
-* Each request consumes tokens from the current window's quota
-* Tokens from response payloads are counted toward the next request's rate limit
-* When the token quota is exhausted, subsequent requests are rejected with a 429 status code
-* When the time window closes, the token quota is reset and a new window of the same fixed size starts
-
-=== Key Selector
-
-The `keySelector` parameter allows you to create independent rate limit counters for different groups of requests. Each unique value resolved by the DataWeave expression gets its own token quota and time window.
-
-For example, if you configure `keySelector: "#[attributes.headers['ClientId']]"` with a limit of 100 tokens per 5 seconds:
-
-* Client A can consume up to 100 tokens in a 5-second window
-* Client B has its own independent 100-token quota in a 5-second window
-* Each client's rate limit is tracked separately
+To learn more about the GPT-4o-mini tokenizer model, see https://platform.openai.com/tokenizer[OpenAI Platform Tokenizer].
 
 === Response Headers
 
@@ -91,6 +76,3 @@ When a request is processed, the policy adds the following headers to the respon
 * `x-token-limit`: The maximum number of tokens allowed per window
 * `x-token-remaining`: The number of tokens remaining in the current window
 * `x-token-reset`: The remaining time, in milliseconds, until a new window starts
-
-These headers are always included in responses, providing visibility into the current rate limit status.
-
