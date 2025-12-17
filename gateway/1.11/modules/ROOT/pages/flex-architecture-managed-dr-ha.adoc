@@ -4,3 +4,30 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
+xref:cloudhub-2::ch2-ha-dr.adoc[]
+
+CloudHub 2.0 manages Managed Flex Gateway replica deployments and controls the gateway's high availability and disaster recovery. To familiarize yourself with CloudHub 2.0 architecture, see xref:cloudhub-2::ch2-architecture.adoc[].
+
+The gateway follows the same high availability principles as Mule applications deployed onto CH2. Which are:
+
+== High Availability
+
+CloudHub 2.0 manages Managed Flex Gateway high availability. CloudHub 2.0 provides high availability be ensuring:
+
+* At least two Flex replicas are always available and distributed across different availability zones in the private space. Traffic is distributed to replicas and zones evenly using a round robin traffic distribution.
+
+** If a replica fails, a new replica is spawned. While respawning the replica, the outstanding replicas receive a temporary spike in traffic until the new replica can accept traffic. These short spikes in traffic are visible in monitoring as a temporary spike in CPU usage.
+ 
+** Overloading Managed Flex Gateway will cause constant high CPU usage. Flex will in this scenario show gradual degradation of response time for requests until CPU subsides. Flex will not abruptly stop incoming traffic processing as a result of overload.
+
+
+
+* Large Managed Flex Gateways have more capacity allocated per replica, and also autoscale to 3 replicas across 3 availability zones depending on CPU usage.
+
+* Managed Flex Gateway Replicas use Object Store v2 for HTTP Caching and distributed Rate Limiting policies.  
+
+Managed Flex gateway stores protected API configuration locally in the private space kubernetes service. This allows the gateway to start up more quickly than an equivalently configured Self Managed Flex Gateway (that needs to download the configuration from Anypoint upon start). It also provides a layer of added resiliency in the very unlikely event that Anypoint control plane was not reachable during Managed Gateway start up.
+
+The exception to this is Contracts. Managed gateway downloads contracts upon start from the control plane. If an API uses contracts (e.g. client ID enforcement), the gateway will need to download the contracts before being ready to accept traffic. This condition is the same for Self Managed Flex.
+
+Flex follows the same DR strategy as Mule services for CH2. This document describes the overall position for CH2 Disaster Recovery and the statements apply to Managed Flex Gateway as well https://docs.mulesoft.com/cloudhub-2/ch2-ha-dr (taking note that we must update the page with the above statements for Flex)
