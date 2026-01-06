@@ -40,9 +40,9 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Maximum Tokens | Yes | Maximum number of tokens allowed within the specified time period. Must be a positive integer of one or greater.
 | Time Period (ms) | Yes | Time period in milliseconds for the rate limit window. Minimum time period is 1000 milliseconds.
 | Key Selector | Yes | DataWeave expression that selects the key for rate limiting. This creates independent rate limit counters for each unique value resolved by the expression. For example: +
-* `#[attributes.headers['ClientId']]`: Rate limit per client ID
-* `#[attributes.principal]`: Rate limit per user
-* `#[attributes.headers['X-Forwarded-For']]`: Rate limit per IP address
+* `#[attributes.headers['ClientId']]`: Rate limit per client ID +
+* `#[attributes.principal]`: Rate limit per user +
+* `#[attributes.headers['X-Forwarded-For']]`: Rate limit per IP address +
 * `#[attributes.requestPath]`: Rate limit per API path
 |===
 
@@ -58,8 +58,8 @@ The `keySelector` parameter enables you to create independent rate limit counter
 
 The policy uses the GPT-4o-mini tokenizer model to count tokens in:
 
-* **Request payloads**: Tokens are counted from the `params.message.parts` array in JSON-RPC requests. The policy extracts text from parts with `kind: "text"` or `type: "text"`, and data from parts with `kind: "data"` or `type: "data"`.
-* **Response payloads**: Tokens are counted from response content including:
+* *Request payloads*: Tokens are counted from the `params.message.parts` array in JSON-RPC requests. The policy extracts text from parts with `kind: "text"` or `type: "text"`, and data from parts with `kind: "data"` or `type: "data"`.
+* *Response payloads*: Tokens are counted from response content including:
 ** Direct message parts in `result.parts`
 ** Status message parts in `result.status.message.parts`
 ** Artifact parts in `result.artifacts[*].parts`
