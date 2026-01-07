@@ -59,12 +59,12 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `grantType`
 | Required
 | `clientCredentials`
-| OAuth2 grant type specifying the method used to obtain access tokens from the authorization server. Valid values: `clientCredentials` or `password`.
+| OAuth2 grant type specifying the method used to obtain access tokens from the authorization server. Supported values: `clientCredentials` or `password`.
 
 | `credentialLocation`
 | Required
 | `body`
-| Location where the Client ID and Client Secret credentials are sent in the OAuth2 token request. Valid values: `body` or `header`.
+| Location where the Client ID and Client Secret credentials are sent in the OAuth2 token request. Supported values: `body` or `header`.
 
 | `clientId`
 | Required (for `clientCredentials` grant type)
@@ -132,7 +132,9 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | A list of custom headers to add to the token request. Each header must have a `name` and `value` property.
 |===
 
-==== Resource Configuration Example
+==== Resource Configuration Examples
+
+===== Client Credentials Grant Type
 
 ----
 - policyRef:
@@ -145,6 +147,29 @@ include::partial$policy-title-headers.adoc[tag=configFile]
     clientSecret: secret
     scope:
       - user
+    overwrite: true
+    tokenFetchTimeout: 20
+    allowRequestWithoutCredential: true
+    tokenRequestBodyFormat: urlEncoded
+    cachingTtl: 0
+----
+
+===== Password Grant Type
+
+----
+- policyRef:
+    name: credential-injection-oauth2-flex
+  config:
+    oauthService: <https://oauth-server/tokens>
+    grantType: password
+    credentialLocation: body
+    clientId: id
+    clientSecret: secret
+    username: myuser
+    password: mypassword
+    scope:
+      - user
+      - read
     overwrite: true
     tokenFetchTimeout: 20
     allowRequestWithoutCredential: true
