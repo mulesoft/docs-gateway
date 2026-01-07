@@ -27,13 +27,24 @@ include::partial$policy-title-headers.adoc[tag=configFile]
     name: credential-injection-oauth2-flex
   config:
     oauthService: <string> // REQUIRED
-    clientId: <string> // REQUIRED
-    clientSecret: <string> // REQUIRED
+    grantType: <string> // REQUIRED (clientCredentials or password)
+    credentialLocation: <string> // REQUIRED (body or header)
+    clientId: <string> // REQUIRED (for clientCredentials grant type)
+    clientSecret: <string> // REQUIRED (for clientCredentials grant type)
+    username: <string> // REQUIRED (for password grant type)
+    password: <string> // REQUIRED (for password grant type)
     scope:
       - <string> // OPTIONAL
-    overwrite: <boolean> // OPTIONAL
-    tokenFetchTimeout: <number> // OPTIONAL
-    allowRequestWithoutCredential: <boolean> // OPTIONAL
+    overwrite: <boolean> // REQUIRED
+    tokenFetchTimeout: <number> // REQUIRED
+    allowRequestWithoutCredential: <boolean> // REQUIRED
+    tokenRequestBodyFormat: <string> // REQUIRED (json or urlEncoded)
+    upstreamTokenHeaderName: <string> // OPTIONAL
+    upstreamTokenPrefixName: <string> // OPTIONAL
+    cachingTtl: <number> // REQUIRED
+    customRequestHeaders: // OPTIONAL
+      - name: <string>
+        value: <string>
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -45,23 +56,43 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `<https://oauth-server/tokens>`
 | URL of the OAuth 2.0 service.
 
-| `clientId`
+| `grantType`
 | Required
+| `clientCredentials`
+| OAuth2 grant type specifying the method used to obtain access tokens from the authorization server. Valid values: `clientCredentials` or `password`.
+
+| `credentialLocation`
+| Required
+| `body`
+| Location where the Client ID and Client Secret credentials are sent in the OAuth2 token request. Valid values: `body` or `header`.
+
+| `clientId`
+| Required (for `clientCredentials` grant type)
 | N/A
 | Client ID.
 
 | `clientSecret`
-| Required
+| Required (for `clientCredentials` grant type)
 | N/A
 | Client Secret.
+
+| `username`
+| Required (for `password` grant type)
+| N/A
+| Username for password grant type.
+
+| `password`
+| Required (for `password` grant type)
+| N/A
+| Password for password grant type.
 
 | `scope`
 | Optional
 | N/A
-| Scopes to include in the token.
+| List of scopes to use for OAuth2 request.
 
 | `overwrite`
-| Optional
+| Required
 | `true`
 | When enabled, the policy overwrites the `Authorization` header with a new authorization token if the header is present.
 
@@ -74,6 +105,31 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | Required
 | `false`
 | When enabled, if the policy can't retrieve the token, Flex Gateway still sends the request.
+
+| `tokenRequestBodyFormat`
+| Required
+| `urlEncoded`
+| The format of the token request body. Valid values: `json` or `urlEncoded`.
+
+| `upstreamTokenHeaderName`
+| Optional
+| N/A
+| Use a custom header instead of `Authorization`.
+
+| `upstreamTokenPrefixName`
+| Optional
+| N/A
+| Use a custom token prefix instead of `Bearer`.
+
+| `cachingTtl`
+| Required
+| 0
+| Time to live for cached tokens in seconds. If 0, uses full `expires_in` value from OAuth response. If greater than 0, uses minimum of `cachingTtl` and `expires_in/2`.
+
+| `customRequestHeaders`
+| Optional
+| N/A
+| A list of custom headers to add to the token request. Each header must have a `name` and `value` property.
 |===
 
 ==== Resource Configuration Example
@@ -83,12 +139,17 @@ include::partial$policy-title-headers.adoc[tag=configFile]
     name: credential-injection-oauth2-flex
   config:
     oauthService: <https://oauth-server/tokens>
+    grantType: clientCredentials
+    credentialLocation: body
     clientId: id
     clientSecret: secret
     scope:
       - user
+    overwrite: true
     tokenFetchTimeout: 20
     allowRequestWithoutCredential: true
+    tokenRequestBodyFormat: urlEncoded
+    cachingTtl: 0
 ----
 
 include::partial$policy-title-headers.adoc[tag=ui]
@@ -97,11 +158,20 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |===
 |Parameter |Description | Required?
 |OAuth 2.0 service URL |URL of the OAuth 2.0 service. |Required
-|Client ID |Client ID. |Required
-|Client secret |Client Secret. |Required
-|Scope |Scopes to include in the token. |Optional
+|Grant Type |OAuth2 grant type specifying the method used to obtain access tokens from the authorization server. Valid values: Client Credentials or Password. |Required
+|Credential location |Location where the Client ID and Client Secret credentials are sent in the OAuth2 token request. Valid values: Body or Header. |Required
+|Client ID |Client ID. |Required (for Client Credentials grant type)
+|Client secret |Client Secret. |Required (for Client Credentials grant type)
+|Username |Username for password grant type. |Required (for Password grant type)
+|Password |Password for password grant type. |Required (for Password grant type)
+|Scope |List of scopes to use for OAuth2 request. |Optional
 |Overwrite header |When enabled, the policy overwrites the `Authorization` header with a new authorization token if the header is present. | Required
 |Token fetch timeout |Time in seconds to wait for the service to return the token. | Required
 |Allow request without credential |When enabled, if the policy can't retrieve the token, Flex Gateway still sends the request. | Required
+|Token Request Body Format |The format of the token request body. Valid values: URL Encoded or JSON. | Required
+|Upstream Custom header |Use a custom header instead of Authorization. |Optional
+|Upstream Custom Token Prefix |Use a custom token prefix instead of Bearer. |Optional
+|Caching TTL (seconds) |Time to live for cached tokens in seconds. If 0, uses full expires_in value from OAuth response. If greater than 0, uses minimum of cacheTtl and expires_in/2. | Required
+|Custom Request Headers |A list of custom headers to add to the token request. Each header must have a name and value property. |Optional
 |===
 
