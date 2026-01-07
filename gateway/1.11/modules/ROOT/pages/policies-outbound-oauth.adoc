@@ -64,7 +64,7 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `credentialLocation`
 | Required
 | `body`
-| Location where the Client ID and Client Secret credentials are sent in the OAuth2 token request. Supported values: `body` or `header`.
+| Location of the Client ID and Client Secret in the OAuth2 token request. Supported values: `body` or `header`.
 
 | `clientId`
 | Required for `clientCredentials` grant type
@@ -89,7 +89,7 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `scope`
 | Optional
 | N/A
-| List of scopes to use for OAuth2 request.
+| Scopes to include in the token.
 
 | `overwrite`
 | Required
@@ -124,7 +124,7 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `cachingTtl`
 | Required
 | 0
-| Time to live for cached tokens in seconds. If 0, uses full `expires_in` value from OAuth response. If greater than 0, uses minimum of `cachingTtl` and `expires_in/2`.
+| Time to live for cached tokens in seconds. If 0, the policy uses the full `expires_in` value from OAuth response. If greater than 0, the policy uses the minimum of the `cachingTtl` value and `expires_in` divided by 2.
 
 | `customRequestHeaders`
 | Optional
@@ -182,7 +182,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |Parameter |Description | Required?
 |OAuth 2.0 service URL |URL of the OAuth 2.0 service. |Required
 |Grant Type |OAuth2 grant type specifying the method used to obtain access tokens from the authorization server. Valid values: Client Credentials or Password. |Required
-|Credential location |Location where the Client ID and Client Secret credentials are sent in the OAuth2 token request. Valid values: Body or Header. |Required
+|Credential location |Location of the Client ID and Client Secret in the OAuth2 token request.|Required
 |Client ID |Client ID. |Required for Client Credentials grant type
 |Client secret |Client Secret. |Required for Client Credentials grant type
 |Username |Username for password grant type. |Required for Password grant type
@@ -194,7 +194,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |Token Request Body Format |The format of the token request body. Valid values: URL Encoded or JSON. | Required
 |Upstream Custom header |Use a custom header instead of Authorization. |Optional
 |Upstream Custom Token Prefix |Use a custom token prefix instead of Bearer. |Optional
-|Caching TTL (seconds) |Time to live for cached tokens in seconds. If 0, uses full expires_in value from OAuth response. If greater than 0, uses minimum of cacheTtl and expires_in/2. | Required
+|Caching TTL (seconds) |Time to live for cached tokens in seconds. If 0, the policy uses the full `expires_in` value from OAuth response. If greater than 0, the policy uses the minimum of the Caching TTL value and `expires_in` divided by 2. | Required
 |Custom Request Headers |A list of custom headers to add to the token request. Each header must have a name and value property. |Optional
 |===
 
