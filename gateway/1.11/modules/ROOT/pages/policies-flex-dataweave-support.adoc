@@ -176,3 +176,100 @@ If using a different function that transforms the binary by default, such as `#[
 
 * xref:dataweave::dataweave-variables-context.adoc[`vars`]
 ** Individual policies support different sets of variables. For information, refer to the policies listed in xref:policies-included-directory.adoc[].
+
+== DataWeave Usage Examples
+
+The PDK team provides a policy that can be used as a playground to test all these expressions and more. For more information, see https://github.com/mulesoft/pdk-custom-policy-examples/tree/main/dataweave[the DataWeave examples repository].
+
+* Read a header:
++
+[source,dataweave]
+----
+#[attributes.headers.'my-header']
+----
+
+* Check if header is defined:
++
+[source,dataweave]
+----
+#[attributes.headers.'my-header' != null]
+----
+
+* Check if request has basic authorization:
++
+[source,dataweave]
+----
+#[lower(splitBy(attributes.headers.authorization default '', ' ')[0]) == 'basic']
+----
+
+* Check if request contains path `/some`:
++
+[source,dataweave]
+----
+#[attributes.requestPath contains '/some']
+----
+
+* Check if request does not contain path `/some`:
++
+[source,dataweave]
+----
+#[not(attributes.requestPath contains '/some')]
+----
+
+* Read username from authorization basic header:
++
+[source,dataweave]
+----
+#[splitBy(dw::core::Binaries::fromBase64(dw::core::Strings::substringAfter(attributes.headers.authorization default '', 'Basic ')), ':')[0]]
+----
+
+* Read password from authorization basic header:
++
+[source,dataweave]
+----
+#[splitBy(dw::core::Binaries::fromBase64(dw::core::Strings::substringAfter(attributes.headers.authorization default '', 'Basic ')), ':')[1]]
+----
+
+* Read first value of x-forwarded-for header:
++
+[source,dataweave]
+----
+#[trim(splitBy(attributes.headers.'x-forwarded-for', ',')[0])]
+----
+
+* Read last value of x-forwarded-for header:
++
+[source,dataweave]
+----
+#[trim(splitBy(attributes.headers.'x-forwarded-for', ',')[-1])]
+----
+
+* Read value from particular Cookie:
++
+[source,dataweave]
+----
+#[trim(dw::core::Strings::substringBefore(dw::core::Strings::substringAfter(attributes.headers.Cookie default '', 'myCookieName='), ';'))]
+----
+
+* Read value from authentication object:
++
+After a policy populates the authentication object you can access it further down in the chain. For example, if you configure a JWT policy, you can access the `exp` claim of the JWT in policies further down in the chain by executing:
++
+[source,dataweave]
+----
+#[authentication.properties.claims.exp]
+----
+
+* Check if header that can contain space separated list or single value has particular value:
++
+[source,dataweave]
+----
+#[splitBy(attributes.headers.scopes default '', ' ') contains 'read']
+----
+
+* Check if claim from JWT is a json array or a json string with particular value:
++
+[source,dataweave]
+----
+#[authentication.properties.claims.custom_claim contains 'read' ]
+----
