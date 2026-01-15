@@ -181,95 +181,117 @@ If using a different function that transforms the binary by default, such as `#[
 
 The PDK team provides a policy that can be used as a playground to test all these expressions and more. For more information, see https://github.com/mulesoft/pdk-custom-policy-examples/tree/main/dataweave[the DataWeave examples repository].
 
+You can use DataWeave to extract different values from the request and response. For example:
+
 * Read a header:
 +
-[source,dataweave]
 ----
 #[attributes.headers.'my-header']
 ----
 
-* Check if header is defined:
+* Ensure a specific header is defined:
 +
-[source,dataweave]
 ----
 #[attributes.headers.'my-header' != null]
 ----
 
-* Check if request has basic authorization:
+* Check if a request has basic authorization:
 +
-[source,dataweave]
 ----
 #[lower(splitBy(attributes.headers.authorization default '', ' ')[0]) == 'basic']
 ----
 
-* Check if request contains path `/some`:
+* Check if a request contains `/some` path:
 +
-[source,dataweave]
 ----
 #[attributes.requestPath contains '/some']
 ----
 
-* Check if request does not contain path `/some`:
+* Check if a request doesn't `/some` contain path:
 +
-[source,dataweave]
 ----
 #[not(attributes.requestPath contains '/some')]
 ----
 
-* Read username from authorization basic header:
+* Read the username from a `Basic` authorization header:
 +
-[source,dataweave]
 ----
-#[splitBy(dw::core::Binaries::fromBase64(dw::core::Strings::substringAfter(attributes.headers.authorization default '', 'Basic ')), ':')[0]]
+#[splitBy(dw::core::Binaries::fromBase64(dw::core::Strings::substringAfter(attributes.headers.authorization default '', 'Basic')), ':')[0]]
 ----
 
-* Read password from authorization basic header:
+* Read the password from a `Basic` authorization header:
 +
-[source,dataweave]
 ----
 #[splitBy(dw::core::Binaries::fromBase64(dw::core::Strings::substringAfter(attributes.headers.authorization default '', 'Basic ')), ':')[1]]
 ----
 
-* Read first value of x-forwarded-for header:
+* Read the first value of the `x-forwarded-for` header:
 +
-[source,dataweave]
 ----
 #[trim(splitBy(attributes.headers.'x-forwarded-for', ',')[0])]
 ----
 
-* Read last value of x-forwarded-for header:
+* Read the last value of the `x-forwarded-for` header:
 +
-[source,dataweave]
 ----
 #[trim(splitBy(attributes.headers.'x-forwarded-for', ',')[-1])]
 ----
 
-* Read value from particular Cookie:
+* Read value from a `Cookie`:
 +
-[source,dataweave]
 ----
 #[trim(dw::core::Strings::substringBefore(dw::core::Strings::substringAfter(attributes.headers.Cookie default '', 'myCookieName='), ';'))]
 ----
 
-* Read value from authentication object:
+* Check if a single value or space separated header contains a specific value:
 +
-After a policy populates the authentication object you can access it further down in the chain. For example, if you configure a JWT policy, you can access the `exp` claim of the JWT in policies further down in the chain by executing:
-+
-[source,dataweave]
-----
-#[authentication.properties.claims.exp]
-----
-
-* Check if header that can contain space separated list or single value has particular value:
-+
-[source,dataweave]
 ----
 #[splitBy(attributes.headers.scopes default '', ' ') contains 'read']
 ----
 
-* Check if claim from JWT is a json array or a json string with particular value:
+=== Access the Authentication Object
+
+To access the xref:dataweave::dataweave-variables-context.adoc[`authentication`] object, you must first configure an authentication policy that populates the object.
+
+The authentication policy you apply affects the available authentication object properties:
+
+* Multiple policies can validate Client ID:
+** xref:policies-included-client-id-enforcement.adoc[]
+** xref:policies-included-rate-limiting-sla.adoc[]
+** xref:policies-included-oauth-token-introspection.adoc[] (If Client ID enforcement is configured)
+** xref:policies-included-openid-token-enforcement.adoc[] (If Client ID enforcement is configured)
+** xref:policies-included-jwt-validation.adoc[] (If Client ID enforcement is configured)
++ 
+Policies validating Client ID provide these authentication object properties:
 +
-[source,dataweave]
+** `authentication.clientName`: Name of the contract's client application
+** `authentication.clientId`: ID of the contract's client application
+** `authentication.properties.slaId`: SLA ID assigned to the contract
+
+* xref:policies-included-jwt-validation.adoc[]:
+** `authentication.properties.claims.<claimName>`: All claims provided by the JWT
+
+* Multiple policies validate basic authentication credentials:
+** xref:policies-included-basic-auth-simple.adoc[]
+** xref:policies-included-basic-auth-ldap.adoc[]
++ 
+Policies validating basic authentication credentials provide these authentication object properties:
++
+** `authentication.principal`: Username passed as basic auth user
+
+After your policy populates the authentication object, you can access the object in policies ordered after the authentication policy using DataWeave expressions. For example:
+
+* Read a value from the authentication object:
 ----
-#[authentication.properties.claims.custom_claim contains 'read' ]
+#[authentication.properties.claims.exp]
 ----
+
+* Check if a json array or a json string JWT claim contains a specific value:
++
+----
+#[authentication.properties.claims.custom_claim contains 'read']
+----
+
+
+
+
