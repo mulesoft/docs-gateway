@@ -211,7 +211,7 @@ For example, use DataWeave expressions to:
 #[attributes.requestPath contains '/some']
 ----
 
-* Check if a request doesn't `/some` contain path:
+* Check if a request doesn't contain `/some` path:
 +
 ----
 #[not(attributes.requestPath contains '/some')]
@@ -241,13 +241,13 @@ For example, use DataWeave expressions to:
 #[trim(splitBy(attributes.headers.'x-forwarded-for', ',')[-1])]
 ----
 
-* Read value from a `Cookie`:
+* Read the value from a `Cookie`:
 +
 ----
 #[trim(dw::core::Strings::substringBefore(dw::core::Strings::substringAfter(attributes.headers.Cookie default '', 'myCookieName='), ';'))]
 ----
 
-* Check if a single value or space separated header contains a specific value:
+* Check if a single value or space-separated header contains a specific value:
 +
 ----
 #[splitBy(attributes.headers.scopes default '', ' ') contains 'read']
@@ -292,7 +292,7 @@ After your policy populates the authentication object, you can access the object
 #[authentication.properties.claims.exp]
 ----
 
-* Check if a json array or a json string JWT claim contains a specific value:
+* Check if a JSON array or a JSON string JWT claim contains a specific value:
 +
 ----
 #[authentication.properties.claims.custom_claim contains 'read']
