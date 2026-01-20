@@ -1,0 +1,321 @@
+= Troubleshooting with the CLI
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Anypoint Flex Gateway includes a `flexctl dump` CLI that enables you to query for information related to a gateway's API instances, services, configuration, and available extensions (policies).
+
+As an example, the following inline configuration snippet defines a single API instance named `jsonplaceholder-api` in the default namespace (it remains `default` because namespace is not explicitly defined.) Additionally, the snippet defines one included policy: `http-basic-authentication-flex`.
+
+NOTE: To run `flexctl dump` for Linux deployments, either add the user to the `flex` user group or run `flexctl dump` with the `sudo` command. To learn more, see xref:flex-troubleshoot-linux-permissions.adoc[].
+
+== Configuration Example
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: jsonplaceholder-api
+spec:
+  address: http://0.0.0.0:8080
+  services:
+    jsonplaceholder:
+      address: https://jsonplaceholder.typicode.com:443/
+      routes:
+        - rules:
+            - path: /api(/users/.*)
+            - path: /api(/comments/.*)
+  policies:
+    - policyRef:
+        name: http-basic-authentication-flex
+      config:
+        username: chris
+        password: admin
+----
+
+== Run the CLI
+
+. To see JSON representations of your API instances, services, configurations, and extensions, run the following command:
++
+[source,ssh]
+----
+flexctl dump
+----
++
+[NOTE]
+====
+When running in a Docker or Podman container, run the command in the container itself.
+====
++
+The command outputs four files:
+
+* `api-instances.json`
+* `services.json`
+* `configuration.json`
+* `extensions.json`
+
+. View any of the JSON file contents by running `cat` followed by the file name:
++
+[tabs]
+====
+Api Instances::
++
+[source,ssh]
+----
+cat api-instances.json
+----
++
+The `api-instances.json` file contents resemble the following:
++
+----
+[
+   {
+      "address":"http://0.0.0.0:8080",
+      "kind":"ApiInstance",
+      "name":"jsonplaceholder-api",
+      "namespace":"default",
+      "policies":[
+         {
+            "config":{
+               "password":"admin",
+               "username":"chris"
+            },
+            "extension":{
+               "kind":"Extension",
+               "name":"http-basic-authentication-flex",
+               "namespace":"default"
+            },
+            "kind":"Policy",
+            "name":"jsonplaceholder-api-http-basic-authentication-flex-1",
+            "namespace":"default"
+         },
+         {
+            "config":{
+               "destinationRef":{
+                  "kind":"Service",
+                  "name":"jsonplaceholder-api-jsonplaceholder",
+                  "namespace":"default"
+               }
+            }
+            "extension":{
+               "kind":"Extension",
+               "name":"route",
+               "namespace":"default"
+            },
+            "kind":"Policy",
+            "name":"jsonplaceholder-api-jsonplaceholder-route-1",
+            "namespace":"default",
+            "order":50,
+            "rules":[
+               {
+                  "path":"/api(/users/.*)"
+               },
+               {
+                  "path":"/api(/comments/.*)"
+               }
+            ]
+         },
+         {
+            "extension":{
+               "kind":"Extension",
+               "name":"envoy.filters.http.router",
+               "namespace":"default"
+            },
+            "kind":"Policy",
+            "name":"envoy.filters.http.router",
+            "namespace":"default",
+            "order":2147483647
+         }
+      ]
+   }
+]
+----
+
+Services::
++
+[source,ssh]
+----
+cat services.json
+----
++
+The `services.json` file contents resemble the following:
++
+----
+[
+   {
+      "address":"https://jsonplaceholder.typicode.com:443/",
+      "kind":"Service",
+      "name":"jsonplaceholder-api-jsonplaceholder",
+      "namespace":"default"
+   }
+]
+----
+
+
+Configuration::
++
+[source,ssh]
+----
+cat configuration.json
+----
++
+The `configuration.json` file contents resemble the following:
++
+----
+{
+  "internalMetrics": {
+    "enabled": false
+  },
+  "logging": {},
+  "platformConnection": {
+    "anypoint": {
+      "url": "https://anypoint.mulesoft.com"
+    },
+    "environment": {
+      "cluster_id": "4aa281e9-1a1d-4c56-8669-2d887b2e1938",
+      "env_id": "ad067f80-69ee-4abb-9d05-bec98ece1e20",
+      "org_id": "1caa0b9b-4f4d-43c4-a1b6-f925a8c77baa"
+    },
+    "logging": {
+      "certificate": {
+        "cert": "demo-local.pem",
+        "key": "demo-local.key"
+      },
+      "url": "https://logging.ingestion.us-east-1.msap.io/ingestion/api/v1/logging"
+    },
+    "metering": {
+      "certificate": {
+        "cert": "demo-local.pem",
+        "key": "demo-local.key"
+      },
+      "url": "https://metering.ingestion.us-east-1.msap.io/ingestion/api/v1/metering"
+    },
+    "mode": "offline",
+    "monitoring": {
+      "certificate": {
+        "cert": "demo-local.pem",
+        "key": "demo-local.key"
+      },
+      "url": "https://monitoring.ingestion.us-east-1.msap.io/ingestion/api/v1/monitoring"
+    },
+    "runtimeEvents": {
+      "certificate": {
+        "cert": "demo-local.pem",
+        "key": "demo-local.key"
+      },
+      "url": "https://anypoint.mulesoft.com/apiruntime/v1/events"
+    }
+  },
+  "resourceLimits": {
+    "apiInstances": 100,
+    "policies": 400
+  },
+  "sharedStorage": {},
+  "version": "1.1.0"
+}
+----
+
+Extensions::
++
+[source,ssh]
+----
+cat extensions.json
+----
++
+The `extensions.json` file contains all the policies available in Flex Gateway. The file contents resemble the following:
++
+----
+{
+    "extends": [
+      {
+        "kind": "Extension",
+        "labels": {
+          "flex.mulesoft.com/created-by": "flex-filesystem",
+          "flex.mulesoft.com/managed-by": "flex-filesystem"
+        },
+        "name": "extension-definition",
+        "namespace": "default"
+      },
+      {
+        "kind": "Extension",
+        "labels": {
+          "flex.mulesoft.com/created-by": "flex-filesystem",
+          "flex.mulesoft.com/managed-by": "flex-filesystem"
+        },
+        "name": "extension-qos",
+        "namespace": "default"
+      }
+    ],
+    "kind": "Extension",
+    "labels": {
+      "flex.mulesoft.com/created-by": "flex-filesystem",
+      "flex.mulesoft.com/managed-by": "flex-filesystem"
+    },
+    "name": "header-injection-definition",
+    "namespace": "default",
+    "properties": [
+      {
+        "name": "config",
+        "properties": [
+          {
+            "items": {
+              "name": "inboundHeaders",
+              "properties": [
+                {
+                  "name": "key",
+                  "type": "stringOrDataweave"
+                },
+                {
+                  "name": "value",
+                  "type": "stringOrDataweave"
+                }
+              ],
+              "type": "object"
+            },
+            "name": "inboundHeaders",
+            "type": "array"
+          },
+          {
+            "items": {
+              "name": "outboundHeaders",
+              "properties": [
+                {
+                  "name": "key",
+                  "type": "stringOrDataweave"
+                },
+                {
+                  "name": "value",
+                  "type": "stringOrDataweave"
+                }
+              ],
+              "type": "object"
+            },
+            "name": "outboundHeaders",
+            "type": "array"
+          }
+        ],
+        "type": "object"
+      }
+    ]
+  }
+----
+====
+
+== Change Verbosity Level
+
+You can change the amount of information output by the `flexctl dump` CLI. For example, to increase verbosity to a value of `10`, run `flexctl dump` with the following:
+
+[source,ssh]
+----
+flexctl dump -v 10
+----
+
+== Change Output Directory
+
+Additionally, you can change the directory where `flexctl dump` outputs the four files. For example, to output to `/tmp`, run `flexctl dump` with the following:
+
+[source,ssh]
+----
+flexctl dump --output-directory /tmp
+----
