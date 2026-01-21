@@ -1,0 +1,154 @@
+= OAuth 2.0 OBO Credential Injection Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: oauth2, token exchange, on-behalf-of, obo, rfc 8693, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | OAuth 2.0 OBO Credential Injection
+>s|Summary  | Exchanges incoming bearer token for a new token targeting an upstream service using OAuth 2.0 Token Exchange (RFC 8693)
+>s|Category | Security
+>s|First Flex Gateway version available | v1.11.0
+>s| Returned Status Codes | No return codes exist for this policy. Error codes are returned from the upstream service.
+|===
+
+== Summary
+
+The OAuth 2.0 On-Behalf-Of (OBO) Credential Injection policy exchanges an incoming bearer token for a new token targeting an upstream service using OAuth 2.0 Token Exchange (RFC 8693). This policy is applied to outbound traffic (gateway → backend) and automatically handles OAuth 2.0 token exchange for backend services. It extracts the bearer token from incoming requests, exchanges it with an identity provider using RFC 8693 Token Exchange, and injects the new token into the Authorization header before forwarding to the backend.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: credential-injection-oauth2-obo-policy-flex
+  config:
+    clientId: <string> // REQUIRED
+    clientSecret: <string> // REQUIRED
+    tokenEndpoint: <string> // REQUIRED
+    targetType: <string> // OPTIONAL, supported values: audience or resource, default: audience
+    targetValue: <string> // REQUIRED
+    scope: <string> // OPTIONAL
+    timeout: <number> // OPTIONAL, default: 10000 (milliseconds)
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `clientId`
+| Required
+| N/A
+| OAuth2 client ID for token exchange.
+
+| `clientSecret`
+| Required
+| N/A
+| OAuth2 client secret for token exchange.
+
+| `tokenEndpoint`
+| Required
+| N/A
+| OAuth2 token endpoint URL (must support RFC 8693 Token Exchange).
+
+| `targetType`
+| Optional
+| `audience`
+| Parameter type for specifying the target service. Supported values: `audience` (logical name of the target service) or `resource` (physical URI of the target resource, RFC 8707).
+
+| `targetValue`
+| Required
+| N/A
+| Target audience URI or resource URI for the exchanged token.
+
+| `scope`
+| Optional
+| N/A
+| OAuth2 scope to request for the exchanged token.
+
+| `timeout`
+| Optional
+| `10000`
+| Timeout for token exchange requests in milliseconds.
+|===
+
+==== Configuration Example
+
+----
+- policyRef:
+    name: credential-injection-oauth2-obo-policy-flex
+  config:
+    clientId: my-gateway-client
+    clientSecret: client-secret
+    tokenEndpoint: https://keycloak.example.com/auth/realms/myrealm/protocol/openid-connect/token
+    targetType: audience
+    targetValue: backend-api
+    scope: read write
+    timeout: 10000
+----
+
+==== Target Type Configuration
+
+The `targetType` parameter determines which RFC 8693 parameter is used in the token exchange request:
+
+* **`audience`** (default): Uses the `audience` parameter - logical name of the target service
+* **`resource`**: Uses the `resource` parameter (RFC 8707) - physical URI of the target resource
+
+==== How It Works
+
+1. **Extract Token**: The policy extracts the Bearer token from the incoming request's Authorization header
+2. **Token Exchange**: Sends RFC 8693 compliant request to the token endpoint:
+   * `grant_type`: `urn:ietf:params:oauth:grant-type:token-exchange`
+   * `subject_token`: The extracted bearer token
+   * `subject_token_type`: `urn:ietf:params:oauth:token-type:access_token`
+   * `audience` or `resource`: Based on `targetType` configuration
+   * `scope`: If configured
+3. **Inject Token**: Replaces the Authorization header with the new token
+4. **Forward Request**: Continues to the backend with the exchanged token
+
+==== Error Handling
+
+The policy returns the following error codes:
+
+|===
+|Status Code | Error | Description
+
+| 401
+| `missing_authorization`
+| No Authorization header in request
+
+| 401
+| `invalid_authorization_format`
+| Authorization header is not Bearer format
+
+| 502
+| `token_exchange_failed`
+| Token endpoint error or unreachable after retries
+|===
+
+All errors are logged with detailed context for debugging.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread]
+|===
+|Parameter |Description | Required?
+
+|Client ID |OAuth2 client ID for token exchange. |Required
+
+|Client Secret |OAuth2 client secret for token exchange. |Required
+
+|Token Endpoint |OAuth2 token endpoint URL (must support RFC 8693 Token Exchange). |Required
+
+|Target Type |Parameter type for specifying the target service. Valid values: Audience (logical name) or Resource (physical URI). |Optional
+
+|Target Value |Target audience URI or resource URI for the exchanged token. |Required
+
+|Scope |OAuth2 scope to request for the exchanged token. |Optional
+
+|Timeout |Timeout for token exchange requests in milliseconds. |Optional
+|===
+
