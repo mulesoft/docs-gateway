@@ -18,9 +18,9 @@ include::partial$a2a-version-support.adoc[]
 
 == Summary
 
-The A2A In-Task Authentication policy handles secondary authentication flows for the A2A (Agent-to-Agent) protocol. When agents communicate using the A2A protocol, some requests may require additional authentication beyond the initial connection. This policy:
+The A2A In-Task Authentication policy handles secondary authentication flows for the A2A (Agent-to-Agent) protocol. When agents communicate using the A2A protocol, some requests require additional authentication beyond the initial connection. This policy:
 
-* Detects requests without a secondary authentication token and returns an OAuth 2.0 authentication challenge in A2A format
+* Detects requests that require secondary authentication and returns an OAuth 2.0 authentication challenge in A2A format
 * Extracts OAuth 2.0 tokens from the request body at the configured JSONPath location
 * Moves extracted tokens to the `Authorization` header before forwarding requests to upstream services
 * Removes tokens from the request body after extraction to prevent token leakage
@@ -76,15 +76,15 @@ include::partial$policy-title-headers.adoc[tag=ui]
 [[token-handling]]
 == Token Handling
 
-=== A2A Token Path
+For `GET` and `POST` requests, the policy handles the token differently:
 
-The policy looks for the secondary token in the request body at the A2A-specified location. By default, the policy extracts the token from:
+* *GET*: The policy removes the request body after the token extraction
+* *POST*: The policy removes only the token property from the body and preserves the rest of the body.
 
-----
-$.params.message.metadata.secondary_credentials.accessToken
-----
+The token is always removed from the body after extraction to prevent token leakage to the upstream service. The extracted token is set in the `Authorization` header as the `Bearer <token>` before forwarding the request.
 
-Example request body with token:
+The policy extracts the secondary token from the specified *Secondary Token JSONPath* in the request body. By default, the policy extracts the token from `$.params.message.metadata.secondary_credentials.accessToken`. For example, using the default JSONPath, the policy extracts the token (`"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."`) from the following request body:
+
 
 [source,json]
 ----
@@ -115,19 +115,12 @@ Example request body with token:
 }
 ----
 
-=== GET vs POST Handling
 
-* **GET requests with token**: Body is removed entirely after token extraction
-* **POST requests with token**: Only the token property is removed from the body, rest of body is preserved
-
-=== Security: Token Removal
-
-The token is always removed from the body after extraction to prevent token leakage to the upstream service. The extracted token is set in the `Authorization` header as `Bearer <token>` before forwarding the request.
 
 [[challenge-response]]
 == Challenge Response Format
 
-When no secondary token is found, the policy returns an A2A task response with `auth-required` status:
+If no secondary token is found, the policy returns an `auth-required` A2A task response. The response preserves the `taskId` and `contextId` from the original request if originally provided:
 
 [source,json]
 ----
@@ -166,32 +159,6 @@ When no secondary token is found, the policy returns an A2A task response with `
     "kind": "task"
   }
 }
-----
-
-The response preserves `taskId` and `contextId` from the original request if they were provided.
-
-== Example Configuration
-
-[source,yaml]
-----
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: PolicyBinding
-metadata:
-  name: intask-authentication-policy
-spec:
-  targetRef:
-    kind: ApiInstance
-    name: my-api
-  policyRef:
-    name: intask-authentication-policy-flex
-  config:
-    secondaryAuthProvider: "okta"
-    authorizationEndpoint: "https://dev-12345.okta.com/oauth2/v1/authorize"
-    tokenEndpoint: "https://dev-12345.okta.com/oauth2/v1/token"
-    clientId: "0oa1bcde2fGH3ijkL4m5"
-    tokenAudience: "https://my-agent.example.com/api"
-    scopes: "openid profile email"
-    redirectUri: "https://myapp.example.com/oauth/callback"
 ----
 
 == See Also
