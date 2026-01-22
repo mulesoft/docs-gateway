@@ -1,0 +1,202 @@
+= A2A In-Task Authentication Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, a2a, authentication, oauth2
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | A2A In-Task Authentication
+>s|Summary      | Handles in-task authentication for A2A agents by extracting OAuth 2.0 tokens from request bodies and returning authentication challenges when tokens are missing
+>s|Category | A2A
+>s|First Flex Gateway version available | v1.11.4
+>s| Returned Status Codes | 200 (authentication challenge), 401 (authentication failure)
+|===
+
+include::partial$a2a-version-support.adoc[]
+
+== Summary
+
+The A2A In-Task Authentication policy handles secondary authentication flows for the A2A (Agent-to-Agent) protocol. When agents communicate using the A2A protocol, some requests may require additional authentication beyond the initial connection. This policy:
+
+* Detects requests without a secondary authentication token and returns an OAuth 2.0 authentication challenge in A2A format
+* Extracts OAuth 2.0 tokens from the request body at the configured JSONPath location
+* Moves extracted tokens to the `Authorization` header before forwarding requests to upstream services
+* Removes tokens from the request body after extraction to prevent token leakage
+* Automatically bypasses authentication for agent card requests (`/.well-known/agent-card.json`)
+
+=== Authentication Flow
+
+The policy follows this authentication flow:
+
+1. A request arrives without a secondary token in the body.
+2. The policy returns an `auth-required` challenge with OAuth 2.0 authentication cards (in A2A format).
+3. The client performs OAuth 2.0 flow and obtains a token
+4. The client sends the token in the request body at the configured JSONPath location
+5. Policy extracts the token, removes it from the body, sets it in the `Authorization` header, and forwards the request
+
+
+Requests to the agent card endpoint are automatically bypassed without authentication:
+* `/.well-known/agent-card.json`
+* Any path ending in `agent-card.json`
+
+This ensures agent discovery works without authentication.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The A2A In-Task Authentication policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+
+|===
+| Element | Description
+| Secondary Auth Provider | Name of the OAuth 2.0 identity provider (for example, `okta`, `azure-ad`, `auth0`). Used for informational purposes in the authentication challenge. Optional.
+| Authorization Endpoint | OAuth 2.0 authorization endpoint URL (for example, `https://dev-12345.okta.com/oauth2/v1/authorize`). Required.
+| Token Endpoint | OAuth 2.0 token endpoint URL (for example, `https://dev-12345.okta.com/oauth2/v1/token`). Required.
+| Client ID | OAuth 2.0 client ID. Required.
+| Scopes | Space or comma separated list of OAuth 2.0 scopes required for step-up authentication (for example, `openid profile email transaction:execute`). Required.
+| Redirect URI | OAuth 2.0 redirect URI that the client uses in the authorization flow. Required.
+| Token Audience | OAuth 2.0 token audience. The intended recipient of the token (for example, `https://my-agent.example.com/api`). Optional.
+| Response Type | OAuth 2.0 response type. Typically `code` for authorization code flow. Default: `code`.
+| Code Challenge Method | PKCE code challenge method. Typically `S256` for SHA-256. Default: `S256`.
+| Client Secret | OAuth 2.0 client secret (for confidential clients). Optional.
+| Body Encoding | Encoding format for token request body. Typically `form` for `application/x-www-form-urlencoded`. Default: `form`.
+| Token Timeout | Timeout in seconds for token requests. Default: `300`.
+| User ID Header | Header name containing the user ID for user context propagation. Default: `X-User-Id`.
+| User Email Header | Header name containing the user email for user context propagation. Default: `X-User-Email`.
+| Secondary Token JSONPath | JSONPath expression to locate the secondary token in the request body. Default: `$.params.message.metadata.secondary_credentials.accessToken`.
+| Challenge Response Status Code | HTTP status code to return for `auth-required` challenge responses. Typically `200` to maintain JSON-RPC compatibility. Default: `200`.
+|===
+
+[[token-handling]]
+== Token Handling
+
+=== A2A Token Path
+
+The policy looks for the secondary token in the request body at the A2A-specified location. By default, the policy extracts the token from:
+
+----
+$.params.message.metadata.secondary_credentials.accessToken
+----
+
+Example request body with token:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": "req-18",
+  "method": "message/send",
+  "params": {
+    "task_id": "task-123",
+    "context_id": "ctx-456",
+    "message": {
+      "role": "user",
+      "metadata": {
+        "secondary_credentials": {
+          "accessToken": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+        }
+      },
+      "parts": [
+        {
+          "kind": "data",
+          "data": {
+            "text": "Execute this task"
+          }
+        }
+      ]
+    }
+  }
+}
+----
+
+=== GET vs POST Handling
+
+* **GET requests with token**: Body is removed entirely after token extraction
+* **POST requests with token**: Only the token property is removed from the body, rest of body is preserved
+
+=== Security: Token Removal
+
+The token is always removed from the body after extraction to prevent token leakage to the upstream service. The extracted token is set in the `Authorization` header as `Bearer <token>` before forwarding the request.
+
+[[challenge-response]]
+== Challenge Response Format
+
+When no secondary token is found, the policy returns an A2A task response with `auth-required` status:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": "req-18",
+  "result": {
+    "id": "task-123",
+    "contextId": "ctx-456",
+    "status": {
+      "state": "auth-required",
+      "message": {
+        "kind": "message",
+        "role": "agent",
+        "messageId": "msg-abc123",
+        "taskId": "task-123",
+        "contextId": "ctx-456",
+        "parts": [
+          {
+            "kind": "text",
+            "text": "To continue this task, additional authorization is required."
+          }
+        ],
+        "metadata": {
+          "auth_challenge": {
+            "provider": "okta",
+            "authorization_endpoint": "https://dev-12345.okta.com/oauth2/v1/authorize",
+            "token_endpoint": "https://dev-12345.okta.com/oauth2/v1/token",
+            "scopes": ["openid", "profile", "email"],
+            "audience": "https://my-agent.example.com/api"
+          }
+        }
+      },
+      "timestamp": "2025-01-01T00:00:00.000Z"
+    },
+    "kind": "task"
+  }
+}
+----
+
+The response preserves `taskId` and `contextId` from the original request if they were provided.
+
+== Example Configuration
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: intask-authentication-policy
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-api
+  policyRef:
+    name: intask-authentication-policy-flex
+  config:
+    secondaryAuthProvider: "okta"
+    authorizationEndpoint: "https://dev-12345.okta.com/oauth2/v1/authorize"
+    tokenEndpoint: "https://dev-12345.okta.com/oauth2/v1/token"
+    clientId: "0oa1bcde2fGH3ijkL4m5"
+    tokenAudience: "https://my-agent.example.com/api"
+    scopes: "openid profile email"
+    redirectUri: "https://myapp.example.com/oauth/callback"
+----
+
+== See Also
+
+* xref:policies-included-directory.adoc[Inbound Policies Directory]
+* xref:policies-included-a2a-agent-card.adoc[A2A Agent Card Policy]
+* xref:policies-included-a2a-schema-validation.adoc[A2A Schema Validation Policy]
+
