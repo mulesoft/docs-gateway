@@ -22,92 +22,9 @@ The policy extracts the Bearer token from the incoming request's Authorization h
 
 == Configuring Policy Parameters
 
-include::partial$policy-title-headers.adoc[tag=configFile]
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
-----
-- policyRef:
-    name: credential-injection-oauth2-obo-policy-flex
-  config:
-    clientId: <string> // REQUIRED
-    clientSecret: <string> // REQUIRED
-    tokenEndpoint: <string> // REQUIRED
-    targetType: <string> // OPTIONAL, supported values: "audience" or "resource"
-    targetValue: <string> // REQUIRED
-    scope: <string> // OPTIONAL
-    timeout: <number> // OPTIONAL, default: 10000 (milliseconds)
-----
-
-[%header%autowidth.spread,cols="a,a,a,a"]
-|===
-|Parameter | Required or Optional | Default Value | Description
-
-| `clientId`
-| Required
-| N/A
-| OAuth 2.0 client ID for token exchange.
-
-| `clientSecret`
-| Required
-| N/A
-| OAuth 2.0 client secret for token exchange.
-
-| `tokenEndpoint`
-| Required
-| N/A
-| OAuth 2.0 token endpoint URL. The service must support RFC 8693 Token Exchange.
-
-| `targetType`
-| Optional
-| `audience`
-| Parameter type for specifying the target service. Supported values: `audience` (logical identifier of the target service) or `resource` (physical URI of the target resource defined in RFC 8707 format).
-
-| `targetValue`
-| Required
-| N/A
-| Target audience URI or resource URI for the exchanged token.
-
-| `scope`
-| Optional
-| N/A
-| OAuth 2.0 scope to request for the exchanged token.
-
-| `timeout`
-| Optional
-| `10000`
-| Timeout for token exchange requests in milliseconds.
-|===
-
-=== Configuration Examples
-
-* Audience target type:
-+
-----
-- policyRef:
-    name: credential-injection-oauth2-obo-policy-flex
-  config:
-    clientId: my-gateway-client
-    clientSecret: client-secret
-    tokenEndpoint: https://keycloak.example.com/auth/realms/myrealm/protocol/openid-connect/token
-    targetType: audience
-    targetValue: backend-api
-    scope: read write
-    timeout: 10000
-----
-
-* Resource target type:
-+
-----
-- policyRef:
-    name: credential-injection-oauth2-obo-policy-flex
-  config:
-    clientId: my-gateway-client
-    clientSecret: client-secret
-    tokenEndpoint: https://keycloak.example.com/auth/realms/myrealm/protocol/openid-connect/token
-    targetType: resource
-    targetValue: https://api.backend.example.com/v1
-    scope: read write
-    timeout: 10000
-----
+The OAuth 2.0 OBO Credential Injection policy isn't supported in Local Mode.
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
