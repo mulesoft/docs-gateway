@@ -71,10 +71,10 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 For `GET` and `POST` requests, the policy handles the token differently:
 
-* *GET*: The policy removes the request body after the token extraction
+* *GET*: The policy removes the request body after the token extraction.
 * *POST*: The policy removes only the token property from the body and preserves the rest of the body.
 
-The token is always removed from the body after extraction to prevent token leakage to the upstream service. The extracted token is set in the `Authorization` header as the `Bearer <token>` before forwarding the request.
+The token is always removed from the body after extraction to prevent token leakage to the upstream service. The extracted token is set in the `Authorization` header as the `Bearer <token>` before forwarding the request. This overrides any existing `Authorization` header. Perform any authentication of the first authorization header prior to this policy.
 
 The policy extracts the secondary token from the specified *Secondary Token JSONPath* in the request body. By default, the policy extracts the token from `$.params.message.metadata.secondary_credentials.accessToken`. For example, using the default JSONPath, the policy extracts the token (`"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."`) from the following request body:
 
