@@ -3,7 +3,7 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
-:keywords: api gateway, flex gateway, gateway, policy, a2a, authentication, oauth2
+:keywords: api gateway, flex gateway, gateway, policy, a2a, authentication, oauth2, outbound
 
 [width="100%", cols="5,15"]
 |===
@@ -18,10 +18,10 @@ include::partial$a2a-version-support.adoc[]
 
 == Summary
 
-The A2A In-Task Authentication policy handles secondary authentication flows for the A2A (Agent-to-Agent) protocol, when requests require additional authentication beyond the initial connection. This policy:
+The A2A In-Task Authentication policy is an outbound policy that handles secondary authentication flows for the A2A (Agent-to-Agent) protocol when the gateway forwards requests to upstream services. When requests require additional authentication beyond the initial connection, this policy:
 
-. Detects if an incoming request contains a secondary authentication token in the body at the configured JSONPath location. This policy assumes that all requests besides agent card requests require secondary authentication.
-. If a secondary token is missing, the policy returns an `auth-required` challenge with details of where to agent can obtain the token from the OAuth 2.0 authentication provider.
+. Detects if an outgoing request contains a secondary authentication token in the body at the configured JSONPath location. This policy assumes that all requests besides agent card requests require secondary authentication.
+. If a secondary token is missing, the policy returns an `auth-required` challenge with details of where the agent can obtain the token from the OAuth 2.0 authentication provider.
 +
 To learn more about the authentication challenge response, see <<challenge-response>>.
 . If the token was initially provided or returned from the challenge response, the policy extracts the token from the request body.
@@ -32,7 +32,7 @@ To learn more about token handling, see <<token-handling>>.
 
 [NOTE]
 ====
-To ensure agent discovery works is uninterrupted, requests to these agent card endpoints bypass the policy without authentication:
+To ensure agent discovery works uninterrupted, requests to these agent card endpoints bypass the policy without authentication:
 
 * `/.well-known/agent-card.json`
 * Any path ending in `agent-card.json`
@@ -156,7 +156,7 @@ If no secondary authentication token is found, the policy returns an `auth-requi
 
 == See Also
 
-* xref:policies-included-directory.adoc[Inbound Policies Directory]
+* xref:policies-outbound-directory.adoc[Outbound Policies Directory]
+* xref:policies-outbound-oauth.adoc[Credential Injection OAuth 2.0]
 * xref:policies-included-a2a-agent-card.adoc[A2A Agent Card Policy]
 * xref:policies-included-a2a-schema-validation.adoc[A2A Schema Validation Policy]
-
