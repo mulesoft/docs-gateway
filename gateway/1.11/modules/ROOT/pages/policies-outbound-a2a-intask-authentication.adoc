@@ -18,7 +18,7 @@ include::partial$a2a-version-support.adoc[]
 
 == Summary
 
-The A2A In-Task Authentication policy is an outbound policy that handles secondary authentication flows for the A2A (Agent-to-Agent) protocol when the gateway forwards requests to upstream services. When requests require additional authentication beyond the initial connection, this policy:
+The A2A In-Task Authentication policy is an outbound policy that handles secondary authentication flows for the A2A (Agent-to-Agent) protocol. When requests require additional authentication beyond the initial connection, this policy:
 
 . Detects if an outgoing request contains a secondary authentication token in the body at the configured JSONPath location. This policy assumes that all requests besides agent card requests require secondary authentication.
 . If a secondary token is missing, the policy returns an `auth-required` challenge with details of where the agent can obtain the token from the OAuth 2.0 authentication provider.
@@ -51,21 +51,19 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |===
 | Element | Description | Required
 | Secondary Auth Provider | Name of the OAuth 2.0 identity provider. For example: `okta`, `azure-ad`, `auth0`.| Optional
-| Authorization Endpoint | Authorization endpoint URL of the OAuth 2.0 service. For example: `https://dev-12345.okta.com/oauth2/v1/authorize`. | Required
-| Token Endpoint | Token endpoint of the OAuth 2.0 service. For example: `https://dev-12345.okta.com/oauth2/v1/token`. | Required
+| Authorization Endpoint | Authorization endpoint URL of the OAuth 2.0 service. For example: `\https://dev-12345.okta.com/oauth2/v1/authorize`. | Required
+| Token Endpoint | Token endpoint of the OAuth 2.0 service. For example: `\https://dev-12345.okta.com/oauth2/v1/token`. | Required
 | Client ID | Client ID of the OAuth 2.0 service. | Required
 | Scopes | Space or comma separated list of the OAuth 2.0 scopes required for in-task authentication. For example: `openid profile email transaction:execute`. | Required
 | Redirect URI | OAuth 2.0 redirect URI that the client uses in the authorization flow. | Required
-| Token Audience | OAuth 2.0 token audience. The intended recipient of the token (for example, `https://my-agent.example.com/api`). | Optional
-| Response Type | OAuth 2.0 response type. Typically `code` for authorization code flow. Default: `code`. | Optional
-| Code Challenge Method | PKCE code challenge method. Typically `S256` for SHA-256. Default: `S256`. | Optional
+| Token Audience | OAuth 2.0 token audience. The intended recipient of the token. For example: `\https://my-agent.example.com/api`. | Optional
+| Response Type | OAuth 2.0 response type. Typically `code` for authorization code flow. | Optional
+| Code Challenge Method | PKCE code challenge method. Typically `S256` for SHA-256. | Optional
 | Client Secret | Client secret of the OAuth 2.0 service. Only required for confidential clients. | Optional
 | Body Encoding | Encoding format for token request body. Typically `form` for `application/x-www-form-urlencoded`. Default: `form`. | Optional
-| Token Timeout | Timeout in seconds for token requests. Default: `300`. | Optional
-| User ID Header | Header name containing the user ID for user context propagation. Default: `X-User-Id`. | Optional
-| User Email Header | Header name containing the user email for user context propagation. Default: `X-User-Email`. | Optional
+| Token Timeout | Timeout in seconds for token requests. | Optional
 | Secondary Token JSONPath | JSONPath expression to locate the secondary token in the request body. Default: `$.params.message.metadata.secondary_credentials.accessToken`. | Optional
-| Challenge Response Status Code | HTTP status code to return for `auth-required` challenge responses. Typically `200` to maintain JSON-RPC compatibility. Default: `200`. | Optional
+| Challenge Response Status Code | HTTP status code to return for `auth-required` challenge responses. Typically `200` to maintain JSON-RPC compatibility. | Optional
 |===
 
 [[token-handling]]
