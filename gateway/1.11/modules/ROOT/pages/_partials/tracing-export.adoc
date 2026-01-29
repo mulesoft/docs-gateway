@@ -1,0 +1,86 @@
+== Export OTEL Traces
+
+Flex traces forward to OpenTelemetry.
+
+=== Configuring OTel tracing with a gRPC endpoint
+
+To configure OTel tracing with a gRPC endpoint in Flex, use the following YAML configuration:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: Configuration
+metadata:
+  name: tracing
+  namespace: test-ns
+spec:
+  tracing:
+    provider:
+      type: opentelemetry
+      properties:
+        # otel collector service in this example it is installed in default namespace
+        address: h2://splunk-otel-collector-agent.default.svc.cluster.local:4317
+        serviceType: grpc
+        serviceName: my-flex-name
+        timeout: 10s
+        resourceAttributes:
+          any-key: any-value
+  sampling:
+    client: 100
+    random: 100
+    overall: 100
+  labels:
+    - name: c-env-tag
+      type: environment
+      keyName: FLEX_NAME
+      defaultValue: DEFAULT_VAL
+    - name: c-header-tag
+      type: requestHeader
+      keyName: :method
+      defaultValue: DEFAULT_METHOD
+    - name: c-literal-tag
+      type: literal
+      defaultValue: the-tag
+----
+
+=== OpenTelemetry HTTP option
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: Configuration
+metadata:
+  name: tracing
+  namespace: test-ns
+spec:
+  tracing:
+    provider:
+      type: opentelemetry
+      properties:
+        address: http://opentelemetry:4318
+        tracesUri: http://opentelemetry:4318/v1/traces
+        serviceType: http
+        serviceName: the-name
+        timeout:     10s
+        # headers to be added in the http request to otel
+        httpHeaders:
+          auth: samething
+        resourceAttributes:
+          nay-key: nay-value
+  sampling:
+    client: 100
+    random: 100
+    overall: 100
+  labels:
+    - name: c-env-tag
+      type: environment
+      keyName: FLEX_NAME
+      defaultValue: DEFAULT_VAL
+    - name: c-header-tag
+      type: requestHeader
+      keyName: :method
+      defaultValue: DEFAULT_METHOD
+    - name: c-literal-tag
+      type: literal
+      defaultValue: the-tag
+----
