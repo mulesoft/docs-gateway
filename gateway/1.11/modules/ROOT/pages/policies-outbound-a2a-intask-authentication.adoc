@@ -1,4 +1,4 @@
-= A2A In-Task Authentication Policy
+= In-Task Authorization Code Policy
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -7,8 +7,8 @@ endif::[]
 
 [width="100%", cols="5,15"]
 |===
->s| Policy Name | A2A In-Task Authentication
->s|Summary      | Ensures OAuth 2.0 tokens are present for A2A in-task authentication
+>s| Policy Name | In-Task Authorization Code
+>s|Summary      | Enforces OAuth 2.0 authorization code flow for A2A in-task authentication
 >s|Category | A2A
 >s|First Flex Gateway version available | v1.11.4
 >s| Returned Status Codes | 200 (authentication challenge), 401 (authentication failure)
@@ -18,7 +18,7 @@ include::partial$a2a-version-support.adoc[]
 
 == Summary
 
-The A2A In-Task Authentication policy is an outbound policy that handles secondary authentication flows for the A2A (Agent-to-Agent) protocol. When requests require additional authentication beyond the initial connection, this policy:
+The In-Task Authorization Code policy is an outbound policy that handles secondary authentication flows for the A2A (Agent-to-Agent) protocol. When requests require additional authentication beyond the initial connection, this policy:
 
 . Detects if an outgoing request contains a secondary authentication token in the body at the configured JSONPath location. This policy assumes that all requests besides agent card requests require secondary authentication.
 . If a secondary token is missing, the policy returns an `auth-required` challenge with details of where the agent can obtain the token from the OAuth 2.0 authentication provider.
@@ -42,7 +42,7 @@ To ensure agent discovery works uninterrupted, requests to these agent card endp
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
-The A2A In-Task Authentication policy isn't supported in Local Mode.
+The In-Task Authorization Code policy isn't supported in Local Mode.
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
