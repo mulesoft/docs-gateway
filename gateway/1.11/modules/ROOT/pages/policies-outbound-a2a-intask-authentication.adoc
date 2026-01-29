@@ -84,20 +84,17 @@ The policy extracts the secondary token from the specified *Secondary Token JSON
   "id": "req-18",
   "method": "message/send",
   "params": {
-    "task_id": "task-123",
-    "context_id": "ctx-456",
+    "taskId": "task-123",
+    "contextId": "ctx-456",
     "message": {
       "role": "user",
-      "metadata": {
-        "secondary_credentials": {
-          "accessToken": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
-        }
-      },
       "parts": [
         {
           "kind": "data",
           "data": {
-            "text": "Execute this task"
+            "auth_credentials": {
+              "accessToken": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+            }
           }
         }
       ]
@@ -109,7 +106,7 @@ The policy extracts the secondary token from the specified *Secondary Token JSON
 [[challenge-response]]
 == Challenge Response Format
 
-If no secondary authentication token is found, the policy returns an `auth-required` A2A task response. The response preserves the `taskId` and `contextId` from the original request if originally provided:
+If no secondary authentication token is found, the policy returns an `auth-required` A2A task response. The response preserves the `taskId` and `contextId` from the request if originally provided:
 
 [source,json]
 ----
@@ -126,22 +123,25 @@ If no secondary authentication token is found, the policy returns an `auth-requi
         "role": "agent",
         "messageId": "msg-abc123",
         "taskId": "task-123",
-        "contextId": "ctx-456",
         "parts": [
           {
             "kind": "text",
             "text": "To continue this task, additional authorization is required."
+          },
+          {
+            "kind": "data",
+            "data": {
+              "auth_challenge": {
+                "provider": "okta",
+                "authorization_endpoint": "https://dev-12345.okta.com/oauth2/v1/authorize",
+                "token_endpoint": "https://dev-12345.okta.com/oauth2/v1/token",
+                "scopes": ["openid", "profile", "email"],
+                "audience": "https://my-agent.example.com/api"
+              }
+            }
           }
         ],
-        "metadata": {
-          "auth_challenge": {
-            "provider": "okta",
-            "authorization_endpoint": "https://dev-12345.okta.com/oauth2/v1/authorize",
-            "token_endpoint": "https://dev-12345.okta.com/oauth2/v1/token",
-            "scopes": ["openid", "profile", "email"],
-            "audience": "https://my-agent.example.com/api"
-          }
-        }
+        "metadata": {}
       },
       "timestamp": "2025-01-01T00:00:00.000Z"
     },
@@ -149,6 +149,8 @@ If no secondary authentication token is found, the policy returns an `auth-requi
   }
 }
 ----
+
+NOTE: Only `taskId` and `contextId` are preserver. Snake_case variants,  such as `task_id` or `context_id` are not supported.
 
 == See Also
 
