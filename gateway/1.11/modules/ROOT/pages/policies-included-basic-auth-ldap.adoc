@@ -33,6 +33,8 @@ include::partial$policy-title-headers.adoc[tag=configFile]
     name: ldap-authentication-flex
   config:
     ldapServerURL: <string> // OPTIONAL, default: "ldap://127.0.0.1:389"
+    authorizationOrigin: <string> // OPTIONAL, default: "httpBasicAuthenticationHeader"
+    authorizationExpression: <string> // REQUIRED when authorizationOrigin is "customExpression"
     ldapServerUserDn: <string> // REQUIRED
     ldapServerUserPassword: <string> // REQUIRED
     ldapSearchBase: <string> // REQUIRED
@@ -49,6 +51,16 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | Optional
 | `ldap://127.0.0.1:389`
 | Address and port of the location to the LDAP server
+
+| `authorizationOrigin`
+| Optional
+| `httpBasicAuthenticationHeader`
+| Origin of the Authorization token. Use `httpBasicAuthenticationHeader` to read credentials from the HTTP Basic Authentication header, or `customExpression` to extract the token using a DataWeave expression.
+
+| `authorizationExpression`
+| Required when `authorizationOrigin` is `customExpression`
+| `#[attributes.headers['token']]`
+| DataWeave expression used to extract the Authorization from API requests. Only used when `authorizationOrigin` is `customExpression`.
 
 | `ldapServerUserDn`
 | Required
@@ -82,7 +94,9 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 - policyRef:
     name: ldap-authentication-flex
   config:
-    dapServerURL: "ldap://localhost:369"
+    ldapServerURL: "ldap://localhost:389"
+    authorizationOrigin: "httpBasicAuthenticationHeader"
+    authorizationExpression: "#[attributes.headers['Authorization']]"
     ldapServerUserDn: "cn=admin,dc=example,dc=org"
     ldapServerUserPassword: "admin"
     ldapSearchBase: "dc=example,dc=org"
@@ -97,6 +111,10 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |Parameter |Description
 |LDAP Server URL
 |The URL of your LDAP OR LDAPS server, including the port number.
+|Authorization token origin
+|Origin of the Authorization token: HTTP Basic Authentication Header or Custom Expression.
+|Token Expression
+|DataWeave expression used to extract the Authorization from API requests. Shown when Authorization token origin is Custom Expression.
 |LDAP User DN
 |The name of the user or user group with access to traverse and list users of LDAP.
 |LDAP User Password
