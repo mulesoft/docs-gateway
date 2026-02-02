@@ -55,7 +55,7 @@ To avoid early responses reaching the client, see xref:policies-pdk-configure-fe
 [[stop-response-execution]]
 == Stop Response Execution
 
-To send an early response during the `on_response` phase, return a `Response` object using the `send_response` method of the `ResponseHeadersState`:
+To send an early response during the `on_response` phase, return a `Response` object using the `send_response` method of the `ResponseHeadersState`. You can't send an early response from the body state:
 
 [source,Rust]
 ----
@@ -68,7 +68,6 @@ The `send_response` method enables you to add a body to responses that don't alr
 ----
 async fn response_filter(state: ResponseState) {
    let state = state.into_headers_state().await;
-
 
    state.send_response(
        Response::new(200)
