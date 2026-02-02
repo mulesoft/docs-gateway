@@ -15,6 +15,7 @@ Response::new(401)
     .with_body(r#"{ "error": "token was not present"}"#)
 ----
 
+[[stop-request-execution]]
 == Stop Request Execution
 
 Block or allow requests to reach the upstream service using a `Flow`. A `Flow` in an `enum` value with two possible values:
@@ -46,6 +47,7 @@ Due to the streaming nature of `proxy wasm`, it is possible for an early request
 To avoid early responses reaching the client, see xref:policies-pdk-configure-features-share-data.adoc[].
 ====
 
+[[stop-response-execution]]
 == Stop Response Execution
 
 To send an early response during the `on_response` phase, use the `send_response` method of the `ResponseHeadersState` to return a `Response` object:
@@ -55,7 +57,7 @@ To send an early response during the `on_response` phase, use the `send_response
 pub fn send_response(self, response: Response) {
 ----
 
-The `send_response` method enables you to to add a body to responses that don't already have one. Sending an early response using the `send_response` method terminates the execution flow. You can't perform any other operation after sending an early response:
+The `send_response` method enables you to add a body to responses that don't already have one. Sending an early response using the `send_response` method terminates the execution flow. You can't perform any other operation after sending an early response:
 
 [source,Rust]
 ----
