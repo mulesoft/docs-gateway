@@ -8,11 +8,10 @@ NOTE: To view an example policy project that uses Flex Gateway Policy Developmen
 
 Flex Gateway Policy Development Kit (PDK) provides the Token Introspection library functions to validate OAuth 2.0 tokens.
 
-
 [[configure-token-validator]]
 == Configure the Token Validator
 
-To access OAuth 2.0 Token Introspection functionality, you need to import the `token_introspection` module from the PDK crate and inject the `TokenValidatorBuilder` in the xref:policies-pdk-configure-features.adoc#policy-template[configure] function.
+To access OAuth 2.0 Token Introspection functionality, you must import the `token_introspection` module from the PDK crate and inject the `TokenValidatorBuilder` in the xref:policies-pdk-configure-features.adoc#policy-template[configure] function.
 
 [source,Rust]
 ----
@@ -48,11 +47,11 @@ The `TokenValidatorBuilder` provides the following methods to configure the toke
 | Method | Parameter | Description
 | `with_path` | path (`&str`) | The URL path of the OAuth 2.0 token introspection endpoint.
 | `with_authorization_value` | value (`&str`) | The value for the `Authorization` header sent to the introspection endpoint (for example, a Basic auth credential).
-| `with_expires_in_attribute` | attribute (`&str`) | The name of the claim or attribute in the introspection response that contains the token expiration (for example, `exp`).
-| `with_max_token_ttl` | seconds (`u64`) | The maximum time-to-live in seconds for a token; tokens with a longer TTL are treated as expired.
+| `with_expires_in_attribute` | attribute (`&str`) | The name of the claim or attribute in the introspection response that contains the token expiration. For example, `exp`.
+| `with_max_token_ttl` | seconds (`u64`) | The maximum time-to-live in seconds for a token. Tokens with a longer TTL are treated as expired.
 | `with_timeout_ms` | milliseconds (`u64`) | The timeout in milliseconds for calls to the introspection endpoint.
 | `with_max_cache_entries` | count (`u64`) | The maximum number of introspection results to cache.
-| `with_scopes_validator` | validator (`ScopesValidator`) | A validator that checks that the token has the required scopes (for example, `ScopesValidator::all(scopes_vector)`).
+| `with_scopes_validator` | validator (`ScopesValidator`) | A validator that checks that the token has the required scopes. For example: `ScopesValidator::all(scopes_vector)`.
 | `with_service` | service | The HTTP service used to call the introspection endpoint.
 |===
 
@@ -61,7 +60,7 @@ NOTE: The configure function receives the xref:policies-pdk-create-schema-defini
 [[validate-token]]
 == Validate a Token
 
-Once configured, the validator provides the `validate` function, that expects a token string and returns the `IntrospectionResult`:
+Once configured, the validator provides the `validate` function, that expects a token string. The validate function sends a request to the introspection endpoint and returns the `IntrospectionResult`:
 
 [source,Rust]
 ----
