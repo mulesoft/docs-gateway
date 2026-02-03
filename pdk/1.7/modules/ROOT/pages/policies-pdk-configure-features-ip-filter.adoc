@@ -1,12 +1,12 @@
-= IP Filter Library
+= Filter IP addresses
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-For implementing custom policies that require filtering requests based on IP addresses, you can use PDK's IP Filter feature. This allows you to create allowlists or blocklists of IP addresses and CIDR ranges.
+Flex Gateway Policy Development Kit (PDK) provides the IP Filter library functions to filter requests based on IP addresses.
 
-To access IP filtering functionality, you need to import the `IpFilter` from the pdk crate. Then, you can create an IP filter for either allowing or blocking specific IPs:
+To filter IP addresses, you must import the `IpFilter` from the pdk crate. Then, create an IP filter to either allow or block specific IPs:
 
 [source,Rust]
 ----
@@ -19,13 +19,13 @@ let ip_filter = IpFilter::allow(&["192.168.1.0/24", "10.0.0.1"])?;
 let ip_filter = IpFilter::block(&["192.168.1.0/24", "10.0.0.1"])?;
 ----
 
-IP Filter parameter supports:
+The `IpFilter` supports:
 
-* Individual IPs (e.g., `10.0.0.1`)
-* CIDR notation for IP ranges (e.g., `192.168.1.0/24`, `10.0.0.0/8`)
 * Both IPv4 and IPv6 addresses
+* Individual IPs, for example: `10.0.0.1`.
+* Classless Inter-Domain Routing (CIDR) notation for IP ranges. For example: `192.168.1.0/24`, `10.0.0.0/8`.
 
-After creating the filter, use the `is_allowed` method to check if an IP should be permitted:
+After creating the filter, use the `is_allowed` method to check if an IP is permitted:
 
 [source,Rust]
 ----
@@ -43,11 +43,11 @@ if ip_filter.is_allowed("192.168.1.100") {
 
 PDK provides the https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/ip-filter[IP Filter Example policy] to demonstrate how to implement IP-based access control in Rust code.
 
-Within the example policy, see these for further configuration details:
+Within the example policy, see these code sections for further specific configuration details:
 
-* https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/ip-filter/src/lib.rs#L41-L65[IP filter setup from configuration] for how to configure the filter from policy configuration.
-* https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/ip-filter/src/lib.rs#L18-L22[Header extraction from request] for how to extract the client IP from request headers.
-* https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/ip-filter/src/lib.rs#L24-L34[IP check] for how the policy applies the IP filter to incoming requests.
+* https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/ip-filter/src/lib.rs#L41-L65[Configure an IP filter]
+* https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/ip-filter/src/lib.rs#L18-L22[Extract client IP from request headers]
+* https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/ip-filter/src/lib.rs#L24-L34[Validate if an IP is permitted]
 
 == See Also
 
