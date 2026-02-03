@@ -62,7 +62,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Token Timeout | Timeout in seconds for token requests. | Optional
 | User ID Header | Header name containing the user ID for user context propagation. Default: `X-User-Id`. | Optional
 | User Email Header | Header name containing the user email for user context propagation. Default: `X-User-Email`. | Optional
-| Secondary Token JSONPath | JSONPath expression to locate the secondary token in the request body. Default: `$.params.message.metadata.secondary_credentials.accessToken`. | Optional
+| Secondary Token JSONPath | JSONPath expression to locate the secondary token in the request body. Default: `$.params.message.parts[].data.auth_credentials.accessToken`. | Optional
 | Challenge Response Status Code | HTTP status code to return for `auth-required` challenge responses. Typically `200` to maintain JSON-RPC compatibility. | Optional
 |===
 
@@ -76,7 +76,7 @@ For `GET` and `POST` requests, the policy handles the token differently:
 
 The token is always removed from the body after extraction to prevent token leakage to the upstream service. The extracted token is set in the `Authorization` header as the `Bearer <token>` before forwarding the request. This overrides any existing `Authorization` header. Perform any authentication of the first authorization header prior to this policy.
 
-The policy extracts the secondary token from the specified *Secondary Token JSONPath* in the request body. By default, the policy extracts the token from `$.params.message.metadata.secondary_credentials.accessToken`. For example, using the default JSONPath, the policy extracts the token (`"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."`) from the following request body:
+The policy extracts the secondary token from the specified *Secondary Token JSONPath* in the request body. By default, the policy extracts the token from `$.params.message.parts[].data.auth_credentials.accessToken`. For example, using the default JSONPath, the policy extracts the token (`"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."`) from the following request body:
 
 
 [source,json]
