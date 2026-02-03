@@ -1,0 +1,62 @@
+= Using OAuth 2.0 Token Introspection
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+NOTE: To view an example policy project that uses Flex Gateway Policy Development Kit (PDK)'s Token Introspection feature, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/oauth-2-token-introspection/README.md[OAuth 2.0 Token Introspection Policy Example^].
+
+For implementing custom policies that require token introspection, you can use PDK's Token Introspection feature.
+
+To access OAuth 2.0 Token Introspection functionality, you need to import the `token_introspection` module from the PDK crate and inject the `TokenValidatorBuilder` in the xref:policies-pdk-configure-features.adoc#policy-template[configure] function. The configure function receives the xref:policies-pdk-create-schema-definition.adoc[configuration parameters] defined in your policy schema.
+
+[[configure-token-validator]]
+== Configure the Token Validator
+
+[source,Rust]
+----
+use pdk::token_introspection::{IntrospectionResult, ParsedToken, ScopesValidator, TokenValidator, TokenValidatorBuilder};
+
+#[entrypoint]
+async fn configure(
+    launcher: Launcher,
+    Configuration(bytes): Configuration,
+    validator_builder: TokenValidatorBuilder,
+) -> Result<()> {
+// [...]
+// Create a token validator
+let mut validator_instance = validator_builder
+        .new("token-cache")
+        .with_path("/introspect")
+        .with_authorization_value("Basic YWRtaW46YWRtaW4=")
+        .with_expires_in_attribute("exp")
+        .with_max_token_ttl(600)
+        .with_timeout_ms(10000)
+        .with_max_cache_entries(10000)
+        .with_scopes_validator(ScopesValidator::all(scopes_vector))
+        .with_service(config.my_service)
+        .build();
+// [...]
+}
+----
+
+[[validate-token]]
+== Validate a Token
+
+Once configured, the validator provides the `validate` function, that expects a token string and returns an `IntrospectionResult`.
+
+[source,Rust]
+----
+// extract token from header
+let auth_header = handler.header("Authorization");
+let token = auth_header.split_whitespace()[1];
+
+let result = validator
+        .validate(&token)
+        .await
+        .map_err(PolicyError::Introspection)?;
+----
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]
