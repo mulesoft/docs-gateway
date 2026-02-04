@@ -1,10 +1,12 @@
-= Stopping Request Execution
+= Stopping Request and Response Execution
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-To intercept and stop a request, return a `Response` object from your `on_request` wrapped functions:
+Flex Gateway Policy Development Kit (PDK) enables you to send early responses during the request and response execution to terminate the execution flow.
+
+To intercept and stop a request or response, return a `Response` object from your `on_request` or `on_response` wrapped functions:
 
 [source,Rust]
 ----
@@ -13,7 +15,15 @@ Response::new(401)
     .with_body(r#"{ "error": "token was not present"}"#)
 ----
 
-You can block or allow requests to reach the upstream service using a `Flow`. A `Flow` in an `enum` value with two possible values:
+To return the `Response`object, see:
+
+* <<stop-request-execution>>
+* <<stop-response-execution>>
+
+[[stop-request-execution]]
+== Stop Request Execution
+
+Block or allow requests to reach the upstream service using a `Flow`. A `Flow` in an `enum` value with two possible values:
 
 * `Continue`: Defines an object that is forwarded to the response.
 * `Break`: Aborts the request and returns the provided response.
@@ -41,6 +51,31 @@ Due to the streaming nature of `proxy wasm`, it is possible for an early request
 
 To avoid early responses reaching the client, see xref:policies-pdk-configure-features-share-data.adoc[].
 ====
+
+[[stop-response-execution]]
+== Stop Response Execution
+
+To send an early response during the `on_response` phase, return a `Response` object using the `send_response` method of the `ResponseHeadersState`. You can't send an early response from the body state:
+
+[source,Rust]
+----
+pub fn send_response(self, response: Response) {
+----
+
+The `send_response` method enables you to add a body to responses that don't already have one. Sending an early response using the `send_response` method terminates the execution flow. You can't perform any other operation after sending an early response:
+
+[source,Rust]
+----
+async fn response_filter(state: ResponseState) {
+   let state = state.into_headers_state().await;
+
+   state.send_response(
+       Response::new(200)
+           .with_headers(vec![("some".to_string(), "200".to_string())])
+           .with_body("Some"),
+   );
+}
+----
 
 == See Also
 
