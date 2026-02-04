@@ -40,19 +40,19 @@ let mut validator_instance = validator_builder
 }
 ----
 
-The `TokenValidatorBuilder` provides the following methods to configure the token validator:
+The `TokenValidatorBuilder` provides the following methods to configure the token validator. You must call `with_service` before `build`, all other methods are optional:
 
-[%header%autowidth.spread,cols="a,a,a"]
+[%header%autowidth.spread,cols="a,a,a,a"]
 |===
-| Method | Parameter | Description
-| `with_path` | path (`&str`) | The URL path of the OAuth 2.0 token introspection endpoint.
-| `with_authorization_value` | value (`&str`) | The value for the `Authorization` header sent to the introspection endpoint (for example, a Basic auth credential).
-| `with_expires_in_attribute` | attribute (`&str`) | The name of the claim or attribute in the introspection response that contains the token expiration. For example, `exp`.
-| `with_max_token_ttl` | seconds (`u64`) | The maximum time-to-live in seconds for a token. Tokens with a longer TTL are treated as expired.
-| `with_timeout_ms` | milliseconds (`u64`) | The timeout in milliseconds for calls to the introspection endpoint.
-| `with_max_cache_entries` | count (`u64`) | The maximum number of introspection results to cache.
-| `with_scopes_validator` | validator (`ScopesValidator`) | A validator that checks that the token has the required scopes. For example: `ScopesValidator::all(scopes_vector)`.
-| `with_service` | service | The HTTP service used to call the introspection endpoint.
+| Method | Parameter | Default | Description
+| `with_path` | path (`impl Into<String>`) | `"/"` | Sets the introspection endpoint path.
+| `with_authorization_value` | value (`impl Into<String>`) | `""` (sends an Auth header with an empty value) | Sets the authorization header value for introspection requests (for example, a Basic auth credential).
+| `with_expires_in_attribute` | attr (`impl Into<String>`) | `"exp"` | Sets the attribute name for expiration time in the introspection response.
+| `with_max_token_ttl` | ttl (`i64`) | `-1` (no cap) | Sets the maximum token TTL in seconds; tokens with a longer TTL are treated as expired. Use `-1` for no limit.
+| `with_timeout_ms` | timeout (`u64`) | `10000` (10 s) | Sets the timeout for introspection requests in milliseconds.
+| `with_max_cache_entries` | max_entries (`usize`) | `1000` | Sets the maximum number of entries in the token cache.
+| `with_scopes_validator` | validator (`ScopesValidator`) | — | Sets the scopes validator for token validation (for example, `ScopesValidator::all(scopes_vector)`).
+| `with_service` | service (`Service`) | Required | Sets the OAuth2 introspection service endpoint. Required to build the validator.
 |===
 
 NOTE: The configure function receives the xref:policies-pdk-create-schema-definition.adoc[configuration parameters] defined in your policy schema.
