@@ -20,7 +20,7 @@ include::partial$a2a-version-support.adoc[]
 
 The In-Task Authorization Code policy is an outbound policy that ensures secondary credentials are present for in-task authentication using OAuth 2.0 Authorization Code flow. When requests require additional authentication beyond the initial connection, this policy:
 
-. Detects if an outgoing request contains a secondary authentication token in the body at the configured JSONPath location. This policy assumes that all requests besides agent card requests require secondary authentication.
+. Detects if a request contains a secondary authentication token at `$.params.message.parts[].data.auth_credentials.accessToken`. This policy assumes that all requests besides agent card requests require secondary authentication.
 . If a secondary token is missing, the policy returns an `auth-required` challenge with details of where the agent can obtain the token from the OAuth 2.0 authentication provider.
 +
 To learn more about the authentication challenge response, see <<challenge-response>>.
