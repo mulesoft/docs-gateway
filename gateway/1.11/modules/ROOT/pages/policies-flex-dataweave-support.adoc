@@ -21,12 +21,12 @@ Flex Gateway supports a subset of DataWeave in policy configuration expressions.
 
 * xref:dataweave::dataweave-types.adoc#dw_type_boolean[`Boolean`]
 * xref:dataweave::dataweave-types.adoc#dw_type_string[`String`]
+* xref:dataweave::dataweave-types.adoc#dw_type_null[`Null`]
 * xref:dataweave::dataweave-types.adoc#dw_type_number[`Number`]
 * xref:dataweave::dataweave-types.adoc#dw_type_array[`Array`]
 
 == Unavailable Value Constructors for Types
 
-* xref:dataweave::dataweave-types.adoc#dw_type_null[`Null`] (Writing a `null` literal is not supported)
 * xref:dataweave::dataweave-types.adoc#dw_type_object[`Object`] (Objects can not be defined as literals)
 
 == Available Flow Control Structures
@@ -170,9 +170,134 @@ If using a different function that transforms the binary by default, such as `#[
 ** `authentication.clientName`
 ** `authentication.principal`
 ** `authentication.properties`
++
+To learn more about how to access the authentication object, see <<access-authentication-object>>.
 
 * `payload`
 ** Fields depend on the current payload. For example, `#[payload]` returns the body of the message.
 
 * xref:dataweave::dataweave-variables-context.adoc[`vars`]
 ** Individual policies support different sets of variables. For information, refer to the policies listed in xref:policies-included-directory.adoc[].
+
+== DataWeave Usage Examples
+
+You can use DataWeave to extract different values from the request and response. 
+
+NOTE: The Flex Gateway Policy Development Kit (PDK) provides the https://github.com/mulesoft/pdk-custom-policy-examples/tree/main/dataweave[DataWeave example policy] that you can use to test DataWeave expressions.
+
+For example, use DataWeave expressions to:
+
+* Read a header:
++
+----
+#[attributes.headers.'my-header']
+----
+
+* Ensure a specific header is defined:
++
+----
+#[attributes.headers.'my-header' != null]
+----
+
+* Check if a request has basic authorization:
++
+----
+#[lower(splitBy(attributes.headers.authorization default '', ' ')[0]) == 'basic']
+----
+
+* Check if a request contains `/some` path:
++
+----
+#[attributes.requestPath contains '/some']
+----
+
+* Check if a request doesn't contain `/some` path:
++
+----
+#[not(attributes.requestPath contains '/some')]
+----
+
+* Read the username from a `Basic` authorization header:
++
+----
+#[splitBy(dw::core::Binaries::fromBase64(dw::core::Strings::substringAfter(attributes.headers.authorization default '', 'Basic')), ':')[0]]
+----
+
+* Read the password from a `Basic` authorization header:
++
+----
+#[splitBy(dw::core::Binaries::fromBase64(dw::core::Strings::substringAfter(attributes.headers.authorization default '', 'Basic ')), ':')[1]]
+----
+
+* Read the first value of the `x-forwarded-for` header:
++
+----
+#[trim(splitBy(attributes.headers.'x-forwarded-for', ',')[0])]
+----
+
+* Read the last value of the `x-forwarded-for` header:
++
+----
+#[trim(splitBy(attributes.headers.'x-forwarded-for', ',')[-1])]
+----
+
+* Read the value from a `Cookie`:
++
+----
+#[trim(dw::core::Strings::substringBefore(dw::core::Strings::substringAfter(attributes.headers.Cookie default '', 'myCookieName='), ';'))]
+----
+
+* Check if a single value or space-separated header contains a specific value:
++
+----
+#[splitBy(attributes.headers.scopes default '', ' ') contains 'read']
+----
+
+[[access-authentication-object]]
+== Access the Authentication Object
+
+To access the xref:dataweave::dataweave-variables-context.adoc[`authentication`] object, you must first configure an authentication policy that populates the object.
+
+The authentication policy you apply affects the available authentication object properties:
+
+* Multiple policies can validate Client ID:
+** xref:policies-included-client-id-enforcement.adoc[]
+** xref:policies-included-rate-limiting-sla.adoc[]
+** xref:policies-included-oauth-token-introspection.adoc[] (If Client ID enforcement is configured)
+** xref:policies-included-openid-token-enforcement.adoc[] (If Client ID enforcement is configured)
+** xref:policies-included-jwt-validation.adoc[] (If Client ID enforcement is configured)
++ 
+Policies validating Client ID provide these authentication object properties:
++
+*** `authentication.clientName`: Name of the contract's client application
+*** `authentication.clientId`: ID of the contract's client application
+*** `authentication.properties.slaId`: SLA ID assigned to the contract
+
+* xref:policies-included-jwt-validation.adoc[]:
+** `authentication.properties.claims.<claimName>`: All claims provided by the JWT
+
+* Multiple policies validate basic authentication credentials:
+** xref:policies-included-basic-auth-simple.adoc[]
+** xref:policies-included-basic-auth-ldap.adoc[]
++ 
+Policies validating basic authentication credentials provide these authentication object properties:
++
+*** `authentication.principal`: Username passed as basic auth user
+
+After your policy populates the authentication object, you can access the object in policies ordered after the authentication policy using DataWeave expressions. For example:
+
+* Read a value from the authentication object:
++
+----
+#[authentication.properties.claims.exp]
+----
+
+* Check if a JSON array or a JSON string JWT claim contains a specific value:
++
+----
+#[authentication.properties.claims.custom_claim contains 'read']
+----
+
+
+
+
