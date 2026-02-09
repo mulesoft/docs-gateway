@@ -61,6 +61,8 @@ Passthrough outbound tool (no mapping): get_release_by_tag
 
 == Mapping Types
 
+The MCP Tool Mapping policy supports literal mapping for exact string matching and regex mapping for pattern-based matching with capture group replacement.
+
 === Literal Mapping
 
 Literal mappings perform exact string matching for specific tool names. For example, given the following parameters:
@@ -89,9 +91,27 @@ The policy transforms the tool name in the `tools/list` response:
 * `get_user` to `fetch_user`
 * `delete_item` remains unchanged (doesn't match pattern)
 
-== Use Cases
 
-=== Namespace Isolation
+== Bidirectional Mapping
+
+For outbound `tools/list` mapping response, the policy transforms tool names when the backend MCP server returns a list of available tools:
+
+. Backend MCP server returns tools: `["get_weather", "get_user", "delete_item"]`
+. Policy applies mappings:
+** `get_weather` to `weather_lookup` (literal match)
+** `get_user` to `user_info` (literal match)
+** `delete_item` remains unchanged (no mapping)
+. Client receives: `["weather_lookup", "user_info", "delete_item"]`
+
+For inbound `tools/call` mapping requests, the policy transforms tool names when the client calls a tool:
+
+The policy reverse-transforms tool names when the client calls a tool:
+
+. Client calls: `weather_lookup` (the mapped name)
+. Policy reverse-maps: `weather_lookup` to `get_weather`
+. Backend receives: `get_weather` (original name)
+
+== Namespace Isolation Use Case
 
 Add prefixes to avoid tool name conflicts between multiple MCP servers. For example, this configuration adds the prefix `server1_` to all tool names:
 
@@ -99,7 +119,7 @@ Add prefixes to avoid tool name conflicts between multiple MCP servers. For exam
 * *Mapped Tool Name*: `server1_$1`
 * *Mapping Type*: `regex`
 
-=== Consistent Naming
+== Consistent Naming Use Case
 
 Standardize tool names across different servers. For example, this configuration standardizes the name of `fetch` and `retrieve` functions from different servers to `get` functions:
 
@@ -112,29 +132,5 @@ Standardize tool names across different servers. For example, this configuration
 ** *Source Tool Name*: `retrieveUser`
 ** *Mapped Tool Name*: `get_user`
 ** *Mapping Type*: `literal`
-
-== Bidirectional Mapping
-
-=== Outbound Mapping tools/list response
-
-The policy transforms tool names when the backend MCP server returns a list of available tools:
-
-. Backend MCP server returns tools: `["get_weather", "get_user", "delete_item"]`
-. Policy applies mappings:
-** `get_weather` to `weather_lookup` (literal match)
-** `get_user` to `user_info` (literal match)
-** `delete_item` remains unchanged (no mapping)
-. Client receives: `["weather_lookup", "user_info", "delete_item"]`
-
-=== Inbound Mapping tools/call requests
-
-The policy reverse-transforms tool names when the client calls a tool:
-
-. Client calls: `weather_lookup` (the mapped name)
-. Policy reverse-maps: `weather_lookup` to `get_weather`
-. Backend receives: `get_weather` (original name)
-
-
-
 
 
