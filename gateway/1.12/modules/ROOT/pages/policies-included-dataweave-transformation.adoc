@@ -8,11 +8,11 @@ endif::[]
 
 [width="100%", cols="5,15"]
 |===
->| Policy name | DataWeave Transformation
->|Summary      | Transform or evaluate request and response messages with DataWeave scripts (header, body, or script evaluation).
->|Category | Transformation
->| First Flex Gateway version available | v1.0.0
-.1+>.^| Returned Status Codes
+>s| Policy name | DataWeave Transformation
+>s|Summary      | Transform or evaluate request and response messages with DataWeave scripts (header, body, or script evaluation).
+>s|Category | Transformation
+>s| First Flex Gateway version available | v1.0.0
+.1+>.^s| Returned Status Codes
 | 400 - The DataWeave script failed to execute or returned an invalid result.
 | 500 - Invalid configuration or null script.
 |===
@@ -24,6 +24,8 @@ Use the DataWeave Transformation policy to modify or validate HTTP messages with
 Header transformation:: Transform request or response headers with a DataWeave script. The script receives headers (and optionally the message body) and returns a map of header names to values that replace existing headers.
 Body transformation:: Transform request or response body content with a DataWeave script. The script receives headers and payload and streams the transformed output. The gateway updates Content-Type and Content-Length automatically.
 Script evaluation:: Evaluate a DataWeave script on request or response (headers and optionally body) to allow or block the message. The script returns a result object with `success` and an optional `response` (status code, body, headers) for errors.
+
+image::dataweave-transformation-diagram.png["A flow chart illustrating the process of setting the DataWeave Transformation policy for clients accessing an API through a proxy"]
 
 Configure each type as a separate policy instance with its own `policyRef` and config. Apply one or more of these policies to an API as needed.
 
