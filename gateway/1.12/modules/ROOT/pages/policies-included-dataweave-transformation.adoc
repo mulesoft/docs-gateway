@@ -1,0 +1,202 @@
+= DataWeave Transformation Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: dataweave, transformation, header transformation, body transformation, script evaluation, api gateway, flex gateway, gateway, policy
+:page-aliases: api-manager::dataweave-transformation-policy.adoc, policies::policies-included-dataweave-transformation.adoc
+
+[width="100%", cols="5,15"]
+|===
+>| Policy name | DataWeave Transformation
+>|Summary      | Transform or evaluate request and response messages with DataWeave scripts (header, body, or script evaluation).
+>|Category | Transformation
+>| First Flex Gateway version available | v1.0.0
+.1+>.^| Returned Status Codes
+| 400 - The DataWeave script failed to execute or returned an invalid result.
+| 500 - Invalid configuration or null script.
+|===
+
+== Summary
+
+Use the DataWeave Transformation policy to modify or validate HTTP messages with DataWeave scripts. It supports three types:
+
+Header transformation:: Transform request or response headers with a DataWeave script. The script receives headers (and optionally the message body) and returns a map of header names to values that replace existing headers.
+Body transformation:: Transform request or response body content with a DataWeave script. The script receives headers and payload and streams the transformed output. The gateway updates Content-Type and Content-Length automatically.
+Script evaluation:: Evaluate a DataWeave script on request or response (headers and optionally body) to allow or block the message. The script returns a result object with `success` and an optional `response` (status code, body, headers) for errors.
+
+Configure each type as a separate policy instance with its own `policyRef` and config. Apply one or more of these policies to an API as needed.
+
+== Configuring Policy Parameters
+
+=== Header Transformation
+
+Transform headers with a DataWeave script. The script must return a `map`: keys are header names, values are header values (single value or list for multi-value headers). The gateway clears existing headers, then sets the script output. Run the transformation on request or response. Optionally, include the message body in the script bindings.
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: request-header-transformation
+  config:
+    script: <string>        // REQUIRED - DataWeave script
+    requestFlow: <string>   // REQUIRED - "onRequest" or "onResponse"
+    requiresPayload: <boolean>  // OPTIONAL, default: false
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `script`
+| Required
+| —
+| DataWeave script that returns a Map of header names to values. Inputs: `attributes.headers` (and `payload` if `requiresPayload` is true).
+
+| `requestFlow`
+| Required
+| —
+| When to run: `onRequest` (request headers/body) or `onResponse` (response headers/body).
+
+| `requiresPayload`
+| Optional
+| false
+| If true, the script receives the message body in the `payload` binding; the gateway buffers the body for the transformation.
+|===
+
+==== Header Transformation Resource Configuration Example
+
+----
+- policyRef:
+    name: request-header-transformation
+  config:
+    script: |
+      %dw 2.0
+      output application/java
+      ---
+      {
+        "X-Request-Id": attributes.headers["x-request-id"] default uuid(),
+        "X-Forwarded-Host": attributes.headers["host"]
+      }
+    requestFlow: "onRequest"
+    requiresPayload: false
+----
+
+=== Body Transformation
+
+Transform the request or response body with a DataWeave script. The script receives `attributes.headers` and `payload`. The gateway streams body processing. If the script declares an output MIME type (for example `output application/json`), the gateway uses it for the transformed response. Otherwise, it keeps the original Content-Type.
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: request-body-transformation
+  config:
+    script: <string>        // REQUIRED - DataWeave script
+    requestFlow: <string>   // REQUIRED - "onRequest" or "onResponse"
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `script`
+| Required
+| —
+| DataWeave script that transforms the body. Inputs: `attributes.headers`, `payload`. Declare the output MIME type in the script (e.g., `output application/json`) if needed.
+
+| `requestFlow`
+| Required
+| —
+| When to run: `onRequest` (request body) or `onResponse` (response body).
+|===
+
+==== Body Transformation Resource Configuration Example
+
+----
+- policyRef:
+    name: request-body-transformation
+  config:
+    script: |
+      %dw 2.0
+      output application/json
+      ---
+      payload mapObject (value, key) -> { (key): value }
+    requestFlow: "onRequest"
+----
+
+=== Script Evaluation
+
+Evaluate a DataWeave script to allow or block the message. The script can access headers and optionally the body. It must return an object with `success` (boolean). On failure, return a `response` object with `statusCode`, `body`, and `headers`; the gateway sends that as the immediate response to the client.
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: script-evaluation-transformation
+  config:
+    script: <string>        // REQUIRED - DataWeave script
+    requestFlow: <string>   // REQUIRED - "onRequest" or "onResponse"
+    requiresPayload: <boolean>  // OPTIONAL, default: false
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `script`
+| Required
+| —
+| DataWeave script that returns an object with `success` (boolean). On failure, optional `response`: `{ "body": string, "headers": object, "statusCode": number }`.
+
+| `requestFlow`
+| Required
+| —
+| When to run: `onRequest` or `onResponse`.
+
+| `requiresPayload`
+| Optional
+| false
+| If true, the script receives the message body in the `payload` binding. If true and the body is missing, the gateway returns an error response.
+|===
+
+==== Script Evaluation Result Format
+
+* Success: `{ "success": true }`
+* Error: `{ "success": false, "response": { "body": "...", "headers": {}, "statusCode": 400 } }`
+
+==== Script Evaluation Resource Configuration Example
+
+----
+- policyRef:
+    name: script-evaluation-transformation
+  config:
+    script: |
+      %dw 2.0
+      output application/java
+      ---
+      if (attributes.headers["x-api-key"] != null) { success: true }
+      else { success: false, response: { statusCode: 401, body: "Missing API key", headers: {} } }
+    requestFlow: "onRequest"
+    requiresPayload: false
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Parameter | Description
+| Policy type | Header Transformation, Body Transformation, or Script Evaluation
+| Script | DataWeave script for the selected type
+| Request flow | Apply on request or response
+| Requires payload | (Header transformation and Script evaluation only) Whether the script needs the message body
+| Method & Resource conditions | Restrict the policy to specific methods and resources
+|===
+
+== How This Policy Works
+
+Header transformation:: In the chosen phase (request or response), the gateway removes existing headers and runs the DataWeave script with header bindings (and optionally the buffered body). The script output must be a `map`. Each entry becomes a header. Use a list of values for multi-value headers.
+Body transformation:: In the chosen phase, the gateway processes the body in streaming mode. The DataWeave script reads the incoming body and writes the transformed output. The gateway updates Content-Type and Content-Length after transformation.
+Script evaluation:: In the chosen phase, the gateway runs the script with headers (and optionally the buffered body). If the script returns `success: false`, the gateway sends an immediate response from the optional `response` object (status code, body, headers) and stops processing. If `success: true`, the message continues.
+
+Script execution errors (for example, invalid output format or runtime errors) produce a 400 or 500 response and terminate the request or response.
