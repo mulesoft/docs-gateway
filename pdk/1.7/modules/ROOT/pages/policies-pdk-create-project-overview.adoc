@@ -4,10 +4,10 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-The source code for Flex Gateway Policy Development Kit (PDK) policies are comprised of two versioned parts:
+The source code for Flex Gateway Policy Development Kit (PDK) policies is comprised of two versioned parts:
 
-* Definition: The policy's metadata and cofiguration parameters.
-* Implementation: The policy's source code and the output of the project build (WebAssembly binary).
+* *Definition*: The policy's metadata and configuration properties. The definition contains the policy's parameters specified in `gcl.yaml` and the related JSON schema. It does not contain the code that runs at runtime. 
+* *Implementation*: The policy's runtime behavior. It is the code (Rust, compiled to WebAssembly) that runs on Flex Gateway when the policy is applied. The implementation uses the definition so its configuration matches the schema's parameters and publishes a separate Exchange asset that gateways use to execute the policy.
 
 PDK enables you to version and manage the two parts of the policy source code using two project models:
 
