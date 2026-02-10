@@ -1,0 +1,110 @@
+= Injection Protection Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: sql injection, xss, injection protection, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="1,3"]
+|===
+>s|Policy Name| Injection Protection
+>s|Summary| Scans request headers, path, query, and body to protect against SQL, XSS, and custom injection attacks in incoming requests
+>s|Category| Security
+>s|First Flex Gateway version available |v1.12.0
+>s|Returned Status Codes|`400` - Bad Request
+|===
+
+== Summary
+
+The Injection Protection policy scans incoming request headers, path, query string, and body to protect against SQL injection, XSS (Cross-Site Scripting), and custom injection attacks. SQL and XSS are built-in protections that you enable by adding `"sql"` and/or `"xss"` to `builtInProtections`. You can also configure custom protections by defining rules in `customProtections`, each with a name and a regex pattern. Configure which parts of the request to scan (path and query, headers, body), and choose whether to reject matching requests or allow them and log a warning.
+
+The policy checks the configured areas against the enabled built-in and custom rules. When a match is found and `rejectRequests` is `true`, the gateway returns `400` (Bad Request) and adds the response header `x-injection-protection: blocked`. When `rejectRequests` is `false`, the gateway allows the request and logs a warning.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: injection-protection-flex
+  config:
+    builtInProtections: ["sql", "xss"]  // REQUIRED: include "sql", "xss", or both
+    customProtections: []               // OPTIONAL: list of { name: <string>, regex: <string> }
+    protectPathAndQuery: <bool>         // REQUIRED
+    protectHeaders: <bool>              // REQUIRED
+    protectBody: <bool>                 // REQUIRED
+    headersToProtect: <string>          // OPTIONAL, default: "" (empty = all headers)
+    rejectRequests: <bool>              // REQUIRED: true = reject with 400, false = allow and log
+----
+
+Set at least one of `protectPathAndQuery`, `protectHeaders`, or `protectBody` to `true`. Configure at least one protection: include one or both of `"sql"` and `"xss"` in `builtInProtections`, or add one or more entries in `customProtections` (or both).
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required | Default Value | Description
+
+| `builtInProtections`
+| Yes (at least one protection required)
+| —
+| SQL and XSS are the built-in protection types. Use `"sql"` for SQL injection detection and `"xss"` for XSS (Cross-Site Scripting) detection; you can enable one or both. SQL patterns include tautologies (`OR 1=1`), comment-based injection (`--`, `#`), union/select, and `DROP/INSERT/UPDATE/DELETE`. XSS patterns include script/iframe tags, event handlers, and common script schemes.
+
+| `customProtections`
+| No
+| []
+| Custom protections let you add rules beyond SQL and XSS. Each rule has a `name` and a `regex` pattern. Use for application-specific or other injection types. Names and regex must be non-empty and valid.
+
+| `protectPathAndQuery`
+| Yes
+| —
+| When `true`, the policy checks the request path and query string. The policy URL-decodes the path and query before matching.
+
+| `protectHeaders`
+| Yes
+| —
+| When `true`, the policy checks request headers. `headersToProtect` determines which headers are checked.
+
+| `headersToProtect`
+| No
+| "" (empty)
+| Comma-separated list of header names to check (case-insensitive). Empty string means the policy checks all headers. Ignored if `protectHeaders` is `false`.
+
+| `protectBody`
+| Yes
+| —
+| When `true`, the policy checks the request body for injection patterns.
+
+| `rejectRequests`
+| Yes
+| —
+| When `true`, the gateway rejects matching requests with `400` and a JSON error message. When `false`, the gateway allows matching requests and logs a warning.
+
+|===
+
+==== Resource Configuration Example
+
+----
+- policyRef:
+    name: injection-protection-flex
+  config:
+    builtInProtections: ["sql", "xss"]
+    customProtections: []
+    protectPathAndQuery: true
+    protectHeaders: true
+    headersToProtect: "referer,user-agent"
+    protectBody: true
+    rejectRequests: true
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+|Field |Description
+|Built-in Protections | SQL and XSS are built-in; include `sql` and/or `xss` for SQL and XSS injection detection.
+|Custom Protections | Optional rules: add custom protections by defining each rule with a name and a regex pattern.
+|Protect Path and Query | When enabled, the policy checks the request path and query string.
+|Protect Headers | When enabled, the policy checks request headers.
+|Headers to Protect | Comma-separated list of header names to check; leave empty to check all headers.
+|Protect Body | When enabled, the policy checks the request body.
+|Reject Requests | When enabled, the gateway rejects matching requests with `400`; otherwise it allows them and logs a warning.
+|===
