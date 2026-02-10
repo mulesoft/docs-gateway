@@ -61,7 +61,6 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Body Encoding | Encoding format for token request body. Typically `form` for `application/x-www-form-urlencoded`. Default: `form`. | Optional
 | Token Timeout | Timeout in seconds for token requests. | Optional
 | User ID Header | Header name containing the user ID for user context propagation. Default: `X-User-Id`. | Optional
-| User Email Header | Header name containing the user email for user context propagation. Default: `X-User-Email`. | Optional
 | Challenge Response Status Code | HTTP status code to return for `auth-required` challenge responses. Typically `200` to maintain JSON-RPC compatibility. | Optional
 |===
 
@@ -131,12 +130,16 @@ If no secondary authentication token is found, the policy returns an `auth-requi
           {
             "kind": "data",
             "data": {
-              "auth_challenge": {
-                "provider": "okta",
-                "authorization_endpoint": "https://dev-12345.okta.com/oauth2/v1/authorize",
-                "token_endpoint": "https://dev-12345.okta.com/oauth2/v1/token",
+              "authChallenge": {
+                "secondaryAuthProvider": "okta",
+                "authorizationEndpoint": "https://dev-12345.okta.com/oauth2/v1/authorize",
+                "tokenEndpoint": "https://dev-12345.okta.com/oauth2/v1/token",
                 "scopes": ["openid", "profile", "email"],
-                "audience": "https://my-agent.example.com/api"
+                "audience": "https://my-agent.example.com/api",
+                "redirectUri": "https://myapp.example.com/oauth/callback",
+                "responseType": "code",
+                "codeChallengeMethod": "S256",
+                "bodyEncoding": "form"
               }
             }
           }
