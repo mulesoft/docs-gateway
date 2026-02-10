@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-During the custom policy development cycle, you can upload your policy to Exchange to create a new Exchange asset to manage the policy's version and to distribute it to other users. For more information about Exchange, see xref:exchange::index.adoc[].
+During the custom split-model policy development cycle, you can upload the definition and implementation of your policy to Exchange to create a new Exchange assets to manage the asset versions and to distribute it to other users. For more information about Exchange, see xref:exchange::index.adoc[].
 
 For custom policies running in Local Mode, it is not required to publish your policy to Exchange. However, Exchange is a useful version control tool. It is your responsibility to distribute custom policies for Local Mode use.
 
@@ -15,73 +15,93 @@ Publish a policy if the policy version is still in development. This enables you
 * <<release, Release a Custom Policy>> +
 Release the policy to create a definitive version of the policy. After releasing the policy, you must create a new policy version to edit the policy.
 
-Every time you publish or release a policy, you create a new `stable` asset in Exchange. For more information about `stable` state assets, see xref:exchange::lifecycle.adoc#stablet-state[Stable State Assets].
+Every time you publish or release a definition and implementation asset, you create a new `stable` version of that asset in Exchange. For more information about `stable` state assets, see xref:exchange::lifecycle.adoc#stablet-state[Stable State Assets].
 
-After you upload your policy to Exchange, see xref:policies-pdk-apply-policies.adoc[].
+After you upload your definition and implementation assets to Exchange, see xref:policies-pdk-apply-policies.adoc[].
 
 == Before You Begin
 
 * Ensure that the Connected App you used to authenticate to the xref:policies-pdk-prerequisites.adoc#cli[Anypoint Platform CLI] has the `Exchange Contributor` scope applied.
 * xref:policies-pdk-compile-policies.adoc[Compile your Policy].
 
-[[publish]]
-== Publish a Custom Policy
+[[publish-a-new-split-model-policy]]
+== Publish a New Split-Model Policy
 
-To publish a custom policy, run the `make publish` command from the policy's root folder:
+. xref:policies-pdk-create-project-split.adoc#create-a-new-policy-definition-project[Create a definition project]:
+.. Make changes on the `gcl.yaml`
+.. `make publish` on the definition project to publish the development definition asset to Exchange.
+. xref:policies-pdk-create-project-split.adoc#create-a-new-policy-implementation-project[Create an implementation project]:
+.. Update the `definition_asset_id` version field in the `cargo.toml` file to `1.0.0-DEV`.
+.. Execute `make build-asset-files` in the implementation project.
+.. Code your policy logic and test locally
+.. `make publish` to release the development implementation asset to Exchange for testing in lower environments. 
+.. Validate the policy works as expected. Complete steps C and D until testing is complete.
+. After validating the policy works as expected, release the both assets to Exchange:
+.. In the definition project, execute `make release` to release the definition asset to Exchange.
+.. In the implementation project, update the `definition_asset_id` version field in the `cargo.toml` file to `1.0.0`.
+.. Execute `make release` to release the implementation asset to Exchange.
 
-[source,ssh]
-----
-make publish
-----
+== Update a Implementation Asset for Bug Fixes (Patch Version Update)
 
-After publishing the asset, a new asset labeled `DEV` appears in Exchange:
+After you have <<publish-a-new-split-model-policy, Published a new split-model policy>>, you can update the implementation asset for bug fixes or performance updates:
 
-image:pdk-dev-asset.png["Policy appears in Exchange labeled DEV."]
+. Develop the new policy implementation:
+.. In the implementation project, update the patch number of version in the `cargo.toml` file. For example: `1.0.1`. 
+.. Add the `-DEV` suffix to the `definition_asset_id` version field in the `cargo.toml`. For example: `1.0.0-DEV`.
+.. Execute `make build-asset-files` in the implementation project.
+.. Code your policy logic and test locally.
+.. `make publish` to release the development implementation asset to Exchange for testing in lower environments. 
+.. Validate the policy works as expected. Complete steps D and E until testing is complete.
+. After validating the policy works as expected, release the implementation asset to Exchange:
+.. In the implementation project, remove the `-DEV` suffix from the `definition_asset_id` version field in the `cargo.toml` file. For example: `1.0.0-DEV` to `1.0.0`.
+.. Execute `make release` to release the implementation asset to Exchange.
 
-The asset's group ID, asset ID, and asset version (GAV) appear, similar to the following:
+== Add a New Parameter to an Existing Policy Definition (Minor or Major Version Update)
 
-* *groupID*: `<organizationId>`
-* *assetID*: `my-custom-policy-dev` 
-+
-When publishing a policy, `-dev` appears appended to the *assetID*.
-* *version*: `1.0.0-20230618115723` 
-+
-When publishing a policy, a timestamp appears appended to the *version*.
+. Update the definition asset:
+.. Update the version in the `exchange.json` file of your definition project to `1.1.0`.
+.. Make changes to the `gcl.yaml` file.
+.. `make publish` on the definition project to publish the development definition asset to Exchange.
+. Update the implementation asset:
+.. In the implementation project, update the minor or major number of version in the `cargo.toml` file. For example: `1.0.0` to `1.1.0`. 
+.. Update and add the `-DEV` suffix to the `definition_asset_id` version field in the `cargo.toml`. For example: `1.0.0-DEV` to `1.1.0-DEV`.
+.. Execute `make build-asset-files` in the implementation project.
+.. Code your policy logic and test locally.
+.. `make publish` to release the development implementation asset to Exchange for testing in lower environments. 
+.. Validate the policy works as expected. Complete steps D and E until testing is complete.
+. After validating the policy works as expected, release both assets to Exchange:
+.. In the implementation project, remove the `-DEV` suffix from the `definition_asset_id` version field in the `cargo.toml` file. For example: `1.1.0-DEV` to `1.1.0`.
+.. Execute `make release` to release the implementation asset to Exchange.
 
-Rerunning the publish command creates a new version of the policy asset with an updated timestamp. Previously published policy versions are still available.
 
 
-[[release]]
-== Release a Custom Policy
 
-To release a custom policy, run the `make release` command from the policy's root folder:
 
-[source,ssh]
-----
-make release
-----
+Eg. I want to work on both policy definition and implementation locally, without publishing to Anypoint Exchange
+Update the version on the exchange.json file of your definition project to `1.1.0`
+Make changes on the gcl of the definition project
+`make release-local` on the definition project
+Update the version in the field cargo.toml to `1.1.0` in the implementation project
+Change the version in the field definition_asset_id of the cargo.toml to `1.1.0-DEV` in the implementation project to work in development mode.
+execute `make build-asset-files` in the implementation project.
+code your policy logic and test locally
 
-Released policies are not labeled `DEV`. The asset's GAV appears similar to the following:
+FAQ
+Running `make build` from the implementation throws this error:
+```
+Error: No such file or directory (os error 2)
+make: *** [build] Error 1
+```
+Have you executed `make setup`, `make release-local` or published a version of the definition project?
+Running `make build-asset-files` from the implementation throws this error:
+```
+Fetching policy: {definition_asset_id}:{definition_asset_version}... !
+    Error: There was a problem looking for the specified asset.
+make: *** [build-asset-files] Error 2
+```
+Have you executed `make setup`, `make release-local` or published a version of the definition project?
+My implementation and definition projects have different names, how do I link them? Check the definition `exchange.json` and set the assetId in the `definition_asset_id.name` field of the implementation `Cargo.toml` file.
 
-* *groupID*: `<organizationId>`
-* *assetID*: `my-custom-policy`
-+
-Released policies do not have `-dev` appended to their *assetID*.
-* *version*: `1.0.0`
-+
-Released policies do not have a timestamp appended to their *assetID*.
-
-After releasing the asset, rerunning the `make release` command results in a conflict error.
-
-To begin working on the next version of your policy, update the version number in the `Cargo.toml` file.
-
-For example, if the latest version is `1.0.0`, update the `Cargo.toml` file as follows to begin working on a minor release:
-
-[source,toml]
-----
-name = "my-custom-policy"
-version = "1.1.0"
-----
 
 == See Also
 
