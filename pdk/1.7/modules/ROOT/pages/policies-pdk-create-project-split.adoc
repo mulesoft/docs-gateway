@@ -4,15 +4,16 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-To begin developing a new custom policy with Flex Gateway Policy Development Kit (PDK), generate a new custom policy project.
+To begin developing a new Split-Model custom policy with Flex Gateway Policy Development Kit (PDK), generate a new custom policy project.
 
-To create a new project, complete the following tasks:
+To create a Split-Model project, complete the following tasks:
 
 . <<before-you-begin>>
 . <<create-a-new-policy-definition-project>>
+. Review <<definition-project-structure>> to learn about the different parts of the policy definition.
 . <<create-a-new-policy-implementation-project>>
 . <<setup-the-pdk-build-environment>>
-. Review <<project-structure>>
+. Review <<implementation-project-structure>> to learn about the different parts of the policy implementation.
 
 [[before-you-begin]]
 == Before You Begin
@@ -32,7 +33,7 @@ anypoint-cli-v4 pdk policy-project create --name <my-custom-policy> --project-mo
 Running the `create` command creates a custom policy project with the specified name. The project appears in a new directory with the same name as your policy with the `-definition` suffix or a directory specified using the `--output-dir` flag.
 
 [[definition-project-structure]]
-== Project Structure
+== Definition Project Structure
 
 After running the `make build` command, the policy's root directory contains the following directories and files shown in the directory tree:
 
@@ -53,7 +54,7 @@ Contains the exchange asset coordinate of the policy definition.
 
 Contains the policy asset definition published to Exchange. The directory and its content are included in the `.gitignore` file.
 
-=== Makefile
+=== Definition Makefile
 
 The Makefile contains all the callable actions, such as `make` commands, required for the policy development lifecycle. Execute all `make` commands at the root level of your custom policy directory:
 
@@ -83,8 +84,18 @@ anypoint-cli-v4 pdk policy-project create --name <my-custom-policy> --project-mo
 
 Running the `create` command creates a custom policy project with the specified name. The project appears in a new directory with the same name as your policy with the `-implementation` suffix or a directory specified using the `--output-dir` flag.
 
+[[setup-the-pdk-build-environment]]
+== Set Up the PDK Build Environment
+
+After you <<create-a-new-policy-project, create a new policy project>>, you must run the `make setup` command to download additional software dependencies:
+
+[source,ssh]
+----
+make setup
+----
+
 [[implementation-project-structure]]
-== Project Structure
+== Implementation Project Structure
 
 After running the `make setup` command, the policy's root directory contains the following directories and files shown in the directory tree:
 
@@ -128,7 +139,7 @@ The `src` directory contains the policy's source code:
 * `lib.rs`: Contains a set of methods that implement the behavior of the policy. PDK includes these methods to implement custom policy behavior. For additional information about these methods, see xref:policies-pdk-develop-custom-policies.adoc[Implementing Your Custom Policy Features in Rust]. For complete policy examples, see xref:policies-pdk-policy-templates.adoc[Custom Policy Examples].
 * `generated/config.rs` and `generated/mod.rs`: Auto-generated modules that make the policy configuration, as defined in the `gcl.yaml`, available for use in the `lib.rs` and any of the policy source files.
 
-=== Makefile
+=== Implementation Makefile
 
 The Makefile contains all the callable actions, such as `make` commands, required for the policy development lifecycle. Execute all `make` commands at the root level of your custom policy directory:
 
