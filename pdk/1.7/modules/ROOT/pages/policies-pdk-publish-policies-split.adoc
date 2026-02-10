@@ -29,12 +29,12 @@ After you upload your definition and implementation assets to Exchange, see xref
 
 . xref:policies-pdk-create-project-split.adoc#create-a-new-policy-definition-project[Create a definition project]:
 .. Make changes on the `gcl.yaml`
-.. `make publish` on the definition project to publish the development definition asset to Exchange.
+.. Execute `make publish` in the definition project to publish the development definition asset to Exchange.
 . xref:policies-pdk-create-project-split.adoc#create-a-new-policy-implementation-project[Create an implementation project]:
 .. Update the `definition_asset_id` version field in the `cargo.toml` file to `1.0.0-DEV`.
 .. Execute `make build-asset-files` in the implementation project.
-.. Code your policy logic and test locally
-.. `make publish` to release the development implementation asset to Exchange for testing in lower environments. 
+.. Code your policy logic and test locally.
+.. Execute `make publish` to release the development implementation asset to Exchange for testing in lower environments. 
 .. Validate the policy works as expected. Complete steps C and D until testing is complete.
 . After validating the policy works as expected, release the both assets to Exchange:
 .. In the definition project, execute `make release` to release the definition asset to Exchange.
@@ -50,7 +50,7 @@ After you have <<publish-a-new-split-model-policy, Published a new split-model p
 .. Add the `-DEV` suffix to the `definition_asset_id` version field in the `cargo.toml`. For example: `1.0.0-DEV`.
 .. Execute `make build-asset-files` in the implementation project.
 .. Code your policy logic and test locally.
-.. `make publish` to release the development implementation asset to Exchange for testing in lower environments. 
+.. Execute `make publish` to release the development implementation asset to Exchange for testing in lower environments. 
 .. Validate the policy works as expected. Complete steps D and E until testing is complete.
 . After validating the policy works as expected, release the implementation asset to Exchange:
 .. In the implementation project, remove the `-DEV` suffix from the `definition_asset_id` version field in the `cargo.toml` file. For example: `1.0.0-DEV` to `1.0.0`.
@@ -69,40 +69,25 @@ After you have <<publish-a-new-split-model-policy, Published a new split-model p
 .. Update and add the `-DEV` suffix to the `definition_asset_id` version field in the `cargo.toml`. For example: `1.0.0-DEV` to `1.1.0-DEV`.
 .. Execute `make build-asset-files` in the implementation project.
 .. Code your policy logic and test locally.
-.. `make publish` to release the development implementation asset to Exchange for testing in lower environments. 
+.. Execute `make publish` to release the development implementation asset to Exchange for testing in lower environments. 
 .. Validate the policy works as expected. Complete steps D and E until testing is complete.
 . After validating the policy works as expected, release both assets to Exchange:
 .. In the implementation project, remove the `-DEV` suffix from the `definition_asset_id` version field in the `cargo.toml` file. For example: `1.1.0-DEV` to `1.1.0`.
 .. Execute `make release` to release the implementation asset to Exchange.
 
+== Distribute a Split Model Policy Locally Without Publishing to Exchange 
 
-
-
-
-Eg. I want to work on both policy definition and implementation locally, without publishing to Anypoint Exchange
-Update the version on the exchange.json file of your definition project to `1.1.0`
-Make changes on the gcl of the definition project
-`make release-local` on the definition project
-Update the version in the field cargo.toml to `1.1.0` in the implementation project
-Change the version in the field definition_asset_id of the cargo.toml to `1.1.0-DEV` in the implementation project to work in development mode.
-execute `make build-asset-files` in the implementation project.
-code your policy logic and test locally
-
-FAQ
-Running `make build` from the implementation throws this error:
-```
-Error: No such file or directory (os error 2)
-make: *** [build] Error 1
-```
-Have you executed `make setup`, `make release-local` or published a version of the definition project?
-Running `make build-asset-files` from the implementation throws this error:
-```
-Fetching policy: {definition_asset_id}:{definition_asset_version}... !
-    Error: There was a problem looking for the specified asset.
-make: *** [build-asset-files] Error 2
-```
-Have you executed `make setup`, `make release-local` or published a version of the definition project?
-My implementation and definition projects have different names, how do I link them? Check the definition `exchange.json` and set the assetId in the `definition_asset_id.name` field of the implementation `Cargo.toml` file.
+. Develop the policy definition:
+.. Ensure the version in the `exchange.json` file is the correct version. For example: `1.0.0` for your first version.
+.. Make changes to the `gcl.yaml` file.
+.. Execute `make release-local` in the definition project.
+. Develop the policy implementation:
+.. Add the `-DEV` suffix to the `definition_asset_id` version field in the `cargo.toml` and ensure it matches the definition asset version used in step one.
+.. Execute `make build-asset-files` in the implementation project.
+.. Code your policy logic and test locally.
+.. Validate the policy works as expected. Complete steps C until testing is complete.
+.. Execute `make release-local`.
+. Distribute the definition and implementation assets.
 
 
 == See Also
