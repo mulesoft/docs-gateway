@@ -1,4 +1,4 @@
-= Uploading Split-Model Policies to Exchange
+= Publishing Split-Model Policies to Exchange
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -75,7 +75,7 @@ After you have <<publish-a-new-split-model-policy, Published a new split-model p
 .. In the implementation project, remove the `-DEV` suffix from the `definition_asset_id` version field in the `cargo.toml` file. For example: `1.1.0-DEV` to `1.1.0`.
 .. Execute `make release` to release the implementation asset to Exchange.
 
-== Distribute a Split Model Policy Locally Without Publishing to Exchange 
+== Develop Split Model Policies Locally Without Publishing to Exchange 
 
 . Develop the policy definition:
 .. Ensure the version in the `exchange.json` file is the correct version. For example: `1.0.0` for your first version.
@@ -86,8 +86,10 @@ After you have <<publish-a-new-split-model-policy, Published a new split-model p
 .. Execute `make build-asset-files` in the implementation project.
 .. Code your policy logic and test locally.
 .. Validate the policy works as expected. Complete steps C until testing is complete.
-.. Execute `make release-local`.
-. Distribute the definition and implementation assets.
+. If you wish to distribute the policy locally as a production asset:
+.. Remove the `-DEV` suffix from the `definition_asset_id` version field in the `cargo.toml` file. For example: `1.0.0-DEV` to `1.0.0`.
+.. Execute `make build` to rebuild the implementation asset.
+.. Distribute the policy assets as desired.
 
 
 == See Also
