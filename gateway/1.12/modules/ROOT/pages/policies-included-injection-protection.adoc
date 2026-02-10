@@ -16,9 +16,9 @@ endif::[]
 
 == Summary
 
-The Injection Protection policy scans incoming request headers, path, query string, and body for SQL injection, XSS (Cross-Site Scripting), and custom injection attacks. Enable built-in SQL and XSS by adding `"sql"` and/or `"xss"` to `builtInProtections`. Add custom protections by defining rules in `customProtections` (each rule has a name and a regex pattern). Choose which parts of the request to scan (path and query, headers, body) and whether to reject matching requests or allow them and log a warning.
+The Injection Protection policy scans incoming request headers, path, query string, and body for SQL injection, XSS (Cross-Site Scripting), and custom injection attacks. Enable built-in SQL and XSS protection by adding `"sql"`, `"xss"`, or both to `builtInProtections`. Add custom protections by defining rules in `customProtections`. Each rule requires a name and a regex pattern. Choose which parts of the request to scan, such as the path, query, headers, or body. You can reject matching requests or allow them and log a warning.
 
-The policy checks the chosen areas against the enabled built-in and custom rules. When a rule matches and `rejectRequests` is `true`, the gateway returns `400` (Bad Request) and adds the response header `x-injection-protection: blocked`. When `rejectRequests` is `false`, the gateway allows the request and logs a warning.
+The policy checks the chosen parts against the enabled built-in and custom rules. If a rule matches and `rejectRequests` is `true`, the gateway returns `400` (Bad Request) and adds the response header `x-injection-protection: blocked`. If `rejectRequests` is `false`, the gateway allows the request and logs a warning.
 
 == Configuring Policy Parameters
 
@@ -37,7 +37,7 @@ include::partial$policy-title-headers.adoc[tag=configFile]
     rejectRequests: <bool>              // REQUIRED: true = reject with 400, false = allow and log
 ----
 
-Set at least one of `protectPathAndQuery`, `protectHeaders`, or `protectBody` to `true`. Configure at least one protection: include one or both of `"sql"` and `"xss"` in `builtInProtections`, or add one or more entries in `customProtections` (or both).
+Set `protectPathAndQuery`, `protectHeaders`, or `protectBody` to `true`. enable at least one option. To configure protection, add `"sql"`, `"xss"`, or both in `builtInProtections`, or add one or more entries to `customProtections`.
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
@@ -46,37 +46,37 @@ Set at least one of `protectPathAndQuery`, `protectHeaders`, or `protectBody` to
 | `builtInProtections`
 | Yes (at least one protection required)
 | —
-| Built-in protection types: SQL and XSS. Add `"sql"` and/or `"xss"` to enable one or both. SQL patterns include tautologies (`OR 1=1`), comment-based injection (`--`, `#`), union/select, and `DROP/INSERT/UPDATE/DELETE`. XSS patterns include script/iframe tags, event handlers, and common script schemes.
+| The built-in protection types to enable. Valid values are `"sql"`, `"xss"`, or both. SQL protection detects patterns such as tautologies (for example, `OR 1=1`), comment-based injection (`--`, `#`), union/select statements, and keywords such as `DROP` and `DELETE`. XSS protection detects patterns such as script and iframe tags, event handlers, and common script schemes.
 
 | `customProtections`
 | No
 | []
-| Add custom protection rules. Each rule has a `name` and a `regex` pattern. Use for application-specific or other injection types. Names and regex must be non-empty and valid.
+| Custom protection rules for application-specific injection types. Each rule requires a `name` and a `regex` pattern. Values must be valid and not empty.
 
 | `protectPathAndQuery`
 | Yes
 | —
-| When `true`, the policy checks the request path and query string. The policy URL-decodes the path and query before matching.
+| If `true`, the policy checks the request path and query string. The policy URL-decodes the path and query before matching.
 
 | `protectHeaders`
 | Yes
 | —
-| When `true`, the policy checks request headers. `headersToProtect` specifies which headers the policy checks.
+| If `true`, the policy checks request headers. `headersToProtect` specifies which headers the policy checks.
 
 | `headersToProtect`
 | No
 | "" (empty)
-| Comma-separated list of header names to check (case-insensitive). Empty string means the policy checks all headers. Not used when `protectHeaders` is `false`.
+| A case-insensitive, comma-separated list of header names to check. If the value is empty, the policy checks all headers. This parameter is ignored if `protectHeaders` is `false`.
 
 | `protectBody`
 | Yes
 | —
-| When `true`, the policy checks the request body for injection patterns.
+| If `true`, the policy checks the request body for injection patterns.
 
 | `rejectRequests`
 | Yes
 | —
-| When `true`, the gateway rejects matching requests with `400` and a JSON error message. When `false`, the gateway allows matching requests and logs a warning.
+| If `true`, the gateway rejects matching requests with `400` and a JSON error message. If `false`, the gateway allows matching requests and logs a warning.
 
 |===
 
@@ -100,11 +100,11 @@ include::partial$policy-title-headers.adoc[tag=ui]
 [%header%autowidth.spread,cols="a,a"]
 |===
 |Field |Description
-|Built-in Protections | Enable built-in SQL and XSS by including `sql` or `xss`.
+|Built-in Protections | Enable built-in SQL and XSS by including `sql`, `xss`, or both.
 |Custom Protections | Add rules with a name and regex pattern for other injection types.
-|Protect Path and Query | When enabled, the policy checks the request path and query string.
-|Protect Headers | When enabled, the policy checks request headers.
-|Headers to Protect | Comma-separated list of header names to check; leave empty to check all headers.
-|Protect Body | When enabled, the policy checks the request body.
-|Reject Requests | When enabled, the gateway rejects matching requests with `400`; otherwise it allows them and logs a warning.
+|Protect Path and Query | Enable to check the request path and query string.
+|Protect Headers | Enable to check request headers.
+|Headers to Protect | Enter a comma-separated list of header names to check, or leave empty to check all headers.
+|Protect Body | Enable to check the request body.
+|Reject Requests | Enable to reject matching requests with `400`. Otherwise, the gateway allows them and logs a warning.
 |===
