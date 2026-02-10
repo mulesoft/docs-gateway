@@ -6,7 +6,7 @@ endif::[]
 
 To begin developing a new Split-Model custom policy with Flex Gateway Policy Development Kit (PDK), generate a new custom policy project.
 
-To create a Split-Model project, complete the following tasks:
+To create a Split-Model project, complete these tasks:
 
 . <<before-you-begin>>
 . <<create-a-new-policy-definition-project>>
@@ -59,7 +59,7 @@ Contains the policy asset definition published to Exchange. The directory and it
 The Makefile contains all the callable actions, such as `make` commands, required for the policy development lifecycle. Execute all `make` commands at the root level of your custom policy directory:
 
 * `make build`: Compiles the definition and generates the assets to be deployed.
-* `make publish`: Publishes the policy definition asset in Exchange. Since the publish goal is intended to publish a policy asset in development, the _assetId_ and name published will explicitly say `dev`, and the versions published will include a timestamp at the end of the version. For example:
+* `make publish`: Publishes the policy definition asset in Exchange. Since the publish goal is intended to publish a policy asset in development, the _assetId_ and name published explicitly say `dev`, and the versions published include a timestamp at the end of the version. For example:
 ** groupId: your configured organization id
 ** visible name: {Your policy name} Dev
 ** assetId: {your-policy-asset-id}-dev
@@ -69,7 +69,7 @@ For more information about publishing policies in Exchange, see xref:policies-pd
 * `make release`: Releases the policy definition asset in Exchange.
 +
 For more information about releasing policies in Exchange, see xref:policies-pdk-publish-policies.adoc[].
-* `make release-local`: Publishes the policy definition as a release asset to the local cache (no actual release to Exchange is made). You can override it. This target is useful if you are also developing the policy implementation.
+* `make release-local`: Publishes the policy definition as a release asset to the local cache (no actual release to Exchange is made). You can override it. This target is useful if you're also developing the policy implementation.
 * `make help`: Lists all the `make` commands provided by PDK.
 
 [[create-a-new-policy-implementation-project]]
@@ -84,7 +84,7 @@ anypoint-cli-v4 pdk policy-project create --name <my-custom-policy> --project-mo
 
 Running the `create` command creates a custom policy project with the specified name. The project appears in a new directory with the same name as your policy with the `-implementation` suffix or a directory specified using the `--output-dir` flag.
 
-NOTE: If your implementation and definition projects have different names, link them by ensuring the `definition_asset_id.name` field in the implementation project's `Cargo.toml` file matches the asset ID in the definition project's `exchange.json` file.
+NOTE: If your implementation and definition projects have different names, link them by making sure the `definition_asset_id.name` field in the implementation project's `Cargo.toml` file matches the asset ID in the definition project's `exchange.json` file.
 
 [[setup-the-pdk-build-environment]]
 == Set Up the PDK Build Environment
@@ -99,7 +99,7 @@ make setup
 [[implementation-project-structure]]
 == Implementation Project Structure
 
-After running the `make setup` command, the policy's root directory contains the following directories and files shown in the directory tree:
+After running the `make setup` command, the policy's root directory contains these directories and files shown in the directory tree:
 
 ----
 ├─ target/      # Contains the implementation asset files and the output of the policy build
@@ -124,7 +124,7 @@ The toml also contains a section `[package.metadata.anypoint]` where you can spe
 
 * `group_id`: The policy group ID, which should match your Anypoint organization.
 * `definition_asset_id`: The name of the policy definition and the version this implementation uses. If you need to work with a development version, append the `-DEV` (case sensitive) suffix, for example: `version = "1.0.0-DEV"`.
-* `implementation_asset_id`: The asset ID that will be used to release the policy.
+* `implementation_asset_id`: The asset ID that's used to release the policy.
 
 [source,toml]
 ----
