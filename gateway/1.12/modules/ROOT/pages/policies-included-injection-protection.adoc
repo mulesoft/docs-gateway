@@ -16,9 +16,9 @@ endif::[]
 
 == Summary
 
-The Injection Protection policy scans incoming request headers, path, query string, and body to protect against SQL injection, XSS (Cross-Site Scripting), and custom injection attacks. SQL and XSS are built-in protections that you enable by adding `"sql"` and/or `"xss"` to `builtInProtections`. You can also configure custom protections by defining rules in `customProtections`, each with a name and a regex pattern. Configure which parts of the request to scan (path and query, headers, body), and choose whether to reject matching requests or allow them and log a warning.
+The Injection Protection policy scans incoming request headers, path, query string, and body for SQL injection, XSS (Cross-Site Scripting), and custom injection attacks. Enable built-in SQL and XSS by adding `"sql"` and/or `"xss"` to `builtInProtections`. Add custom protections by defining rules in `customProtections` (each rule has a name and a regex pattern). Choose which parts of the request to scan (path and query, headers, body) and whether to reject matching requests or allow them and log a warning.
 
-The policy checks the configured areas against the enabled built-in and custom rules. When a match is found and `rejectRequests` is `true`, the gateway returns `400` (Bad Request) and adds the response header `x-injection-protection: blocked`. When `rejectRequests` is `false`, the gateway allows the request and logs a warning.
+The policy checks the chosen areas against the enabled built-in and custom rules. When a rule matches and `rejectRequests` is `true`, the gateway returns `400` (Bad Request) and adds the response header `x-injection-protection: blocked`. When `rejectRequests` is `false`, the gateway allows the request and logs a warning.
 
 == Configuring Policy Parameters
 
@@ -46,12 +46,12 @@ Set at least one of `protectPathAndQuery`, `protectHeaders`, or `protectBody` to
 | `builtInProtections`
 | Yes (at least one protection required)
 | —
-| SQL and XSS are the built-in protection types. Use `"sql"` for SQL injection detection and `"xss"` for XSS (Cross-Site Scripting) detection; you can enable one or both. SQL patterns include tautologies (`OR 1=1`), comment-based injection (`--`, `#`), union/select, and `DROP/INSERT/UPDATE/DELETE`. XSS patterns include script/iframe tags, event handlers, and common script schemes.
+| Built-in protection types: SQL and XSS. Add `"sql"` and/or `"xss"` to enable one or both. SQL patterns include tautologies (`OR 1=1`), comment-based injection (`--`, `#`), union/select, and `DROP/INSERT/UPDATE/DELETE`. XSS patterns include script/iframe tags, event handlers, and common script schemes.
 
 | `customProtections`
 | No
 | []
-| Custom protections let you add rules beyond SQL and XSS. Each rule has a `name` and a `regex` pattern. Use for application-specific or other injection types. Names and regex must be non-empty and valid.
+| Add custom protection rules. Each rule has a `name` and a `regex` pattern. Use for application-specific or other injection types. Names and regex must be non-empty and valid.
 
 | `protectPathAndQuery`
 | Yes
@@ -61,12 +61,12 @@ Set at least one of `protectPathAndQuery`, `protectHeaders`, or `protectBody` to
 | `protectHeaders`
 | Yes
 | —
-| When `true`, the policy checks request headers. `headersToProtect` determines which headers are checked.
+| When `true`, the policy checks request headers. `headersToProtect` specifies which headers the policy checks.
 
 | `headersToProtect`
 | No
 | "" (empty)
-| Comma-separated list of header names to check (case-insensitive). Empty string means the policy checks all headers. Ignored if `protectHeaders` is `false`.
+| Comma-separated list of header names to check (case-insensitive). Empty string means the policy checks all headers. Not used when `protectHeaders` is `false`.
 
 | `protectBody`
 | Yes
@@ -100,8 +100,8 @@ include::partial$policy-title-headers.adoc[tag=ui]
 [%header%autowidth.spread,cols="a,a"]
 |===
 |Field |Description
-|Built-in Protections | SQL and XSS are built-in; include `sql` and/or `xss` for SQL and XSS injection detection.
-|Custom Protections | Optional rules: add custom protections by defining each rule with a name and a regex pattern.
+|Built-in Protections | Enable built-in SQL and XSS by including `sql` or `xss`.
+|Custom Protections | Add rules with a name and regex pattern for other injection types.
 |Protect Path and Query | When enabled, the policy checks the request path and query string.
 |Protect Headers | When enabled, the policy checks request headers.
 |Headers to Protect | Comma-separated list of header names to check; leave empty to check all headers.
