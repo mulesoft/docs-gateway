@@ -11,31 +11,30 @@ endif::[]
 >s| Policy name | DataWeave Transformation
 >s|Summary      | Transform or evaluate request and response messages with DataWeave scripts (header, body, or script evaluation).
 >s|Category | Transformation
->s| First Flex Gateway version available | v1.0.0
+>s| First Flex Gateway version available | 1.12
 .1+>.^s| Returned Status Codes
-| 400 - The DataWeave script failed to execute or returned an invalid result.
-| 500 - Invalid configuration or null script.
+| `400` - The DataWeave script failed to execute or returned an invalid result.
 |===
 
 == Summary
 
-Use the DataWeave Transformation policy to modify or validate HTTP messages with DataWeave scripts. It supports three types:
+The DataWeave Transformation policy modifies or validates HTTP messages with DataWeave scripts. Use three distinct policy variants. Each has its own `policyRef` and config. Apply one or more to an API as needed:
 
-Header transformation:: Transform request or response headers with a DataWeave script. The script receives headers (and optionally the message body) and returns a map of header names to values that replace existing headers.
-Body transformation:: Transform request or response body content with a DataWeave script. The script receives headers and payload and streams the transformed output. The gateway updates Content-Type and Content-Length automatically.
-Script evaluation:: Evaluate a DataWeave script on request or response (headers and optionally body) to allow or block the message. The script returns a result object with `success` and an optional `response` (status code, body, headers) for errors.
+Header transformation:: Transform request or response headers with a DataWeave script. The script receives headers (and optionally the message body) and returns a map of header names to values. In the chosen phase, the gateway removes existing headers and runs the script with header bindings (and optionally the buffered body). The script output must be a `map`. Each entry becomes a header (use a list of values for multi-value headers).
+Body transformation:: Transform request or response body content with a DataWeave script. The script receives headers and payload and streams the transformed output. The gateway updates `Content-Type` and `Content-Length` automatically. In the chosen phase, the gateway processes the body in streaming mode. The script reads the incoming body and writes the transformed output.
+Script evaluation:: Evaluate a DataWeave script on request or response (headers and optionally body) to allow or block the message. The script returns a result object with `success` (boolean) and an optional `response` (status code, body, headers) for errors. In the chosen phase, the gateway runs the script. If the script returns `success: false`, the gateway sends an immediate response from the optional `response` object and stops processing. If `success: true`, the message continues.
+
+Script execution errors (for example, invalid output format or runtime errors) cause the gateway to return `400` and terminate the request or response.
 
 image::dataweave-transformation-diagram.png["A flow chart illustrating the process of setting the DataWeave Transformation policy for clients accessing an API through a proxy"]
 
-Configure each type as a separate policy instance with its own `policyRef` and config. Apply one or more of these policies to an API as needed.
+== Configure Header Transformation Policy Parameters
 
-== Configuring Policy Parameters
+Transform headers with a DataWeave script. The script must return a `map`: keys are header names, values are header values (single value or list for multi-value headers). Run the transformation on request or response. Optionally, include the message body in the script bindings.
 
-=== Header Transformation
+In Local Mode, apply the policy via declarative configuration using the `request-header-transformation` policy. In Managed Flex Gateway and Flex Gateway Connected mode, apply the policy from the UI and select the header transformation type.
 
-Transform headers with a DataWeave script. The script must return a `map`: keys are header names, values are header values (single value or list for multi-value headers). The gateway clears existing headers, then sets the script output. Run the transformation on request or response. Optionally, include the message body in the script bindings.
-
-include::partial$policy-title-headers.adoc[tag=configFile]
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
 ----
 - policyRef:
@@ -66,7 +65,7 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | If true, the script receives the message body in the `payload` binding; the gateway buffers the body for the transformation.
 |===
 
-==== Header Transformation Resource Configuration Example
+=== Header Transformation Resource Configuration Example
 
 ----
 - policyRef:
@@ -84,11 +83,13 @@ include::partial$policy-title-headers.adoc[tag=configFile]
     requiresPayload: false
 ----
 
-=== Body Transformation
+== Configure Body Transformation Policy Parameters
 
-Transform the request or response body with a DataWeave script. The script receives `attributes.headers` and `payload`. The gateway streams body processing. If the script declares an output MIME type (for example `output application/json`), the gateway uses it for the transformed response. Otherwise, it keeps the original Content-Type.
+Transform the request or response body with a DataWeave script. The script receives `attributes.headers` and `payload`. The gateway streams body processing. If the script declares an output MIME type (for example, `output application/json`), the gateway uses it for the transformed response. Otherwise, the gateway keeps the original `Content-Type`.
 
-include::partial$policy-title-headers.adoc[tag=configFile]
+In Local Mode, apply the policy via declarative configuration using the `request-body-transformation` policy. In Managed Flex Gateway and Flex Gateway Connected mode, apply the policy from the UI and select the body transformation type.
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
 ----
 - policyRef:
@@ -113,7 +114,7 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | When to run: `onRequest` (request body) or `onResponse` (response body).
 |===
 
-==== Body Transformation Resource Configuration Example
+=== Body Transformation Resource Configuration Example
 
 ----
 - policyRef:
@@ -127,11 +128,15 @@ include::partial$policy-title-headers.adoc[tag=configFile]
     requestFlow: "onRequest"
 ----
 
-=== Script Evaluation
+== Configure Script Evaluation Policy Parameters
 
-Evaluate a DataWeave script to allow or block the message. The script can access headers and optionally the body. It must return an object with `success` (boolean). On failure, return a `response` object with `statusCode`, `body`, and `headers`; the gateway sends that as the immediate response to the client.
+The gateway evaluates a DataWeave script to allow or block the message. The script can access headers and optionally the body. The script must return an object with `success` (boolean). On failure, the script returns a `response` object with `statusCode`, `body`, and `headers`. The gateway sends that status code, body, and headers to the client as the immediate HTTP response.
 
-include::partial$policy-title-headers.adoc[tag=configFile]
+Result format: Success: `{ "success": true }`. Error: `{ "success": false, "response": { "body": "...", "headers": {}, "statusCode": 400 } }`.
+
+In Local Mode, apply the policy via declarative configuration using the `script-evaluation-transformation` policy. In Managed Flex Gateway and Flex Gateway Connected mode, apply the policy from the UI and select the script evaluation type.
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
 ----
 - policyRef:
@@ -159,15 +164,10 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `requiresPayload`
 | Optional
 | false
-| If true, the script receives the message body in the `payload` binding. If true and the body is missing, the gateway returns an error response.
+| If true, the script receives the message body in the `payload` binding. If true and the body is missing, the gateway returns an error.
 |===
 
-==== Script Evaluation Result Format
-
-* Success: `{ "success": true }`
-* Error: `{ "success": false, "response": { "body": "...", "headers": {}, "statusCode": 400 } }`
-
-==== Script Evaluation Resource Configuration Example
+=== Script Evaluation Resource Configuration Example
 
 ----
 - policyRef:
@@ -188,17 +188,9 @@ include::partial$policy-title-headers.adoc[tag=ui]
 [%header%autowidth.spread,cols="a,a"]
 |===
 | Parameter | Description
-| Policy type | Header Transformation, Body Transformation, or Script Evaluation
+| Policy type | Select header transformation to transform headers, body transformation to transform the body, or script evaluation to allow or block the message from the script result.
 | Script | DataWeave script for the selected type
 | Request flow | Apply on request or response
 | Requires payload | (Header transformation and Script evaluation only) Whether the script needs the message body
 | Method & Resource conditions | Restrict the policy to specific methods and resources
 |===
-
-== How This Policy Works
-
-Header transformation:: In the chosen phase (request or response), the gateway removes existing headers and runs the DataWeave script with header bindings (and optionally the buffered body). The script output must be a `map`. Each entry becomes a header. Use a list of values for multi-value headers.
-Body transformation:: In the chosen phase, the gateway processes the body in streaming mode. The DataWeave script reads the incoming body and writes the transformed output. The gateway updates Content-Type and Content-Length after transformation.
-Script evaluation:: In the chosen phase, the gateway runs the script with headers (and optionally the buffered body). If the script returns `success: false`, the gateway sends an immediate response from the optional `response` object (status code, body, headers) and stops processing. If `success: true`, the message continues.
-
-Script execution errors (for example, invalid output format or runtime errors) produce a 400 or 500 response and terminate the request or response.
