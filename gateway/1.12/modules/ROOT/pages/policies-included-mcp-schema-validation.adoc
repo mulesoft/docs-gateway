@@ -18,10 +18,26 @@ include::partial$mcp-version-support.adoc[]
 
 == Summary
 
-The MCP Schema Validation policy validates that every every JSON RPC request to the MCP server complies with the MCP schema (MCP 2024_11_05 standard). If validation fails it will report a Policy Violation.
+The MCP Schema Validation policy validates that every incoming request complies with JsonRPC MCP protocol.
 
-There are no configuration parameters for this policy.
+When *Validate Tool Schema* is enabled, the policy also:
+
+* Validates tool invocation request parameters against the JSON schema of the tool.
+* Returns the tools/list MCP request without having to send the request to the upstream MCP Server.
+
+When the policy can't validate the request, it returns an https://modelcontextprotocol.io/specification/2025-11-25/basic#error-responses[MCP Error Response].
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
 The MCP Schema Validation policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Parameter| Description
+| Validate Tool Schema | When enabled, the policy:
+
+* Validates tool invocation request parameters against the JSON schema of the tool.
+* Returns the tools/list MCP request without having to send the request to the upstream MCP Server.
+|===
