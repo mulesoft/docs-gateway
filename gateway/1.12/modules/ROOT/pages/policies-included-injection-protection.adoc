@@ -18,7 +18,10 @@ endif::[]
 
 The Injection Protection policy scans incoming request headers, path, query string, and body for SQL injection, XSS (Cross-Site Scripting), and custom injection attacks. The policy provides built-in protections againt SQL and XSS attacks. Configure custom protections by defining regex patterns that the policy should scan for.
 
-The policy checks the chosen parts against the enabled built-in and custom rules. If a rule matches and `rejectRequests` is `true`, the gateway returns `400` (Bad Request) and adds the response header `x-injection-protection: blocked`. If `rejectRequests` is `false`, the gateway allows the request and logs a warning.
+The policy checks the request against the enabled built-in and custom rules. Depending on wether *Reject Requests* is enabled, the policy either:
+
+* Rejects the request and returns `400` (Bad Request) with the added response header `x-injection-protection: blocked`.
+* Allows the request to reach the backend service and logs a policy violation.
 
 == Configuring Policy Parameters
 
