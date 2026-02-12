@@ -16,7 +16,7 @@ endif::[]
 
 == Summary
 
-The Credential Injection JWT Generation policy generates and injects a JWT token into outgoing requests. It signs the token with the configured key and algorithm and supports standard time-based claims, such as `exp`, `iat`, and `nbf`, in addition to custom claims and JWT headers. Use DataWeave expressions for claim and header names and values. These expressions can reference request attributes or authentication data.
+The Credential Injection JWT Generation policy generates and injects a JWT token into outgoing requests. It signs the token with the configured key and algorithm and supports standard time-based claims, such as `exp`, `iat`, and `nbf`, in addition to custom claims and JWT headers. Each claim and header name and value can be a string or a DataWeave expression. Expressions can reference request attributes or authentication data.
 
 == Configuring Policy Parameters
 
@@ -71,12 +71,12 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `customClaims`
 | Required
 | N/A
-| The claims to include in the JWT. Each entry contains a `name` and a `value` defined as DataWeave expressions. The array can be empty.
+| The claims to include in the JWT. Each entry has a `name` and a `value`. Each can be a string or a DataWeave expression. The array can be empty.
 
 | `customHeaders`
 | Required
 | N/A
-| The JWT header parameters to include. Each entry contains a `name` and a `value` defined as DataWeave expressions. The array can be empty.
+| The JWT header parameters to include. Each entry has a `name` and a `value`. Each can be a string or a DataWeave expression. The array can be empty.
 |===
 
 ==== Resource Configuration Examples
@@ -132,6 +132,6 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |Issued At (iat) |A Boolean value specifying whether to include the issued-at (`iat`) claim in the JWT. |Required
 |Expiration (exp) |The number of seconds from the issue time until expiration. To omit the `exp` claim, enter `0`. |Required
 |Not Before (nbf) |The number of seconds from the issue time until the token becomes valid. To omit the `nbf` claim, enter `0`. |Required
-|Custom Claims |The claims to include in the JWT. Each entry contains a `name` and a `value` defined as DataWeave expressions. The array can be empty.
-|Custom Headers |The JWT header parameters to include. Each entry contains a `name` and a `value` defined as DataWeave expressions. The array can be empty.|Required
+|Custom Claims |The claims to include in the JWT. Each entry has a `name` and a `value`. Each can be a string or a DataWeave expression. The array can be empty.
+|Custom Headers |The JWT header parameters to include. Each entry has a `name` and a `value`. Each can be a string or a DataWeave expression. The array can be empty.|Required
 |===
