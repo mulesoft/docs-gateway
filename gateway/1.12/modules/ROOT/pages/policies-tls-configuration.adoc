@@ -1,17 +1,24 @@
-= Configuring TLS for Outgoing Requests From Policies
+= Configuring TLS for Outgoing Policy Requests
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :keywords: policy, custom
 
+Configure TLS for outgoing requests from policies to secure connections between the policy and upstream service.
 
+Some Flex Gateway policies make outgoing requests to HTTP and gRPC upstream service. For example, the xref:policies-included-oauth-token-introspection.adoc[] sends token validation requests to an OAuth 2.0 service and xref:policies-included-external-authorization.adoc[] forwards incoming client requests to an authorization service.
 
-== Configuring Policy Parameters
+To secure these connections, apply a default TLS configuration for all communication from policies. 
 
-To enable outbound TLS between an API instance and an upstream service when using Flex Gateway as your runtime, you must manually configure the TLS context
-in a YAML configuration file.
+== TLS for Managed Flex Gateway Outgoing Policy Requests
 
-Refer to the following policy definition and table of parameters:
+Outgoing requests from Managed Flex Gateway Policies use a default TLS configuration. You can't configure a custom TLS context for Managed Flex Gateway.
+
+Outgoing requests from Managed Flex Gateway Policies use the default ciphers listed in <<local-support>>.
+
+== Configure a TLS Context for Self Managed Gateways
+
+For both local and connected mode, use YAML configuration file to configure TLS between a policy and an upstream service:
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
