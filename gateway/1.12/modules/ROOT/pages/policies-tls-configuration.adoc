@@ -4,21 +4,15 @@ include::_attributes.adoc[]
 endif::[]
 :keywords: policy, custom
 
-Configure TLS for outgoing requests from policies to secure connections between the policy and upstream service.
+Some Flex Gateway policies make outgoing requests to HTTP and gRPC upstream service. For example, the xref:policies-included-oauth-token-introspection.adoc[] sends token validation requests to an OAuth 2.0 service, and the xref:policies-included-external-authorization.adoc[] forwards incoming client requests to an authorization service. 
 
-Some Flex Gateway policies make outgoing requests to HTTP and gRPC upstream service. For example, the xref:policies-included-oauth-token-introspection.adoc[] sends token validation requests to an OAuth 2.0 service and xref:policies-included-external-authorization.adoc[] forwards incoming client requests to an authorization service.
+By default, Managed and Self-Managed Flex Gateways protect these connections with a default TLS Context. The default TLS context is not mTLS and uses the default ciphers listed in <<local-support>>.
 
-To secure these connections, apply a default TLS configuration for all communication from policies. 
+To overide the default TLS context, configure a custom default TLS context for all outgoing requests from policies. You can't configure a custom default TLS context for Managed Flex Gateway.
 
-== TLS for Managed Flex Gateway Outgoing Policy Requests
+== Configure a TLS Context for Self-Managed Gateways
 
-Outgoing requests from Managed Flex Gateway Policies use a default TLS configuration. You can't configure a custom TLS context for Managed Flex Gateway.
-
-Outgoing requests from Managed Flex Gateway Policies use the default ciphers listed in <<local-support>>.
-
-== Configure a TLS Context for Self Managed Gateways
-
-For both local and connected mode, use YAML configuration file to configure TLS between a policy and an upstream service:
+For both local and connected mode, use a YAML configuration file to configure TLS between a policy and an upstream service:
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -52,8 +46,13 @@ When configuring the `ciphers` parameter, ensure that your API upstream supports
 | false
 | Skipping validation disables outbound mTLS
 
+| `trustedCA`
+| Optional, unless `skipValidation` is false
+| N/A
+| The client certificate used in mTLS
+
 | `certificate`
-| Optional
+| Optional (Required for mTLS)
 | N/A
 | A TLS certificate key pair. To comply with security standards, all certificates must be 2048 bits or longer.
 
@@ -87,12 +86,7 @@ When configuring the `ciphers` parameter, ensure that your API upstream supports
 | For the default and other supported ciphers, see <<local-support, TLS Cipher Support on Flex Gateway>>.
 | A list of supported TLS ciphers (IANA format).
 
-| `trustedCA`
-| Optional, unless `skipValidation` is false
-| N/A
-| The client certificate used in mTLS
-
 |===
 
-== 
+
 include::partial$flex-tls-cipher.adoc[tags=cipherSupportLocal;outboundImportantLocal;local-ciphers]
