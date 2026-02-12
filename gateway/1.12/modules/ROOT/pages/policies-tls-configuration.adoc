@@ -23,6 +23,7 @@ spec:
  defaultTLS:
    outboundPolicies:
        skipValidation: <boolean> // REQUIRED
+       trustedCA: <string> # OPTIONAL, defaults to the CA of operating systems
        certificate: // OPTIONAL
            key: <string> // OPTIONAL
            crt: <string> // OPTIONAL
@@ -30,7 +31,7 @@ spec:
        minversion: <string> // OPTIONAL
        maxversion: <string> // OPTIONAL
        ciphers: <array> // OPTIONAL
-       trustedCA: <string> # OPTIONAL, defaults to the operative system CAs
+       
 ----
 
 Not including optional parameters in your configuration file applies the parameters default values to your TLS context.
@@ -52,7 +53,7 @@ When configuring the `ciphers` parameter, ensure that your API upstream supports
 | The client certificate used in mTLS
 
 | `certificate`
-| Optional (Required for mTLS)
+| Optional
 | N/A
 | A TLS certificate key pair. To comply with security standards, all certificates must be 2048 bits or longer.
 
