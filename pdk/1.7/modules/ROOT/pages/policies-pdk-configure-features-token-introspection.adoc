@@ -1,0 +1,79 @@
+= Using OAuth 2.0 Token Introspection Library Functions
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+NOTE: To view an example policy project that uses Flex Gateway Policy Development Kit (PDK)'s Token Introspection feature, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/oauth-2-token-introspection/README.md[OAuth 2.0 Token Introspection Policy Example^].
+
+Use the Flex Gateway Policy Development Kit (PDK) Token Introspection library functions to validate incoming OAuth 2.0 tokens with an upstream introspection service. 
+
+[[configure-token-validator]]
+== Configure the Token Validator
+
+To access OAuth 2.0 Token Introspection functionality, you must import the `token_introspection` module from the PDK crate and inject the `TokenValidatorBuilder` in the xref:policies-pdk-configure-features.adoc#policy-template[configure] function.
+
+[source,Rust]
+----
+use pdk::token_introspection::{IntrospectionResult, ParsedToken, ScopesValidator, TokenValidator, TokenValidatorBuilder};
+
+#[entrypoint]
+async fn configure(
+    launcher: Launcher,
+    Configuration(bytes): Configuration,
+    validator_builder: TokenValidatorBuilder,
+) -> Result<()> {
+// [...]
+// Create a token validator
+let mut validator_instance = validator_builder
+        .new("token-cache")
+        .with_path("/introspect")
+        .with_authorization_value("Basic YWRtaW46YWRtaW4=")
+        .with_expires_in_attribute("exp")
+        .with_max_token_ttl(600)
+        .with_timeout_ms(10000)
+        .with_max_cache_entries(10000)
+        .with_scopes_validator(ScopesValidator::all(scopes_vector))
+        .with_service(config.my_service)
+        .build();
+// [...]
+}
+----
+
+The `TokenValidatorBuilder` provides these methods to configure the token validator. You must call `with_service` before `build`, all other methods are optional:
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Method | Parameter | Default | Description
+| `with_path` | path (`impl Into<String>`) | `"/"` | Sets the introspection endpoint path.
+| `with_authorization_value` | value (`impl Into<String>`) | `""` (sends an Auth header with an empty value) | Sets the authorization header value for introspection requests.
+| `with_expires_in_attribute` | attr (`impl Into<String>`) | `"exp"` | Sets the attribute name for expiration time in the introspection response.
+| `with_max_token_ttl` | ttl (`i64`) | `-1` (no cap) | Sets the maximum token TTL in seconds; tokens with a longer TTL are treated as expired. Use `-1` for no limit.
+| `with_timeout_ms` | timeout (`u64`) | `10000` (10 s) | Sets the timeout for introspection requests in milliseconds.
+| `with_max_cache_entries` | max_entries (`usize`) | `1000` | Sets the maximum number of entries in the token cache.
+| `with_scopes_validator` | validator (`ScopesValidator`) | — | Sets the scopes validator for token validation (for example, `ScopesValidator::all(scopes_vector)`).
+| `with_service` | service (`Service`) | Required | Sets the OAuth2 introspection service endpoint. Required to build the validator.
+|===
+
+NOTE: The configure function receives the xref:policies-pdk-create-schema-definition.adoc[configuration parameters] defined in your policy schema.
+
+[[validate-token]]
+== Validate a Token
+
+Once configured, the validator provides the `validate` function, that expects a token string. The validate function sends a request to the introspection endpoint and returns the `IntrospectionResult`:
+
+[source,Rust]
+----
+// extract token from header
+let auth_header = handler.header("Authorization");
+let token = auth_header.split_whitespace()[1];
+
+let result = validator
+        .validate(&token)
+        .await
+        .map_err(PolicyError::Introspection)?;
+----
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]
