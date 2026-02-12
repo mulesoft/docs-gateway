@@ -1,0 +1,91 @@
+= Configuring TLS for Outgoing Requests From Policies
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:keywords: policy, custom
+
+
+
+== Configuring Policy Parameters
+
+To enable outbound TLS between an API instance and an upstream service when using Flex Gateway as your runtime, you must manually configure the TLS context
+in a YAML configuration file.
+
+Refer to the following policy definition and table of parameters:
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+ name: default-tls
+spec:
+ defaultTLS:
+   outboundPolicies:
+       skipValidation: <boolean> // REQUIRED
+       certificate: // OPTIONAL
+           key: <string> // OPTIONAL
+           crt: <string> // OPTIONAL
+       alpn: <array> // OPTIONAL
+       minversion: <string> // OPTIONAL
+       maxversion: <string> // OPTIONAL
+       ciphers: <array> // OPTIONAL
+       trustedCA: <string> # OPTIONAL, defaults to the operative system CAs
+----
+
+Not including optional parameters in your configuration file applies the parameters default values to your TLS context.
+
+When configuring the `ciphers` parameter, ensure that your API upstream supports the listed ciphers. For the supported ciphers, see <<local-support, TLS Cipher Support on Flex Gateway>>.
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `skipValidation`
+| Required
+| false
+| Skipping validation disables outbound mTLS
+
+| `certificate`
+| Optional
+| N/A
+| A TLS certificate key pair. To comply with security standards, all certificates must be 2048 bits or longer.
+
+| `certificate.key`
+| Optional
+| N/A
+| The private key part of the certificate
+
+| `certificate.crt`
+| Optional
+| N/A
+| The public key part of the certificate
+
+| `alpn`
+| Optional
+| `h2` and `http/1.1`
+| A prioritized list of supported application level protocols; for example, h2, http/1.1, and so forth.
+
+| `minversion`
+| Optional
+| `1.2`
+| The minimum TLS version allowed
+
+| `maxversion`
+| Optional
+| `1.3`
+| The maximum TLS version allowed
+
+| `ciphers`
+| Optional
+| For the default and other supported ciphers, see <<local-support, TLS Cipher Support on Flex Gateway>>.
+| A list of supported TLS ciphers (IANA format).
+
+| `trustedCA`
+| Optional, unless `skipValidation` is false
+| N/A
+| The client certificate used in mTLS
+
+|===
+
+== 
+include::partial$flex-tls-cipher.adoc[tags=cipherSupportLocal;outboundImportantLocal;local-ciphers]
