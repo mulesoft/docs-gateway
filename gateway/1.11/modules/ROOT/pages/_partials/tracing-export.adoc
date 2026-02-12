@@ -1,24 +1,58 @@
-[[export-otel-traces]]
-== Export OTEL Traces
-
-Export Flex Gateway trace data to third-party observability and analytics platforms, including Azure Monitor, Splunk HEC, or any OpenTelemetry-compliant:
-
-* <<export-otel-traces-from-monitoring-telemetry-exporter>>
-* <<export-otel-traces-directly-from-flex-gateway>>
-
+//tag::telemtery-exporter[]
 [[export-otel-traces-from-monitoring-telemetry-exporter]]
-=== Export traces from the Anypoint Monitoring Telemetry Exporter
+== Export traces from the Anypoint Monitoring Telemetry Exporter
 
 To export traces using the Anypoint Monitoring Telemetry Exporter, see xref:monitoring::telemetry-exporter.adoc[How to export telemetry data to third-party monitoring systems].
 
-[[export-otel-traces-directly-from-flex-gateway]]
-=== Export traces directly from Flex Gateway
+//end::telemtery-exporter[]
 
-Export traces directly from Flex Gateway by configuring OTel tracing with a gRPC endpoint or a HTTP endpoint.
+//tag::export-anypoint[]
+[[export-traces-to-anypoint-monitoring]]
+== Export Traces to Anypoint Monitoring
 
-==== Configure OTel tracing with a gRPC endpoint
+Edit and then apply this configuration resource to enable distributed tracing. This configuration resource applies to all API instances.
+This example sets sampling to 0% for all traces, and sampling is configured on a per-API basis using policies.
 
-To configure OTel tracing with a gRPC endpoint in Flex, use the following YAML configuration:
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: Configuration
+metadata:
+  name: tracing
+  namespace: test-ns
+spec:
+  tracing:
+    provider:
+      type: anypoint
+      properties:
+        timeout: 10s # 
+    sampling: # Set all sampling to 0% - this example shows enabling samping for the gateway, but only generating trace data for sampling on a per-API basis using the Tracing policy.
+      client: 0
+      random: 0
+      overall: 0
+      #
+      # Add labels such as these example labels, if you want to configure labels globally. You can also configure labels on a per-API basis by using the Tracing policy.
+      labels:
+      - name: c-env-tag
+        type: environment
+        keyName: FLEX_NAME
+        defaultValue: DEFAULT_VAL
+      - name: c-header-tag
+        type: requestHeader
+        keyName: :method
+        defaultValue: DEFAULT_METHOD
+      - name: c-literal-tag
+        type: literal
+        defaultValue: the-tag     
+----
+
+//end::export-anypoint[]
+
+//tag::export-grpc[]
+[[export-traces-to-a-grpc-open-telemetry-endpoint]]
+== Export Traces to a gRPC Open Telemetry Endpoint
+
+To configure Open Telemetry tracing with a gRPC endpoint in Flex, use the following YAML configuration as an example:
 
 [source,yaml]
 ---
@@ -56,8 +90,14 @@ spec:
       type: literal
       defaultValue: the-tag
 ----
+//end::export-grpc[]
 
-==== Configure OTel tracing with a HTTPendpoint
+
+//tag::export-http[]
+[[export-traces-to-a-http-open-telemetry-endpoint]]
+== Export Traces to a HTTP Open Telemetry Endpoint
+
+To configure Open Telemetry tracing with a HTTP endpoint, use the following YAML configuration as an example:
 
 [source,yaml]
 ----
@@ -98,3 +138,4 @@ spec:
       type: literal
       defaultValue: the-tag
 ----
+//end::export-http[]
