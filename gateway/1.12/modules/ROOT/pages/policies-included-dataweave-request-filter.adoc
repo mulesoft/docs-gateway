@@ -1,14 +1,14 @@
-= Script Evaluation Transformation Policy
+= DataWeave Request Filter Policy
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
-:keywords: script evaluation, transformation, api gateway, flex gateway, gateway, policy
-:page-aliases: api-manager::script-evaluation-transformation-policy.adoc, policies::policies-included-script-evaluation-transformation.adoc
+:keywords: dataweave, request filter, transformation, api gateway, flex gateway, gateway, policy
+:page-aliases: api-manager::dataweave-request-filter-policy.adoc, policies::policies-included-dataweave-request-filter.adoc
 
 [width="100%", cols="5,15"]
 |===
->s| Policy name | Script Evaluation Transformation
+>s| Policy name | DataWeave Request Filter
 >s|Summary      | Evaluates a DataWeave script on request or response to allow or block the message.
 >s|Category | Transformation
 >s| First Flex Gateway version available | 1.12
@@ -18,17 +18,17 @@ endif::[]
 
 == Summary
 
-The Script Evaluation Transformation policy evaluates a DataWeave script on the request or response, including headers and optionally the body, to allow or block the message. The script returns an object with a Boolean `success` value. If `success` is `false`, the script can return a `response` object with `statusCode`, `body`, and `headers`. The gateway sends that as the immediate HTTP response to the client and stops processing. If `success` is `true`, the message continues.
+The DataWeave Request Filter policy evaluates a DataWeave script on the request or response, including headers and optionally the body, to allow or block the message. The script returns an object with a Boolean `success` value. If `success` is `false`, the script can return a `response` object with `statusCode`, `body`, and `headers`. The gateway sends that as the immediate HTTP response to the client and stops processing. If `success` is `true`, the message continues.
 
-Result format. 
-* Success: `{ "success": true }`. 
+Result format.
+* Success: `{ "success": true }`.
 * Error: `{ "success": false, "response": { "body": "...", "headers": {}, "statusCode": 400 } }`.
 
 == Configure Policy Parameters
 
 The script accesses headers and optionally the body. It returns an object with a Boolean `success` field. If `success` is `false`, the script can include a `response` object with `statusCode`, `body`, and `headers`. If `success` is `true`, the script doesn't return a `response` object.
 
-In Local Mode, apply the policy via declarative configuration using the `script-evaluation-transformation` policy. In Managed Flex Gateway and Flex Gateway Connected mode, apply the policy from the UI and select the script evaluation type.
+In Local Mode, apply the policy via declarative configuration using the `script-evaluation-transformation` policy. In Managed Flex Gateway and Flex Gateway Connected mode, apply the policy from the UI and select the DataWeave Request Filter type.
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
@@ -83,7 +83,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 [%header%autowidth.spread,cols="a,a"]
 |===
 | Parameter | Description
-| Policy type | Script evaluation transformation
+| Policy type | DataWeave Request Filter
 | Script | The DataWeave script that returns a success or error result.
 | Request flow | The flow where the policy applies: request or response.
 | Requires payload | Whether the script requires the message body.
