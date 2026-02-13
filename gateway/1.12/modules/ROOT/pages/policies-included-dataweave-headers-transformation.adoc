@@ -24,7 +24,7 @@ The DataWeave Headers Transformation policy transforms request or response heade
 
 The DataWeave script returns a map where keys are header names and values are header values. For multi-value headers, use a list of values. Apply the transformation to the request or the response. Optionally, the script receives the message body.
 
-In Local Mode, apply the policy via declarative configuration using the `header-transformation-flex` policy. In Managed Flex Gateway and Flex Gateway Connected mode, apply the policy from the UI and select the DataWeave Headers Transformation type.
+In Local Mode, apply the policy via declarative configuration using the `dataweave-headers-transformation-flex` policy. In Managed Flex Gateway and Flex Gateway Connected mode, apply the policy from the UI and select the DataWeave Headers Transformation type.
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
@@ -64,7 +64,7 @@ The following example adds custom headers with conditional logic. If the header 
 ----
   policies:
     - policyRef:
-        name: header-transformation-flex
+        name: dataweave-headers-transformation-flex
       config:
         script: |
           {
@@ -83,7 +83,7 @@ To append custom headers using payload data, for example to add the payload `id`
 ----
   policies:
     - policyRef:
-        name: header-transformation-flex
+        name: dataweave-headers-transformation-flex
       config:
         script: |
           attributes.headers ++ {
