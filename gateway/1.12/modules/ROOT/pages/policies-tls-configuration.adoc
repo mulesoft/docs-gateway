@@ -22,7 +22,7 @@ metadata:
 spec:
  defaultTLS:
    outboundPolicies:
-       skipValidation: <boolean> // REQUIRED
+       skipValidation: <boolean> // OPTIONAL
        trustedCA: <string> # OPTIONAL, defaults to the CA of operating systems
        certificate: // OPTIONAL
            key: <string> // OPTIONAL
@@ -48,9 +48,9 @@ When configuring the `ciphers` parameter, ensure that your API upstream supports
 | Skipping validation disables outbound mTLS
 
 | `trustedCA`
-| Optional, unless `skipValidation` is false
+| Optional
 | N/A
-| The client certificate used in mTLS
+| The client certificate used in mTLS. If no trusted CA is provided and `skipValidation` is true, the policy uses default CA of operating systems.
 
 | `certificate`
 | Optional
