@@ -9,8 +9,6 @@ LLM Proxy provides a unified access layer for multiple Large Language Model (LLM
 
 By creating a proxy, the user defines a singular LLM service that can receive requests for multiple providers, such as Open AI or Gemini. This simplifies the developer experience. You can add new models to the service seamlessly without changing the endpoint.
 
-Depending on configuration, the proxy then sends the request to the model defined by the user or dynamically sends the request to the provider that best matches the request. 
-
 image::llm-proxy.png["An LLM Proxy with a single endpoint routing requests to multiple LLM providers"]
 
 Depending on configuration, the proxy then sends the request to the model defined by the user or dynamically sends the request to the provider that best matches the request. 
@@ -21,9 +19,8 @@ Depending on configuration, the proxy then sends the request to the model define
 [[before-you-begin]]
 == Before You Begin
 
-. xref:flex-gateway-managed-set-up.adoc[Deploy a Managed Flex Gateway].
+. xref:flex-gateway-managed-set-up.adoc[Deploy a Managed Flex Gateway] where you want to deploy your LLM Proxy.
 
-== Define a Semantic Service
 
 [[create-an-llm-proxy]]
 == Create an LLM Proxy
@@ -92,6 +89,24 @@ curl --location --request POST 'https://llm-proxy-gateway-iiexmc.vmizg1.usa-e1.q
 == Semantic Routing
 
 Semantic routing is dynamic routing where the LLM Proxy chooses which model to send the request to. For Sematic Routing, the user creates prompt topics for each route. When a request is sent to the LLM Proxy, a semantic service compares the request to the define topic utterances and sends the request to the route that best matches it.
+
+=== Define a Semantic Service
+
+A semantic service compares the request to the define topic utterances and sends the request to the route that best matches it. To define a semantic service:
+
+. From API Manager, click *Semantic Service Setup*.
+. Click *+ Create Semantic Service*.
+. Select a *Embedding Service Provider*.
+. Select a *Model*.
+. Select the desired *Salesforce org*.
+. Enter the *Client ID* and *Client Secret* for your Salesforce org. 
+. Click *Deploy*.
+
+To edit a semantic service:
+
+. From *Semantic Service Setup*, click the three-dots menu (image:three-dots-menu.png[5%,5%]) of the semantic service you want to edit.
+. Make the necessary edits.
+. Click *Redeploy*.
 
 [[configure-semantic-routing]]
 === Configure Semantic Routing
