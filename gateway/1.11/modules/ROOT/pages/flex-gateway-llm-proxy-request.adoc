@@ -4,13 +4,25 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-NOTE: If a model is specified in the request, like in <<model-based-routing-example-request>>, it is ignored. You don't have to modify the request for different routing strategies.
+LLM Proxy supports both Open AI Responses and Chat Completions requests. To learn more about the two API types, see:
+
+* https://developers.openai.com/api/reference/resources/responses[Responses]
+* https://developers.openai.com/api/reference/resources/chat[Chat]
+
+When sending a request to the LLM Proxy with either routing strategy, you can specify a model in the request. Meaning you don't have to modify the request for different routing strategies. Each routing strategy handles the model selection differently:
+
+* *Model-Based Routing*: The user specifies a model in the request. If no model is specified, the LLM Proxy sends the request to the fallback route.
+* *Semantic Routing*: No model is specified in the request. The LLM Proxy chooses which model to use based on the request content by matching it to prompt topics you define for each route. If a model is specified in the request, like in <<model-based-routing-example-request>>, it is ignored.
 
 [[model-based-routing-example-request]]
 == Model-Based Routing Example Request
 
 This is an example request to the LLM Proxy using model-based routing. The request is sent to the Open AI GPT-5 nano model:
 
+[tabs]
+====
+Responses::
++
 ----
 curl --location --request POST 'https://llm-proxy-gateway-iiexmc.vmizg1.usa-e1.qax.cloudhub.io/chat/completions' \
 --header 'Content-Type: application/json' \
@@ -22,14 +34,36 @@ curl --location --request POST 'https://llm-proxy-gateway-iiexmc.vmizg1.usa-e1.q
 }'
 ----
 
-To find the configurable parameters in this request, see <<find-the-necessary-information-to-make-a-requests>>.
+Chat Completions::
++
+----
 
+----
+====
+
+To find the configurable parameters in this request, see <<find-the-necessary-information-to-make-a-requests>>.
 
 [[semantic-routing-example-request]]
 == Semantic Routing Example Request
 
 This is an example request to the LLM Proxy using semantic routing. No model is specified in the request. If a model is specified, it is ignored.
 
+[tabs]
+====
+Responses::
++
+----
+curl --location '<public-endpoint>/<base-path>' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+    "input": "Calculate simple interest"
+}'
+----
+
+Chat Completions::
++
 ----
 curl --location '<public-endpoint>/<base-path>' \
 --header 'Content-Type: application/json' \
@@ -44,6 +78,7 @@ curl --location '<public-endpoint>/<base-path>' \
   ]
 }'
 ----
+====
 
 To find the configurable parameters in this request, see <<find-the-necessary-information-to-make-a-requests>>.
 
@@ -68,3 +103,7 @@ To find the necessary information to use the example requests:
 .. Select the *SLA tier*.
 .. Click *Request access*.
 .. Copy the *Client ID* and *Client Secret*.
+
+
+
+
