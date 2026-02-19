@@ -20,6 +20,7 @@ Depending on configuration, the proxy then sends the request to the model define
 == Before You Begin
 
 . xref:flex-gateway-managed-set-up.adoc[Deploy a Managed Flex Gateway] where you want to deploy your LLM Proxy.
+. Retrieve your API Key for your LLM Provider.
 
 
 [[create-an-llm-proxy]]
@@ -43,13 +44,15 @@ NOTE: Only Open AI format is supported for Limited Availability GA.
 .. Enter your *Key* for your LLM Provider.
 .. Select a *Target Model* to override the model specified in the payload.
 .. Click *Add LLM Route* to add additional routes. Complete the previous steps to configure the new route.
++
+NOTE: Only two routes are supported. The routes must have different LLM providers.
 . If adding multiple routes, select a *Routing strategy*. To configure your routing strategy, see:
 .. <<configure-model-based-routing>>
 .. <<configure-semantic-routing>>
 . 
 . Click Save & Deploy.
 
-== Edit and Deploy an LLM Proxy
+== Edit and Delete an LLM Proxy
 
 [[model-based-routing]]
 == Model-Based Routing
@@ -93,24 +96,35 @@ Semantic routing is dynamic routing where the LLM Proxy chooses which model to s
 [[create-a-semantic-service]]
 === Create a Semantic Service
 
-A semantic service compares the request to the define topic utterances and sends the request to the route that best matches it. To define a semantic service:
+A semantic service compares the request to the defined prompt topic utterances and sends the request to the route that best matches it. The semantic service also compares the request to deny list topic utterances to block certain requests.
+
+To define a semantic service:
 
 . From API Manager, click *Semantic Service Setup*.
 . Click *+ Create Semantic Service*.
-. Select a *Embedding Service Provider*.
-. Select a *Model*.
-. Select the desired *Salesforce org*.
-. Enter the *Client ID* and *Client Secret* for your Salesforce org. 
+. Configure the semantic service parameters:
+** *Embedding Service Provider*: The provider of the embedding model. *OpenAI* or *Hugging Face*.
+** *URL*: The URL of the embedding service.
+** *Model*: The embedding model to use.
+** *Auth key*: The API authentication key for the embedding service.
 . Click *Deploy*.
 
 To edit a semantic service:
 
-. From *Semantic Service Setup*, click the three-dots menu (image:three-dots-menu.png[5%,5%]) of the semantic service you want to edit.
+. From *Semantic Service Setup*, click the three-dots menu (image:three-dots-menu.png[3%,3%]) of the semantic service you want to edit.
 . Make the necessary edits.
 . Click *Redeploy*.
 
+NOTE: Only one semantic service is supported for Limited Availability GA. If necessary, delete or edit the existing semantic service to test a new service.
+
 [[configure-semantic-routing]]
 === Configure Semantic Routing
+
+For semantic routing, define and apply prompt topics to each route. Define deny list topics to block certain requests.
+
+You can define six prompt topics each with ten utterances between your two routes. Indpendent from the route topics, you can define six deny list topics each with ten utterances.
+
+To configure semantic routing:
 
 . Configure multiple routes. Click *Add LLM Route* to create new routes.
 . Select *Semantic* for *Routing strategy*.
