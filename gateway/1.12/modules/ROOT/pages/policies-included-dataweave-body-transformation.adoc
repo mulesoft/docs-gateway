@@ -1,0 +1,95 @@
+= DataWeave Body Transformation Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: dataweave, body transformation, transformation, api gateway, flex gateway, gateway, policy
+
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy name | DataWeave Body Transformation
+>s|Summary      | Transforms the body of request or response traffic with a DataWeave script
+>s|Category | Transformation
+>s| First Flex Gateway version available | v1.12.0
+.1+>.^s| Returned Status Codes
+| `400` - The DataWeave script failed to execute or returned an invalid result
+|===
+
+== Summary
+
+The DataWeave Body Transformation policy transforms request or response body content with a DataWeave script. The script receives `attributes.headers` and `payload`. The gateway streams body processing. If the script declares an output MIME type, such as `output application/json`, the gateway uses it for the transformed response. Otherwise, the gateway keeps the original `Content-Type`. In the request or response, the gateway processes the body in streaming mode and updates `Content-Type` and `Content-Length` after transformation.
+
+== Configure Policy Parameters
+
+
+In Local Mode, apply the policy via declarative configuration using the `dataweave-body-transformation-flex` policy. In Managed Flex Gateway and Flex Gateway Connected mode, apply the policy from the UI and select the *DataWeave Body Transformation* type.
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: dataweave-body-transformation-flex
+  config:
+    script: <string>        // REQUIRED - DataWeave script
+    requestFlow: <string>   // REQUIRED - "onRequest" or "onResponse"
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required | Default Value | Description
+
+| `script`
+| Required
+| —
+| A DataWeave script that transforms the body. The script receives `attributes.headers` and `payload`. Declare the output MIME type in the script when needed, such as `output application/json`.
+
+| `requestFlow`
+| Required
+| —
+Whether the policy transforms the request or response body. Supported values: `onRequest` or `onResponse`.
+|===
+
+=== Resource Configuration Example
+
+This example transforms the request payload to a new structure that includes the value from the custom header `custom-client-header` and fields from the payload:
+
+----
+  policies:
+    - policyRef:
+        name: dataweave-body-transformation-flex
+      config:
+        script: |
+          {
+            "id": attributes.headers.'custom-client-header',
+            "username": payload.name ++ payload.surname
+          }
+----
+
+To transform the response body and set a custom output format such as XML, declare the output and use `requestFlow: onResponse`:
+
+----
+  policies:
+    - policyRef:
+        name: dataweave-body-transformation-flex
+      config:
+        script: |
+          output application/xml
+          ---
+          {
+            "trace": payload.headers.'X-Amzn-Trace-Id',
+            "custom-data": "custom-value"
+          }
+        requestFlow: onResponse
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Parameter | Description
+| Policy type | DataWeave Body Transformation
+| Script | The DataWeave script that transforms the body
+| Request flow | Whether the policy transforms the request or response body
+| Method and Resource conditions | The option to add configurations to a select few or all methods and resources of the API
+|===
