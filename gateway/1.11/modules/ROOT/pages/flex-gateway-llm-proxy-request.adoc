@@ -737,7 +737,27 @@ curl --location '<public-endpoint>/<base-path>/responses' \
 
 Request B: Follow-up using `previous_response_id` from the first response
 
-[source,bash]
+[tabs]
+====
+Semantic Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/responses' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "instructions": "You are helpful Service Agent",
+  "previous_response_id": "<response-id-from-request-a>",
+  "input": [ { "role": "user", "content": "Thank you!" } ],
+  "store": true
+}'
+----
+
+Model-Based Routing::
++
+[source,cli]
 ----
 curl --location '<public-endpoint>/<base-path>/responses' \
 --header 'Content-Type: application/json' \
@@ -751,5 +771,4 @@ curl --location '<public-endpoint>/<base-path>/responses' \
   "store": true
 }'
 ----
-
-
+====
