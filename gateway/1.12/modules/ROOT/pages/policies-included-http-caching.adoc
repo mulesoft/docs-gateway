@@ -22,6 +22,8 @@ The HTTP Caching policy enables you to cache HTTP responses for reuse. Caching t
 
 Policies applied after the HTTP Caching policy in the policy order are not applied to responses served from the cache. For example, a rate limiting policy applied after the HTTP Caching policy only limits the responses served by the upstream service but not the responses served by the cache. Apply all policies needed for the cached response before the HTTP Caching policy.
 
+For Self-Managed Gateways, HTTP caching requires the you <<configure-shared-storage-for-self-managed-gateway, configure shared storage>>. For Managed Gateways, Flex Replica shares the cache with each other directly. To learn more about the Managed Gateway architecture, see xref:flex-architecture-managed-dr-ha.adoc[].
+
 NOTE: The HTTP Caching policy does not support MCP and A2A server instances.
 
 [[cpp]]
@@ -113,9 +115,10 @@ NOTE: Leaving a required value blank configures the parameter as the default val
     responseExpression: "#[[200, 203, 204, 206, 300, 301, 404, 405, 410, 414, 501] contains attributes.statusCode]"
 ----
 
-==== Distributed Caching Resource Configuration Example
+[[configure-shared-storage-for-self-managed-gateway]]
+==== Configure Shared Storage for Self-Managed Gateway
 
-Distributed Caching requires Shared Storage to be enabled. For more information about Shared Storage, refer to xref:flex-conn-shared-storage-config.adoc[Configuring Shared Storage for Flex Gateway in Connected Mode].
+Self-Managed Gatewway require you to configure a shared storage for distributed caching. For more information about Shared Storage, refer to xref:flex-conn-shared-storage-config.adoc[Configuring Shared Storage for Flex Gateway in Connected Mode].
 
 ----
 
