@@ -1,0 +1,88 @@
+= LLM Token Based Rate Limit Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, rate limiting, token, llm, openai
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | LLM Token Based Rate Limit
+>s|Summary      | Rate limits LLM Proxy usage based on token consumption
+>s|Category | LLM
+>s|First Flex Gateway version available | v1.11.0
+.>s| Returned Status Codes
+|429 - Too Many Requests: Token limit exceeded, requests are blocked until the current window finishes
+|===
+
+== Summary
+
+The LLM Token Based Rate Limit policy enforces rate limiting on LLM Proxy requests based on the number of tokens consumed. The policy counts tokens using the `usage.total_tokens` field from OpenAI-format API responses, providing control over API usage based on actual token consumption reported by the upstream LLM provider.
+
+The policy applies to requests that use the OpenAI input format (indicated by the `x-input-format: OpenAI` header). It counts tokens from API responses and enforces rate limits per key selector (for example, per client ID). When the token limit is exceeded, the policy blocks the call and returns a `429` status code.
+
+The policy supports both streaming and non-streaming requests to the Chat Completions (`/v1/chat/completions`) and Responses (`/v1/responses`) APIs. For streaming Chat Completions requests, you must include `stream_options.include_usage: true` in the request body so that the provider includes token usage in the stream; otherwise, token counting is not available for that request.
+
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+| Maximum Tokens | Yes | Maximum number of tokens allowed within the specified time period. Must be a positive integer of one or greater.
+| Time Period (ms) | Yes | Time period in milliseconds for the rate limit window. Minimum time period is 1000 milliseconds.
+| Key Selector | Yes | DataWeave expression that selects the key for rate limiting. This creates independent rate limit counters for each unique value resolved by the expression. For example:
+
+* `#[attributes.headers['ClientId']]`: Rate limit per client ID
+* `#[attributes.principal]`: Rate limit per user
+* `#[attributes.headers['X-Forwarded-For']]`: Rate limit per IP address
+* `#[attributes.requestPath]`: Rate limit per API path
+|===
+
+
+== How This Policy Works
+
+The LLM Token Based Rate Limit policy monitors token consumption in the current window, allowing requests to reach the backend only if the available token quota is greater than zero.
+
+The policy uses a fixed-window rate limiting algorithm. The window starts after it receives the first request. When the quota is exhausted, requests are rejected with a 429 status code until the time window resets.
+
+The `keySelector` parameter enables you to create independent rate limit counters for different groups of requests. Each unique value resolved by the DataWeave expression has its own token quota and time window. For example, if you configure `keySelector: "#[attributes.headers['ClientId']]"` with a limit of 1000 tokens per 60 seconds, each client has its own 1000-token quota in a 60-second window.
+
+=== Request Requirements
+
+* Requests must include the `x-input-format: OpenAI` header so that the policy applies.
+* For streaming Chat Completions requests, the request body must include `stream_options.include_usage: true` so that the upstream provider sends token usage in the stream. Without this, the policy cannot count tokens for that request.
+
+=== Token Counting
+
+The policy counts tokens from OpenAI-format API responses:
+
+* *Non-streaming responses*: Tokens are read from the `usage.total_tokens` field in the response body.
+* *Streaming responses*: For Chat Completions, the provider must send usage in the stream (when `stream_options.include_usage: true` is set). The policy uses the token counts from the stream to update the rate limit.
+
+Token consumption is attributed to the key (for example, client ID) for the request and is applied to the current rate limit window.
+
+=== Supported APIs
+
+The policy supports these OpenAI-format API endpoints:
+
+* `/v1/chat/completions` - Chat Completions (streaming and non-streaming)
+* `/v1/responses` - Responses API
+
+=== Response Headers
+
+When a request is processed, the policy adds the following headers to the response:
+
+* `x-token-limit`: The maximum number of tokens allowed per window
+* `x-token-remaining`: The number of tokens remaining in the current window
+* `x-token-reset`: The remaining time, in milliseconds, until a new window starts
+
+== See Also
+
+* xref:flex-gateway-llm-proxy.adoc[LLM Proxy] - Overview of LLM Proxy and routing
+* xref:flex-gateway-llm-proxy-token-reports.adoc[Viewing Token Usage and LLM Metrics] - Token usage reports and limiting usage
+* xref:policies-included-a2a-token-rate-limit.adoc[A2A Token Based Rate Limit] - Token-based rate limiting for A2A agent traffic
