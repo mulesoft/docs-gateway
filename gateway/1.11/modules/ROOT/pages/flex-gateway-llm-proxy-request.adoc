@@ -109,5 +109,647 @@ To find your LLM Proxy endpoint and client application credentials:
 .. Copy the *Client ID* and *Client Secret*.
 
 
+=======================================================
+
+== Chat Completions API Validation (/chat/completions)
+
+=== Basic Chat Completion
+
+Goal: Verify basic connectivity and ensure the gateway correctly routes traffic to the specified LLM provider.
+
+Use case: A client application verifies basic connectivity and that the gateway routes traffic to the specified LLM provider (e.g., verifying a "Hello" response from Gemini 2.0).
+
+[tabs]
+====
+Semantic Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "messages": [
+    { "role": "developer", "content": "You are a helpful assistant" },
+    { "role": "user", "content": "Hello, please introduce yourself" }
+  ]
+}'
+----
+
+Model-Based Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "model": "gemini/gemini-3.0-flash-preview",
+  "messages": [
+    { "role": "developer", "content": "You are a helpful assistant" },
+    { "role": "user", "content": "Hello, please introduce yourself" }
+  ]
+}'
+----
+====
+
+=== Creative Content Generation (Temperature Control)
+
+Goal: Validate high-creativity responses using temperature (0 to 2).
+
+Use case: Brainstorming tasks, such as generating multiple unique marketing slogans, where a higher temperature makes the model less deterministic and more diverse in its output.
+
+[tabs]
+====
+Semantic Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "messages": [
+    { "role": "user", "content": "Write a creative story about AI" }
+  ],
+  "temperature": 1.5
+}'
+----
+
+Model-Based Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "model": "gemini/gemini-3.0-flash-preview",
+  "messages": [
+    { "role": "user", "content": "Write a creative story about AI" }
+  ],
+  "temperature": 1.5
+}'
+----
+====
+
+=== Multi-turn Context Management
+
+Goal: Maintain conversation context across developer persona, user query, and assistant history.
+
+Use case: Validates that the gateway correctly passes the "memory" of a conversation, ensuring the model knows that "it" refers to "MuleSoft" (or another referent) based on the previous message in the thread.
+
+[tabs]
+====
+Semantic Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "messages": [
+    { "role": "developer", "content": "You are a MuleSoft technical expert." },
+    { "role": "user", "content": "What is MuleSoft?" },
+    { "role": "assistant", "content": "MuleSoft is an integration platform that helps organizations connect applications, data, and devices." },
+    { "role": "user", "content": "How does it help with API management?" }
+  ]
+}'
+----
+
+Model-Based Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "model": "gemini/gemini-3.0-flash-preview",
+  "messages": [
+    { "role": "developer", "content": "You are a MuleSoft technical expert." },
+    { "role": "user", "content": "What is MuleSoft?" },
+    { "role": "assistant", "content": "MuleSoft is an integration platform that helps organizations connect applications, data, and devices." },
+    { "role": "user", "content": "How does it help with API management?" }
+  ]
+}'
+----
+====
+
+=== Structured Data Validation (JSON Format)
+
+Goal: Extract patterns into structured JSON using `top_p` and `max_completion_tokens`.
+
+Use case: A MuleSoft flow programmatically consumes the LLM output (e.g., transforming a messy support transcript into a clean JSON object for insertion into a database).
+
+[tabs]
+====
+Semantic Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "messages": [
+    { "role": "user", "content": "Explain MuleSoft Integration patterns in JSON format" }
+  ],
+  "max_completion_tokens": 50000,
+  "top_p": 0.9
+}'
+----
+
+Model-Based Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "model": "gemini/gemini-3.0-flash-preview",
+  "messages": [
+    { "role": "user", "content": "Explain MuleSoft Integration patterns in JSON format" }
+  ],
+  "max_completion_tokens": 50000,
+  "top_p": 0.9
+}'
+----
+====
+
+=== Enterprise Strategy Testing
+
+Goal: Validate architecture-level design with high token limits and specific temperatures.
+
+Use case: Validates the gateway's ability to handle large-payload "Expert" prompts, such as asking an AI Solution Architect to design a migration strategy from legacy SAP systems to Salesforce.
+
+[tabs]
+====
+Semantic Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "messages": [
+    { "role": "developer", "content": "You are a MuleSoft solution architect helping with enterprise integrations." },
+    { "role": "user", "content": "Design a data integration strategy for a Fortune 500 company migrating from legacy systems to Salesforce using MuleSoft Anypoint Platform. Include API-led connectivity approach." }
+  ],
+  "temperature": 0.7,
+  "max_completion_tokens": 10000
+}'
+----
+
+Model-Based Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "model": "gemini/gemini-3.0-flash-preview",
+  "messages": [
+    { "role": "developer", "content": "You are a MuleSoft solution architect helping with enterprise integrations." },
+    { "role": "user", "content": "Design a data integration strategy for a Fortune 500 company migrating from legacy systems to Salesforce using MuleSoft Anypoint Platform. Include API-led connectivity approach." }
+  ],
+  "temperature": 0.7,
+  "max_completion_tokens": 10000
+}'
+----
+====
+
+=== Streaming API Call
+
+Goal: Validate real-time, non-buffered token delivery using the `--no-buffer` flag.
+
+Use case: User-facing chatbot UIs where the text must appear word-by-word as it is generated, rather than waiting for the entire response to finish.
+
+[tabs]
+====
+Semantic Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "messages": [
+    { "role": "user", "content": "Explain step-by-step MuleSoft integration process" }
+  ],
+  "stream": true
+}' \
+--no-buffer
+----
+
+Model-Based Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "model": "gemini/gemini-3.0-flash-preview",
+  "messages": [
+    { "role": "user", "content": "Explain step-by-step MuleSoft integration process" }
+  ],
+  "stream": true
+}' \
+--no-buffer
+----
+====
+
+=== Tool Calling: Initial Request with Tool Definition
+
+Goal: Allow the model to request real-time information from the application by invoking a function.
+
+Use case: When a user asks for the current time in San Francisco, the model recognizes it cannot answer from memory and instead requests to invoke a `get_current_time` function from your local API.
+
+[tabs]
+====
+Semantic Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "tool_choice": "auto",
+  "messages": [
+    { "role": "user", "content": "What is the time in San Francisco?" }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_current_time",
+        "description": "When user asks for time tell me to invoke this Tool",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "timezone": { "type": "string", "description": "Timezone of the user asked location" }
+          },
+          "required": ["timezone"]
+        }
+      }
+    }
+  ]
+}'
+----
+
+Model-Based Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "model": "openai/gpt-5.2",
+  "tool_choice": "auto",
+  "messages": [
+    { "role": "user", "content": "What is the time in San Francisco?" }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_current_time",
+        "description": "When user asks for time tell me to invoke this Tool",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "timezone": { "type": "string", "description": "Timezone of the user asked location" }
+          },
+          "required": ["timezone"]
+        }
+      }
+    }
+  ]
+}'
+----
+====
+
+=== Tool Calling: Request with Tool Execution Response
+
+Goal: Send the executed tool output back to the gateway to generate a final answer.
+
+Use case: The client provides the executed tool output (e.g., the current time) back to the gateway so the model can generate a natural-language response for the user.
+
+[tabs]
+====
+Semantic Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "tool_choice": "auto",
+  "messages": [
+    { "role": "user", "content": "What is the time in San Francisco?" },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_KDrTKkRTGfylhkAO4A8s0pAO",
+          "type": "function",
+          "function": {
+            "name": "get_current_time",
+            "arguments": "{\"timezone\":\"America/Los_Angeles\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_KDrTKkRTGfylhkAO4A8s0pAO",
+      "content": "2026-02-20T05:02:05.873534-08:00"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_current_time",
+        "parameters": {
+          "type": "object",
+          "properties": { "timezone": { "type": "string" } },
+          "required": ["timezone"]
+        }
+      }
+    }
+  ]
+}'
+----
+
+Model-Based Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "model": "openai/gpt-5.2",
+  "tool_choice": "auto",
+  "messages": [
+    { "role": "user", "content": "What is the time in San Francisco?" },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_KDrTKkRTGfylhkAO4A8s0pAO",
+          "type": "function",
+          "function": {
+            "name": "get_current_time",
+            "arguments": "{\"timezone\":\"America/Los_Angeles\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_KDrTKkRTGfylhkAO4A8s0pAO",
+      "content": "2026-02-20T05:02:05.873534-08:00"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_current_time",
+        "parameters": {
+          "type": "object",
+          "properties": { "timezone": { "type": "string" } },
+          "required": ["timezone"]
+        }
+      }
+    }
+  ]
+}'
+----
+====
+
+=== Structured Output Validation (JSON Schema)
+
+Goal: Validate entity extraction into a strictly defined JSON Schema (e.g., CalendarEvent).
+
+Use case: When a user provides unstructured event details in plain text, the LLM consistently returns a formatted JSON object that adheres to the required schema, preventing integration or parsing errors in downstream applications.
+
+[tabs]
+====
+Semantic Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "messages": [
+    { "role": "system", "content": "Extract the event information." },
+    { "role": "user", "content": "Madhu Dileep and Santosh A are going to a AI Summit on 19th Feb 2026." }
+  ],
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "CalendarEvent",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "Name of the event" },
+          "date": { "type": "string", "description": "Date of the event, in MM-DD-YYYY format" },
+          "participants": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["name", "date", "participants"]
+      }
+    }
+  }
+}'
+----
+
+Model-Based Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/chat/completions' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "model": "gemini/gemini-3-flash-preview",
+  "messages": [
+    { "role": "system", "content": "Extract the event information." },
+    { "role": "user", "content": "Madhu Dileep and Santosh A are going to a AI Summit on 19th Feb 2026." }
+  ],
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "CalendarEvent",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "Name of the event" },
+          "date": { "type": "string", "description": "Date of the event, in MM-DD-YYYY format" },
+          "participants": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["name", "date", "participants"]
+      }
+    }
+  }
+}'
+----
+====
+
+== Responses API Validation (/responses)
+
+=== Responses Endpoint for MCP (Model Context Protocol)
+
+Goal: Integrate the gateway with an external MCP server for automated action execution.
+
+Use case: An AI agent performs complex actions, such as searching a specific internal Knowledge Base or updating a Jira ticket, using standardized tools defined on a remote MCP server.
+
+[tabs]
+====
+Semantic Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/responses' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "input": [
+    { "role": "system", "content": "You are helpful Service Agent" },
+    { "role": "user", "content": "My Laptop screen is broken" }
+  ],
+  "tools": [
+    {
+      "type": "mcp",
+      "server_label": "service_mcp",
+      "require_approval": "never",
+      "server_description": "Server enabled to do Service related actions",
+      "server_url": "https://ask-service-mcp-dvaz3u.c87dy0.usa-e2.cloudhub.io/mcp"
+    }
+  ]
+}'
+----
+
+Model-Based Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/responses' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "model": "openai/gpt-5.2",
+  "input": [
+    { "role": "system", "content": "You are helpful Service Agent" },
+    { "role": "user", "content": "My Laptop screen is broken" }
+  ],
+  "tools": [
+    {
+      "type": "mcp",
+      "server_label": "service_mcp",
+      "require_approval": "never",
+      "server_description": "Server enabled to do Service related actions",
+      "server_url": "https://ask-service-mcp-dvaz3u.c87dy0.usa-e2.cloudhub.io/mcp"
+    }
+  ]
+}'
+----
+====
+
+=== Stateful Response Persistence
+
+Goal: Validate persistent memory by chaining two requests using `previous_response_id`. Only OpenAI GPT models support the `store` setting.
+
+Use case: Removes the need for the client to send the entire previous chat history on every turn, reducing bandwidth and improving security by keeping the context on the gateway.
+
+Request A: Initial stored call
+
+
+[tabs]
+====
+Semantic Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/responses' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "instructions": "You are helpful Service Knowledge Agent",
+  "input": [ { "role": "user", "content": "My Laptop screen is broken" } ],
+  "store": true
+}'
+----
+
+Model-Based Routing::
++
+[source,cli]
+----
+curl --location '<public-endpoint>/<base-path>/responses' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "model": "openai/gpt-5.2",
+  "instructions": "You are helpful Service Knowledge Agent",
+  "input": [ { "role": "user", "content": "My Laptop screen is broken" } ],
+  "store": true
+}'
+----
+
+====
+
+Request B: Follow-up using `previous_response_id` from the first response
+
+[source,bash]
+----
+curl --location '<public-endpoint>/<base-path>/responses' \
+--header 'Content-Type: application/json' \
+--header 'client_id: <client-id>' \
+--header 'client_secret: <client-secret>' \
+--data '{
+  "model": "openai/gpt-5.2",
+  "instructions": "You are helpful Service Agent",
+  "previous_response_id": "<response-id-from-request-a>",
+  "input": [ { "role": "user", "content": "Thank you!" } ],
+  "store": true
+}'
+----
 
 
