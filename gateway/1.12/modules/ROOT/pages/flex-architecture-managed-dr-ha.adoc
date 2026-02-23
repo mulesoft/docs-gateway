@@ -8,7 +8,7 @@ CloudHub 2.0 and Runtime Fabric manages Managed Flex Gateway replica deployments
 
 This documentation covers specific details of Managed Flex Gateway high availability and disaster recovery. To fully understand high availability and disaster recovery, familiarize yourself with xref:cloudhub-2::ch2-ha-dr.adoc[].
 
-The following diagram shows how multiple Managed Flex Gateway replicas are deployed. External traffic entering through CloudHub 2.0 Ingress is distributed across a kubernetes service of Managed Flex Gateway instances. Replicas share the gateway configuration and data that must be persistent in a Kubernetes resource. Replicas share HTTP caching and distributed rate limiting data directly with each other.
+The following diagram shows how multiple Managed Flex Gateway replicas are deployed. External traffic entering through private space ingress is distributed across a kubernetes service of Managed Flex Gateway instances. Replicas share the gateway configuration and data that must be persistent in a Kubernetes resource. Replicas share HTTP caching and distributed rate limiting data directly with each other.
 
 image:managed-high-availability.png["External traffic flows through CloudHub 2.0 Ingress to a Kubernetes service that distributes requests across multiple Managed Flex Gateway replicas"]
 
@@ -17,7 +17,7 @@ NOTE: The diagram shows CloudHub 2.0 Ingress. For Runtime Fabric, you must confi
 
 == Managed Flex Gateway High Availability
 
-The private space manages Managed Flex Gateway high availability by ensuring:
+The private space or Runtime Fabric namespace manages Managed Flex Gateway high availability by ensuring:
 
 * At least two Flex replicas are always available and distributed across different availability zones in the private space. Traffic is distributed to replicas and zones evenly using a round robin traffic distribution.
 
