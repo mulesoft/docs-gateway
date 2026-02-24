@@ -8,9 +8,11 @@ CloudHub 2.0 and Runtime Fabric manage Managed Flex Gateway replica deployments 
 
 This documentation covers specific details of Managed Flex Gateway high availability and disaster recovery. To fully understand high availability and disaster recovery, familiarize yourself with xref:cloudhub-2::ch2-ha-dr.adoc[].
 
-This diagram shows how multiple Managed Flex Gateway replicas are deployed. External traffic entering through private space ingress is distributed across a kubernetes service of Managed Flex Gateway instances. Replicas share the gateway configuration and data that must persist in a Kubernetes resource. Replicas share HTTP caching and distributed rate limiting data directly with each other.
+This diagram shows how multiple Managed Flex Gateway replicas are deployed. 
 
 image:managed-high-availability.png["External traffic flows through CloudHub 2.0 Ingress to a Kubernetes service that distributes requests across multiple Managed Flex Gateway replicas"]
+
+External traffic entering through private space ingress is distributed across a kubernetes service of Managed Flex Gateway instances. Replicas share the gateway configuration and data that must persist in a Kubernetes resource. Replicas share HTTP caching and distributed rate limiting data directly with each other.
 
 NOTE: The diagram shows CloudHub 2.0 ingress. For Runtime Fabric, you must configure your own ingress. Your ingress must terminate TLS before forwarding the request to the Managed Flex Gateway.
 
@@ -25,7 +27,7 @@ The private space manages Managed Flex Gateway high availability by ensuring:
  
 ** Overloaded gateways don't abruptly stop incoming traffic processing as a result of overload. However, overloaded gateways show gradual degradation of response time for requests until CPU subsides.
 
-* Large and Extra Large Managed Flex Gateways have more capacity allocated per replica and autoscale up to three replicas across three availability zones depending on CPU usage. 
+* Large and extra large Managed Flex Gateways have more capacity allocated per replica and autoscale up to three replicas across three availability zones depending on CPU usage. 
 
 == Managed Flex Gateway Configuration Storage
 
