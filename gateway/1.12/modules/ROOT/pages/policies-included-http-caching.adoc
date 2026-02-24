@@ -22,7 +22,7 @@ The HTTP Caching policy enables you to cache HTTP responses for reuse. Caching t
 
 Policies applied after the HTTP Caching policy in the policy order are not applied to responses served from the cache. For example, a rate limiting policy applied after the HTTP Caching policy only limits the responses served by the upstream service but not the responses served by the cache. Apply all policies needed for the cached response before the HTTP Caching policy.
 
-For Self-Managed Gateways, HTTP caching requires the you <<configure-shared-storage-for-self-managed-gateway, configure shared storage>>. For Managed Gateways, Flex Replica shares the cache with each other directly. To learn more about the Managed Gateway architecture, see xref:flex-architecture-managed-dr-ha.adoc[].
+For Self-Managed Gateways, HTTP caching requires that you <<configure-shared-storage-for-self-managed-gateway, configure shared storage>>. For Managed Gateways, Flex Replica shares the cache with each other directly. To learn more about the Managed Gateway architecture, see xref:flex-architecture-managed-dr-ha.adoc[].
 
 NOTE: The HTTP Caching policy does not support MCP and A2A server instances.
 
@@ -118,7 +118,7 @@ NOTE: Leaving a required value blank configures the parameter as the default val
 [[configure-shared-storage-for-self-managed-gateway]]
 ==== Configure Shared Storage for Self-Managed Gateway
 
-Self-Managed Gatewway require you to configure a shared storage for distributed caching. For more information about Shared Storage, refer to xref:flex-conn-shared-storage-config.adoc[Configuring Shared Storage for Flex Gateway in Connected Mode].
+Self-Managed Gateways require you to configure a shared storage for distributed caching. For more information about shared storage, refer to xref:flex-conn-shared-storage-config.adoc[Configuring Shared Storage for Flex Gateway in Connected Mode].
 
 ----
 
@@ -198,12 +198,12 @@ When an HTTP request reaches an endpoint, what happens next depends on whether t
 
 . The client (user) sends a request to the API.
 . The request proceeds through other policies in the policy chain before reaching the HTTP Caching policy.
-. The HTTP Caching policy checks if the request is cached. If not, the cache miss process is initiated.
+. The HTTP Caching policy checks if the request is cached. If not, the cache-miss process is initiated.
 . The request continues throughout the chain of other remaining policies.
 . The request reaches the backend and completes all required processing.
 . The backend responds and the response travels back through the policy chain.
 . The response reaches the HTTP Caching policy.
-. The HTTP Caching policy caches the response for later reuse if it has not already been cached.
+. The HTTP Caching policy caches the response for later reuse if it hasn't already been cached.
 . The response continues through the remaining policies in the policy chain.
 . The response is returned to the client.
 
