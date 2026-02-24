@@ -17,9 +17,9 @@ endif::[]
 
 == Summary
 
-The LLM Token Based Rate Limit policy enforces rate limiting on LLM Proxy requests based on the number of tokens consumed. The policy counts tokens using the `usage.total_tokens` field from OpenAI-format API responses, providing control over API usage based on actual token consumption reported by the upstream LLM provider.
+The LLM Token Based Rate Limit policy enforces rate limiting on LLM Proxy requests based on the number of tokens consumed providing control over API usage based on actual token consumption reported by the upstream LLM provider.
 
-The policy applies to requests that use the OpenAI input format (indicated by the `x-input-format: OpenAI` header). It counts tokens from API responses and enforces rate limits per key selector (for example, per client ID). When the token limit is exceeded, the policy blocks the call and returns a `429` status code.
+The policy applies to requests that use the OpenAI input format. It counts tokens from API responses and enforces rate limits per key selector (for example, per client ID). When the token limit is exceeded, the policy blocks the call and returns a `429` status code.
 
 The policy supports both streaming and non-streaming requests to the Chat Completions (`/v1/chat/completions`) and Responses (`/v1/responses`) APIs. For streaming Chat Completions requests, you must include `stream_options.include_usage: true` in the request body so that the provider includes token usage in the stream. Otherwise, token counting is not available for that request.
 
@@ -38,7 +38,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Time Period (ms) | Yes | Time period in milliseconds for the rate limit window. Minimum time period is 1000 milliseconds.
 | Key Selector | Yes | DataWeave expression that selects the key for rate limiting. This creates independent rate limit counters for each unique value resolved by the expression. For example:
 
-* `#[attributes.headers['ClientId']]`: Rate limit per client ID
+* `#[attributes.headers['client_id']]`: Rate limit per client ID
 * `#[attributes.principal]`: Rate limit per user
 * `#[attributes.headers['X-Forwarded-For']]`: Rate limit per IP address
 * `#[attributes.requestPath]`: Rate limit per API path
@@ -51,12 +51,7 @@ The LLM Token Based Rate Limit policy monitors token consumption in the current 
 
 The policy uses a fixed-window rate limiting algorithm. The window starts after it receives the first request. When the quota is exhausted, requests are rejected with a `429` status code until the time window resets.
 
-The `keySelector` parameter enables you to create independent rate limit counters for different groups of requests. Each unique value resolved by the DataWeave expression has its own token quota and time window. For example, if you configure `keySelector: "#[attributes.headers['ClientId']]"` with a limit of 1000 tokens per 60 seconds, each client has its own 1000-token quota in a 60-second window.
-
-=== Request Requirements
-
-* Requests must include the `x-input-format: OpenAI` header so that the policy applies.
-* For streaming Chat Completions requests, the request body must include `stream_options.include_usage: true` so that the upstream provider sends token usage in the stream. Without this, the policy cannot count tokens for that request.
+The `keySelector` parameter enables you to create independent rate limit counters for different groups of requests. Each unique value resolved by the DataWeave expression has its own token quota and time window. For example, if you configure `keySelector: "#[attributes.headers['client_id']]"` with a limit of 1000 tokens per 60 seconds, each client has its own 1000-token quota in a 60-second window.
 
 === Token Counting
 
