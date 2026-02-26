@@ -22,6 +22,8 @@ The HTTP Caching policy enables you to cache HTTP responses for reuse. Caching t
 
 Policies applied after the HTTP Caching policy in the policy order are not applied to responses served from the cache. For example, a rate limiting policy applied after the HTTP Caching policy only limits the responses served by the upstream service but not the responses served by the cache. Apply all policies needed for the cached response before the HTTP Caching policy.
 
+For Self-Managed Gateways, HTTP caching requires that you <<configure-shared-storage-for-self-managed-gateway, configure shared storage>>. For Managed Gateways, Flex Replica shares the cache with each other directly. To learn more about the Managed Gateway architecture, see xref:flex-architecture-managed-dr-ha.adoc[].
+
 NOTE: The HTTP Caching policy does not support MCP and A2A server instances.
 
 [[cpp]]
@@ -113,9 +115,10 @@ NOTE: Leaving a required value blank configures the parameter as the default val
     responseExpression: "#[[200, 203, 204, 206, 300, 301, 404, 405, 410, 414, 501] contains attributes.statusCode]"
 ----
 
-==== Distributed Caching Resource Configuration Example
+[[configure-shared-storage-for-self-managed-gateway]]
+==== Configure Shared Storage for Self-Managed Gateway
 
-Distributed Caching requires Shared Storage to be enabled. For more information about Shared Storage, refer to xref:flex-conn-shared-storage-config.adoc[Configuring Shared Storage for Flex Gateway in Connected Mode].
+Self-Managed Gateways require you to configure a shared storage for distributed caching. For more information about shared storage, refer to xref:flex-conn-shared-storage-config.adoc[Configuring Shared Storage for Flex Gateway in Connected Mode].
 
 ----
 
@@ -193,34 +196,24 @@ When an HTTP request reaches an endpoint, what happens next depends on whether t
 
 === Cache Miss
 
-In a cache miss scenario, the HTTP Caching policy checks whether a response to the submitted request is already cached. The request reaches the backend and the process is initiated only when it's a cache miss. The diagram illustrates the flow of events that occur in this scenario:
-
-image:http-policy-cache-miss.png["A flowchart that illustrates the data flow between a web browser and a backend system"]
-
 . The client (user) sends a request to the API.
 . The request proceeds through other policies in the policy chain before reaching the HTTP Caching policy.
-. The HTTP Caching policy checks if the request is already in the object store and, if not, the cache miss process is initiated.
+. The HTTP Caching policy checks if the request is cached. If not, the cache-miss process is initiated.
 . The request continues throughout the chain of other remaining policies.
 . The request reaches the backend and completes all required processing.
 . The backend responds and the response travels back through the policy chain.
 . The response reaches the HTTP Caching policy.
-. Caching hits the object store again and attempts to save the <<key,key>> of the request for later reuse.
+. The HTTP Caching policy caches the response for later reuse if it hasn't already been cached.
 . The response continues through the remaining policies in the policy chain.
 . The response is returned to the client.
 
 
 === Cache Hit
 
-In a cache hit scenario, the HTTP Caching policy searches for the key in the object store and finds that the response to a request is already cached as a <<stored_entry,stored entry>>. The request does not proceed any further in the policy chain toward the backend, and the cached response is reused.
-
-Subsequently, all the policies that must be executed in the policy chain after caching are not executed, in case of a cache hit:
-
-image:http-policy-cache-hit.png["A flowchart diagram illustrating the data flow from a web browser through an API gateway to the backend and the object store"]
-
 . The client (user) sends a request to the API.
 . The request crosses other policies before reaching the HTTP Caching policy.
 . The HTTP Caching policy verifies that the request is already in the cache.
-. The <<key,key>> is found in the object store and the stored response is returned.
+. The <<key,key>> is found in the cache and the stored response is returned.
 . The response continues through the rest of the policy chain until it reaches the last one.
 . The cached response is returned to the client.
 
