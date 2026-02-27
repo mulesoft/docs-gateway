@@ -19,9 +19,7 @@ endif::[]
 
 The LLM Token Based Rate Limit policy enforces rate limiting on LLM Proxy requests based on the number of tokens consumed providing control over API usage based on actual token consumption reported by the upstream LLM provider.
 
-The policy applies to requests that use the OpenAI input format. It counts tokens from API responses and enforces rate limits per key selector (for example, per client ID). When the token limit is exceeded, the policy blocks the call and returns a `429` status code.
-
-The policy supports both streaming and non-streaming requests to the Chat Completions (`/v1/chat/completions`) and Responses (`/v1/responses`) APIs. For streaming Chat Completions requests, you must include `stream_options.include_usage: true` in the request body so that the provider includes token usage in the stream. Otherwise, token counting is not available for that request.
+It counts tokens from API responses and enforces rate limits per key selector (for example, per client ID). When the token limit is exceeded, the policy blocks the call and returns a `429` status code. The policy supports both streaming and non-streaming responses.
 
 == Configuring Policy Parameters
 
@@ -52,22 +50,6 @@ The LLM Token Based Rate Limit policy monitors token consumption in the current 
 The policy uses a fixed-window rate limiting algorithm. The window starts after it receives the first request. When the quota is exhausted, requests are rejected with a `429` status code until the time window resets.
 
 The `keySelector` parameter enables you to create independent rate limit counters for different groups of requests. Each unique value resolved by the DataWeave expression has its own token quota and time window. For example, if you configure `keySelector: "#[attributes.headers['client_id']]"` with a limit of 1000 tokens per 60 seconds, each client has its own 1000-token quota in a 60-second window.
-
-=== Token Counting
-
-The policy counts tokens from OpenAI-format API responses:
-
-* *Non-streaming responses*: Tokens are read from the `usage.total_tokens` field in the response body.
-* *Streaming responses*: For Chat Completions, the provider must send usage in the stream (when `stream_options.include_usage: true` is set). The policy uses the token counts from the stream to update the rate limit.
-
-Token consumption is attributed to the key (for example, client ID) for the request and is applied to the current rate limit window.
-
-=== Supported APIs
-
-The policy supports these OpenAI-format API endpoints:
-
-* `/v1/chat/completions` - Chat Completions (streaming and non-streaming)
-* `/v1/responses` - Responses API
 
 === Response Headers
 
