@@ -1,0 +1,115 @@
+= MCP Global Access Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, mcp, global access
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | MCP Global Access
+>s|Summary      | Restricts which MCP tools, resources, and prompts are exposed by defining Allow and Block rules. Block always takes precedence over Allow.
+>s|Category | MCP
+>s|First Flex Gateway version available | v1.9.3
+>s| Returned Status Codes | 403 - Access denied when a call targets a blocked tool, resource, or prompt
+|===
+
+include::partial$mcp-version-support.adoc[]
+
+== Summary
+
+The MCP Global Access policy controls which MCP tools, resources, and prompts are available through the gateway. Use it to filter the overall list of tools and related MCP entities that enter your network. For example, to allow only a subset of tools or to block specific tools while allowing the rest.
+
+You define Allow rules to permit specific items and Block rules to restrict them. When both Allow and Block rules exist, Block rules always take precedence. The policy applies to:
+
+* `tools/list` responses: The list returned to the client includes only permitted tools. When the response includes resources or prompts, only permitted ones appear.
+* `tools/call`, `resources/read`, and `prompts/get` requests: The gateway rejects calls to blocked items with a 403 response.
+
+This policy works with both JSON over HTTP and Server-Sent Events (SSE) transport. To learn how this policy works with the xref:policies-included-mcp-tool-mapping.adoc[MCP Tool Mapping] and xref:policies-included-mcp-attribute-access-control.adoc[MCP Attribute-Based Access Control] policies, see xref:policies-mcp-access-control-together.adoc[MCP Access Control: How the Policies Work Together].
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The MCP Global Access policy isn’t supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Element | Description
+| Rules | Defines the access control rules. At least one rule is required. Each rule permits or restricts access to matching tools, resources, or prompts: Allow or Block.
+| Rule | Defines whether to permit or restrict access. Supported values are *Allow* and *Block*.
+| Match type | Determines how to match the value. Use *literal* for an exact name match or *pattern* for a regular expression.
+| Value | Defines the tool, resource, or prompt name for literal match type, or the regex pattern for pattern match type.
+|===
+
+== Rule behavior
+
+Rule order doesn't matter. The policy evaluates all rules and applies this logic:
+
+Only Allow rules:: Only items that match at least one Allow rule are permitted. All others are blocked.
+Only Block rules:: All items are permitted except those that match a Block rule.
+Both Allow and Block rules:: Only items that match at least one Allow rule and do not match any Block rule are permitted. If an item matches both an Allow and a Block rule, it is blocked. Items that match no Allow rule are also blocked.
+
+=== Example: Allow list only
+
+To expose only specific tools:
+
+[source,yaml]
+----
+rules:
+  - rule: Allow
+    match_type: literal
+    value: get_weather
+  - rule: Allow
+    match_type: literal
+    value: get_user
+----
+
+Only `get_weather` and `get_user` can be called. All other tools are blocked and omitted from `tools/list` responses.
+
+=== Example: Block list only
+
+To block specific tools and allow everything else:
+
+[source,yaml]
+----
+rules:
+  - rule: Block
+    match_type: literal
+    value: admin_delete
+  - rule: Block
+    match_type: literal
+    value: get_secret
+----
+
+All tools except `admin_delete` and `get_secret` are permitted.
+
+=== Example: Allow and Block with pattern
+
+To allow a family of tools but block one of them:
+
+[source,yaml]
+----
+rules:
+  - rule: Allow
+    match_type: pattern
+    value: ^get_.*
+  - rule: Block
+    match_type: literal
+    value: get_secret
+----
+
+Tools whose names match the pattern `^get_.*`, such as `get_weather` or `get_user`, are allowed. `get_secret` is explicitly blocked even though it matches the Allow pattern, because Block takes precedence.
+
+== Response filtering
+
+When the backend returns a `tools/list` response or a list of resources or prompts, the policy filters the list and sends the client only permitted items. Filtering applies to both JSON-RPC and SSE response formats.
+
+== See Also
+
+* xref:policies-mcp-access-control-together.adoc[MCP Access Control: How the Policies Work Together]
+* xref:policies-included-mcp-tool-mapping.adoc[MCP Tool Mapping]
+* xref:policies-included-mcp-attribute-access-control.adoc[MCP Attribute-Based Access Control]
+* xref:policies-included-directory.adoc[Included Policies Directory]
