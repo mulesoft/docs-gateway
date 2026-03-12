@@ -11,35 +11,20 @@ Flex Gateway provides three MCP policies that work together to control which too
 * xref:policies-included-mcp-tool-mapping.adoc[MCP Tool Mapping]: Renames and modifies tool descriptions.
 * xref:policies-included-mcp-attribute-access-control.adoc[MCP Attribute-Based Access Control]: Grants each client a subset of tools based on who they are, such as Tiers, IP, headers, or claims.
 
-
 == How the Policies Work Together
 
-Think of the three policies as layers applied in order from the gateway toward the client:
+You can use MCP policies individually or combine them to fit your use cases. When you use multiple policies, they act as layers applied in this order from the gateway toward the client:
 
-Layer 1: Restrict Which Tools You Expose:: 
-Apply the MCP Global Access policy to filter the overall tool list. Define Allow and Block rules so that only the tools you want to expose are available. This filters the full tool set, like a global allowlist or blocklist, and stabilizes the list of tools that can enter your network.
+MCP Global Access:: 
+Filters the overall tool list. Define rules to allow or block specific tools so that only the tools you want to expose enter your network.
 
-Layer 2: Map Tools to Names and Descriptions::
-Apply the MCP Tool Mapping policy to rename tools or change their descriptions to match your use cases. Mapping doesn't implicitly allow or block tools. If you use both MCP Global Access and MCP Tool Mapping, MCP Global Access must already allow a tool before mapping applies. If you don't need to limit which tools are exposed, use only the mapping policy.
+MCP Tool Mapping::
+Renames tools or changes their descriptions. Mapping doesn't filter tools. If you use both policies, MCP Global Access must allow a tool before mapping applies.
 
-Layer 3: Grant Per-Client Access::
-Apply the MCP Attribute-Based Access Control policy to give each connecting client a subset of the filtered tool list, or the mapped list if you use Tool Mapping, based on attributes such as Tiers, IP, headers, or claims. This provides attribute-based views of the tools.
+MCP Attribute-Based Access Control::
+Grants each connecting client a tailored subset of the available tools based on attributes, such as tiers, IP addresses, headers, or claims. 
 
-
-== When to Use Which Policy
-
-|===
-| Goal | Policy to use
-| Filter or stabilize the list of tools entering your network using allowlist or blocklist rules | MCP Global Access
-| Rename tools or change descriptions only, no filtering | MCP Tool Mapping
-| Filter and rename, no per-client rules | MCP Global Access + MCP Tool Mapping
-| Different tool sets for different clients by tier, IP, headers, or claims | MCP Attribute-Based Access Control: Apply after Global Access and Tool Mapping if you use them
-| Full stack: filter globally, map names and descriptions, then restrict by client | MCP Global Access, then MCP Tool Mapping, then MCP Attribute-Based Access Control
-|===
-
-== Policy Order
-
-When you use two or more of these policies, apply them in the order described earlier: MCP Global Access first to filter the tool list, then MCP Tool Mapping to rename or describe tools, then MCP Attribute-Based Access Control for per-client access. To configure policy order, see xref:policies-reorder.adoc[Ordering Policies].
+To configure the policy order, see xref:policies-reorder.adoc[Ordering Policies].
 
 == See Also
 
