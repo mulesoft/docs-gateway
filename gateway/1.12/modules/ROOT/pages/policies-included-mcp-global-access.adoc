@@ -11,7 +11,7 @@ endif::[]
 >s|Summary      | Restricts which MCP tools, resources, and prompts are exposed by defining Allow and Block rules
 >s|Category | MCP
 >s|First Flex Gateway version available | v1.9.3
->s| Returned Status Codes | 403 - Access denied when a call targets a blocked tool, resource, or prompt
+>s| Returned Status Codes | 403 — Returned when a call targets a blocked tool, resource, or prompt
 |===
 
 include::partial$mcp-version-support.adoc[]
@@ -23,7 +23,7 @@ The MCP Global Access policy controls which MCP tools, resources, and prompts ar
 You define rules to allow or block specific items. When both Allow and Block rules exist, Block rules always take precedence. The policy applies to:
 
 * `tools/list` responses: The list returned to the client includes only permitted tools. When the response includes resources or prompts, only permitted ones appear.
-* `tools/call`, `resources/read`, and `prompts/get` requests: The gateway rejects calls to blocked items with a 403 response.
+* `tools/call`, `resources/read`, and `prompts/get` requests: The gateway rejects calls to blocked items with an HTTP 403 and a JSON-RPC error stating `Access denied to: <tool, resource, or prompt name>`.
 
 This policy works with both JSON over HTTP and Server-Sent Events (SSE) transport. To learn how this policy works with the xref:policies-included-mcp-tool-mapping.adoc[MCP Tool Mapping] and xref:policies-included-mcp-attribute-access-control.adoc[MCP Attribute-Based Access Control] policies, see xref:policies-mcp-access-control-together.adoc[MCP Access Control: How the Policies Work Together].
 
