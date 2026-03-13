@@ -28,17 +28,15 @@ Before getting started with Flex Gateway on Runtime Fabric, make sure:
 + 
 NOTE: Gateways cannot be shared across business groups. A user must be a member of the business group to access the Flex Gateway. 
 
-* xref:runtime-fabric::create-custom-namespace.adoc[Create a Runtime Fabric Namespace for Deployments]
-
-* Run this command to enable the `ManagedFlexGateway` resources in your Runtime Fabric namespace:
+* Run this command in the same namespace as your Runtime Fabric agent to enable the `ManagedFlexGateway` resource:
 +
 [source,bash]
 ----
 # When performing the helm upgrade for the first time, during Runtime Fabric creation:
-helm upgrade runtime-fabric rtf/rtf-agent -n <runtime-fabric-namespace> --version <target-rtf-version> --set global.crds.flex.enabled=true
+helm upgrade runtime-fabric rtf/rtf-agent -n <rtf-agent-namespace> --version <target-rtf-version> --set global.crds.flex.enabled=true
 
 # When enabling Managed Flex Gateway for an existing runtime fabric:
-helm upgrade runtime-fabric rtf/rtf-agent -n <runtime-fabric-namespace> --reset-then-reuse-values --set global.crds.flex.enabled=true
+helm upgrade runtime-fabric rtf/rtf-agent -n <rtf-agent-namespace> --reset-then-reuse-values --set global.crds.flex.enabled=true
 ----
 
 NOTE: For Flex Gateway Agent Fabric deployments on Runtime Fabric, you must enable Open Telemetry with a `100` percent *Sampling percentage*. You can't override the sampling percentage for individual instances.
