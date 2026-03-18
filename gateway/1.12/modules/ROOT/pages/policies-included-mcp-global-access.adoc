@@ -1,0 +1,111 @@
+= MCP Global Access Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, mcp, global access
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | MCP Global Access
+>s|Summary      | Restricts which MCP tools are exposed by defining Allow and Block rules
+>s|Category | MCP
+>s|First Flex Gateway version available | v1.9.3
+>s| Returned Status Codes | 403 — Returned when a call targets a blocked tool
+|===
+
+include::partial$mcp-version-support.adoc[]
+
+== Summary
+
+The MCP Global Access policy controls which MCP tools are available. Use it to filter the overall list of tools that enter your network.
+
+You define rules to allow or block specific tools. When both Allow and Block rules exist, Block rules always take precedence. The policy applies to:
+
+* `tools/list` responses: The list returned to the client includes only permitted tools.
+* `tools/call` requests: The gateway rejects calls to blocked tools with HTTP 403 and a JSON-RPC error stating `Access denied to: <tool name>`.
+
+When the backend returns a `tools/list` response, the policy filters the list and sends the client only permitted tools. Filtering applies to both JSON-RPC and SSE response formats.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The MCP Global Access policy isn’t supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Element | Description
+| Rules | Defines the access control rules. At least one rule is required. Each rule allows or blocks access to matching tools.
+| Rule | Defines whether to *Allow* or *Block* access.
+| Match type | Determines how to match the value. Use *literal* for an exact name match or *pattern* for a regular expression.
+| Value | The tool name for literal match type, or the regex pattern for pattern match type.
+|===
+
+== Rule behavior
+
+Rule order doesn't matter. The policy evaluates all rules and applies this logic depending on the combination of rule types are applied:
+
+Only Allow rules:: Only tools that match at least one Allow rule are permitted. All others are blocked.
+Only Block rules:: All tools are permitted except those that match a Block rule.
+Both Allow and Block rules:: Only tools that match at least one Allow rule and do not match any Block rule are permitted. If a tool matches both an Allow and a Block rule, it is blocked. Tools that match no Allow rule are also blocked.
+
+=== Example: Allow list only
+
+To expose only specific tools:
+
+[source,yaml]
+----
+rules:
+  - rule: Allow
+    match_type: literal
+    value: get_weather
+  - rule: Allow
+    match_type: literal
+    value: get_user
+----
+
+Only `get_weather` and `get_user` can be called. All other tools are blocked and omitted from `tools/list` responses.
+
+=== Example: Block List Only
+
+To block specific tools and allow everything else:
+
+[source,yaml]
+----
+rules:
+  - rule: Block
+    match_type: literal
+    value: admin_delete
+  - rule: Block
+    match_type: literal
+    value: get_secret
+----
+
+All tools except `admin_delete` and `get_secret` are exposed.
+
+=== Example: Allow and Block with Pattern
+
+To allow a family of tools but block one of them:
+
+[source,yaml]
+----
+rules:
+  - rule: Allow
+    match_type: pattern
+    value: ^get_.*
+  - rule: Block
+    match_type: literal
+    value: get_secret
+----
+
+Tools whose names match the pattern `^get_.*`, such as `get_weather` or `get_user`, are exposed. `get_secret` is explicitly blocked even though it matches the Allow pattern, because Block takes precedence.
+
+== See Also
+
+* xref:policies-mcp-access-control-together.adoc[MCP Access Control: How the Policies Work Together]
+* xref:policies-included-mcp-tool-mapping.adoc[MCP Tool Mapping]
+* xref:policies-included-mcp-attribute-access-control.adoc[MCP Attribute-Based Access Control]
+* xref:policies-included-directory.adoc[Included Policies Directory]
