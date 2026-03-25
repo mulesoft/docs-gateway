@@ -54,7 +54,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 |CIBA Backchannel Endpoint |The backchannel authentication endpoint (`bc-authorize`) used to initiate the CIBA flow. Required when *Enable CIBA* is selected.
 
-|Login Hint Claim |JWT claim from the incoming subject token to send as `login_hint` in the CIBA request. Default: `email`.
+|Login Hint Claim |JWT claim from the incoming subject token to send as `login_hint` in the CIBA request. If no hint is specified, `email` is used.
 
 |Binding Message |Optional human-readable message sent as `binding_message` in the CIBA request and displayed on the authentication device.
 |===
@@ -62,5 +62,3 @@ include::partial$policy-title-headers.adoc[tag=ui]
 == CIBA Behavior
 
 When *Enable CIBA* is selected, the policy initiates a CIBA backchannel authentication request on the first matching outbound call and returns an authorization pending response until user authentication is approved by the authorization server. After approval, the policy injects the exchanged access token into the `Authorization` header and forwards requests to the backend service.
-
-
