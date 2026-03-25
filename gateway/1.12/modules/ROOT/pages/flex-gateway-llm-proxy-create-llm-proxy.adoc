@@ -14,19 +14,20 @@ NOTE: A large Flex Gateway supports up to 50 LLM Proxies.
 . Deploy a Flex Gateway version 1.11.4 or later where you want to deploy your LLM Proxy.
 +
 See xref:flex-gateway-managed-set-up.adoc[].
-. Enaure you have the API Manager *API Creator* permission.
-. Retrieve your API Key from your LLM Provider.
+. Ensure you have the API Manager *API Creator* permission.
+. Retrieve your API keys from your LLM Providers.
 
 [[create-an-llm-proxy]]
 == Create an LLM Proxy
 
 . From API Manager, click *LLM Proxies*.
-. Click *Add LLM Proxy*.
+. Click *+ Add LLM Proxy*.
 . Configure the *Inbound Endpoint* of the LLM Proxy:
 .. Define a *LLM Proxy Name*.
-.. Select an endpoint *Format*.
+.. Select an endpoint *Format*:
 +
-NOTE: Only Open AI format is supported for Limited Availability GA. For more information about the request format, see xref:flex-gateway-llm-proxy-request.adoc[LLM Proxy Requests].
+** OpenAI: Select the OpenAI API format to send requests to all supported LLM Providers (including Gemini).
+** Gemini: Select the Gemini API format to send requests to only Gemini.
 .. Define a *Base path*.
 .. Select *Advanced options* if necessary.
 .. Click *Next*.
@@ -34,11 +35,11 @@ NOTE: Only Open AI format is supported for Limited Availability GA. For more inf
 . Configure the routes that comprise the *Outbound Endpoint*:
 .. Select your *LLM Provider*.
 .. Ensure the *URL* for your provider is correct. Edit if necessary.
-.. Enter your *Key* for your LLM Provider.
-.. Select a *Target Model* to override the model specified in the payload.
+.. Configure access details for the provider endpoint.
+.. Select a *Target Model* to override the model version specified in the payload. Selecting *Not Applicable* sends the request to the specified model. A *Target Model* is required for semantic routing.
 .. Click *Add LLM Route* to add additional routes. Complete the previous steps to configure the new route.
 +
-NOTE: Only two routes are supported. The routes must have different LLM providers.
+NOTE: Each LLM Provider can support one route.
 . If adding multiple routes, select a *Routing strategy*. To configure your routing strategy, see:
 .. <<configure-model-based-routing>>
 .. <<configure-semantic-routing>>
@@ -50,7 +51,7 @@ NOTE: Only two routes are supported. The routes must have different LLM provider
 
 . Configure multiple routes. Click *Add LLM Route* to create new routes.
 . Select *Model-based* for *Routing strategy*.
-. Choose to enable a *Fallback route*. If enabling a fallback route:
+. Choose to enable a *Fallback route* for the request to be sent to if the provider or model is incorrectly sepcified. If enabling a fallback route:
 .. Select a *Route* to fallback to.
 .. Select a target model for the fallback route to use.
 . If no fall back route is configured and a route fails, a error response is returned.
@@ -76,7 +77,7 @@ To create a semantic service, see <<create-a-semantic-service>>.
 .. Define a *Prompt utterances* or click *Upload utterances* to upload a plain text file containing your prompt utterances.
 .. Click *Create*.
 .. Create multiple prompt topics for each route as needed.
-. Configure a *Fallback route*:
+. Configure a *Fallback route* for the request to be sent to if it doesn't match a semantic route:
 .. Specify an accuracy threshold. When the accuracy of the semantic match is less than this threshold, traffic is sent to the fallback route.
 .. Select a *Route* to fallback to.
 .. Select a *Target model* for the fallback route to use.
@@ -142,4 +143,3 @@ To delete an LLM Proxy:
 . Click the three-dots menu (image:three-dots-menu.png[3%,3%]) of the LLM Proxy you want to delete.
 . Click *Delete LLM Proxy*.
 . Click *Yes, Delete*.
-
