@@ -5,13 +5,20 @@ endif::[]
 :imagesdir: ../assets/images
 
 
-LLM Proxy provides a unified access layer for multiple Large Language Model (LLM) providers. LLM Proxy are deployed to Flex Gateway to enable governance, intelligent routing, and cost management for AI applications.
+LLM Proxy provides a unified access layer for multiple Large Language Model (LLM) providers. LLM Proxy are deployed to Flex Gateway to enable governance, intelligent routing, and cost management for AI applications. LLM Proxy is supported on Managed Flex Gateway and Self-Managed Flex Gateway running in Connected Mode.
 
-By creating a proxy, the user defines a singular LLM service that can receive requests for multiple providers, such as Open AI or Gemini. This simplifies the developer experience. You can add new models to the service seamlessly without changing the endpoint.
+By creating a proxy, the user defines a singular LLM service that can receive requests for multiple providers. This simplifies the developer experience. You can add new models to the service seamlessly without changing the endpoint.
 
 image::llm-proxy.png["An LLM Proxy with a single endpoint routing requests to multiple LLM providers"]
 
-Depending on configuration, the proxy then sends the request to the model defined by the user or dynamically sends the request to the provider that best matches the request. 
+LLM Proxy supports these LLM Providers:
+
+* OpenAI 
+* Google Gemini
+* Azure OpenAI Service
+* Claude on Amazon Bedrock
+
+Depending on configuration, the proxy then sends the request to the model defined by the user or dynamically sends the request to the provider that best matches the request:
 
 * <<model-based-routing>>: Static routing. The user specifies what model the LLM Proxy should send the request to.
 * <<semantic-routing>>: Dynamic routing. The LLM Proxy chooses which model to send the request to based on the request content.
@@ -27,7 +34,6 @@ By specifying a target model, LLM Proxy can override the model version provided 
 == Semantic Routing
 
 Semantic routing is dynamic routing where the LLM Proxy chooses which model to send the request to. For Sematic Routing, the user creates prompt topics for each route. When a request is sent to the LLM Proxy, a semantic service compares the request to the define topic utterances and sends the request to the route that best matches it.
-
 
 == LLM Proxy Limits
 
