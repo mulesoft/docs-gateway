@@ -8,20 +8,27 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | Regex Prompt Guard
->s|Summary      | Blocks LLM requests that match configured deny-listed regex patterns
+>s|Summary      | Blocks LLM requests that match deny-list regex patterns
 >s|Category | LLM
->s|First Flex Gateway version available | v1.12.0
+>s|First Flex Gateway version available | v1.11.4
 .>s| Returned Status Codes
 |403 - Forbidden: Request blocked because prompt content matched one or more denied patterns
 |===
 
 == Summary
 
-The Regex Prompt Guard policy scans LLM prompts and blocks requests when prompt content matches configured deny-listed regex patterns.
+NOTE: This policy only supports OpenAI format LLM endpoints.
 
-This policy helps protect LLM-powered APIs from text-based attacks, such as prompt injection, jailbreak attempts, SQL injection patterns, and HTML or script injection.
+The Regex Prompt Guard policy scans LLM prompts and blocks requests when prompt content matches Perl Compatible Regular Expressions (PCRE) deny-list patterns.
 
-The policy evaluates requests for supported OpenAI-compatible payload formats and returns a `403` response when a configured pattern is matched.
+To learn more about PCRE, see https://www.pcre.org/[PCRE - Perl Compatible Regular Expressions].
+
+For example, you can use the policy to block attacks such as:
+
+* Prompt injection
+* Jailbreak attempts
+* SQL injection patterns
+* HTML script injection
 
 == Configuring Policy Parameters
 
@@ -34,26 +41,13 @@ include::partial$policy-title-headers.adoc[tag=ui]
 [%header%autowidth.spread,cols="a,a,a"]
 |===
 | Element | Required | Description
-| Deny Patterns | Yes | List of regex patterns to block. Each item contains a pattern name and regex expression.
 | Pattern Name | Yes | Human-readable pattern name. The policy includes this value in the blocked-response details.
-| Regex Pattern | Yes | PCRE-compatible regex expression used to match prompt content. Use `(?i)` for case-insensitive matching.
+| Regex Pattern | Yes | PCRE-compatible regex expression used to match prompt content. Use `(?i)` for case-insensitive matching. To learn more about PCRE, see https://www.pcre.org/[PCRE - Perl Compatible Regular Expressions].
 |===
 
-== How This Policy Works
+== Response on Block
 
-For incoming requests, the policy:
-
-. Processes `POST` requests with JSON content.
-. Detects supported LLM request formats by using the `x-input-format` header and payload structure.
-. Extracts prompt text from supported OpenAI request bodies.
-. Compares extracted prompt content against each configured deny pattern.
-. Blocks the request with `403 Forbidden` if any pattern matches.
-
-The policy supports OpenAI Chat Completions and OpenAI Responses API request formats.
-
-=== Response on Block
-
-When a request is blocked, the policy returns a response body similar to:
+When a request is blocked, the policy returns a response body containing the matched deny patterns:
 
 [source,json]
 ----
