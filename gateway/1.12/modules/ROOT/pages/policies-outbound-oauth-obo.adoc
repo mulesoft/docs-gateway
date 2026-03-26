@@ -62,3 +62,16 @@ include::partial$policy-title-headers.adoc[tag=ui]
 == CIBA Behavior
 
 When *Enable CIBA* is selected, the policy initiates a CIBA backchannel authentication request on the first matching outbound call and returns an authorization pending response until user authentication is approved by the authorization server. After approval, the policy injects the exchanged access token into the `Authorization` header and forwards requests to the backend service.
+
+While waiting for user authentication, the policy returns a `401 Unauthorized` response with the following JSON body:
+
+----
+HTTP/1.1 401 Unauthorized
+Retry-After: 5
+Content-Type: application/json
+
+{
+  "error": "authorization_pending",
+  "error_description": "CIBA authorization flow initiated. Downstream user authorization is in progress. Retry after the indicated interval."
+}
+----
