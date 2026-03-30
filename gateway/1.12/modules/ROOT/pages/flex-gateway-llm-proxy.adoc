@@ -9,13 +9,6 @@ LLM Proxy provides a unified access layer for multiple Large Language Model (LLM
 
 LLM Proxy is supported on Managed Flex Gateway and Self-Managed Flex Gateway running in Connected Mode.
 
-LLM Proxy supports these LLM Providers:
-
-* OpenAI 
-* Google Gemini
-* Azure OpenAI Service
-* Claude on Amazon Bedrock
-
 By creating a proxy, the user defines a singular LLM service that can receive requests for multiple providers. This simplifies the developer experience. You can add new models to the service seamlessly without changing the endpoint.
 
 image::llm-proxy.png["An LLM Proxy with a single endpoint routing requests to multiple LLM providers"]
@@ -24,6 +17,20 @@ Depending on configuration, the proxy then sends the request to the model define
 
 * <<model-based-routing>>: Static routing. The user specifies what model the LLM Proxy should send the request to.
 * <<semantic-routing>>: Dynamic routing. The LLM Proxy chooses which model to send the request to based on the request content.
+
+[[supported-llm-providers]]
+== Supported LLM Providers
+
+LLM Proxy supports these LLM Providers and API endpoints:
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| LLM Provider | `/chat/completions` | `/responses`
+| OpenAI | Y | Y
+| Gemini | Y | Y
+| Azure (OpenAI) | Y | Y
+| Bedrock (Anthropic Claude Models) | Y | Y
+|===
 
 [[model-based-routing]]
 == Model-Based Routing
