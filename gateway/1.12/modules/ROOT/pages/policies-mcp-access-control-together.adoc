@@ -1,0 +1,35 @@
+= Configuring MCP Access Control Policies
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, mcp, access control, tool mapping, abac
+
+Flex Gateway provides three MCP policies that work together to control which tools and related MCP entities are exposed:
+
+* xref:policies-included-mcp-global-access.adoc[MCP Global Access]: Restricts which tools are exposed by using allow or block rules.
+* xref:policies-included-mcp-tool-mapping.adoc[MCP Tool Mapping]: Renames and modifies tool descriptions.
+* xref:policies-included-mcp-attribute-access-control.adoc[MCP Attribute-Based Access Control]: Grants each client a subset of tools based on who they are, such as Tiers, IP, headers, or claims.
+
+== How the Policies Work Together
+
+You can use MCP policies individually or combine them to fit your use cases. When you use multiple policies together, stack them in this order from the gateway toward the client so that they work as intended:
+
+MCP Global Access:: 
+Filters the overall tool list. Define rules to allow or block specific tools so that only the tools you want to expose enter your network.
+
+MCP Tool Mapping::
+Renames tools or changes their descriptions. Mapping doesn't filter tools. If you use both policies, MCP Global Access must allow a tool before mapping applies.
+
+MCP Attribute-Based Access Control::
+Grants each connecting client a tailored subset of the available tools based on attributes, such as tiers, IP addresses, headers, or claims. 
+
+To configure the policy order, see xref:policies-reorder.adoc[Ordering Policies].
+
+== See Also
+
+* xref:policies-included-mcp-global-access.adoc[MCP Global Access]
+* xref:policies-included-mcp-tool-mapping.adoc[MCP Tool Mapping]
+* xref:policies-included-mcp-attribute-access-control.adoc[MCP Attribute-Based Access Control]
+* xref:policies-reorder.adoc[Ordering Policies]
+* xref:flex-agent-policies.adoc[Flex Gateway Agent Policies]

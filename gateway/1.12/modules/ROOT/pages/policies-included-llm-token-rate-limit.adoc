@@ -1,0 +1,65 @@
+= LLM Token Based Rate Limit Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, rate limiting, token, llm, openai
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | LLM Token Based Rate Limit
+>s|Summary      | Rate limits LLM Proxy usage based on token consumption
+>s|Category | LLM
+>s|First Flex Gateway version available | v1.11.0
+>s|Release Notes| xref:release-notes::flex-gateway/flex-gateway-hybrid-policies/llm-token-rate-limit-release-notes.adoc[LLM Token Based Rate Limit]
+.>s| Returned Status Codes
+|429 - Too Many Requests: Token limit exceeded, requests are blocked until the current window finishes
+|===
+
+== Summary
+
+The LLM Token Based Rate Limit policy enforces rate limiting on LLM Proxy requests based on the number of tokens consumed providing control over API usage based on actual token consumption reported by the upstream LLM provider.
+
+It counts tokens from API responses and enforces rate limits per key selector (for example, per client ID). When the token limit is exceeded, the policy blocks the call and returns a `429` status code. The policy supports both streaming and non-streaming responses.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The LLM Token Based Rate Limit policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+| Maximum Tokens | Yes | Maximum number of tokens allowed within the specified time period. Must be a positive integer of one or greater.
+| Time Period (ms) | Yes | Time period in milliseconds for the rate limit window. Minimum time period is 1000 milliseconds.
+| Key Selector | Yes | DataWeave expression that selects the key for rate limiting. This creates independent rate limit counters for each unique value resolved by the expression. For example:
+
+* `#[attributes.headers['client_id']]`: Rate limit per client ID
+* `#[attributes.principal]`: Rate limit per user
+|===
+
+
+== How This Policy Works
+
+The LLM Token Based Rate Limit policy monitors token consumption in the current window, allowing requests to reach the backend only if the available token quota is greater than zero.
+
+The policy uses a fixed-window rate limiting algorithm. The window starts after it receives the first request. When the quota is exhausted, requests are rejected with a `429` status code until the time window resets.
+
+The `keySelector` parameter enables you to create independent rate limit counters for different groups of requests. Each unique value resolved by the DataWeave expression has its own token quota and time window. For example, if you configure `keySelector: "#[attributes.headers['client_id']]"` with a limit of 1000 tokens per 60 seconds, each client has its own 1000-token quota in a 60-second window.
+
+=== Response Headers
+
+When a request is processed, the policy adds the following headers to the response:
+
+* `x-token-limit`: The maximum number of tokens allowed per window
+* `x-token-remaining`: The number of tokens remaining in the current window
+* `x-token-reset`: The remaining time, in milliseconds, until a new window starts
+
+== See Also
+
+* xref:flex-gateway-llm-proxy.adoc[LLM Proxy] - Overview of LLM Proxy and routing
+* xref:flex-gateway-llm-proxy-token-reports.adoc[Viewing Token Usage and LLM Metrics] - Token usage reports and limiting usage
+* xref:policies-included-a2a-token-rate-limit.adoc[A2A Token Based Rate Limit] - Token-based rate limiting for A2A agent traffic
