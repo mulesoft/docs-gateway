@@ -1,3 +1,4 @@
+//tag::timeout-types[]
 Flex Gateway offers these timeouts to improve service quality and reduce computing resource waste:
 
 * *Stream Idle Timeout* +
@@ -14,13 +15,17 @@ By default, all Flex Gateway API instances have an upstream idle timeout of 60 s
 The Response Timeout enables you to set a maximum amount of a time Flex Gateway waits for a response from an upstream service. The timeout time starts at the last request sent by Flex Gateway.
 +
 By default, all Flex Gateway API instances have a response timeout of 15 seconds.
+//end::timeout-types[]
 
+//tag::timeout-configuration-options[]
 You can configure these timeouts via:
 
 * Environment variables: Applies to all API instances and is the most permanent configuration option.
 * Configuration YAML file: Applies to all API instances and is easy to adjust.
 * Policy: Applies to just one API instance or upstream providing granularity and is easy to adjust.
+//end::timeout-configuration-options[]
 
+//tag::timeout-configuration-env-var[]
 == Configure Timeouts via Environment Variables
 
 Configure timeouts with these environment variables:
@@ -33,6 +38,9 @@ FLEX_UPSTREAM_RESPONSE_TIMEOUT_SECONDS: 15
 
 Edit the variables with your desired configurations.
 
+//end::timeout-configuration-env-var[]
+
+//tag::timeout-configuration-yaml[]
 == Configure Timeouts via YAML Configuration Resources
 
 Edit and then apply this configuration resource to update your timeouts:
@@ -50,6 +58,9 @@ spec:
     streamIdleSeconds: 60
 ----
 
+//end::timeout-configuration-yaml[]
+
+//tag::timeout-configuration-policies[]
 == Configure Timeouts via Policies
 
 Apply these policies to your API instance or upstream service:
@@ -58,3 +69,4 @@ Apply these policies to your API instance or upstream service:
 * xref:policies-outbound-upstream-idle-timeout.adoc[]
 * xref:policies-included-response-timeout.adoc[]
 
+//end::timeout-configuration-policies[]
