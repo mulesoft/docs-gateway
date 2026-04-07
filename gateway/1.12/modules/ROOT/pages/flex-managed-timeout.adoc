@@ -6,29 +6,24 @@ endif::[]
 
 include::partial$timeout-configuration.adoc[tags=timeout-types]
 
-You can set these values during deployment, and update them later in Runtime Manager.
+You can configure these timeouts for Managed Flex Gateway via:
 
-== Configure Timeouts in Runtime Manager
-
-To configure timeout defaults for a Managed Flex Gateway in Runtime Manager:
-
-. In Anypoint Platform, select *Runtime Manager*.
-. Select *Flex Gateways*.
-. Select your Managed Flex Gateway.
-. Open *Runtime Configurations*.
-. Open *Timeouts*.
-. Set values for *Stream Idle Timeout*, *Upstream Connection Idle Timeout*, and *Upstream Response Timeout*.
-. Apply the changes.
+* Managed Flex Gateway deployment: Set initial timeout values when you create the gateway.
+* Runtime Manager runtime configurations: Applies to all API instances in the gateway after the gateway is deployed.
+* Environment variables: Applies to all API instances and is the most permanent configuration option.
+* Configuration YAML resource: Applies to all API instances and is easy to adjust.
+* Policy: Applies to one API instance or upstream and provides granular control.
 
 == Configure Timeouts During Managed Gateway Deployment
 
-You can also set timeout values during the Managed Flex Gateway setup flow.
-For deployment steps, see xref:flex-gateway-managed-set-up.adoc[].
+Set timeout values in the deployment flow when you create a Managed Flex Gateway.
+For the UI steps and parameter descriptions, see xref:flex-gateway-managed-set-up.adoc[].
 
-== Configure Timeouts with Policies
+:flex-gateway-timeout-label: Managed
+include::partial$timeout-runtime-manager.adoc[tags=timeout-runtime-manager]
 
-For API-level or upstream-level timeout overrides, apply timeout policies:
+include::partial$timeout-configuration.adoc[tags=timeout-configuration-env-var]
 
-* xref:policies-included-stream-idle-timeout.adoc[]
-* xref:policies-outbound-upstream-idle-timeout.adoc[]
-* xref:policies-included-response-timeout.adoc[]
+include::partial$timeout-configuration.adoc[tags=timeout-configuration-yaml]
+
+include::partial$timeout-configuration.adoc[tags=timeout-configuration-policies]
