@@ -19,7 +19,9 @@ endif::[]
 
 The LLM Token Based Rate Limit policy enforces rate limiting on LLM Proxy requests based on the number of tokens consumed providing control over API usage based on actual token consumption reported by the upstream LLM provider.
 
-It counts tokens from API responses and enforces rate limits per key selector (for example, per client ID). When the token limit is exceeded, the policy blocks the call and returns a `429` status code. The policy supports both streaming and non-streaming responses.
+It counts request, response, and reasoning token (if applicable). When the token limit is exceeded, the policy blocks the call and returns a `429` status code. 
+
+The policy supports both streaming and non-streaming responses.
 
 == Configuring Policy Parameters
 
