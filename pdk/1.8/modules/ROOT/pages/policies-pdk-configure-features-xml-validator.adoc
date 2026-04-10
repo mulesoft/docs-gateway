@@ -6,18 +6,18 @@ endif::[]
 
 [NOTE]
 ====
-To view an example policy project that uses Flex Gateway Policy Development Kit (PDK)'s XML Validator library, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/xml-validation/README.md[XML Validation Policy Example^].
+To view an example policy project that uses Flex Gateway Policy Development Kit (PDK)'s XML Validator library, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/xml-validation/README.md[XML Validation Policy Example].
 ====
 
-XML payloads can inflate element counts, nesting depth, and attribute size, so parsers consume excessive memory or CPU. The PDK XML Validator library streams the incoming XML body and enforces configurable limits on structure and size. Use the library as a building block for custom policies. The library mirrors the limits that the built-in xref:policies-included-xml-threat-protection.adoc[] enforces for Flex Gateway at the product level.
+Excessive element counts, nesting depth, and attribute sizes in XML payloads can cause parsers to consume excessive memory or CPU. The PDK XML Validator library streams the incoming XML body and enforces configurable limits on its structure and size. Use this library to build custom policies. The library mirrors the limits of the built-in xref:policies-included-xml-threat-protection.adoc[] for Flex Gateway.
 
-Use the library when your custom policy must:
+Use the library when your custom policy must perform these tasks.
 
 * Accept XML request or response bodies and reject malformed or oversized documents before the gateway fully buffers them.
 * Apply limits that match your API’s threat model, such as maximum element depth, number of children per element, or text node length.
-* Process large bodies incrementally using the xref:policies-pdk-configure-features-headers.adoc#streaming-bodies[streaming body state].
+* Process large bodies incrementally by using the xref:policies-pdk-configure-features-headers.adoc#streaming-bodies[streaming body state].
 
-Import the builder from the `xml_validator` module of the PDK crate:
+Import the builder from the `xml_validator` module of the PDK crate.
 
 [source,Rust]
 ----
@@ -42,14 +42,14 @@ The builder methods map to the same constraint types as xref:policies-included-x
 | `with_max_comment_length` | Maximum length of comment content, in characters.
 |===
 
-Call only the methods for limits you want to enforce. Omit the rest if the defaults work for your policy. See the PDK Rust API documentation for your release for exact defaults and any extra options.
+Call only the methods for the limits you want to enforce. If the defaults work for your policy, omit the rest. For exact defaults and extra options, see the PDK Rust API documentation for your release.
 
 [[validate-xml-stream]]
 == Validate an XML Request Body Stream
 
-Validate the raw byte stream of the body. Use the streaming body state so the parser processes data as it arrives. You need streaming for bodies larger than the buffered body limit; it also matches how PDK exposes large payloads. For more on streaming, see xref:policies-pdk-configure-features-headers.adoc#streaming-bodies[].
+Validate the raw byte stream of the body. Use the streaming body state so the parser processes data as it arrives. Streaming is required for bodies larger than the buffered body limit, and it matches how the PDK exposes large payloads. For more information, see xref:policies-pdk-configure-features-headers.adoc#streaming-bodies[Streaming Bodies].
 
-`validate_stream` consumes the stream, succeeds when the document is well-formed and within your limits, and returns an error if the XML is invalid or breaks a constraint.
+The `validate_stream` method consumes the stream, succeeds if the document is well-formed and within your limits, and returns an error if the XML is invalid or breaks a constraint.
 
 [source,Rust]
 ----
@@ -89,19 +89,19 @@ async fn configure(launcher: Launcher, Configuration(_configuration): Configurat
 }
 ----
 
-On success, the example continues the request so upstream processing runs. On failure, the policy returns `400 Bad Request`. Change the status code and body to match your API’s contract.
+On success, the example continues the request to run upstream processing. On failure, the policy returns `400 Bad Request`. Change the status code and body to match your API’s contract.
 
 [[xml-validator-entrypoint]]
 == Initialize the Validator from Policy Configuration
 
-When you supply limits through your policy schema in GCL, parse configuration in the `#[entrypoint]` function and build the `XmlValidatorBuilder` there. If configuration is invalid or incompatible, applying the policy fails before traffic reaches the API. Pass the validator into your request filter. For example, wrap it in `std::rc::Rc` or `std::sync::Arc` when you need shared ownership across closures, depending on your policy layout.
+If you supply limits through your policy schema in GCL, parse the configuration and build the XmlValidatorBuilder in the #[entrypoint] function. If the configuration is invalid or incompatible, applying the policy fails before traffic reaches the API. Pass the validator into your request filter. For example, if you need shared ownership across closures, wrap the validator in std::rc::Rc or std::sync::Arc, depending on your policy layout.
 
-Map your generated `config::Config` fields to the builder methods in <<build-xml-validator>>. Use the types the PDK API expects for your release.
+Map your generated config::Config fields to the builder methods in <<build-xml-validator>>. Use the types the PDK API expects for your release.
 
 [[xml-validator-errors]]
 == Interpret Validation Errors
 
-When `validate_stream` returns `Err`, reject the payload. The XML might be malformed, or it might violate a configured limit. Log the error at debug or warn level when you need operational detail. Return a generic client-facing message when you can't expose parser details.
+If `validate_stream` returns `Err`, reject the payload. The XML might be malformed or violate a configured limit. If you need operational detail, log the error at the debug or warn level. If you can't expose parser details, return a generic client-facing message.
 
 == See Also
 
