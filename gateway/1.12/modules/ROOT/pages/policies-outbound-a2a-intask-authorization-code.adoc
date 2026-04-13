@@ -30,6 +30,10 @@ To learn more about the authentication challenge response, see <<challenge-respo
 To learn more about token handling, see <<token-handling>>.
 . The policy then forwards the request to upstream services.
 
+The policy can reuse a recently supplied secondary token from a token cache (see <<token-caching-intask,Token caching>>) when the inbound user can be identified and the same task context applies.
+
+To not trigger multiple requests for identical tokens, successful token exchanges are cached. By default, the cache only shares tokens between request to the same replica. Enable distributed coaching to share tokens between Flex Replicas.
+
 [NOTE]
 ====
 To ensure agent discovery works uninterrupted, requests to these agent card endpoints bypass the policy without authentication:
@@ -60,9 +64,23 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Code Challenge Method | PKCE code challenge method. Typically `S256` for SHA-256. | Optional
 | Body Encoding | Encoding format for token request body. Typically `form` for `application/x-www-form-urlencoded`. Default: `form`. | Optional
 | Token Timeout | Timeout in seconds for token requests. | Optional
-| User ID Header | Header name containing the user ID for user context propagation. Default: `X-User-Id`. | Optional
 | Challenge Response Status Code | HTTP status code to return for `auth-required` challenge responses. Typically `200` to maintain JSON-RPC compatibility. | Optional
+|Distributed |When enabled, the token cache (and CIBA flow state is applicable) is shared across Flex Gateway replicas. | Optional
 |===
+
+[[token-caching-intask]]
+== Token caching
+
+When the request body includes a secondary access token, the policy stores it for later reuse. When the body has no token, the policy tries the cache before returning an `auth-required` challenge.
+
+* *User identity* — The cache is keyed per end user derived from the bearer JWT in the inbound `Authorization` header. The policy uses the first available of the `sub`, `email`, `azp`, or OAuth client identifier claims. If that JWT cannot be parsed or none of these claims is present, the policy does not cache or reuse tokens.
+* *Cache key* — Includes that user identity, *Token Audience* and *Scopes* when configured, and optional `contextId` from `params.message.contextId` in the JSON-RPC body so different tasks do not share credentials incorrectly.
+* *What gets cached* — Only JWT secondary tokens with a valid `exp` claim are cached. If *Token Audience* is set, the secondary token's audience must match before the token is stored.
+* *TTL* — Cache entry lifetime is derived from the token's expiry (not longer than the token remains valid, with an internal upper bound).
+
+When *Distributed* is disabled, each replica keeps its own cache. When *Distributed* is enabled, replicas share cached entries.
+
+Cache lookups are counted for observability with the `mulesoft_intaskauthorizationcode_cache_lookup` metric.
 
 [[token-handling]]
 == Token Handling

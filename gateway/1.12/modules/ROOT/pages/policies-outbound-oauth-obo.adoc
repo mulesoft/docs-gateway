@@ -20,6 +20,8 @@ The OAuth 2.0 On-Behalf-Of (OBO) Credential Injection policy exchanges an incomi
 
 The policy extracts the Bearer token from the incoming request's `Authorization` header and sends a token exchange request to the token endpoint. The policy then replaces the `Authorization` header with the new token returned from the token exchange service and forwards the modified request to the backend service.
 
+To not trigger multiple requests for identical tokens, successful token exchanges are cached. By default, the cache only shares tokens between request to the same replica. Enable distributed coaching to share tokens between Flex Replicas. To learn more, see <<token-caching-oauth-obo>>.
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
@@ -57,7 +59,21 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |Login Hint Claim |JWT claim from the incoming subject token to send as `login_hint` in the CIBA request. If no hint is specified, `email` is used.
 
 |Binding Message |Optional human-readable message sent as `binding_message` in the CIBA request and displayed on the authentication device.
+
+|Distributed |When enabled, the token cache (and CIBA flow state is applicable) is shared across Flex Gateway replicas.
 |===
+
+[[token-caching-oauth-obo]]
+== Token caching
+
+The policy stores each exchanged downstream access token and reuses it when later requests present the same token. Cached entries are tied to a stable key and expire in line with the token’s lifetimea:
+
+* *Cache key*: A hash of the incoming subject token, the configured *Scope* values (when present), the target audience from *Target Value* for OAuth 2.0 Token Exchange (Microsoft Entra OBO uses an empty audience component in the key when no target value applies), and an optional A2A `contextId` from `params.message.contextId` when the request body is JSON-RPC.
+* *TTL*: Cache entry lifetime is derived from the exchanged token. The policy uses `expires_in` from the token response, or otherwise the JWT `exp` claim on the access token when it is a JWT. Entries are discarded after they expire.
+* If the policy cannot determine expiry, it skips caching for that response. If the policy cannot build a cache key, it performs the exchange without using the cache.
+* When *Enable CIBA* is enabled, CIBA initiation and polling state—including the approved access token—is cached through the same mechanism.
+
+Cache lookups are counted for observability with the `mulesoft_obo_cache_lookup` metric.
 
 == CIBA Behavior
 
