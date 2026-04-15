@@ -102,6 +102,41 @@ spec:
 
 In this example, the `user` is set to the default value `user1`, the `password` is set to `12345678`, and no description is provided.
 
+For an outbound policy defined by the injection point metadata:
+
+[source,yaml]
+----
+metadata:
+  labels:
+    title: my-custom-policy
+    category: Security
+    metadata/capabilities/injectionPoint: outbound
+----
+
+The policy configuration is indented to apply the policy to the service:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: ingress-http
+spec:
+  address: http://0.0.0.0:8081
+  services:
+    upstream:
+      address: http://backend
+      routes:
+        - config:
+            destinationPath: /anything/echo/
+      policies:
+        - policyRef:
+            name: my-custom-policy
+          config:
+            password: 12345678
+----
+
+
 == Add Additional Policies
 
 You can also apply additional policies to the test API instance to test your custom policies behavior alongside other policies.
