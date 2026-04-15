@@ -109,17 +109,17 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `enableProtectedResourceMetadata`
 | Optional
 | false
-| Enables https://www.rfc-editor.org/rfc/rfc9728[RFC 9728] OAuth 2.0 Protected Resource Metadata. When `true`, all `401` responses include a `WWW-Authenticate` header with the resource metadata URL pointing the MCP client to the discovery endpoint. The resource metadata URL is derived from the introspection url, for example, `https://auth.example.com/introspect` becomes `https://auth.example.com/.well-known/oauth-protected-resource`.
+| Enables https://www.rfc-editor.org/rfc/rfc9728[RFC 9728] OAuth 2.0 Protected Resource Metadata. When `true`, all `401` responses include a `WWW-Authenticate` header with the resource metadata URL `{api_path}/.well-known/oauth-protected-resource`.  When a client makes a GET request to this path, Flex Gateway responds with a JSON document containing the authorization server metadata. By default, Flex Gateway derives the authorization server URL supplied in the metadata from the introspection endpoint URL, for example, `https://auth.example.com/introspect` becomes `https://auth.example.com`.
 
 | `overrideProtectedResourceMetadataAuthorizationServerUrl`
 | Optional
 | false
-| Overides the default base URL to supply a custom base URL instead. For example, when the authorization server uses a different path, such as Keycloak realms.
+| Overrides the authorization service URL with a custom URL. For example, when the authorization service uses a different path, such as Keycloak realms.
 
 | `protectedResourceMetadataAuthorizationServerUrl`
 | Optional
 |
-| Server base URL to use when `overrideProtectedResourceMetadataAuthorizationServerUrl` is `true`. For example, you can overide `https://auth.example.com/` to `https://auth.example.com/realms/myrealm`.
+| Server base URL to use when `overrideProtectedResourceMetadataAuthorizationServerUrl` is `true`.
 
 |===
 
