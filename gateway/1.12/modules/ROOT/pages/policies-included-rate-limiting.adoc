@@ -86,6 +86,8 @@ For example, `#[attributes.queryParams['identifier']]` creates an independent co
 
 |===
 
+NOTE: If distributed rate limiting is enabled, the policy resizes time windows under 10 seconds linearly. For example, if you configure a max of 10 requests per 5 seconds, the policy resizes that window to a max of 20 requests per 10 seconds.
+
 ==== Resource Configuration Example
 
 The following example defines a rate limit of three requests every six seconds:
@@ -150,6 +152,8 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Expose Headers| The option that defines whether to expose the  <<response-header,x-ratelimit headers>> as part of the response | checked or unchecked
 |Block on unknown quota  | For policies using distributed rate limiting, block requests if the policy cannot retrieve the quota from shared storage. If not enabled and the quota can't be retrieved, no rate limiting is applied.  
 |===
+
+NOTE: If distributed rate limiting is enabled, the policy resizes time windows under 10 seconds linearly. For example, if you configure a max of 10 requests per 5 seconds, the policy resizes that window to a max of 20 requests per 10 seconds.
 
 == How This Policy Works
 
@@ -298,4 +302,3 @@ By default, the X-RateLimit headers are disabled in the response. You can enable
 *When should I use Rate Limiting instead of Rate-Limiting SLA or Spike Control?*
 
 Use Rate Limiting and *Rate-Limiting SLA* policies for accountability and to enforce a hard limit to a group (using the identifier in Rate Limiting) or to a client application (using *Rate-Limiting SLA*). If you want to protect your backend, use the *Spike Control* policy instead.
-
