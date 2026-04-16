@@ -1,0 +1,343 @@
+= Reading and Writing Request Headers and Bodies with Stop Iteration
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+With Flex Gateway Policy Development Kit (PDK), you can read and write to request and response headers and bodies and read from a streamed body.
+
+Use the Flex Gateway PDK `enable_stop_iteration` feature to access both headers and body in a unified state without transitioning between separate header and body states. 
+Enable this feature to simultaneously read and modify headers and body content, perform HTTP client calls between header and body access, and maintain header context throughout request or response processing.
+
+== Enable Stop Iteration
+
+To enable this stop iteration, add `enable_stop_iteration` to your policy's Cargo.toml dependencies:
+
+[source,toml]
+----
+[dependencies]
+pdk = { version = "1.8.0", features = ["enable_stop_iteration"] }
+----
+
+After enabling the feature, use `into_headers_body_state()` to transition from the initial request or response state to a combined headers-body state:
+
+[source,Rust]
+----
+use pdk::hl::*;
+
+async fn request_filter(request_state: RequestState) -> Flow<()> {
+   // Transition to headers-body state
+   let state = request_state.into_headers_body_state().await;
+
+   // Access both headers and body through the unified handler
+   state.handler().set_header("x-custom-header", "value");
+
+   if state.contains_body() {
+       let _ = state.handler().set_body("modified body".as_bytes());
+   }
+
+   Flow::Continue(())
+}
+----
+
+The `into_headers_body_state()` method returns a `RequestHeadersBodyState` for request flows or `ResponseHeadersBodyState` for response flows. Both states provide a unified `handler()` that implements both `HeadersHandler` and `BodyHandler` traits:
+
+* Access headers with `header()`, `headers()`, `set_header()`, `add_header()`, `remove_header()`, and `set_headers()`.
+* Access body with `body()` and `set_body()`.
+* Check if a response body exists with `contains_body()`.
+
+After transitioning to headers state, you can perform HTTP client calls or other async operations, then transition to headers-body state:
+
+[source,Rust]
+----
+async fn request_filter(
+   request_state: RequestState,
+   client: HttpClient,
+) -> Flow<()> {
+   // Access headers first
+   let headers_state = request_state.into_headers_state().await;
+   let method = headers_state.handler().header(":method").unwrap();
+
+
+   // Perform HTTP calls while in headers state
+   let response = client
+       .request("https://api.example.com/validate")
+       .method("GET")
+       .send()
+       .await?;
+
+
+   // Transition to headers-body state to access both
+   let state = headers_state.into_headers_body_state().await;
+
+   // Headers remain accessible after transition
+   assert_eq!(method, state.handler().header(":method").unwrap());
+
+   // Body is now accessible
+   let body = String::from_utf8_lossy(state.handler().body().as_ref());
+   state.handler().set_body(format!("{}-modified", body).as_bytes())?;
+
+   Flow::Continue(())
+}
+----
+
+== Stop Iteration Configuration Examples
+
+PDK provides the https://github.com/mulesoft/pdk-custom-policy-examples/tree/main/stop-iteration[Stop Iteration Example policy] to demonstrate how to use the headers-body unified state in Rust code.
+
+Within the example policy, see these code sections for additional configuration details:
+
+* https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/stop-iteration/src/lib.rs#L10-L40[Transition to headers-body state and modify both headers and body in request filter]
+* https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/stop-iteration/src/lib.rs#L42-L61[Use headers-body state in response filters]
+* https://github.com/mulesoft/pdk-custom-policy-examples/blob/main/stop-iteration/src/lib.rs#L25-L37[Handle body modification with error handling]
+
+== Handling Requests Without Body
+
+When a request or response does not contain a body, the headers-body state handler gracefully handles the absence:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState) -> Flow<()> {
+   let state = request_state.into_headers_body_state().await;
+
+   // Check if body exists
+   if state.contains_body() {
+       let body = state.handler().body();
+       // Process body
+   }
+
+   // Attempting to set body on a request without body returns an error
+   if let Err(BodyError::BodyNotSent) = state.handler().set_body("data".as_bytes()) {
+       // Handle case where body cannot be set (e.g., GET request)
+       state.handler().set_header("x-data", "data");
+   }
+
+   Flow::Continue(())
+}
+----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+============================================================
+
+
+
+
+With Flex Gateway Policy Development Kit (PDK), you can read and write to request and response headers and bodies and read from a streamed body.
+
+[[event-flow]]
+== Event Flow
+
+When filtering requests and responses, Proxy Wasm splits handling the headers and body into two main events that must happen in a specific order. Before the policy can handle the body, the header event has to fully propagate through all policies. For example, the event flow for an API with two policies applied is:
+
+. Policy 1 handles the request header event.
+. Policy 2 handles the request header event.
+. The backend service receives the request headers.
+. Policy 1 handles the request body event.
+. Policy 2 handles the request body event.
+. The backend receives the request body.
+. The backend sends the response.
+. Policy 2 handles the response header event.
+. Policy 1 handles the response header event.
+. The client receives the response headers.
+. Policy 2 handles the response body event.
+. Policy 1 handles the response body event.
+. The client receives the response body.
+
+This order creates the following limitations:
+
+* Policies can’t modify headers after reading the body.
+* All policies must fully process the header event before reading the body. Saving data of the body on one policy and then modifying the headers using that body data in a different policy isn’t possible.
+* When all policies process the header event, it reaches the backend service. To ensure no data from a rejected request reaches the backend service, you must reject the headers based on only the request headers. When rejecting requests based on their body, most servers and clients can detect interrupted requests and discard the headers of the request.
+
+In the policy source code, reading the body separates the header and body event. For example, if the declaration `let body_state = headers_state.into_body_state().await;` is used to read the body, everything prior to the declaration occurs in the header event, and everything after occurs in the body event.
+
+[[read-and-write-headers]]
+== Read and Write Request Headers
+
+To access the headers in both the request and the response, transform the `RequestState` or `ResponseState` to a header state by calling the method `into_headers_state()` and awaiting it. After calling the method, access and manipulate the headers by calling the functions of the `HeadersHandler` trait.
+
+[source,Rust]
+----
+pub trait HeadersHandler {
+    fn headers(&self) -> Vec<(String, String)>;
+    fn header(&self, name: &str) -> Option<String>;
+    fn add_header(&self, name: &str, value: &str);
+    fn set_header(&self, name: &str, value: &str);
+    fn set_headers(&self, headers: Vec<(&str, &str)>);
+    fn remove_header(&self, name: &str);
+}
+----
+
+You can access headers in `on_request` or `on_response` wrapped functions by implementing the following code:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState, _config: &Config) {
+    let headers_state = request_state.into_headers_state().await;
+    let headers_handler = headers_state.handler();
+    let old_value = headers_handler.header("request-header").unwrap_or_default();
+
+    let new_value = "--replaced--";
+    logger::info!("Old request header value: {old_value}, New value: {new_value}");
+    headers_handler.set_header("request-header", new_value);
+}
+
+async fn response_filter(response_state: ResponseState, _config: &Config) {
+    let headers_state = response_state.into_headers_state().await;
+    let headers_handler = headers_state.handler();
+    let old_headers = headers_handler.header("request-header").unwrap_or_default();
+
+    let new_value = vec![("response-header1", "--replaced--"), ("response-header2", "--replaced--")];
+    logger::info!("Old request header value: {old_headers:?}, New value: {new_value:?}");
+    headers_handler.set_headers(new_value);
+}
+----
+
+Envoy handles the method, scheme, path, authority, and status codes as headers. PDK provides the following methods to access and modify the request's `:method`, `:scheme`, `:path`, `:authority`, and `:status` Envoy headers:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState, _config: &Config) {
+    let headers_state = request_state.into_headers_state().await;
+    let method = headers_state.method();
+    let scheme = headers_state.scheme();
+    let authority = headers_state.authority();
+    let path = headers_state.path();
+    ...
+}
+
+async fn response_filter(response_state: ResponseState, _config: &Config) {
+    let headers_state = response_state.into_headers_state().await;
+    let status = headers_state.status_code();
+}
+----
+
+[[read-and-write-request-bodies]]
+== Read and Write Request Bodies
+
+NOTE: Reading and writing bodies is limited to payloads of size 1MB or smaller. For larger payloads, see <<streaming-bodies>>.
+
+To access the body in both the request and the response, transform the `RequestState` or `ResponseState` to a body state by calling the method `into_body_state()` and awaiting it:
+
+[source,Rust]
+----
+let body_state = request_state.into_body_state().await;
+----
+
+NOTE: The previous `.await` introduces a cancellation point. During a request, a xref:policies-pdk-configure-features.adoc#flow-cancellation[Flow Cancellation] might cause the `.await` to never resume.
+
+If the original state was already transformed into a header state, transform the state into a body state by calling the same function, for example:
+
+[source,Rust]
+----
+let headers_state = request_state.into_headers_state().await;
+let body_state = headers_state.into_body_state().await;
+----
+
+After calling `into_body_state()`, access and manipulate the headers by calling the functions of the `BodyHandler` trait.
+
+[source,Rust]
+----
+pub trait BodyHandler {
+    fn body(&self) -> Vec<u8>;
+    fn set_body(&self, body: &[u8]) -> Result<(), BodyError>;
+}
+----
+
+Because Envoy uses the same buffer to share data from the headers and the body, the policy cannot access the headers and the body at the same time. If the policy must read both:
+
+. Read the headers and save the necessary values in a variable.
+. Read the body.
+
+You can read the headers and then the body in both the response and request. However, you cannot modify headers after reading the body. Complete all header modification before reading the body, for example:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState) {
+    let headers_state = request_state.into_headers_state().await;
+    let headers_handler = headers_state.handler();
+
+    let agent = headers_handler.header("User-Agent").unwrap_or_else(|| "Undefined".to_string());
+
+    // Removing old content length header before manipulating body
+    headers_handler.remove_header("content-length");
+
+    let body_state = headers_state.into_body_state().await;
+    let body_handler = body_state.handler();
+    let body = body_handler.body();
+
+    logger::info!("User: {agent} sent: {}", String::from_utf8_lossy(body.as_slice()));
+	
+    let new_body = "new body".as_bytes();
+    match body_handler.set_body(&new_body) {
+        Ok(_) => logger::info!("Body updated"),
+        Err(e) => logger::info!("Unable to set body. Reason: {e:?}),
+    }
+}
+----
+
+NOTE: This code removes the `content-length` header. This is required to modify the body.
+
+`BodyHandler::set_body()` method returns a `Result<(), BodyError>` object. Body updating might fail due to:
+
+* `BodyError::BodyNotSent`: The current HTTP Flow doesn't have a body (for example, `GET` request).
+* `BodyError::ExceededBodySize`: The new body exceeds the maximum body buffer size supported by Envoy.
+
+[[streaming-bodies]]
+== Streaming Bodies
+
+NOTE: To view an example policy that uses the streaming body state, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/stream-payload/README.md[Stream Payload Policy].
+
+To handle request or response bodies larger than 1MB, use the streaming body state. The streaming body state enables the body to be processed as chunks as data arrives. When using the streaming body state, you cannot write to the body. Using the stream body state doesn't affect reading and writing headers
+
+To use the streaming body state, convert the `RequestState` or `ResponseState` into a body stream state by calling the `into_body_stream_state()` method and awaiting it:
+
+[source,Rust]
+----
+let body_stream_state = request_state.into_body_stream_state().await;
+----
+
+After conversion, access the incoming chunks through the `stream()` method:
+
+[source,Rust]
+----
+let mut stream = body_stream_state.stream();
+while let Some(chunk) = stream.next().await {
+    // Process each chunk as it arrives
+    let chunk_bytes = chunk.into_bytes();
+    // ... process chunk_bytes ...
+}
+----
+
+NOTE: For an example of chunk processing, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/stream-payload/src/lib.rs#L30[Stream Payload Policy Chunks].
+
+If you need the complete body before processing the payload, use the `collect()` method to collect all chunks:
+
+[source,Rust]
+----
+let collect = stream.collect().await;
+----
+
+NOTE: For an example of how to collect and process full payloads, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/stream-payload/src/lib.rs#L54[Stream Payload Policy Collect].
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]
