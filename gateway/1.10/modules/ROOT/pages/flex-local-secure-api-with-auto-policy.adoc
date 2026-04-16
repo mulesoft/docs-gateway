@@ -1,0 +1,316 @@
+= Secure an API with an Automated Resource-Level Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Publish an API running behind Flex Gateway in Local Mode, modifying YAML configuration data by the following method:
+
+* Linux and Docker: `.yaml` files
+
+The following procedures demonstrate applying a simple resource-based YAML configuration for an API with multiple upstream services, all secured with an automated resource-level authentication policy. 
+
+Refer to xref:policies-automated-overview.adoc[Automated Policies] and xref:policies-resource-level-overview.adoc[Resource-Level Policies] for more information.
+
+[NOTE]
+====
+Automated policies can only be defined in resource-based configurations. The inline configuration model is not supported. For more information about the difference between resource-based and inline configuration models, see xref:flex-local-configuration-reference-guide.adoc[Declarative Configuration Reference Guide].
+====
+
+[cols="1,1"]
+|===
+
+|image:install-linux-logo.png[20%,20%,xref="flex-local-secure-api-with-auto-policy.adoc#publish-an-api-running-behind-flex-gateway-on-linux"]
+
+|image:install-docker-logo.png[25%,25%,xref="flex-local-secure-api-with-auto-policy.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container"]
+
+|xref:flex-local-secure-api-with-auto-policy.adoc#publish-an-api-running-behind-flex-gateway-on-linux[Publish an API Running Behind Flex Gateway on Linux]
+
+|xref:flex-local-secure-api-with-auto-policy.adoc#publish-an-api-running-behind-flex-gateway-in-a-docker-container[Publish an API Running Behind Flex Gateway in a Docker Container]
+
+|===
+
+== Publish an API Running Behind Flex Gateway on Linux 
+
+=== Before You Begin
+
+Before getting started, ensure that you have:
+
+* Flex Gateway installed and running in local mode. See xref:flex-install.adoc[] for more information about installing and running the gateway. 
+* Your upstream service URLs. The following example refers to fictional `products-api` and `users-api` services, but you can specify your own API name in `metadata.name` and your service details in `spec.services`.
+
+=== Publish an API
+
+. Create a configuration file with a `.yaml` file extension:
+.. Give the file a custom name.
+.. Save the file in the Flex Gateway configuration directory `/etc/mulesoft/flex-gateway/conf.d/custom`. This directory can contain multiple configuration files.
+
+. Copy and paste the following two `ApiInstance` resources into the file, substituting your values where indicated:
++
+----
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: products-api
+  labels:
+    secured-by-automated-policy: yes
+spec:
+  address: http://0.0.0.0:8080
+  services:
+    products:
+      address: https://<your products URL>:<your port>/
+      routes:
+        - rules:
+            - path: /products(/.*)
+            - path: /products-featured(/.*)
+          config:
+            destinationPath: /api
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: users-api
+  labels:
+    secured-by-automated-policy: yes
+spec:
+  address: http://0.0.0.0:8081
+  services:
+    users:
+      address: https://<your users URL>:<your port>/
+      routes:
+        - rules:
+            - path: /api/users(/.*)
+----
+
+. Define an automated xref:policies-included-basic-auth-simple.adoc[basic authentication policy] by adding the following `PolicyBinding` resource after the `ApiInstance` resources:
++
+----
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: security-protection
+spec:
+  targetRef:
+    kind: Selector
+    selector:
+      kind: ApiInstance
+      labels:
+        secured-by-automated-policy: yes
+  policyRef:
+    name: http-basic-authentication-flex
+  config:
+    username: chris
+    password: admin
+----
++
+Applying an automated policy to multiple API instances requires that you specify the `Selector` `kind` in your policy binding. The example `PolicyBinding` resource includes a `spec.targetRef.kind` value of `Selector`, and a `spec.targetRef.selector.kind` value of `ApiInstance`.
++
+The example resource also applies a basic authentication policy to two API instances. It defines a `secured-by-automated-policy` label (the label name is customizable) in `spec.targetRef.selector.labels`. This label matches the label defined in the `ApiInstance` `metadata.labels` property, which associates the automated policy with that resource.
++
+Alternatively, automated policies can be applied to all API instances by omitting the labels.
+
+. Save the file. The gateway automatically refreshes the configuration.
++
+. View the logs by executing the following command:
++
+----
+journalctl -u flex-gateway-*
+----
++
+The response looks something like this: 
++
+----
+[agent][info] Generating config
+[agent][info] Gateway default/21cf4286e38f: Adding ApiInstance default/products-api http://0.0.0.0:8080
+[agent][info] Gateway default/21cf4286e38f: Adding Policy default/security-protection
+[agent][info] Gateway default/21cf4286e38f: Adding Route: &{host: path:/api/products(/.*) methods: headerConditions:[] profile:0xc00004f750} => {Kind:Service Name:products-api-products Namespace:default}
+[agent][info] Gateway default/21cf4286e38f: Adding Policy default/envoy.filters.http.router
+[agent][info] Gateway default/21cf4286e38f: Adding ApiInstance default/users-api http://0.0.0.0:8081
+[agent][info] Gateway default/21cf4286e38f: Adding Policy default/security-protection
+[agent][info] Gateway default/21cf4286e38f: Adding Route: &{host: path:/api/users(/.*) methods: headerConditions:[] profile:0xc0061823f0} => {Kind:Service Name:users-api-users Namespace:default}
+[agent][info] Gateway default/21cf4286e38f: Adding Policy default/envoy.filters.http.router
+[agent][info] Gateway default/21cf4286e38f: Adding Service default/products-api-products https://<your products URL>:<your port>/
+[agent][debug] generating service products-api-products.default.svc hostname: https://<your products URL> port: <your port>
+[agent][info] Gateway default/21cf4286e38f: Adding Service default/users-api-users https://<your users URL>:<your port>/
+[agent][debug] generating service users-api-users.default.svc hostname: https://<your users URL> port: <your port>
+[agent][info] Writing envoy bootstrap configuration to /tmp/envoy.json
+[envoy][info] cds: add 2 cluster(s), remove 3 cluster(s)
+[envoy][info] cds: added/updated 0 cluster(s), skipped 2 unmodified cluster(s)
+----
+
+. Test the APIs with a tool such as `curl`, specifying the given authentication credentials. The automated authentication policy secures both APIs.
+
+. Apply resource-level granularity to the automated authentication policy by substituting the `PolicyBinding` resource with the following:
++
+----
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: security-protection
+spec:
+  targetRef:
+    kind: Selector
+    selector:
+      kind: ApiInstance
+      labels:
+        secured-by-automated-policy: yes
+  policyRef:
+    name: http-basic-authentication-flex
+  config:
+    username: chris
+    password: admin
+  rules:
+   - methods: GET
+----
++
+In this example, the automated authentication policy is applied only to the `GET` method resource, as specified in `spec.rules`.
+
+. Save the file. The gateway automatically refreshes the configuration.
+
+Two APIs secured with the an automated resource-level authentication policy are now running behind Flex Gateway.
+
+== Publish an API Running Behind Flex Gateway in a Docker Container 
+
+=== Before You Begin
+
+Before getting started, ensure that you have:
+
+* Flex Gateway installed. See xref:flex-install.adoc[] for more information. 
+* Flex Gateway registered and running in Local Mode. See xref:flex-local-reg-run.adoc[Register and Run in Local Mode] for more information. 
+* Your upstream service URLs. The following example refers to fictional `products-api` and `users-api` services, but you can specify your own API name in `metadata.name` and your service details in `spec.services`.
+
+=== Publish an API
+
+. Open a terminal and navigate to the directory that will contain your Flex Gateway configuration files. This directory was specified when you started Flex Gateway.
+
+. Create a configuration file with a `.yaml` file extension:
+.. Give the file a custom name.
+.. Save the file.
+
+. Copy and paste the following two `ApiInstance` resources into the file, substituting your values where indicated:
++
+----
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: products-api
+  labels:
+    secured-by-automated-policy: yes
+spec:
+  address: http://0.0.0.0:8080
+  services:
+    products:
+      address: https://<your products URL>:<your port>/
+      routes:
+        - rules:
+            - path: /products(/.*)
+            - path: /products-featured(/.*)
+          config:
+            destinationPath: /api
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: users-api
+  labels:
+    secured-by-automated-policy: yes
+spec:
+  address: http://0.0.0.0:8081
+  services:
+    users:
+      address: https://<your users URL>:<your port>/
+      routes:
+        - rules:
+            - path: /api/users(/.*)
+----
+
+. Define an automated basic authentication policy by adding the following `PolicyBinding` resource after the `ApiInstance` resources:
++
+----
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: security-protection
+spec:
+  targetRef:
+    kind: Selector
+    selector:
+      kind: ApiInstance
+      labels:
+        secured-by-automated-policy: yes
+  policyRef:
+    name: http-basic-authentication-flex
+  config:
+    username: chris
+    password: admin
+----
++
+Applying an automated policy to multiple API instances requires that you specify the `Selector` `kind` in your policy binding. The example `PolicyBinding` resource includes a `spec.targetRef.kind` value of `Selector`, and a `spec.targetRef.selector.kind` value of `ApiInstance`.
++
+The example resource also applies a basic authentication policy to two API instances. It defines a `secured-by-automated-policy` label (the label name is customizable) in `spec.targetRef.selector.labels`. This label matches the label defined in the `ApiInstance` `metadata.labels` property, which associates the automated policy with that resource.
++
+Alternatively, automated policies can be applied to all API instances by omitting the labels.
+
+. Save the file. The gateway automatically refreshes the configuration.
+
+. View the Docker container logs, which look something like this: 
++
+----
+[agent][info] Generating config
+[agent][info] Gateway default/21cf4286e38f: Adding ApiInstance default/products-api http://0.0.0.0:8080
+[agent][info] Gateway default/21cf4286e38f: Adding Policy default/security-protection
+[agent][info] Gateway default/21cf4286e38f: Adding Route: &{host: path:/api/products(/.*) methods: headerConditions:[] profile:0xc00004f750} => {Kind:Service Name:products-api-products Namespace:default}
+[agent][info] Gateway default/21cf4286e38f: Adding Policy default/envoy.filters.http.router
+[agent][info] Gateway default/21cf4286e38f: Adding ApiInstance default/users-api http://0.0.0.0:8081
+[agent][info] Gateway default/21cf4286e38f: Adding Policy default/security-protection
+[agent][info] Gateway default/21cf4286e38f: Adding Route: &{host: path:/api/users(/.*) methods: headerConditions:[] profile:0xc0061823f0} => {Kind:Service Name:users-api-users Namespace:default}
+[agent][info] Gateway default/21cf4286e38f: Adding Policy default/envoy.filters.http.router
+[agent][info] Gateway default/21cf4286e38f: Adding Service default/products-api-products https://<your products URL>:<your port>/
+[agent][debug] generating service products-api-products.default.svc hostname: https://<your products URL> port: <your port>
+[agent][info] Gateway default/21cf4286e38f: Adding Service default/users-api-users https://<your users URL>:<your port>/
+[agent][debug] generating service users-api-users.default.svc hostname: https://<your users URL> port: <your port>
+[agent][info] Writing envoy bootstrap configuration to /tmp/envoy.json
+[envoy][info] cds: add 2 cluster(s), remove 3 cluster(s)
+[envoy][info] cds: added/updated 0 cluster(s), skipped 2 unmodified cluster(s)
+----
+
+. Test the APIs with a tool such as `curl`, specifying the given authentication credentials. The automated authentication policy secures both APIs.
+
+. Apply resource-level granularity to the automated authentication policy by substituting the `PolicyBinding` resource with the following:
++
+----
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: security-protection
+spec:
+  targetRef:
+    kind: Selector
+    selector:
+      kind: ApiInstance
+      labels:
+        secured-by-automated-policy: yes
+  policyRef:
+    name: http-basic-authentication-flex
+  config:
+    username: chris
+    password: admin
+  rules:
+   - methods: GET
+----
++
+In this example, the automated authentication policy is applied only to the `GET` method resource, as specified in `spec.rules`.
+
+. Save the file. The gateway automatically refreshes the configuration.
+
+Two APIs secured with the an automated resource-level authentication policy are now running behind Flex Gateway.
+
+== See Also
+
+* xref:policies-included-directory.adoc[]

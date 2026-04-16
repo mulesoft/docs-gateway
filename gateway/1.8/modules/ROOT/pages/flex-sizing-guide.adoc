@@ -1,0 +1,67 @@
+= Resource Sizing for Flex Gateway
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:table-caption!:
+
+Before getting started with Flex Gateway, analyze and choose your configuration to obtain the best performance and auto-scaling rate.
+
+When assigning resources for a replica node, consider:
+
+* Number of APIs
+* Amount of memory the node needs
+* Processing power for the node
+* Number of policies in each API
+* Amount of traffic each node handles
+* Amount of time the node takes to answer the request (latency)
+* Type of traffic the node handles, and within the traffic:
+** The number of requests per second (RPS) the node handles
+** Size of each request (bytes)
+
+== Resources
+
+The following table describes the resources you must allocate to your replica node according to your environment:
+
+[options="header"]
+|====
+| Node Size | CPU | RAM 
+| Small | 1-2 cores | 2-4 GB
+| Medium | 2-4 cores | 4-8 GB
+| Large | 8-16 cores | 16-32 GB	
+|====
+
+NOTE: For IBM Power10 deployments, allocate 5-16 CPU cores for a "Large" node.
+
+NOTE: Nodes belonging to a cluster must be of the same size.
+
+== Cluster Size
+
+The following table describes appropriate node and cluster sizes:
+
+[options="header"]
+|====
+| Node Size | Number of APIs | Number of Policies | Expected Latency | Expected Throughput | Target Environment
+| Small | < 100 | 4 | < 30 ms | < 500 RPS | Dev/test cluster
+| Medium | < 500 | 4 | < 20 ms | < 2500 RPS | Production cluster
+| Large | > 500 | 4 | < 10 ms | < 10000 RPS | Mission-critical clusters
+|====
+
+These sizing figures are per node. API configurations replicate to all nodes in the cluster. For example, for 10 APIs deployed each with three policies, the 10 APIs and their policies are deployed to each node in the cluster.
+
+The traffic is distributed across all nodes in the cluster. A small cluster node supports up to 500 RPS, but if the cluster has two nodes then the total traffic that the cluster allows is 1000 RPS (500 RPS for each node). Exceeding the recommended traffic per node eventually causes increased CPU usage. To avoid this issue, you must increase the size of all nodes in the cluster or scale horizontally.
+
+High CPU usage can lead to increased latency. In such a case, proceed with horizontal scaling or increase the node size. 
+
+High memory consumption can lead to out-of-memory errors. To solve this issue, increase the memory allocation or the node size. Horizontal scaling might not help solve issues in this situation. You must increase memory first, and scale horizontally later.
+
+These guidelines are for a cluster with an average request size of 1 KB and four policies implemented. Adjust your parameters depending on your use case. 
+
+The most commonly used out-of-the-box policies are:
+
+* Message logging
+* Rate limiting
+* JWT validation
+* Header injection
+
+Using TLS affects the response time and the process consumption.
