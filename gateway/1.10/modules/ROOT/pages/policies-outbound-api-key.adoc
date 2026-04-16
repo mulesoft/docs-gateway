@@ -1,0 +1,161 @@
+= Credential Injection API Key Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api key, client credentials, authentication, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Credential Injection API Key
+>s|Summary  | Injects an API key or client credentials headers into outgoing requests
+>s|Category | Security
+>s|First Flex Gateway version available | v1.10.2
+>s| Returned Status Codes | No return codes exist for this policy. Error codes are returned from the upstream service.
+|===
+
+== Summary
+
+The Credential Injection API Key policy injects authentication credentials into upstream requests to authenticate with upstream services that require API key or client credential authentication. The policy supports two authentication types:
+
+* **API Key**: Injects an API key value into the `Authorization` header or a custom header.
+* **Client ID and Secret**: Injects the client ID and client secret value into the `client_id` and `client_secret` headers or custom headers.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: credential-injection-api-key-flex
+  config:
+    authType: <string> // REQUIRED
+    overwrite: <boolean> // REQUIRED, default: true
+    # For API Key authentication:
+    apiKey: <string> // REQUIRED when authType is "apiKey"
+    customHeader: <string> // OPTIONAL when authType is "apiKey"
+    # For Client Credentials authentication:
+    clientId: <string> // REQUIRED when authType is "clientCredentials"
+    clientSecret: <string> // REQUIRED when authType is "clientCredentials"
+    customClientIdHeader: <string> // OPTIONAL when authType is "clientCredentials"
+    customClientSecretHeader: <string> // OPTIONAL when authType is "clientCredentials"
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `authType`
+| Required
+| `apiKey`
+| Authentication type to inject, either `apiKey` or `clientCredentials`.
+
+| `overwrite`
+| Required
+| `true`
+| Overwrite authentication headers if present in the request.
+
+| `apiKey`
+| Required when `authType` is `apiKey`.
+| N/A
+| The API key value to inject.
+
+| `customHeader`
+| Optional
+| N/A
+| Use a custom header name instead of `Authorization` for API key injection.
+
+| `clientId`
+| Required when `authType` is `clientCredentials`.
+| N/A
+| The client ID to inject. 
+
+| `clientSecret`
+| Required when `authType` is `clientCredentials`.
+| N/A
+| The client secret to inject.
+
+| `customClientIdHeader`
+| Optional
+| N/A
+| Use a custom header instead of `client_id` for client ID injection.
+
+| `customClientSecretHeader`
+| Optional
+| N/A
+| Use a custom header instead of `client_secret` for client secret injection.
+|===
+
+==== Resource Configuration Examples
+
+* API Key:
++
+----
+- policyRef:
+    name: credential-injection-api-key-flex
+  config:
+    authType: apiKey
+    apiKey: my-secret-api-key
+    overwrite: true
+----
+
+* API Key with Custom Header:
++
+----
+- policyRef:
+    name: credential-injection-api-key-flex
+  config:
+    authType: apiKey
+    apiKey: my-secret-api-key
+    customHeader: X-API-Key
+    overwrite: false
+----
+
+* Client Credentials:
++
+----
+- policyRef:
+    name: credential-injection-api-key-flex
+  config:
+    authType: clientCredentials
+    clientId: my-client-id
+    clientSecret: my-client-secret
+    overwrite: true
+----
+
+* Client Credentials with Custom Headers:
++
+----
+- policyRef:
+    name: credential-injection-api-key-flex
+  config:
+    authType: clientCredentials
+    clientId: my-client-id
+    clientSecret: my-client-secret
+    customClientIdHeader: X-Client-ID
+    customClientSecretHeader: X-Client-Secret
+    overwrite: false
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread]
+|===
+|Parameter |Description
+
+|*Authentication Type* |Type of authentication header to inject: *API Key* or *Client ID and Secret*.
+
+|*Overwrite headers* |Overwrite authentication headers if present in the request.
+
+|*API Key* |The API key value to inject.
+
+|*Custom header* |Use a custom header instead of Authorization for API key injection.
+
+|*Client ID* |The client ID to inject.
+
+|*Client Secret* |The client secret to inject.
+
+|*Custom Client ID header* |Use a custom header instead of `client_id` for client ID injection.
+
+|*Custom Client secret header* |Use a custom header instead of `client_secret` for client secret injection.
+|===

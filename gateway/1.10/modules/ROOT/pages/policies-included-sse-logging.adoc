@@ -1,0 +1,43 @@
+= SSE Logging Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | SSE Logging
+>s|Summary      | Logs every SSE event while streaming 
+>s|Category | SSE
+>s|First Flex Gateway version available | v1.9.3
+>s| Returned Status Codes | No return codes exist for this policy.
+|===
+
+== Summary
+
+The SSE Logging policy enables logging for SSE connections. The configured SSE logs appear in Flex Gateway logs.
+
+NOTE: This policy only provides logs for SSE events. To log non-SSE information, see xref:policies-included-message-logging.adoc[].
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The SSE Logging policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+
+|===
+| Element | Description
+| Logs | List of logs executed on every SSE event.
+| DataWeave expression for SSE response messages | DataWeave Expression that extracts information from the SSE Event. Use `#[payload]` for the event's payload, `#[vars.data]` for the event data, and `#[vars.id]` for the event ID.
+| Category | String prefix to add to each log message. 
+| Level | Defines the level of message to log: `INFO`, `WARN`, `ERROR`, or `DEBUG`. + 
+For more information, see <<severity-levels>>.
+|===
+
+// Severity Level Table
+include::partial$logging-severity-level.adoc[]

@@ -1,0 +1,90 @@
+= Flex Gateway Multiple Region Deployments
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Install Flex Gateway in multiple regions to reduce latency and ensure live failover. You can configure most implementations with either multiple Flex Gateways or multiple Flex Replicas. Depending on which you choose, there are different considerations for Redis Shared-Storage, policies, and logging. To learn more about Flex Replicas, see xref:index.adoc#replicas[Flex Replicas].
+
+All the following diagrams show Flex Gateway running in Connected Mode. For Flex Gateway running in Local Mode, the only difference is that Anypoint Platform isn't present in the deployment model. This doesn't affect how information flows between Flex Gateway and the upstream and downstream services.
+
+The implementation diagrams use Kubernetes terminology, but you can extend the architecture to other technology stacks that have the appropriate network controls applied.
+
+[[implementation-1]]
+== Implementation 1: High Availability with the Same APIs in Two Separate Regions
+
+Implementation 1 provides high availability for non-region-specific traffic. The DNS service is configured for active-active failover, meaning each region services traffic at all times.
+
+[[implementation-1a]]
+=== Implementation 1A: Cross-Regional Flex Gateway
+
+In this implementation:
+
+* A single Flex Gateway has Flex Replicas distributed across multiple regions.
+* Flex Gateway is registered once in Anypoint Platform and deployed across multiple regions and availability zones.
+* Logs and metrics for each Flex Gateway are consolidated in Anypoint Platform.
+* The DNS service is configured for active-active failover to direct traffic to any region at all times.
+* APIs deployed to the Gateway are available in all regions and availability zones. 
+* API configurations, including upstream services and policies are the same for all regions. Upstream services must be region-agnostic, meaning either the DNS is local or it lacks any reference to the region.
+* The Redis cluster must be replicated across regions or Redis shared storage can't be used. Redis replication is required when traffic isn't region-specific.   
+* The only cross-regional traffic is Redis synchronization.
+
+In the following diagram, Flex Replicas in different regions and availability zones have distinct Kubernetes deployments:
+
+image:high-availability-1a.png["A detailed view of implementation 1A, which contains the necessary services to support high availability in for Flex Replicas deployed in different regions."]
+
+
+[[implementation-1b]]
+=== Implementation 1B: Region-Specific Flex Gateway
+
+In this implementation:
+
+* Each region has a distinct Flex Gateway with all resources as independent entities.
+* A separate Flex Gateway is registered for each region.
+* Each region-specific API instance has distinct metrics, alerts, and logs in Anypoint Platform.
+* Policies are region specific even if the configuration is similar across regions.
+* The DNS service is configured for active-active failover to direct traffic to any region at all times.
+* API deployments are specific to each Flex Gateway. For each API a region supports, you must deploy an API instance to the region's Flex Gateway. 
+* API Groups can share contracts (access requests) across regions. An API Group might not be required for your configuration.
+* Redis shared storage does not require synchronization. 
+* There is no cross-regional traffic.
+
+In the following diagram, all APIs are duplicated and don't require identical configurations:
+
+image:high-availability-1b.png["A detailed view of implementation 1B, which contains the necessary services to support high availability for region-specific Flex Gateways."]
+
+[[implementation-2]]
+== Implementation 2: Disaster Recovery for APIs
+
+This implementation is similar to <<implementation-1a>>. However, the DNS service is active-passive, so the standby region only receives traffic if the primary region becomes unhealthy. This implementation is less complex to configure than implementation 1A.
+
+Redis synchronization is not required if a cache loss during failover is acceptable.
+
+In the following diagram, Flex Replicas in different availability zones have distinct Kubernetes deployments. Region B provides high availability but receives traffic only if region A is unhealthy:
+
+image:high-availability-2.png["A detailed view of implementation 2, which contains the necessary services to enable disaster recovery for APIs on Flex Gateway."]
+
+[[implementation-3]]
+== Implementation 3: Direct Traffic to the Closest Region
+
+In both <<implementation-3a>> and <<implementation-3b>>, Flex Gateway directs traffic to the most convenient region to reduce latency. Choose which implementation according to your policy requirements.
+
+[[implementation-3a]]
+=== Implementation 3A: Direct Traffic to APIs With the Same Policies
+
+This implementation is similar to <<implementation-1a>> and has the same considerations. However, Redis replication is not required because requests are sent to specific regions. Configure high availability or disaster recovery zones in each region to ensure API availability:
+
+image:high-availability-3a.png["A detailed view of implementation 3A, which contains the necessary services to route customer requests to the closest region."]
+
+[[implementation-3b]]
+=== Implementation 3B: Direct Traffic to APIs With the Different Policies
+
+This implementation is similar to <<implementation-1b>> and has the same considerations. Deploy region-specific gateways and apply the necessary policies to the different APIs. Configure high availability or disaster recovery zones in each region to ensure API availability:
+
+image:high-availability-3b.png["A detailed view of implementation 3B, which contains the necessary services to route customer requests to the closest region."]
+
+NOTE: To apply SLA rate limiting across all regions, the rate limits must be the same for all regions. Use API groups to consolidate the contracts. 
+
+
+
+

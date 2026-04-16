@@ -1,0 +1,65 @@
+= Configuring Message Logging for Flex Gateway in Connected Mode
+
+Applying a Message Logging policy to your API instance in API Manager allows you to view basic logs, such as inbound and outbound calls and headers, for APIs managed by Flex Gateway within API Manager. Logging for an API instance only happens if you configure and apply a Message Logging policy. 
+
+To view metrics in API Manager, such as total requests, total policy violations, total errors, and average response time, see xref:flex-view-api-metrics.adoc[].
+
+== Message Logging Limits and Features
+
+include::reuse::partial$billing/pricing.adoc[tag=apimLogging] 
+
+For each API instance configured through a policy, basic logs report the following:
+
+* Inbound and outbound API calls, as well as the packet contents
+* Headers and any other information in the request
+
+To view message logs in API Manager, you need one of the following permissions:
+
+* API Manager Environment Administrator
+* API Manager Deploy API Proxies
+* General Organization Administration
+
+Refer to xref:access-management::permissions-by-product.adoc[].
+
+== Before You Begin
+
+Before configuring message logging for a Flex Gateway, complete the following tasks:
+
+* xref:flex-install.adoc[Download Flex Gateway]
+* xref:flex-conn-reg-run.adoc[Register and Run Flex Gateway]
+* xref:api-manager::create-instance-task-flex.adoc[Add an API Instance]
+
+== Configure Message Logging in Connected Mode
+
+. From API Administration in API Manager, select the name of the API Instance.
+. Click *Policies*.
+. Click *+ Add policy*.
+. Under the *Troubleshooting* category, click *Message Logging*.
+. Click *Next*.
+. Click *+ Add*.
+. Enter a *Configuration Name*, for example, Info messages before calling API.
+. Enter a DataWeave expression that selects what information you want to see.
++
+For example, `#[attributes.headers['id']]` extracts the ids from the headers of
+the messages. For more information, see xref:policies-flex-dataweave-support.adoc[].
+
+. If you want to filter log messages, enter a DataWeave expression.
++
+For example, `#[attributes.headers['id']==1]` displays log messages that have
+an id of 1 in the header.
+
+. If you want to affix a prefix to your logs, enter a *Category*.
+. Enter the severity level.
++
+You can only enter one level. See <<severity-levels, Message Logging Severity Levels>>
+for a description of each severity level and the hierarchy for the levels.
+
+. If you want messages after the API is called, select *After Calling API*.
+. If you want to add additional configurations, click *+ Add*.
+. Click *Save*.
++
+Afterward, you should see a *Message Log* option for the API instance.
++
+Use the search field to search for specific logs based on the time and log severity (INFO, ERROR, WARN, DEBUG). You can download these logs for further analysis.
+
+include::partial$logging-severity-level.adoc[]

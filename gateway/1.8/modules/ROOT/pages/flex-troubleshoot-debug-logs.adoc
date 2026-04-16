@@ -1,0 +1,38 @@
+= Troubleshoot with Debug Logs
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+When troubleshooting Flex Gateway, set the runtime log level to `debug` for more verbose runtime logs. 
+
+This page explains how to configure debug runtime logs. To configure debug access logs, set the `level` parameter in your xref:policies-included-message-logging.adoc[Message Logging policy] to `DEBUG`.
+
+== Debug Logs Configuration Example 
+
+For both Connected Mode and Local Mode, configure debug runtime logs using the following YAML configuration file:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: logging-config
+spec:
+  logging:
+    runtimeLogs:
+      logLevel: debug
+----
+
+
+To configure debug runtime logs, use the previous YAML configuration file when prompted for your configuration details in the following tutorials:
+
+* xref:flex-conn-third-party-logs-config.adoc[Configure External Logs in Connected Mode]
+* xref:flex-local-third-party-logs-config.adoc[Configure External Logs in Local Mode]
+
+If you have already configured a logging configuration file, set `logging.runtimeLogs.logLevel` to `debug` in you current file to enable debug runtime logs. This does not affect the log output location or access logs.
+
+== See Also
+
+* xref:flex-view-logs-in-runtime-manager.adoc[]
+* xref:flex-local-view-logs.adoc[]

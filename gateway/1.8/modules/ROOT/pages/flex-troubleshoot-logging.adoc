@@ -1,0 +1,46 @@
+= Troubleshooting Logging Issues
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+When configuring logging for Anypoint Flex Gateway, you might encounter logging issues caused by incorrect directory permissions, and so on. The following topics provide possible causes for logging issues and describe how to troubleshoot:
+
+* <<third-party-service, Logs Do Not Appear in a Third-Party Logging Service>>
+* <<incorrect-permissions,Logs Do Not Appear when Running in a VM>>
+
+[[third-party-service]]
+== Logs Do Not Appear in a Third-Party Logging Service
+
+After applying a logging configuration YAML file, logs should begin appearing within a few minutes. If your logs do not appear in your third party logging service:
+
+. Ensure that your third-party service is running.
+. If the service is running, check the runtime logs for potential configuration errors.
++
+You can view the runtime logs for both Flex Gateways running in Connected Mode and Local Mode by following the steps in xref:flex-local-view-logs.adoc[]. Additionally, for Flex Gateways running in Connected Mode, you can xref:flex-view-logs-in-runtime-manager.adoc[view runtime logs in Runtime Manager].
++
+Potential configuration errors appear similar to the following:
++
+----
+[flex-gateway-fluent] [2023/09/07 20:17:49] [error] [output:http:http.1] hzk83039.live.dynatrace.com:443, HTTP status=401
+[flex-gateway-fluent] {"error":{"code":401,"message":"Missing authorization parameter."}}
+[flex-gateway-fluent] [2023/09/07 20:17:49] [ warn] [engine] failed to flush chunk '20-1694117863.683606251.flb', retry in 7 seconds: task_id=2, input=emitter_for_rewrite_tag.11 > output=http.1 (out_id=1)
+----
+
+. Whether or not configuration errors appear in the runtime logs, view the /var/tmp/mulesoft/flex-gateway/fluent-bit.conf file to ensure your configuration values are correct.
+
+
+
+
+[[incorrect-permissions]]
+== Logs Do Not Appear when Running in a VM
+
+Log files do not appear after specifying a target log directory in an access log policy. An example log directory might be `/var/log`.
+
+=== Cause
+
+Your log output directory might not have `write` permission.
+
+=== Solution
+
+To resolve this issue, grant `write` permission to the output directory.

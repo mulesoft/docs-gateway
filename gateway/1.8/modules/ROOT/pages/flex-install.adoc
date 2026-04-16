@@ -1,0 +1,634 @@
+= Downloading Flex Gateway
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Download and install Flex Gateway as a Linux service, or download the Flex Gateway image from the container registry. Downloading is a prerequisite to registering and running a gateway as a Linux service or in a container, Kubernetes cluster, or OpenShift cluster.
+
+To run Flex Gateway inside a virtual machine (VM), download and install it as a Linux service. To run Flex Gateway in a container, Kubernetes cluster, or OpenShift cluster, download the Flex Gateway image.
+
+//table with tech logos and links (linux, docker, k8, openshift)
+include::partial$task-reg-run-flex-gateway.adoc[tags=table-logos-links]
+
+See xref:flex-review-prerequisites.adoc[] for details about hardware and software requirements.
+
+[[linux]]
+== Download and Install as a Linux Service
+
+You can download and install Flex Gateway as a service in one of the following Linux environments:
+
+[[install-ubuntu]]
+[discrete]
+==== image:install-ubuntu-logo.png[2%,2%] Ubuntu
+
+.Download and install Flex Gateway as an Ubuntu service
+[%collapsible]
+====
+
+[discrete]
+===== Software Requirements
+
+Flex Gateway runs on the following Long Term Support (LTS) versions of Ubuntu:
+
+* {empty}
+include::partial$prerequisites.adoc[tag=ubuntu]
+
+[discrete]
+===== Before You Begin
+
+Before getting started, ensure that you have installed the following:
+
+* link:https://gnupg.org/[gnupg2^]
+* link:https://refspecs.linuxfoundation.org/LSB_3.0.0/LSB-PDA/LSB-PDA/lsbrelease.html[lsb_release^]
+
+[discrete]
+===== Run Installation Commands
+
+To download and install Flex Gateway as a Ubuntu service, run the command block that performs the following actions:
+
+* Retrieves the public package keys and adds the package repository
+* Updates the package list
+* Updates `apt-get`
+* Installs the Flex Gateway package
+
+[source,ssh]
+----
+curl -XGET https://flex-packages.anypoint.mulesoft.com/ubuntu/pubkey.gpg | sudo apt-key add -
+echo "deb [arch=amd64] https://flex-packages.anypoint.mulesoft.com/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/mulesoft.list
+sudo apt update
+sudo apt install -y flex-gateway
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-download-install;flex-connected-vs-local]
+====
+
+[[install-debian]]
+[discrete]
+==== image:install-debian-logo.png[2%,2%] Debian
+
+.Download and install Flex Gateway as a Debian service
+[%collapsible]
+====
+
+[discrete]
+===== Software Requirements
+
+Flex Gateway runs on the following Long Term Support (LTS) versions of Debian:
+
+* {empty}
+include::partial$prerequisites.adoc[tag=debian]
+
+[discrete]
+===== Before You Begin
+
+Before getting started, ensure that you have installed the following:
+
+* link:https://gnupg.org/[gnupg2^]
+* link:https://refspecs.linuxfoundation.org/LSB_3.0.0/LSB-PDA/LSB-PDA/lsbrelease.html[lsb_release^]
+
+[discrete]
+===== Run Installation Commands
+
+To download and install Flex Gateway as a Debian service, run the command block that performs the following actions:
+
+* Retrieves the public package keys and adds the package repository
+* Updates the package list
+* Updates `apt-get`
+* Installs the Flex Gateway package
+
+[source,ssh]
+----
+curl -XGET https://flex-packages.anypoint.mulesoft.com/debian/pubkey.gpg | sudo apt-key add -
+echo "deb [arch=amd64] https://flex-packages.anypoint.mulesoft.com/debian $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/mulesoft.list
+sudo apt update
+sudo apt install -y flex-gateway
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-download-install;flex-connected-vs-local]
+====
+
+[[install-amazon-linux]]
+[discrete]
+==== image:install-amazon-linux-logo.png[2%,2%] Amazon Linux
+
+.Download and install Flex Gateway as an Amazon Linux service
+[%collapsible]
+====
+
+[discrete]
+===== Software Requirements
+
+Flex Gateway runs on the following Long Term Support (LTS) version of Amazon Linux:
+
+* {empty}
+include::partial$prerequisites.adoc[tag=amazon-linux]
+
+[discrete]
+===== Before You Begin
+
+Before getting started, ensure that you have installed the following:
+
+* link:https://gnupg.org/[gnupg2^]
+
+[discrete]
+===== Run Installation Commands
+
+To download and install Flex Gateway as an Amazon Linux service, run the command block that performs the following actions:
+
+* Adds the Flex Gateway package repository with a reference to its public key
+* Installs the Flex Gateway package
+
+[source,ssh]
+----
+sudo tee /etc/yum.repos.d/flex-gateway.repo <<\EOF
+[flex-gateway]
+name = Anypoint Flex Gateway
+baseurl = https://flex-packages.anypoint.mulesoft.com/amazonlinux/2023/main
+gpgcheck=1
+gpgkey=https://flex-packages.anypoint.mulesoft.com/amazonlinux/pubkey.gpg
+repo_gpgcheck=1
+enabled=1
+EOF
+
+sudo yum install -y flex-gateway
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-download-install;flex-connected-vs-local]
+====
+
+[[install-rhel]]
+[discrete]
+==== image:install-rhel-logo.png[2%,2%] Red Hat Enterprise Linux
+
+.Download and install Flex Gateway as a Red Hat Enterprise Linux service
+[%collapsible]
+====
+
+[discrete]
+===== Software Requirements
+
+Flex Gateway runs on the following Long Term Support (LTS) versions of RHEL:
+
+* {empty}
+include::partial$prerequisites.adoc[tag=red-hat]
+
+[discrete]
+===== Before You Begin
+
+Before getting started, ensure that you have installed the following:
+
+* link:https://gnupg.org/[gnupg2^]
+
+[discrete]
+===== Run Installation Commands
+
+To download and install Flex Gateway as a Red Hat Enterprise Linux service, run the command block that performs the following actions:
+
+* Adds the Flex Gateway package repository with a reference to its public key
+* Installs the Flex Gateway package
+
+[source,ssh]
+----
+sudo tee /etc/yum.repos.d/flex-gateway.repo <<\EOF
+[flex-gateway]
+name = Anypoint Flex Gateway
+baseurl = https://flex-packages.anypoint.mulesoft.com/rhel/$releasever/main
+gpgcheck=1
+gpgkey=https://flex-packages.anypoint.mulesoft.com/rhel/pubkey.gpg
+repo_gpgcheck=1
+enabled=1
+EOF
+
+sudo yum install -y flex-gateway
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-download-install;flex-connected-vs-local]
+====
+
+[[install-rhel-ibm]]
+[discrete]
+==== image:install-rhel-ibm-logo.png[6%,6%] Red Hat Enterprise Linux on IBM Power
+
+.Download and install Flex Gateway as a Red Hat Enterprise Linux service on IBM Power
+[%collapsible]
+====
+
+[discrete]
+===== Software Requirements
+
+Flex Gateway runs on the following Long Term Support (LTS) versions:
+
+* {empty}
+include::partial$prerequisites.adoc[tag=red-hat-ibm]
+
+[discrete]
+===== Before You Begin
+
+Before getting started, ensure that you have installed the following:
+
+* link:https://gnupg.org/[gnupg2^]
+
+[discrete]
+===== Run Installation Commands
+
+To download and install Flex Gateway as a Red Hat Enterprise Linux service, run the command block that performs the following actions:
+
+* Adds the Flex Gateway package repository with a reference to its public key
+* Installs the Flex Gateway package
+
+[source,ssh]
+----
+sudo tee /etc/yum.repos.d/flex-gateway.repo <<\EOF
+[flex-gateway]
+name = Anypoint Flex Gateway
+baseurl = https://flex-packages.anypoint.mulesoft.com/rhel/$releasever/main
+gpgcheck=1
+gpgkey=https://flex-packages.anypoint.mulesoft.com/rhel/pubkey.gpg
+repo_gpgcheck=1
+enabled=1
+EOF
+
+sudo yum install -y flex-gateway
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-download-install;flex-connected-vs-local]
+====
+
+[[install-suse]]
+[discrete]
+==== image:install-suse-logo.png[2%,2%] SUSE Linux Enterprise
+
+.Download and install Flex Gateway as a SUSE Linux Enterprise service
+[%collapsible]
+====
+
+[discrete]
+===== Software Requirements
+
+Flex Gateway runs on the following Long Term Support (LTS) versions:
+
+* {empty}
+include::partial$prerequisites.adoc[tag=suse]
+
+[discrete]
+===== Before You Begin
+
+Before getting started, ensure that you have installed the following:
+
+* link:https://gnupg.org/[gnupg2^]
+
+[discrete]
+===== Run Installation Commands
+
+To download and install Flex Gateway as a SUSE Linux Enterprise service, run the command block that performs the following actions:
+
+* Adds the Flex Gateway package repository with a reference to its public key
+* Installs the Flex Gateway package
+
+[source,ssh]
+----
+sudo rpm --import https://flex-packages.anypoint.mulesoft.com/suse/pubkey.gpg
+sudo tee /etc/zypp/repos.d/flex-gateway.repo <<\EOF
+[flex-gateway]
+name = Anypoint Flex Gateway
+baseurl = https://flex-packages.anypoint.mulesoft.com/suse/$releasever_major/main
+gpgcheck = 1
+gpgkey = https://flex-packages.anypoint.mulesoft.com/suse/pubkey.gpg
+repo_gpgcheck = 1
+enabled = 1
+EOF
+
+sudo zypper refresh -f flex-gateway
+sudo zypper install -y flex-gateway
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-download-install;flex-connected-vs-local]
+====
+
+[[install-suse-ibm]]
+[discrete]
+==== image:install-suse-ibm-logo.png[6%,6%] SUSE Linux Enterprise on IBM Power
+
+.Download and install Flex Gateway as a SUSE Linux Enterprise service on IBM Power
+[%collapsible]
+====
+
+[discrete]
+===== Software Requirements
+
+Flex Gateway runs on the following Long Term Support (LTS) versions:
+
+* {empty}
+include::partial$prerequisites.adoc[tag=suse-ibm]
+
+[discrete]
+===== Before You Begin
+
+Before getting started, ensure that you have installed the following:
+
+* link:https://gnupg.org/[gnupg2^]
+
+[discrete]
+===== Run Installation Commands
+
+To download and install Flex Gateway as a SUSE Linux Enterprise service on IBM Power, run the command block that performs the following actions:
+
+* Adds the Flex Gateway package repository with a reference to its public key
+* Installs the Flex Gateway package
+
+[source,ssh]
+----
+sudo rpm --import https://flex-packages.anypoint.mulesoft.com/suse/pubkey.gpg
+sudo tee /etc/zypp/repos.d/flex-gateway.repo <<\EOF
+[flex-gateway]
+name = Anypoint Flex Gateway
+baseurl = https://flex-packages.anypoint.mulesoft.com/suse/$releasever_major/main
+gpgcheck = 1
+gpgkey = https://flex-packages.anypoint.mulesoft.com/suse/pubkey.gpg
+repo_gpgcheck = 1
+enabled = 1
+EOF
+
+sudo zypper refresh -f flex-gateway
+sudo zypper install -y flex-gateway
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-download-install;flex-connected-vs-local]
+====
+
+[[install-centos]]
+[discrete]
+==== image:install-centos-logo.png[2%,2%] CentOS
+
+.Download and install Flex Gateway as a CentOS service
+[%collapsible]
+====
+
+[discrete]
+===== Software Requirements
+
+Flex Gateway runs on the following Long Term Support (LTS) version of CentOS:
+
+* {empty}
+include::partial$prerequisites.adoc[tag=centos]
+
+[discrete]
+===== Before You Begin
+
+Before getting started, ensure that you have installed the following:
+
+* link:https://gnupg.org/[gnupg2^]
+
+[discrete]
+===== Run Installation Commands
+
+To download and install Flex Gateway as an CentOS service, run the command block that performs the following actions:
+
+* Adds the Flex Gateway package repository with a reference to its public key
+* Installs the Flex Gateway package
+
+[source,ssh]
+----
+sudo tee /etc/yum.repos.d/flex-gateway.repo <<\EOF
+[flex-gateway]
+name = Anypoint Flex Gateway
+baseurl = https://flex-packages.anypoint.mulesoft.com/centos/$releasever/main
+gpgcheck=1
+gpgkey=https://flex-packages.anypoint.mulesoft.com/centos/pubkey.gpg
+repo_gpgcheck=1
+enabled=1
+EOF
+
+sudo yum install -y flex-gateway
+----
+
+Due to issues with the CentOS package manager you might encounter the following error:
+----
+Error: Failed to download metadata for repo 'AppStream': Cannot prepare internal mirrorlist: No URLs in mirrorlist
+----
+
+If you encounter this error, run the following command:
+[source,ssh]
+----
+sudo sed -i -e "s|mirrorlist=|#mirrorlist=|g" -e "s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-*
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-download-install;flex-connected-vs-local]
+====
+
+[[container]]
+== Download Flex Gateway for Use in a Container
+You can download and install Flex Gateway in one of the following containers:
+
+[[docker]]
+[discrete]
+==== image:install-docker-logo.png[2%,2%] Docker
+
+.Download Flex Gateway for Use in a Docker Container
+[%collapsible]
+====
+
+Download the Flex Gateway container image to prepare for registering and running a gateway in a Docker container:
+
+. Download the Flex Gateway Docker image:
++
+[source,ssh,subs=attributes+]
+----
+docker pull {image-owner-lc}/flex-gateway:{gateway-ver-var}
+----
+
+. Verify that the download succeeded:
++
+[source,ssh,subs=attributes+]
+----
+docker images {image-owner-lc}/flex-gateway
+----
++
+When successful, the command lists the Flex Gateway container image, for example:
++
+[source,text,subs=attributes+]
+----
+REPOSITORY                   TAG
+{image-owner-lc}/flex-gateway        {gateway-ver-var}
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-download-install;flex-connected-vs-local]
+====
+
+[[podman]]
+[discrete]
+==== image:install-podman-logo.png[2%,2%] Podman
+
+.Download Flex Gateway for Use in a Podman Container
+[%collapsible]
+====
+
+Download the Flex Gateway container image to prepare for registering and running a gateway in a Podman container:
+
+. Download the Flex Gateway container image:
++
+[source,ssh,subs=attributes+]
+----
+podman pull docker.io/{image-owner-lc}/flex-gateway:{gateway-ver-var}
+----
+
+. Verify that the download succeeded:
++
+[source,ssh,subs=attributes+]
+----
+podman images docker.io/{image-owner-lc}/flex-gateway
+----
++
+When successful, the command lists the Flex Gateway container image, for example:
++
+[source,text,subs=attributes+]
+----
+REPOSITORY                   TAG
+{image-owner-lc}/flex-gateway        {gateway-ver-var}
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-download-install;flex-connected-vs-local]
+====
+
+[[kubernetes]]
+== Download Flex Gateway for Use in a Kubernetes Cluster
+
+Download the Flex Gateway container image to prepare for registering and running a gateway in a Kubernetes cluster. You can use the following container runtimes:
+
+
+[[install-k8s-docker]]
+.*Docker*
+[%collapsible]
+====
+
+. Download the Flex Gateway container image:
++
+[source,ssh,subs=attributes+]
+----
+docker pull {image-owner-lc}/flex-gateway:{gateway-ver-var}
+----
+
+. Verify that the download succeeded: 
++
+[source,ssh,subs=attributes+]
+----
+docker images {image-owner-lc}/flex-gateway
+----
++
+When successful, the command lists the Flex Gateway container image, for example: 
++
+[source,text,subs=attributes+]
+----
+REPOSITORY                   TAG
+{image-owner-lc}/flex-gateway        {gateway-ver-var}
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-k8-download-install]
+====
+
+[[install-k8s-podman]]
+.*Podman*
+[%collapsible]
+====
+
+. Download the Flex Gateway container image:
++
+[source,ssh,subs=attributes+]
+----
+podman pull docker.io/{image-owner-lc}/flex-gateway:{gateway-ver-var}
+----
+
+. Verify that the download succeeded:
++
+[source,ssh,subs=attributes+]
+----
+podman images docker.io/{image-owner-lc}/flex-gateway
+----
++
+When successful, the command lists the Flex Gateway container image, for example:
++
+[source,text,subs=attributes+]
+----
+REPOSITORY                   TAG
+{image-owner-lc}/flex-gateway        {gateway-ver-var}
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-k8-download-install]
+====
+
+[[openshift]]
+== Download Flex Gateway for Use in an OpenShift Cluster
+
+Download the Flex Gateway container image to prepare for registering and running a gateway in an OpenShift cluster. You can use the following container runtimes:
+
+[[install-openshift-docker]]
+.*Docker*
+[%collapsible]
+====
+
+. Download the Flex Gateway container image:
++
+[source,ssh,subs=attributes+]
+----
+docker pull {image-owner-lc}/flex-gateway:{gateway-ver-var}
+----
+
+. Verify that the download succeeded: 
++
+[source,ssh,subs=attributes+]
+----
+docker images {image-owner-lc}/flex-gateway
+----
++
+When successful, the command lists the Flex Gateway container image, for example: 
++
+[source,text,subs=attributes+]
+----
+REPOSITORY                   TAG
+{image-owner-lc}/flex-gateway        {gateway-ver-var}
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-k8-download-install]
+====
+
+[[install-openshift-podman]]
+.*Podman*
+[%collapsible]
+====
+. Download the Flex Gateway container image:
++
+[source,ssh,subs=attributes+]
+----
+podman pull docker.io/{image-owner-lc}/flex-gateway:{gateway-ver-var}
+----
+
+. Verify that the download succeeded:
++
+[source,ssh,subs=attributes+]
+----
+podman images docker.io/{image-owner-lc}/flex-gateway
+----
++
+When successful, the command lists the Flex Gateway container image, for example:
++
+[source,text,subs=attributes+]
+----
+REPOSITORY                   TAG
+{image-owner-lc}/flex-gateway        {gateway-ver-var}
+----
+
+include::partial$reference-install-next-steps.adoc[tags=flex-k8-download-install]
+====
+
+//TODO: points to Flex Gateway Deployments in Kubernetes
+//      https://dev-docs-internal.kqa.msap.io/beta-flex-gateway-get-well/gateway/1.4/flex-gateway-k8-overview
+//Q: is this ok? 
+// include::partial$reference-install-next-steps.adoc[tags=flex-k8-download-install]
+
+== See Also
+
+* xref:flex-gateway-getting-started.adoc[]
+* xref:flex-review-prerequisites.adoc[]
+* xref:flex-conn-reg-run.adoc[]
+* xref:flex-local-reg-run.adoc[]
