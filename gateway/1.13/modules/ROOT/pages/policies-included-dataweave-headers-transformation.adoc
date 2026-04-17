@@ -1,0 +1,101 @@
+= DataWeave Headers Transformation Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: dataweave, headers transformation, transformation, api gateway, flex gateway, gateway, policy
+
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy name | DataWeave Headers Transformation
+>s|Summary      | Transforms headers of request or response traffic with a DataWeave script
+>s|Category | Transformation
+>s| First Flex Gateway version available | v1.12.0
+.1+>.^s| Returned Status Codes
+| `400` - The DataWeave script failed to execute or returned an invalid result
+|===
+
+== Summary
+
+The DataWeave Headers Transformation policy transforms request or response headers with a DataWeave script. The script receives headers and the message body, and returns a map of header names to values. In the request or response, the gateway removes existing headers and runs the script with header bindings. The script output must be a map. Each entry becomes a header. For multi-value headers, use a list of values.
+
+== Configure Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: dataweave-headers-transformation-flex
+  config:
+    script: <string>           // REQUIRED - DataWeave script
+    requestFlow: <string>      // REQUIRED - "onRequest" or "onResponse"
+    requiresPayload: <boolean> // OPTIONAL, default: false
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required | Default Value | Description
+
+| `script`
+| Required
+| —
+| A DataWeave script that returns a map of header names to values. The script receives `attributes.headers`. If `requiresPayload` is true, the script also receives the message body in the `payload` binding.
+
+| `requestFlow`
+| Required
+| —
+| Whether the policy transforms the request or response body. Supported values: `onRequest` or `onResponse`.
+
+| `requiresPayload`
+| Optional
+| false
+| If true, the script receives the message body in the `payload` binding. The gateway buffers the body for the transformation.
+|===
+
+=== Resource Configuration Example
+
+This example adds custom headers with conditional logic. When the header `custom-client-header` is set to `fixed_client`, the gateway replaces it with `custom-123123231231231231`. Otherwise, the gateway uses the header value or `client-id-not-set`:
+
+----
+  policies:
+    - policyRef:
+        name: dataweave-headers-transformation-flex
+      config:
+        script: |
+          {
+            "custom_client_secret": "fixed_secret_123123231231231231",
+            "custom_client_id": if (attributes.headers.'custom-client-header'?)
+              attributes.headers.'custom-client-header' match {
+                case literalMatch: "fixed_client" -> "custom-123123231231231231"
+                else -> attributes.headers.'custom-client-header'
+              }
+            else "client-id-not-set"
+          }
+----
+
+To append custom headers using payload data, for example to add the payload `id` to a custom header, set `requiresPayload: true` and include `payload` in the script:
+
+----
+  policies:
+    - policyRef:
+        name: dataweave-headers-transformation-flex
+      config:
+        script: |
+          attributes.headers ++ {
+            "custom_client_id_from_payload": payload.id,
+            "custom_client_secret_from_payload": payload.secret
+          }
+        requiresPayload: true
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Parameter | Description
+| Policy type | DataWeave Headers Transformation
+| Script | The DataWeave script that returns a map of headers
+| Request flow | The flow where the policy applies: request or response
+| Requires payload | Whether the script requires the message body
+|===

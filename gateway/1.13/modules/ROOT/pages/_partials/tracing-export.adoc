@@ -1,0 +1,144 @@
+//tag::telemtery-exporter[]
+[[export-otel-traces-from-monitoring-telemetry-exporter]]
+== Export traces from the Anypoint Monitoring Telemetry Exporter
+
+To export traces to third party providers using the Anypoint Monitoring Telemetry Exporter, see xref:monitoring::telemetry-exporter.adoc[How to export telemetry data to third-party monitoring systems].
+
+//end::telemtery-exporter[]
+
+//tag::telemtery-exporter-note[]
+
+To export traces using the Anypoint Monitoring Telemetry Exporter, first configure the Telemetry Exporter in Anypoint Monitoring.
+
+//end::telemtery-exporter-note[]
+
+//tag::export-anypoint[]
+[[export-traces-to-anypoint-monitoring]]
+== Export Traces to Anypoint Monitoring
+
+Edit and then apply this configuration resource to enable distributed tracing. This configuration resource applies to all API instances.
+This example sets sampling to 0% for all traces, and sampling is configured on a per-API basis using policies.
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: Configuration
+metadata:
+  name: tracing
+  namespace: test-ns
+spec:
+  tracing:
+    provider:
+      type: anypoint
+      properties:
+        timeout: 10s
+    sampling:
+      client: 0
+      random: 0
+      overall: 0
+    labels:
+    - name: c-env-tag
+      type: environment
+      keyName: FLEX_NAME
+      defaultValue: DEFAULT_VAL
+    - name: c-header-tag
+      type: requestHeader
+      keyName: :method
+      defaultValue: DEFAULT_METHOD
+    - name: c-literal-tag
+      type: literal
+      defaultValue: the-tag
+----
+
+//end::export-anypoint[]
+
+//tag::export-grpc[]
+[[export-traces-to-a-grpc-open-telemetry-endpoint]]
+== Export Traces to a gRPC OpenTelemetry Endpoint
+
+To configure OpenTelemetry tracing with a gRPC endpoint in Flex, use the following YAML configuration as an example:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: Configuration
+metadata:
+  name: tracing
+  namespace: test-ns
+spec:
+  tracing:
+    provider:
+      type: opentelemetry
+      properties:
+        address: h2://splunk-otel-collector-agent.default.svc.cluster.local:4317
+        serviceType: grpc
+        serviceName: my-flex-name
+        timeout: 10s
+        resourceAttributes:
+          any-key: any-value
+    sampling:
+      client: 100
+      random: 100
+      overall: 100
+    labels:
+    - name: c-env-tag
+      type: environment
+      keyName: FLEX_NAME
+      defaultValue: DEFAULT_VAL
+    - name: c-header-tag
+      type: requestHeader
+      keyName: :method
+      defaultValue: DEFAULT_METHOD
+    - name: c-literal-tag
+      type: literal
+      defaultValue: the-tag
+----
+
+//end::export-grpc[]
+
+//tag::export-http[]
+[[export-traces-to-a-http-open-telemetry-endpoint]]
+== Export Traces to a HTTP OpenTelemetry Endpoint
+
+To configure OpenTelemetry tracing with a HTTP endpoint, use the following YAML configuration as an example:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: Configuration
+metadata:
+  name: tracing
+  namespace: test-ns
+spec:
+  tracing:
+    provider:
+      type: opentelemetry
+      properties:
+        address: http://opentelemetry:4318
+        tracesUri: http://opentelemetry:4318/v1/traces
+        serviceType: http
+        serviceName: the-name
+        timeout: 10s
+        httpHeaders:
+          auth: samething
+        resourceAttributes:
+          nay-key: nay-value
+    sampling:
+      client: 100
+      random: 100
+      overall: 100
+    labels:
+    - name: c-env-tag
+      type: environment
+      keyName: FLEX_NAME
+      defaultValue: DEFAULT_VAL
+    - name: c-header-tag
+      type: requestHeader
+      keyName: :method
+      defaultValue: DEFAULT_METHOD
+    - name: c-literal-tag
+      type: literal
+      defaultValue: the-tag
+----
+
+//end::export-http[]
