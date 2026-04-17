@@ -28,13 +28,17 @@ async fn configure(
 let mut validator_instance = validator_builder
         .new("token-cache")
         .with_path("/introspect")
-        .with_authorization_value("Basic YWRtaW46YWRtaW4=")
+        .with_authorization_value("Basic YWRtaW46YWRtaW4=") //  Choose either authorization value or client ID and secret depending on your service authorization. No authorization header is sent if with_authorization_value() isn't defined.
+        .with_client_id("client-id") // Client ID and secret sent as form params in the body of the request
+        .with_client_secret("client-secret")
         .with_expires_in_attribute("exp")
         .with_max_token_ttl(600)
         .with_timeout_ms(10000)
         .with_max_cache_entries(10000)
         .with_scopes_validator(ScopesValidator::all(scopes_vector))
         .with_service(config.my_service)
+        .with_protected_resource_metadata(config.auth_server_url) // Choose .with_protected_resource_metadata_with_properties() if additional properties are required
+        
         .build();
 // [...]
 }
@@ -46,13 +50,18 @@ The `TokenValidatorBuilder` provides these methods to configure the token valida
 |===
 | Method | Parameter | Default | Description
 | `with_path` | path (`impl Into<String>`) | `"/"` | Sets the introspection endpoint path.
-| `with_authorization_value` | value (`impl Into<String>`) | `""` (sends an Auth header with an empty value) | Sets the authorization header value for introspection requests.
+| `with_authorization_value` | value (`impl Into<String>`) | `""` (Auth header with an empty value) | Sets the authorization header value for introspection requests. 
+| `with_client_id` | value (`impl Into<String>`) | No default | sets the client id credential to talk with the introspection service.
+| `with_client_secret` | value (`impl Into<String>`) | No default | sets the client secret credential to talk with the introspection service.
 | `with_expires_in_attribute` | attr (`impl Into<String>`) | `"exp"` | Sets the attribute name for expiration time in the introspection response.
 | `with_max_token_ttl` | ttl (`i64`) | `-1` (no cap) | Sets the maximum token TTL in seconds; tokens with a longer TTL are treated as expired. Use `-1` for no limit.
 | `with_timeout_ms` | timeout (`u64`) | `10000` (10 s) | Sets the timeout for introspection requests in milliseconds.
 | `with_max_cache_entries` | max_entries (`usize`) | `1000` | Sets the maximum number of entries in the token cache.
-| `with_scopes_validator` | validator (`ScopesValidator`) | — | Sets the scopes validator for token validation (for example, `ScopesValidator::all(scopes_vector)`).
-| `with_service` | service (`Service`) | Required | Sets the OAuth2 introspection service endpoint. Required to build the validator.
+| `with_scopes_validator` | validator (`ScopesValidator`) | No default | Sets the scopes validator for token validation (for example, `ScopesValidator::all(scopes_vector)`).
+| `with_service` | service (`Service`) | No default (required) | Sets the OAuth2 introspection service endpoint. Required to build the validator.
+
+| `with_protected_resource_metadata` | authorization server url (impl Into<String>) | No default | Enables RFC 9728 protected resource discovery with the given authorization server URL. The well-known endpoint path and resource URL are derived automatically from the API base path extracted from PDK metadata  when the policy is applied.
+| `with_protected_resource_metadata_with_properties` | authorization server url (`impl Into<String>`), additional properties (Value) | No default | Enables RFC 9728 protected resource discovery with the given authorization server URL and additional metadata properties (such as `scopes_supported` or `bearer_methods_supported`). The well-known endpoint path and resource URL are derived automatically from the API base path extracted from PDK metadata  when the policy is applied.
 |===
 
 NOTE: The configure function receives the xref:policies-pdk-create-schema-definition.adoc[configuration parameters] defined in your policy schema.
