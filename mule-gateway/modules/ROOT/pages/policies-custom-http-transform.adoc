@@ -26,7 +26,10 @@ To use the HTTP Policy Transform Extension in a policy, first you must add the M
   </dependency>
 ----
 
-*NOTE:* When a policy using the HTTP Policy Transform Extension is packaged, the xref:connectors::http/http-connector.adoc[Mule HTTP Connector] is unnecessarily added to the policy JAR file. The connector is already present in the application to which the policy is applied. For that reason, the exclusion is added in the above snippet.
+When a policy using the HTTP Policy Transform Extension is packaged, the Mule HTTP Connector is added to the policy JAR file. To avoid double packaging the connector in both your policy and application, use the exclusion statement in the dependency to remove the Mule HTTP Connector from the policy JAR file. However, if your custom policy must perform its own outbound HTTP requests, you must either:
+
+* Remove the exclusion statement to ensure the connector is available within the policy's own class loader.
+* Set `mule.enable.policy.isolation=false` so that the policy uses the application level connector.
 
 Additionally, ensure that you set the `mule-maven-plugin` parameter version to `3.3.2` or later in the POM file of the policy.
 
