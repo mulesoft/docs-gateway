@@ -1,0 +1,115 @@
+= GraphQL Schema Validation Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: graphql, schema validation, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | GraphQL Schema Validation
+>s| Summary | Validates incoming GraphQL operations against a GraphQL schema definition before Flex Gateway forwards traffic upstream
+>s| Category | Security
+>s| First Flex Gateway version available | v1.13.0
+.1+>.^s| Returned status codes
+| 400 - The operation doesn't satisfy the schema. When you enable *Block request*, the JSON response includes GraphQL-style `errors` with a validation message.
+|===
+
+== Summary
+
+Unlike xref:policies-included-schema-validation.adoc[], which targets REST APIs and OpenAPI documents, this policy validates GraphQL operations against a GraphQL schema. It applies standard GraphQL validation rules, including field and argument correctness, fragments, directives, unions, interfaces, and other specification rules.
+
+The policy loads schema in these ways:
+
+* Flex Gateway pulls SDL from your API asset in Exchange when `source` is `context`.
+* You embed SDL directly in declarative configuration when `source` is `inline`.
+
+If the document declares an `extend schema` `@link` to Apollo's federation specification URL, Flex Gateway parses the Apollo Federation subgraph SDL and validates the request text against the resulting schema.
+
+After Flex Gateway extracts inline GraphQL operation text from the request, the policy runs validation. If Flex Gateway can't resolve normal operation text, such as persisted query flows, it skips these checks.
+
+Although Flex Gateway loads the schema into memory, it logs a warning and forwards the request instead of validating it.
+
+If you turn off *Block request* and validation fails, Flex Gateway writes a warning to the logs and forwards the request upstream. If you turn on *Block request*, Flex Gateway returns a 400 Bad Request message with `Content-Type: application/json` and a JSON body such as `{"errors":[{"message":"<validator text>"}]}`.
+
+Use this policy on Flex Gateway API instances that expose a GraphQL interface. Apply it at the API or resource scope as needed.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: graphql-schema-validation-flex
+  config:
+    source: <string> // OPTIONAL, default: context; values: "context" or "inline"
+    schema: <string> // REQUIRED when source is inline; omit when source is context
+    blockOperation: <boolean> // OPTIONAL, default: true
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+
+| Parameter | Required or Optional | Default Value | Description
+
+| `source`
+| Optional
+| `context`
+| `context` tells Flex Gateway to fetch the GraphQL SDL from the API asset in Exchange. `inline` embeds SDL in this policy configuration, which you use in Local Mode or when you don't rely on Exchange for the schema.
+
+| `schema`
+| Required when `source` is `inline`
+| Omit for `context`
+| The full GraphQL schema as SDL text. If you set `source` to `inline`, you must provide this field to start the policy.
+
+| `blockOperation`
+| Optional
+| `true`
+| If `true` and validation fails, Flex Gateway returns a 400 error. If `false`, Flex Gateway logs a warning and forwards the request.
+
+|===
+
+==== Resource Configuration Example
+
+This example validates against a minimal inline schema.
+
+[source,yaml]
+----
+- policyRef:
+    name: graphql-schema-validation-flex
+  config:
+    source: inline
+    blockOperation: true
+    schema: |
+      type Query {
+        hello: String
+      }
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+s|Field s|Description s|Default s|Required
+
+| Block request
+| If enabled and the operation doesn't conform to the schema, Flex Gateway returns a 400 error. If disabled, Flex Gateway logs a warning and forwards the request.
+| Enabled | Yes
+
+| Advanced options
+| Standard policy options such as policy version and application rules.
+| |
+|===
+
+[NOTE]
+====
+To start the policy, supply a populated configuration payload. 
+
+In Anypoint Platform, attach the GraphQL SDL to the API asset in Exchange. Because Flex Gateway automatically picks up the SDL, the policy UI exposes only *Block request*. In Local Mode, because `source: context` requires the API metadata and asset services provided by Managed and Connected environments, set `source` to `inline` and provide the `schema` text.
+====
+
+== See Also
+
+* xref:policies-included-directory.adoc[Inbound Policies Directory]
+* xref:policies-included-schema-validation.adoc[Schema Validation Policy]
+* xref:flex-gateway-secure-apis.adoc[Securing Flex Gateway Instances with Policies]
