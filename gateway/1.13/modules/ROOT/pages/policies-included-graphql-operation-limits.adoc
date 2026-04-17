@@ -1,0 +1,130 @@
+= GraphQL Operation Limits Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: graphql, operation limits, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | GraphQL Operation Limits
+>s| Summary | Caps depth, aliases, root fields, and directives in GraphQL operations before Flex Gateway forwards traffic upstream
+>s| Category | Security
+>s| First Flex Gateway version available | v1.13.0
+.1+>.^s| Returned status codes
+| 400 - The operation exceeds one or more configured limits. The JSON response lists each violation in GraphQL-style `errors` with messages such as `Query depth of 7 exceeds the maximum allowed depth of 5`.
+|===
+
+== Summary
+
+The GraphQL Operation Limits policy measures each incoming GraphQL document against limits you set. When the operation exceeds a limit, the policy returns a 400 Bad Request error with `Content-Type: application/json; charset=UTF-8` and a JSON body that includes an `errors` array. The policy adds one array entry per violation, so one request can return several messages when multiple limits fail.
+
+You can cap any combination of these measurements.
+
+* Maximum depth: The deepest nesting of field selections in the document. A query such as `{ hero }` has depth 1, and `{ hero { name } }` has depth 2.
+* Maximum aliases: The total count of field aliases across the document, including nested fields. Aliases help clients batch work, but they also support abuse patterns that rely on many aliases.
+* Maximum root fields: The largest number of top-level fields on any single operation in the document. Selections inside inline fragments at the root add to this count.
+* Maximum directives: The total count of directives on operations, fragments, spreads, inline fragments, and fields across the document.
+
+Flex Gateway evaluates limits at parse time from the document text. Because fragment spreads don't expand, metrics reflect the written document instead of a fully expanded query plan that the gateway builds at runtime.
+
+For persisted queries, the gateway resolves the document without inline query text. The policy bypasses these requests and allows them to pass through.
+
+If the parser can't read the query, the policy logs a debug message and doesn't block the request, so upstream validation or other policies can still run.
+
+If you disable or omit every limit, the policy loads but allows all requests.
+
+Use this policy on Flex Gateway API instances that expose a GraphQL interface. Apply it at the API or resource scope as needed.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: graphql-operation-limits-flex
+  config:
+    maxDepth: <integer> // OPTIONAL, use -1 or omit to disable
+    maxAliases: <integer> // OPTIONAL, use -1 or omit to disable
+    maxRootFields: <integer> // OPTIONAL, use -1 or omit to disable
+    maxDirectives: <integer> // OPTIONAL, use -1 or omit to disable
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+
+| Parameter | Required or Optional | Default Value | Description
+
+| `maxDepth`
+| Optional
+| Omit or `-1` to disable
+| Non-negative integer cap on deepest selection nesting. Flex Gateway treats values below zero like an omitted field and doesn't apply a depth cap.
+
+| `maxAliases`
+| Optional
+| Omit or `-1` to disable
+| Non-negative integer cap on total field aliases in the document.
+
+| `maxRootFields`
+| Optional
+| Omit or `-1` to disable
+| Non-negative integer cap on root-level fields in any one operation.
+
+| `maxDirectives`
+| Optional
+| Omit or `-1` to disable
+| Non-negative integer cap on total directives in the document.
+
+|===
+
+==== Resource Configuration Example
+
+This example caps depth and aliases while leaving root fields and directives unrestricted.
+
+[source,yaml]
+----
+- policyRef:
+    name: graphql-operation-limits-flex
+  config:
+    maxDepth: 8
+    maxAliases: 20
+    maxRootFields: -1
+    maxDirectives: -1
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+s|Field s|Description s|Default s|Required or Optional
+
+| Maximum Depth
+| Maximum depth of nested field selections in a single document. Set to -1 to disable this limit.
+| `-1`, limit off | Optional
+
+| Maximum Aliases
+| Maximum number of field aliases in the document. Set to -1 to disable this limit.
+| `-1`, limit off | Optional
+
+| Maximum Root Fields
+| Maximum number of top-level fields that an operation can declare. Set to -1 to disable this limit.
+| `-1`, limit off | Optional
+
+| Maximum Directives
+| Maximum number of directives across the document. Set to -1 to disable this limit.
+| `-1`, limit off | Optional
+
+| Advanced options
+| Standard policy options, such as policy version and application rules.
+| |
+|===
+
+[NOTE]
+====
+To start the policy, supply at least `{}` in the declarative configuration. If you want to enforce limits, add integer fields.
+====
+
+== See Also
+
+* xref:policies-included-directory.adoc[Inbound Policies Directory]
+* xref:flex-gateway-secure-apis.adoc[Securing Flex Gateway Instances with Policies]
