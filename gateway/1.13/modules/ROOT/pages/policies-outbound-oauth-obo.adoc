@@ -1,0 +1,77 @@
+= OAuth 2.0 OBO Credential Injection Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: oauth2, token exchange, on-behalf-of, obo, rfc 8693, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | OAuth 2.0 OBO Credential Injection
+>s|Summary  | Exchanges incoming bearer tokens using OAuth 2.0 Token Exchange (RFC 8693), Microsoft Entra ID On-Behalf-Of, or OAuth 2.0 Token Exchange with CIBA
+>s|Category | Security
+>s|First Flex Gateway version available | v1.11.0
+>s| Returned Status Codes | No return codes exist for this policy. Error codes are returned from the upstream service.
+|===
+
+== Summary
+
+The OAuth 2.0 On-Behalf-Of (OBO) Credential Injection policy exchanges an incoming bearer token for a new token to target specific upstream services. The policy supports OAuth 2.0 Token Exchange (RFC 8693), Microsoft Entra ID On-Behalf-Of protocols, and OAuth 2.0 Token Exchange with Client Initiated Backchannel Authentication (CIBA). This policy is applied to outbound traffic (gateway to the backend service) to automatically exchange the OAuth 2.0 token needed for backend services.
+
+The policy extracts the Bearer token from the incoming request's `Authorization` header and sends a token exchange request to the token endpoint. The policy then replaces the `Authorization` header with the new token returned from the token exchange service and forwards the modified request to the backend service.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The OAuth 2.0 OBO Credential Injection policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+|Parameter |Description
+
+|Token Exchange Flow |Token exchange flow: *OAuth 2.0 Token Exchange* (RFC 8693) or *Microsoft Entra ID On-Behalf-Of*.
+
+|Client ID |OAuth 2.0 client ID for token exchange.
+
+|Client Secret |OAuth 2.0 client secret for token exchange.
+
+|Token Endpoint |OAuth 2.0 token endpoint URL.
+
+|Target Type |Parameter type for specifying the target service. Required for OAuth 2.0 Token Exchange flow. Supported values:
+
+* Audience: Logical identifier of the target service (default)
+* Resource: Physical URI of the target resource (RFC 8707)
+|Target Value |Target audience URI or resource URI for the exchanged token. Required for OAuth 2.0 Token Exchange flow.
+
+|Scope |OAuth 2.0 scope to request. Required for Microsoft Entra OBO (for example, `api://downstream-client-id/.default`) and OAuth2 Token Exchange with CIBA (for example, `openid`). Optional for OAuth 2.0 Token Exchange (RFC 8693).
+
+|Timeout |Timeout for token exchange requests in milliseconds. Default: 10000.
+
+|Enable CIBA |Enables OAuth 2.0 Token Exchange with CIBA flow. Available only for OAuth 2.0 Token Exchange.
+
+|CIBA Backchannel Endpoint |The backchannel authentication endpoint (`bc-authorize`) used to initiate the CIBA flow. Required when *Enable CIBA* is selected.
+
+|Login Hint Claim |JWT claim from the incoming subject token to send as `login_hint` in the CIBA request. If no hint is specified, `email` is used.
+
+|Binding Message |Optional human-readable message sent as `binding_message` in the CIBA request and displayed on the authentication device.
+|===
+
+== CIBA Behavior
+
+When *Enable CIBA* is selected, the policy initiates a CIBA backchannel authentication request on the first matching outbound call and returns an authorization pending response until user authentication is approved by the authorization server. After approval, the policy injects the exchanged access token into the `Authorization` header and forwards requests to the backend service.
+
+While waiting for user authentication, the policy returns a `401 Unauthorized` response with the following JSON body:
+
+----
+HTTP/1.1 401 Unauthorized
+Retry-After: 5
+Content-Type: application/json
+
+{
+  "error": "authorization_pending",
+  "error_description": "CIBA authorization flow initiated. Downstream user authorization is in progress. Retry after the indicated interval."
+}
+----

@@ -1,0 +1,102 @@
+= MCP Attribute-Based Access Control Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | MCP Attribute-Based Access Control
+>s|Summary      | Controls access to tools, resources, and prompts based on user information such as Tiers, IP, Headers, or Claims
+>s|Category | MCP
+>s|First Flex Gateway version available | v1.9.3
+>s| Returned Status Codes | 400 - Invalid token
+|===
+
+include::partial$mcp-version-support.adoc[]
+
+== Summary
+
+The MCP Attribute-Based Access Control policy controls access to server tools, resources, and prompts based on user information such as Tiers, IP, Headers, or Claims. Use the https://docs.cedarpolicy.com/[Cedar policy language] to define access rules.
+
+This policy requires that another authentication policy be applied before the MCP Attribute-Based Access Control policy. For detailed guidance, see <<writing-cedar-rules>>.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The MCP Attribute-Based Access Control policy is not supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+
+|===
+| Element | Description
+| Rules | Rules to control access to tools, resources, and prompts written in the https://docs.cedarpolicy.com/[Cedar policy language].
+| Cedar Expression | Cedar expression defining the access rule. For example: `permit(principal,action == Action::"tools/call` or `resource == Tool::"calculator");`. To learn more about the Cedar bindings provided by the requests, see <<writing-cedar-rules>>.
+| Authentication Type | Type of authentication used by the authentication policy applied before this policy.
+|===
+
+
+[[writing-cedar-rules]]
+== Writing Cedar Rules
+
+You must apply either an included authentication policy or a custom authentication policy before the MCP Attribute-Based Access Control policy.
+
+=== Included Authentication Policies
+
+The authentication policy you apply affects the available Cedar `principal` bindings:
+
+* Multiple policies can validate Client ID:
+** xref:policies-included-client-id-enforcement.adoc[]
+** xref:policies-included-rate-limiting-sla.adoc[]
+** xref:policies-included-oauth-token-introspection.adoc[] (If Client ID enforcement is configured)
+** xref:policies-included-openid-token-enforcement.adoc[] (If Client ID enforcement is configured)
+** xref:policies-included-jwt-validation.adoc[] (If Client ID enforcement is configured)
++ 
+Policies validating Client ID provide these Cedar bindings:
++
+** `principal.client_name`: Name of the contract's client application
+** `principal.principal`: ID of the contract's client application
+** `principal.properties.slaId`: SLA ID assigned to the contract
+
+* xref:policies-included-jwt-validation.adoc[]:
+** `principal.properties.claims.<claimName>`: All claims provided by the JWT
+
+* Multiple policies validate basic authentication credentials:
+** xref:policies-included-basic-auth-simple.adoc[]
+** xref:policies-included-basic-auth-ldap.adoc[]
++ 
+Policies validating basic authentication credentials provide these Cedar bindings:
++
+** `principal.principal`: Username passed as basic auth user
+
+=== Custom Authentication Policies
+
+For custom authentication policies, the custom policy must authenticate by using the `Authentication` injectable. To configure the `Authentication` injectable, see xref:pdk::policies-pdk-configure-features-authentication.adoc[].
+
+For the Rust `AuthenticationData` struct:
+
+[source, rust]
+----
+pub struct AuthenticationData {
+    pub principal: Option<String>,
+    pub client_id: Option<String>,
+    pub client_name: Option<String>,
+    pub properties: Value,
+}
+----
+
+The `AuthenticationData` parameters map to these Cedar bindings:
+
+* `principal`: `principal.principal`
+* `client_name`: `principal.client_name`
+* `properties`: `principal.properties.*`
+
+== See Also
+
+* xref:policies-mcp-access-control-together.adoc[]
+* xref:policies-included-mcp-global-access.adoc[MCP Global Access]
+* xref:policies-included-mcp-tool-mapping.adoc[MCP Tool Mapping]
