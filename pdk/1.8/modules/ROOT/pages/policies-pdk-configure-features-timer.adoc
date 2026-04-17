@@ -12,10 +12,12 @@ Each timer provides the following async methods:
 ----
 pub async fn next_tick(&self) -> bool;
 pub async fn sleep(&self, interval: Duration) -> bool;
+pub fn now(&self) -> bool;
 ----
 
 * `next_tick`: Sleeps for the minimum amount of time the timer is capable of distinguishing.
 * `sleep`: Sleeps for an amount of ticks where the elapsed time is greater or equal than the provided `Duration`. For example, if you configure the period of the clock to 10 seconds, calling `timer.sleep(Duration::from_secs(1))` sleeps for 10 seconds.
+* `now`: Returns the current date and time.
 
 Both functions return `true` when the specified time has passed or `false` if the policy is unapplied or edited during execution.
 
@@ -49,10 +51,26 @@ After you inject the timer, share a its reference with the `on_request` and `on_
 
 You can now await timer functions in `on_request` and `on_response` functions, for example:
 
+* Use the `.sleep` or `.next_tick` function:
++
 [source,rust]
 ----
     let slept = timer.sleep(duration).await;
     let tick = timer.next_tick().await;
+----
+
+* Use the `.now` function:
++
+[source,rust]
+----
+async fn filter(
+    state: RequestState,
+    timer: &Timer,
+) {
+    let state = state.into_headers_state().await;
+    let now: chrono::DateTime<chrono::Utc> = timer.now().into();
+    state.handler().set_header("Date", now.format("%a, %d %b %Y %H:%M:%S GMT").to_string().as_str());
+}
 ----
 
 NOTE: To view an example policy project that launches delayed functions, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/spike/README.md[Spike Policy Example].
