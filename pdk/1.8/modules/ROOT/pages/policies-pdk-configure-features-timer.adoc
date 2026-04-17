@@ -14,6 +14,16 @@ pub async fn next_tick(&self) -> bool;
 pub async fn sleep(&self, interval: Duration) -> bool;
 ----
 
+async fn filter(
+    state: RequestState,
+    timer: &Timer,
+) {
+    let state = state.into_headers_state().await;
+    let now: chrono::DateTime<chrono::Utc> = timer.now().into();
+    state.handler().set_header("Date", now.format("%a, %d %b %Y %H:%M:%S GMT").to_string().as_str());
+}
+
+
 * `next_tick`: Sleeps for the minimum amount of time the timer is capable of distinguishing.
 * `sleep`: Sleeps for an amount of ticks where the elapsed time is greater or equal than the provided `Duration`. For example, if you configure the period of the clock to 10 seconds, calling `timer.sleep(Duration::from_secs(1))` sleeps for 10 seconds.
 
