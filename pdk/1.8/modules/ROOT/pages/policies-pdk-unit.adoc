@@ -187,6 +187,8 @@ fn test_valid_client_id() {
         None::<String>,
     );
 
+    tester.sleep(Duration::from_secs(20)); // advance the internal clock to execute the periodic task
+
     let response = tester.request(
         UnitHttpRequest::get()
             .with_path("/api/resource")
