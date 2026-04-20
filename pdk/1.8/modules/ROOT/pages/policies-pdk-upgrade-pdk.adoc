@@ -155,6 +155,110 @@ pub const POLICY_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/target/wasm32
 ----
 . Save the `mod.rs` file.
 
+[[upgrade-anypoint-cli-pdk-plugin-earlier-1.8.0]]
+== Upgrade the Anypoint CLI PDK Plugin for Policies with Versions Earlier Than 1.8.0
+
+Depending on you configuration, when upgrading to 1.8.0 you might experience these issues:
+
+* <<feature-compatibility-issue-on-tokio>>
+* <<compilation-error-structs>>
+
+[[feature-compatibility-issue-on-tokio]]
+=== Tokio Runtime Feature Compatibility Error
+
+When using a Tokio runtime for testing, sometimes a compilation occurs similar to this error when building for WebAssembly:
+
+[source,text]
+----
+error: Only features sync,macros,io-util,rt,time are supported on wasm.
+   --> /Users/test-user/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.51.1/src/lib.rs:478:1
+    |
+478 | compile_error!("Only features sync,macros,io-util,rt,time are supported on wasm.");
+----
+
+To solve this error, under the `[package]` section of your policy's `Cargo.toml`, add `resolver = "2"`. This enables your compiler resolve dependencies separately for production code and for test dependencies.
+
+[source,toml]
+----
+[package]
+name = "my_policy"
+version = "1.0.0"
+rust-version = "1.88.0"
+edition = "2018"
+resolver = "2"
+----
+
+[[compilation-error-structs]]
+=== Compilation Error When Constructing Metadata-Related Structs
+
+When constructing Metadata-related structs, sometimes an error similar to this one occurs:
+
+[source,text]
+----
+error[E0639]: cannot create non-exhaustive struct using struct expression
+  --> test-policy/src/lib.rs:90:32
+   |
+90 |                   flex_metadata: FlexMetadata {
+   |  ________________________________^
+91 | |                     flex_name: "test_flex_name".to_string(),
+92 | |                     flex_version: "1.0.0".to_string(),
+93 | |                 },
+   | |_________________^
+----
+
+PDK 1.8.0 marks metadata-related structs as `#[non_exhaustive]` so that you can add new metadata fields without breaking changes.
+
+When constructing these structs manually in tests, use one of these approaches:
+
+* Use the new default constructor and set each field to the value you need. For example:
++
+[source,rust]
+----
+let mut metadata = FlexMetadata::default();
+metadata.flex_name = "test_flex_name".to_string();
+metadata.flex_version = "1.0.0".to_string();
+----
+
+* Add the `non_exhaustive!` macro from the https://crates.io/crates/non-exhaustive[`non-exhaustive`] crate to the `[dev-dependencies]` in your `cargo.toml` files:
++
+[source,toml]
+----
+[dev-dependencies]
+non-exhaustive = "0.1.1"
+----
++
+This enables you to use the default construct as shown in this example:
++
+[source,rust]
+----
+use non_exhaustive::non_exhaustive;
+// ...
+
+let metadata = non_exhaustive!(FlexMetadata {
+    flex_name: "test_flex_name".to_string(),
+    flex_version: "1.0.0".to_string(),
+});
+----
+
+[[upgrade-anypoint-cli-pdk-plugin-earlier-1.7.0]]
+== Upgrade the Anypoint CLI PDK Plugin for Policies with Versions Earlier Than 1.7.0
+
+In PDK 1.7.0, the name of the Anypoint CLI PDK plugin changes from `anypoint-cli-pdk-plugin` to `anypoint-pdk-plugin`. To upgrade your earlier versions, uninstall the old plugin before installing the new one:
+
+. Uninstall the old plugin:
++
+[source,ssh]
+----
+anypoint-cli-v4 plugins:uninstall anypoint-cli-pdk-plugin
+----
+
+. Install the new plugin:
++
+[source,ssh]
+----
+anypoint-cli-v4 plugins:install anypoint-pdk-plugin
+----
+
 [[upgrade-versions-earlier-1.6.0]]
 == Upgrade Policies with Versions Earlier Than 1.6.0
 
@@ -224,31 +328,6 @@ To find an example of the targets, see the https://github.com/mulesoft/pdk-custo
 .. Save the `Makefile` file.
 . Execute `make setup` to install the updated versions.
 
-[[upgrade-anypoint-cli-pdk-plugin-earlier-1.7.0]]
-== Upgrade the Anypoint CLI PDK Plugin for Policies with Versions Earlier Than 1.7.0
-
-In PDK 1.7.0, the name of the Anypoint CLI PDK plugin changes from `anypoint-cli-pdk-plugin` to `anypoint-pdk-plugin`. To upgrade your earlier versions, uninstall the old plugin before installing the new one:
-
-. Uninstall the old plugin:
-+
-[source,ssh]
-----
-anypoint-cli-v4 plugins:uninstall anypoint-cli-pdk-plugin
-----
-
-. Install the new plugin:
-+
-[source,ssh]
-----
-anypoint-cli-v4 plugins:install anypoint-pdk-plugin
-----
-
-
-
-
 == See Also
 
 * xref:policies-pdk-prerequisites.adoc[]
-
-
-
