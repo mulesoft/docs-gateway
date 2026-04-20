@@ -107,7 +107,7 @@ fn test_policy_handles_upstream_error() {
 
 == Mock an HTTP Upstream
 
-When a policy issues an HTTP call to a specific authority, register a backend for that authority with `with_http_upstream_from_authority`:
+When a policy issues an HTTP call to a specific authority, register a backend for that authority by using `with_http_upstream_from_authority`:
 
 [source,rust]
 ----
@@ -273,7 +273,7 @@ NOTE: Using `SystemTime::now` creates non-deterministic tests.
 
 |`metadata`
 |`metadata(f: impl FnOnce(&mut Metadata)) -> Self`
-|Mutates the `Metadata` injected into the policy context. Call *before* any `with_*_upstream_from_authority` methods, because those methods derive the upstream service name from metadata.
+|Mutates the `Metadata` injected into the policy context. Call the `metadata` method before any `with_*_upstream_from_authority` method as the upstream methods derive the upstream service name from metadata.
 
 |`with_entrypoint`
 |`with_entrypoint(entrypoint: impl Entrypoint<C, T> + Clone + 'static) -> UnitTest`
