@@ -12,7 +12,7 @@ Use `pdk-unit` when you need tests that are:
 
 * *Fast feedback*: Tests run as ordinary Rust unit tests completing in milliseconds.
 * *Deterministic*: No network, no containers, no race conditions.
-* *Full lifecycle coverage*: Exercises request headers, request body, response headers, and response body phases as the real `proxy-wasm` host would.
+* *Full lifecycle coverage*: Exercises request headers, request body, response headers, and response body phases as the real `proxy-wasm` host does.
 * *Code coverage*: Policy code runs directly in the Rust environment, so it works with standard coverage tools such as `cargo-tarpaulin`.
 * *Debugging*: Tests run as native Rust code, so you can attach a debugger or profiler without extra setup.
 
@@ -26,10 +26,10 @@ Add `pdk-unit` as a dev-dependency in your policy's `Cargo.toml`:
 pdk-unit = { version = "1.8" }
 ----
 
-== Basic request/response test
+== Basic Request and Response Test
 
-Build a `UnitTest` with `UnitTestBuilder`, send a `UnitHttpRequest`, and assert on the returned `UnitHttpResponse`.
-Headers and the body are available through the `UnitHttpMessage` trait.
+To send a test request build a `UnitTest` with the `UnitTestBuilder`, send a `UnitHttpRequest`, and assert on the returned `UnitHttpResponse`.
+Headers and the body are available through the `UnitHttpMessage` trait:
 
 [source,rust]
 ----
@@ -50,12 +50,11 @@ fn test_policy_allows_get() {
 ----
 
 The `request` method drives the request until execution finishes and returns a `UnitHttpResponse`.
-If the request does not resolve immediately, the tester advances the internal clock and retries until the request completes.
+If the request doesn't resolve immediately, the test advances the internal clock and retries until the request completes.
 
-== Inspecting what the policy forwarded upstream
+== View Backend Requests 
 
-Use `TraceBackend` to record requests that reach the upstream.
-Supply any `Backend` as the response generator; this example always returns `200`.
+Use `TraceBackend` to record requests that reach the upstream. Supply any `Backend` as the response generator:
 
 [source,rust]
 ----
@@ -78,10 +77,11 @@ fn test_policy_adds_header() {
 }
 ----
 
-== Returning a custom response from the upstream
+NOTE: This example always returns `200`.
 
-Any closure that implements `Backend` can mock the upstream.
-`UnitHttpResponse` is the usual way to build the mock response.
+== Return Custom Upstream Responses 
+
+Use `UnitHttpResponse` or a different closure that implements the `Backend` to mock upstream responses:
 
 [source,rust]
 ----
@@ -107,7 +107,7 @@ fn test_policy_handles_upstream_error() {
 
 == Mock an HTTP Upstream
 
-When a policy issues an HTTP call to a specific authority, register a backend for that authority with `with_http_upstream_from_authority`.
+When a policy issues an HTTP call to a specific authority, register a backend for that authority with `with_http_upstream_from_authority`:
 
 [source,rust]
 ----
@@ -134,7 +134,7 @@ fn test_policy_calls_external_service() {
 
 == Mock a gRPC upstream
 
-Use the `protobuf_grpc_backend` macro to derive a `GrpcBackend` implementation from a Rust struct with annotated methods.
+Use the `protobuf_grpc_backend` macro to derive a `GrpcBackend` implementation from a Rust struct with annotated methods:
 
 [source,rust]
 ----
@@ -168,7 +168,7 @@ fn test_grpc_policy() {
 
 == Test Client ID Enforcement
 
-`add_contract_data` seeds the built-in Anypoint Platform stub with a registered API contract so you can test policies that validate client credentials.
+`add_contract_data` seeds the built-in Anypoint Platform stub with a registered API contract to test policies that validate client credentials.
 
 [source,rust]
 ----
@@ -201,7 +201,7 @@ fn test_valid_client_id() {
 == Test Time-Based Behavior
 
 Policies that use timers or scheduled callbacks can be driven with `tick()` and `sleep()`.
-Use `Clock::now` or `Timer::now` for time in the policy; `SystemTime::now` leads to non-deterministic tests.
+Use `Clock::now` or `Timer::now` for time in the policy; .
 
 [source,rust]
 ----
@@ -230,11 +230,11 @@ fn test_rate_limit_resets_after_window() {
 }
 ----
 
+NOTE: Using `SystemTime::now` creates non-deterministic tests.
+
 == `UnitTestBuilder` Methods
 
-`UnitTestBuilder::default()` is the entry point.
-All methods except `with_entrypoint` return `self` for chaining.
-`with_entrypoint` consumes the builder and returns a `UnitTest`.
+`UnitTestBuilder::default()` is the entry point. All methods except return `self` for chaining, except `with_entrypoint` that consumes the builder and returns a `UnitTest`:
 
 [cols="1,2,2",options="header"]
 |===
@@ -250,15 +250,15 @@ All methods except `with_entrypoint` return `self` for chaining.
 
 |`with_http_upstream_from_authority`
 |`with_http_upstream_from_authority(authority: impl AsRef<str>, backend: impl Backend + 'static) -> Self`
-|Registers an HTTP upstream matched by host authority (for example, `api.example.com`). The authority is converted to the internal upstream service name. Call *after* any `metadata()` calls that change `policy_name` or `policy_namespace`.
+|Registers an HTTP upstream matched by host authority, for example, `api.example.com`. The authority is converted to the internal upstream service name. Call any `metadata()` calls that change `policy_name` or `policy_namespace` before calling `with_http_upstream_from_authority`.
 
 |`with_http_upstream`
 |`with_http_upstream(upstream: impl Into<String>, backend: impl Backend + 'static) -> Self`
-|Registers an HTTP upstream by its full internal service name. Prefer `with_http_upstream_from_authority` unless you must pass the service name directly.
+|Registers an HTTP upstream by its full internal service name. Use `with_http_upstream_from_authority` unless if you must pass the service name directly.
 
 |`with_grpc_upstream_from_authority`
 |`with_grpc_upstream_from_authority(authority: impl AsRef<str>, backend: impl GrpcBackend + 'static) -> Self`
-|Registers a gRPC upstream matched by host authority. Same authority-to-service-name conversion and ordering rules as the HTTP variant.
+|Registers a gRPC upstream matched by host authority. The authority is converted to the internal upstream service name.
 
 |`with_grpc_upstream`
 |`with_grpc_upstream(upstream: impl Into<String>, backend: impl GrpcBackend + 'static) -> Self`
@@ -270,11 +270,11 @@ All methods except `with_entrypoint` return `self` for chaining.
 
 |`metadata`
 |`metadata(f: impl FnOnce(&mut Metadata)) -> Self`
-|Mutates the `Metadata` injected into the policy context. Call *before* any `with_*_upstream_from_authority` methods, because those derive the upstream service name from metadata.
+|Mutates the `Metadata` injected into the policy context. Call *before* any `with_*_upstream_from_authority` methods, because those methods derive the upstream service name from metadata.
 
 |`with_entrypoint`
 |`with_entrypoint(entrypoint: impl Entrypoint<C, T> + Clone + 'static) -> UnitTest`
-|Finalizes the builder and creates a `UnitTest`. Pass `crate::configure` as the entrypoint. Consumes the builder.
+|Consumes the builder and creates a `UnitTest`. Pass `crate::configure` as the entrypoint. Consumes the builder.
 |===
 
 == Core API Reference
@@ -284,7 +284,7 @@ All methods except `with_entrypoint` return `self` for chaining.
 |Type / function |Description
 
 |`UnitTestBuilder`
-|Fluent builder: configure the policy, metadata, and backends, then call `with_entrypoint` to produce a `UnitTest`.
+|Fluent builder. Configure the policy, metadata, and backends, then call `with_entrypoint` to produce a `UnitTest`.
 
 |`UnitTest`
 |Main orchestrator. Use `request` for synchronous tests or `request_partial` plus `poll` for finer control.
@@ -299,9 +299,9 @@ All methods except `with_entrypoint` return `self` for chaining.
 |HTTP response from `new(status_code)`. Exposes `status_code()` and the `UnitHttpMessage` trait accessors.
 
 |`UnitHttpMessage`
-|Trait for both `UnitHttpRequest` and `UnitHttpResponse`: `header()`, `headers()`, `body()`, `property()`, `authentication()`, and `violation()`.
+|Traits for both `UnitHttpRequest` and `UnitHttpResponse`: `header()`, `headers()`, `body()`, `property()`, `authentication()`, and `violation()`.
 
-|`UnitGrpcRequest` / `UnitGrpcResponse`
+|`UnitGrpcRequest` and `UnitGrpcResponse`
 |gRPC wrappers for `GrpcBackend` implementations.
 
 |`Backend`
