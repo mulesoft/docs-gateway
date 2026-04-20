@@ -200,10 +200,11 @@ fn test_valid_client_id() {
 }
 ----
 
+
+
 == Test Time-Based Behavior
 
-Policies that use timers or scheduled callbacks can be driven with `tick()` and `sleep()`.
-Use `Clock::now` or `Timer::now` for time in the policy; .
+Unit tests use an internal clock to test timed policy functions. Use the `tick()` and `sleep()` functions to drive policies that use timers or scheduled callbacks. These functions only move the internal testing clock forward and don't actually take the specified time. Use `Clock::now` or `Timer::now` for time in the policy:
 
 [source,rust]
 ----
