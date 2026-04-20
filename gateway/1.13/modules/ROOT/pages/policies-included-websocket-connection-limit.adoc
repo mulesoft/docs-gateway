@@ -1,0 +1,86 @@
+= WebSocket Connection Limit Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: websocket, connection limit, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | WebSocket Connection Limit
+>s| Summary | Caps how many simultaneous WebSocket upgrades each API instance accepts before Flex Gateway rejects new upgrade attempts
+>s| Category | Quality of Service
+>s| First Flex Gateway version available | v1.13.0
+.1+>.^s| Returned status codes
+| 429 - Flex Gateway already reserved the maximum number of concurrent WebSocket upgrades for this policy. The response body includes the plain text `Too many WebSocket connections`.
+|===
+
+== Summary
+
+The WebSocket Connection Limit policy tracks in-flight WebSocket upgrades for the API instance where you apply it. Flex Gateway evaluates only requests whose `Upgrade` header equals `websocket`, skips ordinary HTTP traffic, and stores the counter in shared data so every replica shares the same ceiling.
+
+If an upgrade request arrives and Flex Gateway reserves capacity, Flex Gateway it increments the counter before forwarding the handshake upstream. If the upstream response isn't `101 Switching Protocols`, Flex Gateway immediately releases the reservation. When the WebSocket exchange completes, Flex Gateway decrements the counter.
+
+When the counter already equals `maximumConnections`, Flex Gateway stops the handshake and returns `429 Too Many Requests` with the plain text payload `Too many WebSocket connections`.
+
+Set `maximumConnections` to an integer of `1` or higher. Flex Gateway rejects configuration that sets the value to `0` or omits the field.
+
+Apply this policy at the **API** scope on Flex Gateway API instances that expose WebSocket interfaces.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: websocket-connection-limit-flex
+  config:
+    maximumConnections: <integer> // REQUIRED, minimum 1
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+
+| Parameter | Required or Optional | Default Value | Description
+
+| `maximumConnections`
+| Required
+| In Anypoint Platform, the UI defaults to `100`. If you use declarative YAML, you must supply an integer.
+| Maximum number of simultaneous WebSocket upgrade reservations that Flex Gateway allows for this policy instance.
+
+|===
+
+==== Resource Configuration Example
+
+[source,yaml]
+----
+- policyRef:
+    name: websocket-connection-limit-flex
+  config:
+    maximumConnections: 500
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+s|Field s|Description s|Default s|Required
+
+| Maximum Connections
+| Upper bound on concurrent WebSocket upgrade reservations for the API instance.
+| `100` | Yes
+
+| Advanced options
+| Standard policy options such as policy version and application rules.
+| |
+|===
+
+[NOTE]
+====
+The JSON schema in API Manager allows `0` as the minimum value. However, because the limit must be at least `1`, Flex Gateway rejects `0` at runtime.
+====
+
+== See Also
+
+* xref:policies-included-directory.adoc[Inbound Policies Directory]
+* xref:flex-gateway-secure-apis.adoc[Securing Flex Gateway Instances with Policies]
