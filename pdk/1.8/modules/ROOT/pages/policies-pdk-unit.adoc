@@ -1,19 +1,18 @@
-= pdk-unit
+= Writing Policy Test with the pdk-unit Testing Framework 
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-`pdk-unit` is a unit testing framework for Flex Gateway Policy Development Kit (PDK) custom policies.
-It lets you test the full request/response lifecycle of a Flex Gateway policy without a running Envoy proxy, a WebAssembly runtime, or external infrastructure.
+Use the `pdk-unit` testing framework for Flex Gateway Policy Development Kit (PDK) custom policies to test the full request and response lifecycle of a policy without a running Envoy proxy, a WebAssembly runtime, or external infrastructure.
 
-== Why use pdk-unit?
+Use `pdk-unit` when you need tests that are:
 
-* *Fast feedback* — tests run as ordinary Rust unit tests, completing in milliseconds.
-* *Deterministic* — no network, no containers, no race conditions.
-* *Full lifecycle coverage* — exercises request headers, request body, response headers, and response body phases, as the real proxy-wasm host would.
-* *Code coverage* — policy code runs directly in the Rust environment, so it works with standard coverage tools such as `cargo-tarpaulin`.
-* *Debugging* — tests run as native Rust code, so you can attach a debugger or profiler without extra setup.
+* *Fast feedback*: Tests run as ordinary Rust unit tests completing in milliseconds.
+* *Deterministic*: No network, no containers, no race conditions.
+* *Full lifecycle coverage*: Exercises request headers, request body, response headers, and response body phases as the real `proxy-wasm` host would.
+* *Code coverage*: Policy code runs directly in the Rust environment, so it works with standard coverage tools such as `cargo-tarpaulin`.
+* *Debugging*: Tests run as native Rust code, so you can attach a debugger or profiler without extra setup.
 
 == How to use
 
@@ -27,7 +26,7 @@ pdk-unit = { version = "1.8" }
 
 To see `pdk-unit` in action, browse the https://github.com/mulesoft/pdk-custom-policy-examples[PDK custom policy examples^] repository on GitHub.
 
-=== Basic request/response test
+== Basic request/response test
 
 Build a `UnitTest` with `UnitTestBuilder`, send a `UnitHttpRequest`, and assert on the returned `UnitHttpResponse`.
 Headers and the body are available through the `UnitHttpMessage` trait.
@@ -53,7 +52,7 @@ fn test_policy_allows_get() {
 The `request` method drives the request until execution finishes and returns a `UnitHttpResponse`.
 If the request does not resolve immediately, the tester advances the internal clock and retries until the request completes.
 
-=== Inspecting what the policy forwarded upstream
+== Inspecting what the policy forwarded upstream
 
 Use `TraceBackend` to record requests that reach the upstream.
 Supply any `Backend` as the response generator; this example always returns `200`.
@@ -79,7 +78,7 @@ fn test_policy_adds_header() {
 }
 ----
 
-=== Returning a custom response from the upstream
+== Returning a custom response from the upstream
 
 Any closure that implements `Backend` can mock the upstream.
 `UnitHttpResponse` is the usual way to build the mock response.
@@ -106,7 +105,7 @@ fn test_policy_handles_upstream_error() {
 }
 ----
 
-=== Mocking a named HTTP upstream
+== Mock an HTTP Upstream
 
 When a policy issues an HTTP call to a specific authority, register a backend for that authority with `with_http_upstream_from_authority`.
 
@@ -133,7 +132,7 @@ fn test_policy_calls_external_service() {
 }
 ----
 
-=== Mocking a gRPC upstream
+== Mock a gRPC upstream
 
 Use the `protobuf_grpc_backend` macro to derive a `GrpcBackend` implementation from a Rust struct with annotated methods.
 
@@ -167,7 +166,7 @@ fn test_grpc_policy() {
 }
 ----
 
-=== Testing client ID enforcement
+== Test Client ID Enforcement
 
 `add_contract_data` seeds the built-in Anypoint Platform stub with a registered API contract so you can test policies that validate client credentials.
 
@@ -199,7 +198,7 @@ fn test_valid_client_id() {
 }
 ----
 
-=== Testing time-based behaviour (ticks)
+== Test Time-Based Behavior
 
 Policies that use timers or scheduled callbacks can be driven with `tick()` and `sleep()`.
 Use `Clock::now` or `Timer::now` for time in the policy; `SystemTime::now` leads to non-deterministic tests.
@@ -231,7 +230,7 @@ fn test_rate_limit_resets_after_window() {
 }
 ----
 
-== `UnitTestBuilder` methods
+== `UnitTestBuilder` Methods
 
 `UnitTestBuilder::default()` is the entry point.
 All methods except `with_entrypoint` return `self` for chaining.
@@ -278,7 +277,7 @@ All methods except `with_entrypoint` return `self` for chaining.
 |Finalizes the builder and creates a `UnitTest`. Pass `crate::configure` as the entrypoint. Consumes the builder.
 |===
 
-== Core API reference
+== Core API Reference
 
 [cols="1,3",options="header"]
 |===
