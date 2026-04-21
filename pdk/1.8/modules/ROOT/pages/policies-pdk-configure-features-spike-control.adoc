@@ -1,0 +1,101 @@
+= Using Spike Control Library Functions
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+[NOTE]
+====
+To view an example policy project that uses Flex Gateway Policy Development Kit (PDK)'s Spike Control library, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/spike/README.md[Spike Policy Example].
+====
+
+ To prevent sudden surges from overwhelming upstream services or exhausting shared capacity, spike control regulates how quickly traffic can grow. With the Spike Control library, you drive a handler modeled as a token bucket with a xref:policies-pdk-configure-features-timer.adoc[Timer] and a `Clock` ticker, then you call `is_allowed` from request or response filters. Use the library for custom policies that need spike arrest, smoothing, or rate style limits like those in Flex Gateway, with Rust logic you control.
+
+Use the library when your custom policy must perform these tasks.
+
+* Reject or delay traffic when request volume spikes beyond configured tiers.
+* Share one handler across filters while a periodic ticker refreshes bucket state.
+* Return `429 Too Many Requests` or another HTTP outcome when `is_allowed` reports overload.
+
+[[inject-spike-control-builder]]
+== Inject `SpikeControlBuilder` and Build a Handler
+
+Inject `SpikeControlBuilder` and `Clock` in the xref:policies-pdk-configure-features.adoc#policy-template[`#[entrypoint]` configure function]. Include `Launcher` and your other configuration types. From `Clock`, create a ticker, pass it to the builder, add at least one bucket as `Tier` values with `requests` and `period_in_millis`, and call `build` to get a `SpikeControlHandler` you share with filters inside `std::rc::Rc`. The `Tier` layout matches xref:policies-pdk-configure-features-rate-limiting.adoc[rate limiting examples].
+
+[source,Rust]
+----
+use anyhow::Result;
+use pdk::hl::*;
+use std::rc::Rc;
+use std::time::Duration;
+
+use pdk::spike_control::{
+    SpikeControlBuilder, SpikeControlError, SpikeControlHandler, Tier,
+};
+
+#[entrypoint]
+async fn configure(
+    launcher: Launcher,
+    clock: Clock,
+    spike_control: SpikeControlBuilder,
+) -> Result<()> {
+    let ticker = Rc::new(clock.period(Duration::from_millis(100)));
+
+    let handler = Rc::new(
+        spike_control
+            .new("example-spike-control".to_string())
+            .with_ticker(ticker)
+            .with_bucket(
+                "default".to_string(),
+                vec![Tier {
+                    requests: 1,
+                    period_in_millis: 1000,
+                }],
+            )
+            .with_retry(200, 2)
+            .build()
+            .map_err(|e| anyhow::anyhow!("failed to build spike control example: {e}"))?,
+    );
+
+    launcher
+        .launch(on_request({
+            let handler = Rc::clone(&handler);
+            move |state| request_filter(state, handler.as_ref())
+        }))
+        .await?;
+    Ok(())
+}
+----
+
+Use the fluent builder on `SpikeControlBuilder` to register a spike control name, ticker, buckets, and optional `with_retry` behavior. See the PDK Rust API documentation for a list of `with_*` methods. The documentation also explains what happens when you omit a call and what the `with_retry` method does.
+
+[[evaluate-spike-control]]
+== Evaluate Traffic with `is_allowed`
+
+Pass a reference to `SpikeControlHandler` into your `on_request` or `on_response` filters. For each request, call `is_allowed` with the bucket name, the traffic scope key, the permit count for this call, and the boolean flags your design requires. See the PDK Rust API documentation for full parameter and return value details.
+
+[source,Rust]
+----
+async fn request_filter(state: RequestState, handler: &SpikeControlHandler) -> Flow<()> {
+    let _ = state.into_headers_state().await;
+
+    match handler.is_allowed("default", "sample", 1, true).await {
+        Ok(_) => Flow::Continue(()),
+        Err(SpikeControlError::TooManyRequests(_)) => Flow::Break(Response::new(429)),
+        Err(_) => Flow::Break(Response::new(503)),
+    }
+}
+----
+
+Match each `is_allowed` outcome to the HTTP response your API contract requires. The example continues the request when the call succeeds and sends `429 Too Many Requests` when spike control rejects the call for rate reasons.
+
+[[spike-control-errors]]
+== Interpret Spike Control Errors
+
+`Err(SpikeControlError::TooManyRequests(_))` means traffic exceeded the tier for that bucket and key. Other error variants signal internal faults, such as timer or storage problems. If you need operational detail, log at the debug or warn level. If you can't expose internal details, return a generic message to clients.
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]
+* xref:policies-pdk-configure-features-timer.adoc[]
+* xref:policies-pdk-configure-features-rate-limiting.adoc[]

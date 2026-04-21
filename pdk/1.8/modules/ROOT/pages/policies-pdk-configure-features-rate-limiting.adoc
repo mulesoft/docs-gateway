@@ -1,0 +1,83 @@
+= Rate Limiting Requests
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Flex Gateway Policy Development Kit (PDK) provides rate limiting functionality to control request rates.  
+
+Custom policies support both single Flex Replica and multi-replica deployments. For multi-replica deployments, you must configure shared storage. To configure shared storage, see:
+
+* xref:gateway::flex-conn-shared-storage-config.adoc[]
+* xref:gateway::flex-local-shared-storage-config.adoc[]
+
+== Inject the `RateLimitBuilder`
+
+To enable rate limiting functionality, you must inject the `RateLimitBuilder` in your custom policy's entrypoint and configure it for either local (single-replica) or clustered (multi-replica) mode:
+
+[source,Rust]
+----
+// buckets example configuration
+let buckets = vec![
+    ("api", vec![Tier { requests: 100, period_in_millis: 60000 }]), // 100 requests per minute
+    ("user", vec![Tier { requests: 10, period_in_millis: 30000 }]),  // 10 requests per 30 seconds
+];
+
+// timer example
+let timer = clock.period(Duration::from_millis(100)); // 100ms intervals for rate limit sync
+
+// for local mode (single-instance)
+let builder = rate_limit_builder
+    .new(builder_id);
+let rate_limiter = builder.buckets(buckets).build()?;
+
+// for clustered mode with shared storage (multi-instance)
+let builder = rate_limit_builder
+    .new(builder_id)
+    .clustered(Rc::new(timer))
+    .shared();
+let rate_limiter = builder.buckets(buckets).build()?;
+----
+
+The `RateLimitBuilder` struct provides the following methods to configure the rate limits:
+
+* `builder_id`: a string identifier for the rate limiter instance (required)
+* `buckets`: rate limit tiers configuration with requests and time windows (optional - defaults to api instance configuration if unspecified)
+* `timer`: a periodic timer for rate limit sync (required for clustered mode)
+* `clustered`: Enables the rate limiter to use distributed storage backends. Without it, the rate limiter uses in-memory storage.
+* `shared`: Enables the rate limiter to share state across different policy instances.
+
+== Check Requests Against Rate Limits
+
+After creating the rate limiter instance, use the `is_allowed` method to check if requests are allowed with support for multiple independent rate limit configurations:
+
+[source,Rust]
+----
+// Check if request is allowed for a specific group and client key
+match rate_limiter.is_allowed(group, &client_key, request_amount).await {
+    Ok(RateLimitResult::Allowed(_)) => Flow::Continue(()),
+    Ok(RateLimitResult::TooManyRequests(_)) => Flow::Break(Response::new(429)),
+    Err(e) => Flow::Break(Response::new(503)),
+}
+----
+
+== Rate Limiting Configuration Examples
+
+PDK provides the https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/multi-instance-rate-limiting[Multi-Instance Rate Limiting Example policy] to demonstrate how to configure rate limiting in Rust code.
+
+Within the example policy, see these functions for further configuration details:
+
+* https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/multi-instance-rate-limiting/src/lib.rs#L118[`entrypoint` function] for how to configure the `RateLimitBuilder`.
+
+* https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/multi-instance-rate-limiting/src/lib.rs#L54[`request_filter` function] for how the policy applies rate limits to incoming requests.
+
+== Redis Shared Storage Configuration Example
+
+For an example of how to configure Redis shared storage for testing, see the example https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/multi-instance-rate-limiting/playground/config/shared-storage-redis.yaml[`playground/config/shared-storage-redis.yaml`] and https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/multi-instance-rate-limiting/playground/docker-compose.yaml[`playground/docker-compose.yaml`] files.
+
+
+
+== See Also
+
+* xref:policies-pdk-configure-features-timer.adoc[]
+* xref:policies-pdk-configure-features-share-data.adoc[]

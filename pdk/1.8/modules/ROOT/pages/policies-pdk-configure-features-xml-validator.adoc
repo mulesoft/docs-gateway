@@ -1,0 +1,110 @@
+= Using XML Validator Library Functions
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+[NOTE]
+====
+To view an example policy project that uses Flex Gateway Policy Development Kit (PDK)'s XML Validator library, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/xml-validation/README.md[XML Validation Policy Example].
+====
+
+Excessive element counts, nesting depth, and attribute sizes in XML payloads can cause parsers to consume excessive memory or CPU. The PDK XML Validator library streams the incoming XML body and enforces configurable limits on its structure and size. Use this library to build custom policies. The library mirrors the limits of the built-in xref:policies-included-xml-threat-protection.adoc[] for Flex Gateway.
+
+Use the library when your custom policy must perform these tasks.
+
+* Accept XML request or response bodies and reject malformed or oversized documents before the gateway fully buffers them.
+* Apply limits that match your API’s threat model, such as maximum element depth, number of children per element, or text node length.
+* Process large bodies incrementally by using the xref:policies-pdk-configure-features-headers.adoc#streaming-bodies[streaming body state].
+
+Import the builder from the `xml_validator` module of the PDK crate.
+
+[source,Rust]
+----
+use pdk::xml_validator::XmlValidatorBuilder;
+----
+
+[[build-xml-validator]]
+== Build an XML Validator
+
+Create a validator with `XmlValidatorBuilder::new()`, chain the configuration methods for the limits you need, and call `build()`.
+
+The builder methods map to the same constraint types as xref:policies-included-xml-threat-protection.adoc[]. Names differ slightly from the policy UI parameters, but the intent matches.
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Method | Description
+| `with_max_depth` | Maximum nesting depth of elements in the document.
+| `with_max_attribute_count` | Maximum number of attributes on a single element.
+| `with_max_child_count` | Maximum number of child nodes of a single element.
+| `with_max_text_length` | Maximum length of text node content, as UTF-8 byte length.
+| `with_max_attribute_length` | Maximum length of a single attribute value, as UTF-8 byte length.
+| `with_max_comment_length` | Maximum length of comment content, as UTF-8 byte length.
+|===
+
+If you omit a `with_*` method, that limit isn't applied, so there's no restriction on that field. Call only the methods for limits you want enforced. For type details and any extra options, see the PDK Rust API documentation for your release.
+
+[[validate-xml-stream]]
+== Validate an XML Request Body Stream
+
+Validate the raw byte stream of the body. Use the streaming body state so the parser processes data as it arrives. Streaming is required for bodies larger than the buffered body limit, and it matches how the PDK exposes large payloads. For more information, see xref:policies-pdk-configure-features-headers.adoc#streaming-bodies[Streaming Bodies].
+
+The `validate_stream` method consumes the stream, succeeds if the document is well-formed and within your limits, and returns an error if the XML is invalid or breaks a constraint.
+
+[source,Rust]
+----
+use anyhow::Result;
+use pdk::hl::*;
+use pdk::xml_validator::XmlValidatorBuilder;
+
+async fn request_filter(state: RequestState) -> Flow<()> {
+    let headers_state = state.into_headers_state().await;
+
+    if !headers_state.contains_body() {
+        return Flow::Continue(());
+    }
+
+    let body_stream_state = headers_state.into_body_stream_state().await;
+    let validator = XmlValidatorBuilder::new()
+        .with_max_depth(10)
+        .with_max_attribute_count(10)
+        .with_max_child_count(50)
+        .with_max_text_length(1024)
+        .with_max_attribute_length(256)
+        .with_max_comment_length(1024)
+        .build();
+
+    match validator.validate_stream(body_stream_state.stream()).await {
+        Ok(()) => Flow::Continue(()),
+        Err(_) => Flow::Break(Response::new(400).with_body("Invalid or disallowed XML payload")),
+    }
+}
+
+#[entrypoint]
+async fn configure(launcher: Launcher, Configuration(_configuration): Configuration) -> Result<()> {
+    launcher
+        .launch(on_request(|request| request_filter(request)))
+        .await?;
+    Ok(())
+}
+----
+
+On success, the example continues the request to run upstream processing. On failure, the policy returns `400 Bad Request`. Change the status code and body to match your API’s contract.
+
+[[xml-validator-entrypoint]]
+== Initialize the Validator from Policy Configuration
+
+If you supply limits through your policy schema in GCL, parse the configuration and build the XmlValidatorBuilder in the #[entrypoint] function. If the configuration is invalid or incompatible, applying the policy fails before traffic reaches the API. Pass the validator into your request filter. For example, if you need shared ownership across closures, wrap the validator in std::rc::Rc or std::sync::Arc, depending on your policy layout.
+
+Map your generated config::Config fields to the builder methods in <<build-xml-validator>>. Use the types the PDK API expects for your release.
+
+[[xml-validator-errors]]
+== Interpret Validation Errors
+
+If `validate_stream` returns `Err`, reject the payload. The XML might be malformed or violate a configured limit. If you need operational detail, log the error at the debug or warn level. If you can't expose parser details, return a generic client-facing message.
+
+== See Also
+
+* xref:policies-pdk-configure-features.adoc[]
+* xref:policies-pdk-configure-features-headers.adoc#streaming-bodies[Streaming Bodies]
+* xref:policies-included-xml-threat-protection.adoc[]
