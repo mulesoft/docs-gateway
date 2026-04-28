@@ -30,9 +30,9 @@ The policy processes responses when:
 * The upstream response has `Content-Type` `application/json` or `text/event-stream` (SSE).
 * The body is a JSON-RPC MCP `tools/call` result (including streamed SSE events that carry those results).
 
-Responses smaller than the configured minimum size skip transformation so small payloads are not altered.
+Configure the minimum response size to skip transformation for small payloads.
 
-When transformations reduce estimated token usage on a JSON response, the policy injects token metrics into the response body for the xref:policies-included-mcp-support.adoc[MCP Support] to consume and monitor. MCP Support strips that metadata before the client receives the final payload.
+The policy uses the `pre_transform_tokens` and `response_tokens for tool` metrics to estimate token reduction.
 
 == Configuring Policy Parameters
 
