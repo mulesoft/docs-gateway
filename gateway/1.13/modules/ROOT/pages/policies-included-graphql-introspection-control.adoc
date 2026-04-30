@@ -25,7 +25,7 @@ The GraphQL Introspection Control policy inspects each incoming GraphQL operatio
 
 By default, this policy doesn't block any request.
 
-After Flex Gateway resolves the GraphQL query, the policy evaluates the operation text. For persisted queries, the gateway resolves the document without the usual inline query text, so the policy doesn't inspect those requests, and they pass through without introspection checks.
+After the policy resolves the GraphQL query, the policy evaluates the operation text. For persisted queries, the gateway resolves the document without the inline query text, and the requests pass through without introspection checks.
 
 If a request includes a meta-field you configured to block, the policy returns *403 Forbidden* with `Content-Type: application/json` and a JSON body that includes an `errors` array, such as `{"errors":[{"message":"Introspection field '__schema' is not allowed"}]}`.
 
