@@ -27,7 +27,7 @@ By default, this policy doesn't block any request.
 
 After the policy resolves the GraphQL query, the policy evaluates the operation text. For persisted queries, the gateway resolves the document without the inline query text, and the requests pass through without introspection checks.
 
-If a request includes a meta-field you configured to block, the policy returns *403 Forbidden* with `Content-Type: application/json` and a JSON body that includes an `errors` array, such as `{"errors":[{"message":"Introspection field '__schema' is not allowed"}]}`.
+If a request includes a bloack meta field, the policy returns `403` error code with a `Content-Type: application/json` header that includes an  `errors` containing the restricted meta fields the request tried to access. For example, `{"errors":[{"message":"Introspection field '__schema' is not allowed"}]}`.
 
 Use this policy on Flex Gateway API instances that expose a GraphQL interface. Apply it at the API or resource scope as needed.
 
