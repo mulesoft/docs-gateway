@@ -8,24 +8,21 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | WebSocket Connection Limit
->s| Summary | Caps how many simultaneous WebSocket upgrades each API instance accepts before Flex Gateway rejects new upgrade attempts
+>s| Summary | Limits the number of simultaneous WebSocket connections that each API instance allows. Flex Gateway rejects new upgrade requests after reaching this limit.
 >s| Category | Quality of Service
 >s| First Flex Gateway version available | v1.13.0
 .1+>.^s| Returned status codes
-| 429 - Flex Gateway already reserved the maximum number of concurrent WebSocket upgrades for this policy. The response body includes the plain text `Too many WebSocket connections`.
+| 429 - Flex Gateway reached the maximum number of concurrent WebSocket upgrades for the policy. The response includes the plain text `Too many WebSocket connections`.
 |===
 
 == Summary
 
-The WebSocket Connection Limit policy tracks in-flight WebSocket upgrades for the API instance where you apply it. Flex Gateway evaluates only requests whose `Upgrade` header equals `websocket`, skips ordinary HTTP traffic, and stores the counter in shared data so every replica shares the same ceiling.
+The WebSocket Connection Limit policy tracks the number of active WebSocket connections for a specific API instance. Flex Gateway identifies these requests by the `Upgrade: websocket` header and ignores standard HTTP traffic. To ensure accuracy across distributed environments, Flex Gateway stores the connection counter in shared data so that all gateway replicas enforce a single, unified limit.
 
-If an upgrade request arrives and Flex Gateway reserves capacity, Flex Gateway it increments the counter before forwarding the handshake upstream. If the upstream response isn't `101 Switching Protocols`, Flex Gateway immediately releases the reservation. When the WebSocket exchange completes, Flex Gateway decrements the counter.
+When a WebSocket upgrade request arrives, Flex Gateway increments the counter to reserve capacity before forwarding the handshake to the upstream service. If the upstream service doesn't return a `101 Switching Protocols` response, Flex Gateway releases the reservation. After a successful WebSocket connection closes, Flex Gateway decrements the counter.
 
-When the counter already equals `maximumConnections`, Flex Gateway stops the handshake and returns `429 Too Many Requests` with the plain text payload `Too many WebSocket connections`.
+If the counter reaches the `maximumConnections` limit, Flex Gateway rejects the upgrade request and returns a 429 error with the plain-text message `Too many WebSocket connections`.
 
-Set `maximumConnections` to an integer of `1` or higher. Flex Gateway rejects configuration that sets the value to `0` or omits the field.
-
-Apply this policy at the **API** scope on Flex Gateway API instances that expose WebSocket interfaces.
 
 == Configuring Policy Parameters
 
@@ -41,12 +38,12 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
 
-| Parameter | Required or Optional | Default Value | Description
+| Parameter | Required | Default Value | Description
 
 | `maximumConnections`
-| Required
-| In Anypoint Platform, the UI defaults to `100`. If you use declarative YAML, you must supply an integer.
-| Maximum number of simultaneous WebSocket upgrade reservations that Flex Gateway allows for this policy instance.
+| Yes
+| —
+| The maximum number of simultaneous WebSocket connections allowed. The value must be an integer of 1 or greater.
 
 |===
 
@@ -67,17 +64,13 @@ include::partial$policy-title-headers.adoc[tag=ui]
 s|Field s|Description s|Default s|Required
 
 | Maximum Connections
-| Upper bound on concurrent WebSocket upgrade reservations for the API instance.
+| Maximum number of concurrent WebSocket connections allowed for the API instance.
 | `100` | Yes
-
-| Advanced options
-| Standard policy options such as policy version and application rules.
-| |
 |===
 
 [NOTE]
 ====
-The JSON schema in API Manager allows `0` as the minimum value. However, because the limit must be at least `1`, Flex Gateway rejects `0` at runtime.
+The JSON schema in API Manager accepts `0` as the minimum value. However, Flex Gateway rejects `0` at runtime because the limit must be at least `1`.
 ====
 
 == See Also
