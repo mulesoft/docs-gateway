@@ -63,7 +63,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Body Encoding | Encoding format for token request body. Typically `form` for `application/x-www-form-urlencoded`. Default: `form`. | Optional
 | Token Timeout | Timeout in seconds for token requests. | Optional
 | Challenge Response Status Code | HTTP status code to return for `auth-required` challenge responses. Typically `200` to maintain JSON-RPC compatibility. | Optional
-|Distributed |When enabled, the token cache (and CIBA flow state is applicable) is shared across Flex Gateway replicas. | Optional
+|Distributed |When enabled, the token cache is shared across Flex Gateway replicas. Enable this option when running more than one replica to avoid duplicate token requests or repeated auth challenges. | Optional
 |===
 
 [[token-handling]]
@@ -155,19 +155,13 @@ If no secondary authentication token is found, the policy returns an `auth-requi
 }
 ----
 
-NOTE: Only `taskId` and `contextId` are preserved. Snake_case variants, such as `task_id` or `context_id` are not supported.
-
 [[token-caching-intask]]
 == Token caching
 
 When the request body includes a secondary access token, the policy stores it for later reuse. When the body doesn't include a token, the policy tries the cache before returning an `auth-required` challenge:
 
 * The cache is keyed per user and is derived from the bearer JWT in the inbound `Authorization` header. The policy uses the first available of the `sub`, `email`, `azp`, or OAuth client identifier claims. If that JWT can't be parsed or none of these claims is present, the policy does not cache or reuse tokens.
-* The key Includes that user identity, *Token Audience* and *Scopes* when configured, and optional `contextId` from `params.message.contextId` in the JSON-RPC body so different tasks do not share credentials incorrectly.
 * Cache entry lifetime is derived from the token timeout. When a token expires, it's discarded from the cache.
-* Only JWT secondary tokens with a valid `exp` claim are cached. If *Token Audience* is set, the secondary token's audience must match before the token is stored.
-
-Cache lookups are counted for observability with the `mulesoft_intaskauthorizationcode_cache_lookup` metric.
 
 == See Also
 

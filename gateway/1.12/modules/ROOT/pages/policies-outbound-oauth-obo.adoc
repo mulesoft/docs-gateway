@@ -48,9 +48,9 @@ include::partial$policy-title-headers.adoc[tag=ui]
 * Resource: Physical URI of the target resource (RFC 8707)
 |Target Value |Target audience URI or resource URI for the exchanged token. Required for OAuth 2.0 Token Exchange flow.
 
-|Requested Token Type | The desired token type URI for the issued token. When omitted, the parameter is not sent and the authorization server selects the issued token type. OAuth 2.0 Token Exchange flow only.
+|Requested Token Type |The desired token type URI for the issued token. When omitted, the parameter is not sent and the authorization server selects the issued token type. OAuth 2.0 Token Exchange flow only.
 
-||Subject Token Type | The token type URI for the incoming subject token from the request `Authorization` header. By default `urn:ietf:params:oauth:token-type:access_token`. For JWT tokens, use `urn:ietf:params:oauth:token-type:jwt`. OAuth 2.0 Token Exchange flow only.
+|Subject Token Type |The token type URI for the incoming subject token from the request `Authorization` header. By default `urn:ietf:params:oauth:token-type:access_token`. For JWT tokens, use `urn:ietf:params:oauth:token-type:jwt`. OAuth 2.0 Token Exchange flow only.
 
 |Scope |OAuth 2.0 scope to request. Required for Microsoft Entra OBO (for example, `api://downstream-client-id/.default`) and OAuth2 Token Exchange with CIBA (for example, `openid`). Optional for OAuth 2.0 Token Exchange (RFC 8693).
 
@@ -64,20 +64,17 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 |Binding Message |Optional human-readable message sent as `binding_message` in the CIBA request and displayed on the authentication device.
 
-|Distributed |When enabled, the token cache (and CIBA flow state is applicable) is shared across Flex Gateway replicas.
+|Distributed |When enabled, the token cache and CIBA request state are shared across Flex Gateway replicas. Enable this option when running more than one replica to avoid duplicate token exchanges or duplicate CIBA initiations.
 |===
 
 [[token-caching-oauth-obo]]
 == Token caching
 
-The policy stores each exchanged downstream access token and reuses it when later requests present the same token. Cached entries are tied to a stable key and expire in line with the token’s lifetimea:
+The policy stores each exchanged downstream access token and reuses it when later requests present the same token. Cached entries are tied to a stable key and expire in line with the token's lifetime:
 
-* *Cache key*: A hash of the incoming subject token, the configured *Scope* values (when present), the target audience from *Target Value* for OAuth 2.0 Token Exchange (Microsoft Entra OBO uses an empty audience component in the key when no target value applies), and an optional A2A `contextId` from `params.message.contextId` when the request body is JSON-RPC.
 * *TTL*: Cache entry lifetime is derived from the exchanged token. The policy uses `expires_in` from the token response, or otherwise the JWT `exp` claim on the access token when it is a JWT. Entries are discarded after they expire.
 * If the policy cannot determine expiry, it skips caching for that response. If the policy cannot build a cache key, it performs the exchange without using the cache.
 * When *Enable CIBA* is enabled, CIBA initiation and polling state—including the approved access token—is cached through the same mechanism.
-
-Cache lookups are counted for observability with the `mulesoft_obo_cache_lookup` metric.
 
 == CIBA Behavior
 
