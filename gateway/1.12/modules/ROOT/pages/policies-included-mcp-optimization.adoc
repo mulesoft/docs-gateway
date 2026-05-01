@@ -1,0 +1,66 @@
+= MCP Payload Optimization Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | MCP Optimization Policy
+>s|Summary      | Optimizes MCP tool responses for token consumption by transforming HTML to Markdown and removing unnecessary data
+>s|Category | MCP
+>s|First Flex Gateway version available | v1.12.0
+>s| Returned Status Codes | No return codes exist for this policy. The policy modifies response bodies and does not block traffic based on content.
+|===
+
+== Summary
+
+The MCP Optimization policy reduces LLM token consumption by transforming MCP `tools/call` responses before they're returned to the client. Configure the policy to:
+
+* Convert HTML to Markdown.
+* Remove base64-encoded data.
+* Remove JSON fields with null values.
+* Remove excessive whitespace.
+
+The policy processes responses when:
+
+* The upstream response has `Content-Type` `application/json` or `text/event-stream` (SSE).
+* The body is a JSON-RPC MCP `tools/call` result (including streamed SSE events that carry those results).
+
+Configure the minimum response size to skip transformation for small payloads.
+
+The policy uses the `pre_transform_tokens` and `response_tokens` metrics to estimate token reduction.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The MCP Optimization policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a"]
+
+|===
+| Element | Description | Default
+| HTML to Markdown | Converts HTML content in tool results to Markdown. | Enabled
+| Strip Base64 | Detects and removes base64-encoded data from tool results. | Enabled
+| Remove Nulls | Removes JSON fields whose value is null. | Disabled
+| Collapse Whitespace | Removes excess whitespace in text content. | Enabled
+| Min Response Size (bytes) | Minimum response size in bytes to transform. Smaller responses pass through unchanged. Minimum value is `0`. | `500`
+| Per-Tool Overrides | Overrides the policy configuration values for specific tool names. Tools without an override use the global policy configuration. To learn more, see <<tool-overrides>>. | N/A
+|===
+
+[[tool-overrides]]
+=== Per-tool overrides
+
+Use *Per-Tool Overrides* to overide the the response optimization of specific tools. For example, if whitespace is necessary for a specific tool response but not for others, override *Collapse Whitespace* for that tool.
+
+You can override the global policy configuration for the *HTML to Markdown*, *Strip Base64*, *Remove Nulls*, and *Collapse Whitespace* parameters. You can't override *Min Response Size*.
+
+If you omit a parameter in an override configration, that tool uses the corresponding value from the global policy configuration.
+
+== See Also
+
+* xref:policies-included-mcp-support.adoc[MCP Support]
