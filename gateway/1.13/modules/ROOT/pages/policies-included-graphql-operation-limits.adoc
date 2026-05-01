@@ -12,18 +12,12 @@ endif::[]
 >s| Category | Security
 >s| First Flex Gateway version available | v1.13.0
 .1+>.^s| Returned status codes
-| 400 - The operation exceeds one or more configured limits. The JSON response lists each violation in GraphQL-style `errors` with messages such as `Query depth of 7 exceeds the maximum allowed depth of 5`.
+| 400 - Operations that exceed a configured limit. The response follows the standard GraphQL error format and lists each violation. For example, `Query depth of 7 exceeds the maximum allowed depth of 5`
 |===
 
 == Summary
 
-The GraphQL Operation Limits policy limits incoming request document's depth, aliases, root fields, and directives. When the operation exceeds a limit, the policy returns a `400` error code and a json `errors` array containing the exceeded limits. You can limit any combination of these fields:
-
-
-* Maximum depth: The deepest nesting of field selections in the document. For example, a query `{ hero }` has a depth of 1, and `{ hero { name } }` has a depth of 2.
-* Maximum aliases: The total count of field aliases across the document including nested fields.
-* Maximum root fields: The maximum number of top-level fields for any operation in the document. Selections inside inline fragments at the root add to this count.
-* Maximum directives: The maximum number of directives across the document's operations, fragments, spreads, inline fragments, and fields.
+The GraphQL Operation Limits policy restricts the depth, aliases, root fields, and directives in incoming requests. If an operation exceeds a limit, Flex Gateway returns a 400 error with a JSON `errors` array detailing each violation.
 
 Flex Gateway evaluates limits at parse time from the document text. Because fragment spreads don't expand, metrics reflect the written document instead of a fully expanded query plan that the gateway builds at runtime.
 
@@ -54,22 +48,22 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 
 | `maxDepth`
 | No
-| Omit or `-1` to disable
+| Omit or set to `-1` to disable
 | Maximum depth of nested fields in a single document.
 
 | `maxAliases`
 | No
-| Omit or `-1` to disable
-| Maximum number of field aliases in the document.
+| Omit or set to `-1` to disable
+| Maximum number of field aliases.
 
 | `maxRootFields`
 | No
-| Omit or `-1` to disable
-| Maximum number of top-level fields that an operation can declare.
+| Omit or set to `-1` to disable
+| Maximum number of top-level fields.
 
 | `maxDirectives`
 | No
-| Omit or `-1` to disable
+| Omit or set to `-1` to disable
 | Maximum number of directives across the document.
 
 |===
@@ -96,7 +90,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |Field |Description ||Required
 
 | Maximum Depth
-| Maximum depth of nested fields in a single document.
+| Deepest level of field nesting in a document. For example, `{ hero { name } }` has a depth of 2.
 | No
 
 | Maximum Aliases
