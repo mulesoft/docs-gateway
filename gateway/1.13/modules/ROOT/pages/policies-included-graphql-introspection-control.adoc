@@ -17,7 +17,15 @@ endif::[]
 
 == Summary
 
-GraphQL servers include built-in introspection fields that allow clients to discover your API's types and structure. The GraphQL Introspection Control policy inspects every incoming operation and blocks requests that reference any of these restricted fields:
+GraphQL servers include built-in introspection fields that allow clients to discover your API's types and structure. Configure The GraphQL Introspection Control policy inspects incoming operations blocks requests that reference restricted fields.
+
+Use the introspection policy to block requests a combination of these fields:
+
+* `__schema`, used to discover the full API schema.
+* `__type`, used to look up details for a specific type by name.
+* `__typename`, used to read the concrete type name of an object.
+
+Blocking `__typename` can affect GraphQL client libraries that rely on it for result caching.
 
 * `__schema`, used to discover the full API schema.
 * `__type`, used to look up details for a specific type by name.
