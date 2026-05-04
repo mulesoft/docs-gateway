@@ -21,7 +21,7 @@ The WebSocket Connection Limit policy tracks the number of active WebSocket conn
 
 When a WebSocket upgrade request arrives, Flex Gateway increments the counter to reserve capacity before forwarding the handshake to the upstream service. If the upstream service doesn't return a `101 Switching Protocols` response, Flex Gateway releases the reservation. After a successful WebSocket connection closes, Flex Gateway decrements the counter.
 
-If the counter reaches the `maximumConnections` limit, Flex Gateway rejects the upgrade request and returns a 429 error with the plain-text message `Too many WebSocket connections`.
+If the counter reaches the `maximumConnections` limit, Flex Gateway rejects the upgrade request with a `429` error code.
 
 
 == Configuring Policy Parameters
