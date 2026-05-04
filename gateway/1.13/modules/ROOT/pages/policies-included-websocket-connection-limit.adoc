@@ -17,7 +17,7 @@ endif::[]
 
 == Summary
 
-The WebSocket Connection Limit policy tracks the number of active WebSocket connections for a specific API instance. Flex Gateway identifies these requests by the `Upgrade: websocket` header and ignores standard HTTP traffic. To ensure accuracy across distributed environments, Flex Gateway stores the connection counter in shared data so that all gateway replicas enforce a single, unified limit.
+The WebSocket Connection Limit policy tracks the number of active WebSocket connections for a specific API instance. Flex Gateway identifies these requests by the `Upgrade: websocket` header and ignores standard HTTP traffic. The WebSocket connection limit is distributed across Flex replicas.
 
 When a WebSocket upgrade request arrives, Flex Gateway increments the counter to reserve capacity before forwarding the handshake to the upstream service. If the upstream service doesn't return a `101 Switching Protocols` response, Flex Gateway releases the reservation. After a successful WebSocket connection closes, Flex Gateway decrements the counter.
 
