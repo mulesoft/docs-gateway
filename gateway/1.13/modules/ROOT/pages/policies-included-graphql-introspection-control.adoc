@@ -19,21 +19,13 @@ endif::[]
 
 GraphQL servers include built-in introspection fields that allow clients to discover your API's types and structure. Configure The GraphQL Introspection Control policy inspects incoming operations blocks requests that reference restricted fields.
 
-Use the introspection policy to block requests a combination of these fields:
+Use the introspection policy to block requests to a combination of these fields:
 
 * `__schema`, used to discover the full API schema.
 * `__type`, used to look up details for a specific type by name.
 * `__typename`, used to read the concrete type name of an object.
 
 Blocking `__typename` can affect GraphQL client libraries that rely on it for result caching.
-
-* `__schema`, used to discover the full API schema.
-* `__type`, used to look up details for a specific type by name.
-* `__typename`, used to read the concrete type name of an object.
-
-Blocking `__typename` can affect GraphQL client libraries that rely on it for result caching.
-
-You can block specific introspection fields independently. By default, Omni Gateway allows all three fields(`blockSchema`, `blockType`, and `blockTypename` each default to `false`). The policy affects traffic only if you set one or more fields to `true`.
 
 After Omni Gateway resolves the GraphQL query, the policy evaluates the operation text. Omni Gateway doesn't inspect the operation text for persisted queries and passes them through without introspection checks.
 
@@ -58,23 +50,23 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `blockSchema`
 | No
 | `false`
-| If `true`, Omni Gateway returns a 403 error when the operation references the `__schema` meta-field anywhere in the document.
+| If `true`, Omni Gateway blocks queries that use the `__schema` field for full schema discovery.
 
 | `blockType`
 | No
 | `false`
-| If `true`, Omni Gateway returns a 403 error when the operation references the `__type` meta-field.
+| If `true`, Omni Gateway blocks queries that use the `__type` field to look up a type by name.
 
 | `blockTypename`
 | No
 | `false`
-| If `true`, Omni Gateway returns a 403 error when the operation references the `__typename` meta-field.
+| If `true`, Omni Gateway blocks queries that use the `__typename` field to read an object's concrete type name.
 
 |===
 
 ==== Resource Configuration Example
 
-This example blocks schema and type introspection, but clients can still use `__typename`:
+This example blocks schema and type introspection, but allows the use `__typename`:
 
 [source,yaml]
 ----
@@ -88,24 +80,16 @@ This example blocks schema and type introspection, but clients can still use `__
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
-[%header%autowidth.spread,cols="a,a,a,a"]
+[%header%autowidth.spread,cols="a,a"]
 |===
-s|Field s|Description s|Default Value s|Required
+s|Field s|Description s|
 
 | **Block** `__schema` (`blockSchema`)
-| If `true`, Omni Gateway blocks queries that use the `__schema` field for full schema discovery.
-| Disabled, schema introspection allowed | No
+| If enabled, Omni Gateway blocks queries that use the `__schema` field for full schema discovery.
 
 | **Block** `__type` (`blockType`)
-| If `true`, Omni Gateway blocks queries that use the `__type` field to look up a type by name.
-| Disabled, type introspection allowed | No
+| If enabled, Omni Gateway blocks queries that use the `__type` field to look up a type by name.
 
 | **Block** `__typename` (`blockTypename`)
-| If `true`, Omni Gateway blocks queries that use the `__typename` field to read an object's concrete type name.
-| Disabled, `__typename` allowed | No
+| If enabled, Omni Gateway blocks queries that use the `__typename` field to read an object's concrete type name.
 |===
-
-== See Also
-
-* xref:policies-included-directory.adoc[Inbound Policies Directory]
-* xref:flex-gateway-secure-apis.adoc[Securing Omni Gateway Instances with Policies]
