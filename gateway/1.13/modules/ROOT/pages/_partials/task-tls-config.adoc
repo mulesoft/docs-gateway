@@ -1,12 +1,12 @@
 //tag::intro1[]
-Using encryption, Transport Layer Security (TLS) policies protect communication between clients, API instances, and upstream services. To use TLS when creating an API instance using Flex Gateway in Local Mode as your runtime, you must configure the TLS context in a `PolicyBinding` YAML configuration file.
+Using encryption, Transport Layer Security (TLS) policies protect communication between clients, API instances, and upstream services. To use TLS when creating an API instance using Omni Gateway in Local Mode as your runtime, you must configure the TLS context in a `PolicyBinding` YAML configuration file.
 
 When you add a TLS context, you can also select the ciphers to use with the TLS context and configure different inbound and outbound validation settings.
 
 //end::intro1[]
 
 //tag::intro2[]
-Flex Gateway supports the following:
+Omni Gateway supports the following:
 
 * Regular TLS between a client and the API instance (HTTPS), referred to as inbound TLS
 * Regular TLS between an API instance and an upstream service, referred to as outbound TLS
@@ -15,7 +15,7 @@ Flex Gateway supports the following:
 //end::intro2[]
 
 //tag::defaultOutboundTLS[]
-By default, Flex Gateway supports outbound TLS to communicate with upstream services that require a secure communication channel. For default outbound communication, Flex Gateway uses only TLS 1.2. To find the default TLS 1.2 ciphers, see <<supported-ciphers>>. To find the ciphers, see <<supported-ciphers>>. Applying a TLS context to an upstream overrides the default TLS context for that upstream. Because the default ciphers may change for later Flex Gateway versions, you can apply a TLS context to an upstream to ensure it remains the same.
+By default, Omni Gateway supports outbound TLS to communicate with upstream services that require a secure communication channel. For default outbound communication, Omni Gateway uses only TLS 1.2. To find the default TLS 1.2 ciphers, see <<supported-ciphers>>. To find the ciphers, see <<supported-ciphers>>. Applying a TLS context to an upstream overrides the default TLS context for that upstream. Because the default ciphers may change for later Omni Gateway versions, you can apply a TLS context to an upstream to ensure it remains the same.
 
 //end::defaultOutboundTLS[]
 
@@ -33,21 +33,21 @@ For inbound TLS, you bind the policy resource to the API instance. For outbound 
 //end::resources[]
 
 //tag::port-sharing-inbound[]
-Flex Gateway implements port-level inbound TLS, meaning if you apply an inbound TLS to an API instance that shares a port with other instances, the same inbound TLS context is applied to all instances sharing the port. Flex Gateway supports multiple TLS certificates on a single gateway, but you must apply the certificates to unique ports. If you apply inbound TLS to one API instance, you do not need to apply the same inbound TLS context to instances that share that port. Consequently, you cannot apply different inbound TLS contexts to API instances that share the same port.
+Omni Gateway implements port-level inbound TLS, meaning if you apply an inbound TLS to an API instance that shares a port with other instances, the same inbound TLS context is applied to all instances sharing the port. Omni Gateway supports multiple TLS certificates on a single gateway, but you must apply the certificates to unique ports. If you apply inbound TLS to one API instance, you do not need to apply the same inbound TLS context to instances that share that port. Consequently, you cannot apply different inbound TLS contexts to API instances that share the same port.
 
 Port sharing is not a concern for outbound TLS. You can apply an outbound TLS context for each individual upstream service.
 
 //end::port-sharing-inbound[]
 
 //tag::outboundAllInstances[]
-Unlike inbound TLS, it is not suggested to apply the same outbound TLS context to all API instances in your Flex Gateway because your API upstream services might come from different providers. Therefore, no configuration example for outbound TLS on all instances is provided.
+Unlike inbound TLS, it is not suggested to apply the same outbound TLS context to all API instances in your Omni Gateway because your API upstream services might come from different providers. Therefore, no configuration example for outbound TLS on all instances is provided.
 
 Port sharing is not a concern for outbound TLS. You can apply an outbound TLS context for each individual upstream service. 
 
 //end::outboundAllInstances[]
 
 //tag::intro4[]
-You can configure the TLS context for a Flex Gateway running in a Docker container, as a Linux Service,
+You can configure the TLS context for an Omni Gateway running in a Docker container, as a Linux Service,
 or in a Kubernetes cluster.
 
 //end::intro4[]
@@ -60,9 +60,9 @@ or in a Kubernetes cluster.
 |image:install-docker-logo.png[25%,25%,xref="flex-{page-mode}-tls-config.adoc#docker"]
 |image:install-kubernetes-logo.png[20%,20%,xref="flex-{page-mode}-tls-config.adoc#kubernetes"]
 
-|xref:flex-{page-mode}-tls-config.adoc#linux[Configure TLS Context for Flex Gateway as a Linux Service]
-|xref:flex-{page-mode}-tls-config.adoc#docker[Configure TLS Context for Flex Gateway in a Docker Container]
-|xref:flex-{page-mode}-tls-config.adoc#kubernetes[Configure TLS Context for Flex Gateway in a Kubernetes Cluster]
+|xref:flex-{page-mode}-tls-config.adoc#linux[Configure TLS Context for Omni Gateway as a Linux Service]
+|xref:flex-{page-mode}-tls-config.adoc#docker[Configure TLS Context for Omni Gateway in a Docker Container]
+|xref:flex-{page-mode}-tls-config.adoc#kubernetes[Configure TLS Context for Omni Gateway in a Kubernetes Cluster]
 |===
 
 //end::icon-table[]
@@ -70,18 +70,18 @@ or in a Kubernetes cluster.
 
 == Before You Begin
 
-Before configuring the TLS context for a Flex Gateway, you must complete the following tasks:
+Before configuring the TLS context for an Omni Gateway, you must complete the following tasks:
 
-* xref:flex-install.adoc[Download Flex Gateway]
-* xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
+* xref:flex-install.adoc[Download Omni Gateway]
+* xref:flex-{page-mode}-reg-run.adoc[Register and Run Omni Gateway]
 
 //end::byb[]
 //tag::linux[]
 
 [[linux]]
-== Configure TLS Context for Flex Gateway as a Linux Service
+== Configure TLS Context for Omni Gateway as a Linux Service
 
-. Create a YAML configuration file in the Flex Gateway configuration directory:
+. Create a YAML configuration file in the Omni Gateway configuration directory:
 +
 [source,ssh]
 ----
@@ -104,14 +104,14 @@ The following configuration file only applies inbound TLS to one API instance. F
 //tag::docker-intro[]
 
 [[docker]]
-== Configure TLS Context for Flex Gateway in a Docker Container
+== Configure TLS Context for Omni Gateway in a Docker Container
 
 NOTE: If you have already added volume for a folder with your
-Flex Gateway configuration files, skip to the last step.
+Omni Gateway configuration files, skip to the last step.
 
-. Press Ctrl+C to stop your Flex Gateway and any replicas.
-. Create a folder named `app` in the directory with your Flex Gateway configuration files.
-. Restart your Flex Gateway with an additional volume for the new `app` directory:
+. Press Ctrl+C to stop your Omni Gateway and any replicas.
+. Create a folder named `app` in the directory with your Omni Gateway configuration files.
+. Restart your Omni Gateway with an additional volume for the new `app` directory:
 //end::docker-intro[]
 
 //tag::docker-config-file-step[]
@@ -126,9 +126,9 @@ The following configuration file only applies inbound TLS to one API instance. F
 //tag::k8s-intro[]
 
 [[kubernetes]]
-== Configure TLS Context for Flex Gateway in a Kubernetes Cluster
+== Configure TLS Context for Omni Gateway in a Kubernetes Cluster
 
-To configure the TLS context for Flex Gateway, create a new resource using
+To configure the TLS context for Omni Gateway, create a new resource using
 a YAML configuration file with your TLS context details.
 
 The following configuration file only applies inbound TLS to one API instance. For all configuration file options, such as mTLS and outbound TLS, see:
@@ -139,7 +139,7 @@ The following configuration file only applies inbound TLS to one API instance. F
 //end::k8s-intro[]
 
 //tag::sample-config-all-intro[]
-*Sample configuration for adding inbound TLS context for all API instances running on this Flex Gateway:*
+*Sample configuration for adding inbound TLS context for all API instances running on this Omni Gateway:*
 //end::sample-config-all-intro[]
 //tag::sample-config-all[]
 [source,yaml]
@@ -402,7 +402,7 @@ See xref:policies-included-tls.adoc[] for more information about inbound TLS con
 
 [NOTE]
 ====
-Flex Gateway supports multiple TLS certificates on a single gateway, but the certificates need to be applied on unique ports.
+Omni Gateway supports multiple TLS certificates on a single gateway, but the certificates need to be applied on unique ports.
 ====
 
 [NOTE]
@@ -428,6 +428,6 @@ The Authority Information Access (AIA) certificate extension is not supported wh
 //tag::share-contexts[]
 [NOTE]
 ====
-Outbound TLS configuration is the same for Managed Flex Gateway and Self-Managed Flex Gateway running in Connected Mode. You can use the same TLS contexts across both modes.
+Outbound TLS configuration is the same for Managed Omni Gateway and Self-Managed Omni Gateway running in Connected Mode. You can use the same TLS contexts across both modes.
 ====
 //end::share-contexts[]

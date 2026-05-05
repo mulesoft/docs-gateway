@@ -10,7 +10,7 @@ endif::[]
 >s| Policy Name | GraphQL Introspection Control
 >s| Summary | Blocks or allows requests that  access the `__schema`, `__type`, and `__typename` GraphQL meta fields
 >s| Category | Security
->s| First Flex Gateway version available | v1.13.0
+>s| First Omni Gateway version available | v1.13.0
 .1+>.^s| Returned status codes
 | 403 Forbidden — The response follows the standard GraphQL error format, including a message such as `Introspection field '__schema' is not allowed`.
 |===
@@ -33,9 +33,9 @@ Blocking `__typename` can affect GraphQL client libraries that rely on it for re
 
 Blocking `__typename` can affect GraphQL client libraries that rely on it for result caching.
 
-You can block specific introspection fields independently. By default, Flex Gateway allows all three fields(`blockSchema`, `blockType`, and `blockTypename` each default to `false`). The policy affects traffic only if you set one or more fields to `true`.
+You can block specific introspection fields independently. By default, Omni Gateway allows all three fields(`blockSchema`, `blockType`, and `blockTypename` each default to `false`). The policy affects traffic only if you set one or more fields to `true`.
 
-After Flex Gateway resolves the GraphQL query, the policy evaluates the operation text. Flex Gateway doesn't inspect the operation text for persisted queries and passes them through without introspection checks.
+After Omni Gateway resolves the GraphQL query, the policy evaluates the operation text. Omni Gateway doesn't inspect the operation text for persisted queries and passes them through without introspection checks.
 
 == Configuring Policy Parameters
 
@@ -58,17 +58,17 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `blockSchema`
 | No
 | `false`
-| If `true`, Flex Gateway returns a 403 error when the operation references the `__schema` meta-field anywhere in the document.
+| If `true`, Omni Gateway returns a 403 error when the operation references the `__schema` meta-field anywhere in the document.
 
 | `blockType`
 | No
 | `false`
-| If `true`, Flex Gateway returns a 403 error when the operation references the `__type` meta-field.
+| If `true`, Omni Gateway returns a 403 error when the operation references the `__type` meta-field.
 
 | `blockTypename`
 | No
 | `false`
-| If `true`, Flex Gateway returns a 403 error when the operation references the `__typename` meta-field.
+| If `true`, Omni Gateway returns a 403 error when the operation references the `__typename` meta-field.
 
 |===
 
@@ -93,19 +93,19 @@ include::partial$policy-title-headers.adoc[tag=ui]
 s|Field s|Description s|Default Value s|Required
 
 | **Block** `__schema` (`blockSchema`)
-| If `true`, Flex Gateway blocks queries that use the `__schema` field for full schema discovery.
+| If `true`, Omni Gateway blocks queries that use the `__schema` field for full schema discovery.
 | Disabled, schema introspection allowed | No
 
 | **Block** `__type` (`blockType`)
-| If `true`, Flex Gateway blocks queries that use the `__type` field to look up a type by name.
+| If `true`, Omni Gateway blocks queries that use the `__type` field to look up a type by name.
 | Disabled, type introspection allowed | No
 
 | **Block** `__typename` (`blockTypename`)
-| If `true`, Flex Gateway blocks queries that use the `__typename` field to read an object's concrete type name.
+| If `true`, Omni Gateway blocks queries that use the `__typename` field to read an object's concrete type name.
 | Disabled, `__typename` allowed | No
 |===
 
 == See Also
 
 * xref:policies-included-directory.adoc[Inbound Policies Directory]
-* xref:flex-gateway-secure-apis.adoc[Securing Flex Gateway Instances with Policies]
+* xref:flex-gateway-secure-apis.adoc[Securing Omni Gateway Instances with Policies]

@@ -4,20 +4,20 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-When configuring and running Flex Gateway, you might encounter connection issues. 
+When configuring and running Omni Gateway, you might encounter connection issues. 
 
-To troubleshoot these issues, use the `flexctl check http` command. This command makes direct requests to both the outbound connection between the upstream service and Flex Gateway and the inbound connection between Flex Gateway and the client. Making direct requests isolates Flex Gateway connections, which allows you to localize the issue. 
+To troubleshoot these issues, use the `flexctl check http` command. This command makes direct requests to both the outbound connection between the upstream service and Omni Gateway and the inbound connection between Omni Gateway and the client. Making direct requests isolates Omni Gateway connections, which allows you to localize the issue. 
 
 The following diagram demonstrates the difference between inbound and outbound requests. 
 
-image:flex-inbound-outbound-requests.png[Inbound connections are between the client and Flex Gateway and outbound connections are between Flex Gateway and the upstream service, align=center]
+image:flex-inbound-outbound-requests.png[Inbound connections are between the client and Omni Gateway and outbound connections are between Omni Gateway and the upstream service, align=center]
 
-== Outbound Requests Between Flex Gateway and the Upstream Service
-Isolating the connection between the upstream service and Flex Gateway enables you to test for connection between the two.
+== Outbound Requests Between Omni Gateway and the Upstream Service
+Isolating the connection between the upstream service and Omni Gateway enables you to test for connection between the two.
 
 To make a direct outbound request to the upstream service:
 
-. Log into the Flex Gateway container or VM:
+. Log into the Omni Gateway container or VM:
 
 * Linux:
 +
@@ -49,13 +49,13 @@ kubectl -n <namespace> exec -it <pod-name> -- bash
 flexctl check http -X=POST -d='{\"key\": \"value\"}' -H='Authorization:token' <http://upstream.domain>
 ----
 
-== Inbound Requests Between the Client and Flex Gateway
+== Inbound Requests Between the Client and Omni Gateway
 
-Isolating the connection between Flex Gateway and the client enables you to test if the connection issue is due to a load balancer or another system added between Flex Gateway and the client.
+Isolating the connection between Omni Gateway and the client enables you to test if the connection issue is due to a load balancer or another system added between Omni Gateway and the client.
 
 To make a direct inbound request to the client:
 
-. Log into the Flex Gateway container or VM:
+. Log into the Omni Gateway container or VM:
 
 * Linux:
 +
@@ -81,7 +81,7 @@ kubectl -n <namespace> exec -it <pod-name> -- bash
 ----
 
 
-. Make a request to Flex Gateway:
+. Make a request to Omni Gateway:
 +
 [source,ssh]
 ----

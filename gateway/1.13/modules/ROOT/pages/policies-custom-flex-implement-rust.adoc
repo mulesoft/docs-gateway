@@ -1,4 +1,4 @@
-= Implement a Flex Gateway Custom Policy in Rust
+= Implement an Omni Gateway Custom Policy in Rust
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -40,7 +40,7 @@ Triggered when the endpoint receives the first bytes of the HTTP response body.
 +
 Triggered when the WASM filter starts with an available configuration.
 +
-Flex Gateway serializes policy configuration into JSON, which is used to configure the Envoy WASM filter. You can deserialize and parse this JSON into data that will be used by your custom policy.
+Omni Gateway serializes policy configuration into JSON, which is used to configure the Envoy WASM filter. You can deserialize and parse this JSON into data that will be used by your custom policy.
 
 === Example Lifecycle Events Implementation
 
@@ -122,7 +122,7 @@ During the policy development process, you complete the following steps:
 
 === Create the Policy Definition JSON File
 
-Example policy implementations require a policy definition JSON file. Flex Gateway passes policy configuration as JSON with that policy definition structure to the Envoy WASM filter.
+Example policy implementations require a policy definition JSON file. Omni Gateway passes policy configuration as JSON with that policy definition structure to the Envoy WASM filter.
 
 The example authentication header policy has only one parameter: the value that needs to be passed in the header. The policy definition JSON file should match the following:
 
@@ -247,7 +247,7 @@ struct CustomAuthConfig {
 }
 ----
 +
-Flex Gateway configures your policy with JSON defined in the policy definition. The JSON that needs to be parsed contains a single field called `secret-value`.
+Omni Gateway configures your policy with JSON defined in the policy definition. The JSON that needs to be parsed contains a single field called `secret-value`.
 +
 . Deserialize the configuration:
 +
@@ -322,7 +322,7 @@ All third-party libraries included in your policy must be compatible with the `w
 +
 [IMPORTANT]
 ====
-Some libraries might compile properly to the wasm32-wasi target but might not work properly when deployed to Flex Gateway. Example deployment errors when this happens are:
+Some libraries might compile properly to the wasm32-wasi target but might not work properly when deployed to Omni Gateway. Example deployment errors when this happens are:
 
 * `Failed to load Wasm module due to a missing import`
 * `Wasm VM failed to initialize Wasm code`
@@ -339,4 +339,4 @@ cargo build --target wasm32-wasi --release
 +
 Compilation outputs a binary `.wasm` file into the `./target/wasm32-wasi/release` directory.
 +
-For more information on pushing custom policies to Exchange, refer to xref:policies-custom-flex-getting-started.adoc[Publish a Flex Gateway or Mule 4 Custom Policy].
+For more information on pushing custom policies to Exchange, refer to xref:policies-custom-flex-getting-started.adoc[Publish an Omni Gateway or Mule 4 Custom Policy].

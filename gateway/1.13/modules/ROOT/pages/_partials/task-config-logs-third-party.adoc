@@ -1,12 +1,12 @@
 //tag::intro1[]
-Anypoint Flex Gateway enables you to deliver runtime and access logs to any supported Fluent Bit {fluentbit-ver-var} output type. You configure log output via a custom YAML file. Additionally, to view access logs, you must also apply a Message Logging policy.
+Anypoint Omni Gateway enables you to deliver runtime and access logs to any supported Fluent Bit {fluentbit-ver-var} output type. You configure log output via a custom YAML file. Additionally, to view access logs, you must also apply a Message Logging policy.
 
-The following configuration file examples demonstrate how to direct Flex Gateway logs to output types: `File`, `HTTP`, and `Splunk`. However, you can use any Fluent Bit {fluentbit-ver-var} output type, such as `Azure Log Analytics`, `Amazon S3`, `Kafka`, and more. For a complete list of Fluent Bit output types, see the https://docs.fluentbit.io/manual[Fluent Bit documentation] for your Fluent Bit version.
+The following configuration file examples demonstrate how to direct Omni Gateway logs to output types: `File`, `HTTP`, and `Splunk`. However, you can use any Fluent Bit {fluentbit-ver-var} output type, such as `Azure Log Analytics`, `Amazon S3`, `Kafka`, and more. For a complete list of Fluent Bit output types, see the https://docs.fluentbit.io/manual[Fluent Bit documentation] for your Fluent Bit version.
 
 //end::intro1[]
 
 //tag::intro2-conn[]
-As well as being able to configure additional Fluent Bit log output types, Flex Gateway sends runtime logs to runtime manager and access logs to API Manager. To learn more, see:
+As well as being able to configure additional Fluent Bit log output types, Omni Gateway sends runtime logs to runtime manager and access logs to API Manager. To learn more, see:
 
 * xref:flex-view-logs-in-runtime-manager.adoc[]
 * xref:flex-conn-message-log.adoc[].
@@ -15,7 +15,7 @@ As well as being able to configure additional Fluent Bit log output types, Flex 
 
 
 //tag::intro2-local[]
-As well as being able to configure additional Fluent Bit log output types, Flex Gateway maintains standard output logs. Use the standard output logs for quick checks when additional log output is not needed. To view the standard output logs, see xref:gateway::flex-local-view-logs.adoc[View Logs]. Both runtime and access logs appear in standard output logs. However, access logs are only present if you apply a Message Logging policy.
+As well as being able to configure additional Fluent Bit log output types, Omni Gateway maintains standard output logs. Use the standard output logs for quick checks when additional log output is not needed. To view the standard output logs, see xref:gateway::flex-local-view-logs.adoc[View Logs]. Both runtime and access logs appear in standard output logs. However, access logs are only present if you apply a Message Logging policy.
 
 //end::intro2-local[]
 
@@ -37,10 +37,10 @@ As well as being able to configure additional Fluent Bit log output types, Flex 
 
 == Before You Begin
 
-Before configuring Flex Gateway log output, complete the following tasks:
+Before configuring Omni Gateway log output, complete the following tasks:
 
-* xref:flex-install.adoc[Download Flex Gateway]
-* xref:flex-{page-mode}-reg-run.adoc[Register and Run Flex Gateway]
+* xref:flex-install.adoc[Download Omni Gateway]
+* xref:flex-{page-mode}-reg-run.adoc[Register and Run Omni Gateway]
 
 Additionally, depending on your output, ensure that the service where you direct logs to is operational and that you have the necessary information:
 
@@ -61,9 +61,9 @@ Runtime and access logs both appear in the same log output. However, you can cho
 === Runtime Logs
 Runtime logs include the following information:
 
-* The startup and shutdown of Flex Gateway, Fluent Bit, and Envoy
+* The startup and shutdown of Omni Gateway, Fluent Bit, and Envoy
 * Deployed APIs and policies
-* Possible misconfigurations of Flex Gateway or other errors
+* Possible misconfigurations of Omni Gateway or other errors
 
 === Access Logs
 Access logs describe incoming interaction with Envoy over a period of time and incoming requests and responses for specific APIs. 
@@ -90,9 +90,9 @@ To view configuration files with applied values, see the following configuration
 //tag::linux[]
 
 [[linux]]
-== Configure Log Output for Flex Gateway as a Linux Service
+== Configure Log Output for Omni Gateway as a Linux Service
 
-. Create a YAML configuration file in the Flex Gateway configuration directory:
+. Create a YAML configuration file in the Omni Gateway configuration directory:
 +
 [source,ssh]
 ----
@@ -110,14 +110,14 @@ sudo touch /usr/local/share/mulesoft/flex-gateway/conf.d/logs-config.yaml
 //tag::docker[]
 
 [[docker]]
-== Configure Log Output for Flex Gateway in a Docker Container
+== Configure Log Output for Omni Gateway in a Docker Container
 
 NOTE: If you have already added a volume for a folder with your
-Flex Gateway configuration files, skip to the create and save a YAML file step.
+Omni Gateway configuration files, skip to the create and save a YAML file step.
 
-. Press Ctrl+C to stop your Flex Gateway and any replicas.
-. Create a folder named `app` in the directory with your Flex Gateway configuration files.
-. Restart your Flex Gateway with an additional volume for the new `app` directory:
+. Press Ctrl+C to stop your Omni Gateway and any replicas.
+. Create a folder named `app` in the directory with your Omni Gateway configuration files.
+. Restart your Omni Gateway with an additional volume for the new `app` directory:
 //end::docker[]
 
 //tag::docker2[]
@@ -132,9 +132,9 @@ Flex Gateway configuration files, skip to the create and save a YAML file step.
 //tag::k8s[]
 
 [[kubernetes]]
-== Configure Log Output for Flex Gateway in a Kubernetes Cluster
+== Configure Log Output for Omni Gateway in a Kubernetes Cluster
 
-To configure logging for Flex Gateway:
+To configure logging for Omni Gateway:
 
 . Create a new resource using a YAML configuration file with your desired output configuration details as shown in the following examples:
 +
@@ -146,7 +146,7 @@ To configure logging for Flex Gateway:
 //end::k8s[]
 
 //tag::view-logs-conn[]
-If no events appear in the logging output, check the Flex Gateway runtime logs for any configuration errors.
+If no events appear in the logging output, check the Omni Gateway runtime logs for any configuration errors.
 +
 To view runtime logs, see xref:flex-view-logs-in-runtime-manager.adoc[].
 +
@@ -154,7 +154,7 @@ For additional troubleshooting help, see xref:flex-troubleshoot-logging.adoc[].
 //end::view-logs-conn[]
 
 //tag::view-logs-local[]
-If no events appear in the logging output, check the Flex Gateway standard output logs for any configuration errors.
+If no events appear in the logging output, check the Omni Gateway standard output logs for any configuration errors.
 +
 To view standard output logs, see xref:flex-local-view-logs.adoc[View Logs].
 +
@@ -171,7 +171,7 @@ For additional troubleshooting help, see xref:flex-troubleshoot-logging.adoc[].
 [[file-configuration-example]]
 == File Configuration Example
 
-Configure Flex Gateway to send formatted runtime and access logs to a file called `log.txt` (Fluent Bit `File` output), in the `/var/log` directory. As an example, the following definition specifies a `spec.logging.outputs.type` value of `file`:
+Configure Omni Gateway to send formatted runtime and access logs to a file called `log.txt` (Fluent Bit `File` output), in the `/var/log` directory. As an example, the following definition specifies a `spec.logging.outputs.type` value of `file`:
 
 
 [source,yaml]
@@ -208,7 +208,7 @@ NOTE: For Docker, in `spec.logging.output.parameters.file`, replace `/var/log` w
 [[http-configuration-example]]
 == HTTP Configuration Example
 
-You can configure Flex Gateway to send formatted runtime and access logs to a `HTTP` output. As an example, the following definition specifies a `spec.logging.outputs.type` value of `HTTP`:
+You can configure Omni Gateway to send formatted runtime and access logs to a `HTTP` output. As an example, the following definition specifies a `spec.logging.outputs.type` value of `HTTP`:
 
 [source,yaml]
 ----
@@ -244,7 +244,7 @@ spec:
 [[dynatrace-configuration-example]]
 == Dynatrace Configuration Example
 
-You can configure Flex Gateway to send formatted runtime and access logs to a Dynatrace environment `HTTP` output. As an example, the following file contains the necessary configurations:
+You can configure Omni Gateway to send formatted runtime and access logs to a Dynatrace environment `HTTP` output. As an example, the following file contains the necessary configurations:
 
 [source,yaml]
 ----

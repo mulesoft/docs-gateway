@@ -11,7 +11,7 @@ endif::[]
 >s| Policy Name | HTTP caching
 >s|Summary      | Caches HTTP responses from an API implementation
 >s|Category | Quality of Service
->s| First Flex Gateway version available | v1.0.0
+>s| First Omni Gateway version available | v1.0.0
 .1+>.^s| Returned Status Codes
 | No return codes exist for this policy
 |===
@@ -22,7 +22,7 @@ The HTTP Caching policy enables you to cache HTTP responses for reuse. Caching t
 
 Policies applied after the HTTP Caching policy in the policy order are not applied to responses served from the cache. For example, a rate limiting policy applied after the HTTP Caching policy only limits the responses served by the upstream service but not the responses served by the cache. Apply all policies needed for the cached response before the HTTP Caching policy.
 
-For Self-Managed Gateways, HTTP caching requires that you <<configure-shared-storage-for-self-managed-gateway, configure shared storage>>. For Managed Gateways, Flex Replica shares the cache with each other directly. To learn more about the Managed Gateway architecture, see xref:flex-architecture-managed-dr-ha.adoc[].
+For Self-Managed Gateways, HTTP caching requires that you <<configure-shared-storage-for-self-managed-gateway, configure shared storage>>. For Managed Gateways, Omni Replica shares the cache with each other directly. To learn more about the Managed Gateway architecture, see xref:flex-architecture-managed-dr-ha.adoc[].
 
 NOTE: The HTTP Caching policy does not support MCP and A2A server instances.
 
@@ -118,7 +118,7 @@ NOTE: Leaving a required value blank configures the parameter as the default val
 [[configure-shared-storage-for-self-managed-gateway]]
 ==== Configure Shared Storage for Self-Managed Gateway
 
-Self-Managed Gateways require you to configure a shared storage for distributed caching. For more information about shared storage, refer to xref:flex-conn-shared-storage-config.adoc[Configuring Shared Storage for Flex Gateway in Connected Mode].
+Self-Managed Gateways require you to configure a shared storage for distributed caching. For more information about shared storage, refer to xref:flex-conn-shared-storage-config.adoc[Configuring Shared Storage for Omni Gateway in Connected Mode].
 
 ----
 
@@ -175,7 +175,7 @@ Default value: `600`
 | Distributed | Configures the cache to be distributed among different nodes in a cluster.
 Default value: `false`
 | Yes
-| Persistent Cache | Configures the cache to persist between different restarts of the Flex Gateway instance.
+| Persistent Cache | Configures the cache to persist between different restarts of the Omni Gateway instance.
 Default value: `false`
 | Yes
 | Follow HTTP Caching directives | Enables the use of Cache-Control header directives.
@@ -239,7 +239,7 @@ Each entry in the cache can be shared between different nodes in a cluster or be
 
 === Persistent Cache
 
-A persistent cache enables the stored entries in the cache to persist if the Flex Replica is restarted.
+A persistent cache enables the stored entries in the cache to persist if the Omni Replica is restarted.
 
 When you upgrade a version of the instance that has the HTTP Caching policy configured to use the persistent store, the policy tries to maintain the entries stored by the previous version. However in a worst-case scenario, the entries in the cache are invalidated and the cache is re-populated when new requests arrive. This manipulation of the entries in the cache occurs automatically and is invisible to the user.
 

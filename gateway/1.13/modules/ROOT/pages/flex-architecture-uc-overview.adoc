@@ -6,11 +6,11 @@ endif::[]
 
 The following integration use cases are determined by the ownership of the API provider and API consumer. Each use case shows physical patterns that demonstrate the necessary services in the system. 
 
-For the following use case diagrams, Flex Gateway is running in Connected Mode. However, you can also run Flex Gateway in Local Mode or use a combination of Connected Mode and Local Mode for separate runtimes in the same or in different environments.
+For the following use case diagrams, Omni Gateway is running in Connected Mode. However, you can also run Omni Gateway in Local Mode or use a combination of Connected Mode and Local Mode for separate runtimes in the same or in different environments.
 
 The use case diagrams use Kubernetes terminology, but you can extend the architecture to other technology stacks that have the appropriate network controls applied.
 
-Flex Gateway supports four use cases:
+Omni Gateway supports four use cases:
 
 * xref:flex-architecture-uc1.adoc[]
 * xref:flex-architecture-uc2.adoc[] 
@@ -19,19 +19,19 @@ Flex Gateway supports four use cases:
 
 image:ad-intergration-use-cases.png["The four use cases are linked to products that they can support."]
 
-Each use case supports different integration patterns that vary depending on the location of APIs relative to the network in which Flex Gateway is located. You can use different use case patterns, depending on the different API owners and networks in your system. 
+Each use case supports different integration patterns that vary depending on the location of APIs relative to the network in which Omni Gateway is located. You can use different use case patterns, depending on the different API owners and networks in your system. 
 
-In each use case, there are three different classifications of networks. The classifications describe the relation of each network to your organization and the network that Flex Gateway is in:
+In each use case, there are three different classifications of networks. The classifications describe the relation of each network to your organization and the network that Omni Gateway is in:
 
 * Organization internal
 +
-Networks owned by your organization and in the same network as Flex Gateway
+Networks owned by your organization and in the same network as Omni Gateway
 * Organization external
 +
-Trusted networks external to your organization but in a different network than Flex Gateway, for example, your organization’s Splunk instance
+Trusted networks external to your organization but in a different network than Omni Gateway, for example, your organization’s Splunk instance
 * Non-Organization external
 +
-External networks untrusted by your company and in a different network as Flex Gateway. An API provider’s or API consumers network status affects the necessary security protocols (mTLS) you take when communicating between networks
+External networks untrusted by your company and in a different network as Omni Gateway. An API provider’s or API consumers network status affects the necessary security protocols (mTLS) you take when communicating between networks
 
 If an API provider or API consumer is organization-owned, it belongs to either the organization's internal network or its external networks.
 
@@ -39,7 +39,7 @@ The following tables:
 
 * Relate the previously mentioned use cases to use case patterns
 * Show the networks involved in the pattern
-* Indicate whether Flex Gateway acts as an ingress, egress, or both
+* Indicate whether Omni Gateway acts as an ingress, egress, or both
 
 
 
@@ -47,7 +47,7 @@ The following tables:
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
-| Pattern | Provider Network | Consumer Network | Role of Flex Gateway
+| Pattern | Provider Network | Consumer Network | Role of Omni Gateway
 | xref:flex-architecture-uc1.adoc#pattern-1a[Pattern 1A: Organization internal API exposed to an organization internal consumer that uses the same VPC or network as the API] | Organization internal | Organization internal | Ingress
 | xref:flex-architecture-uc1.adoc#pattern-1b[Pattern 1B: Organization internal API exposed to an organization internal consumer that uses a different VPC or network from the API] | Organization internal | Organization internal | Ingress
 | xref:flex-architecture-uc1.adoc#pattern-2[Pattern 2: Organization internal API exposed to an organization external consumer] | Organization internal | Organization external | Ingress
@@ -60,7 +60,7 @@ The following tables:
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
-| Pattern | Provider Network | Consumer Network | Role of Flex Gateway
+| Pattern | Provider Network | Consumer Network | Role of Omni Gateway
 | xref:flex-architecture-uc2.adoc#pattern-5[Pattern 5: Organization internal API exposed to a non-organization external consumer] | Organization internal | Non-organization external | Ingress
 | xref:flex-architecture-uc2.adoc#pattern-6[Pattern 6: Organization external API exposed to a non-organization external consumer] | Organization external | Non-organization external | Ingress and egress
 |===
@@ -69,7 +69,7 @@ The following tables:
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
-| Pattern | Provider Network | Consumer Network | Role of Flex Gateway
+| Pattern | Provider Network | Consumer Network | Role of Omni Gateway
 | xref:flex-architecture-uc3.adoc#pattern-7[Pattern 7: Non-organization external API exposed to an organization internal consumer] | Non-organization external | Organization internal | Egress
 | xref:flex-architecture-uc3.adoc#pattern-8[Pattern 8: Non-organization external API exposed to an organization external consumer] | Non-organization external | Organization external | Ingress and egress
 |===
@@ -77,14 +77,14 @@ The following tables:
 == Use Case 4: Non-Organization-Owned API Exposed to an External Non-Organization-Owned API Consumer 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
-| Pattern | Provider Network | Consumer Network | Role of Flex Gateway
+| Pattern | Provider Network | Consumer Network | Role of Omni Gateway
 | xref:flex-architecture-uc4.adoc#pattern-9[Pattern 9: Non-organization external API exposed to a non-organization external consumer] | Non-organization external | Non-organization external | Ingress and egress
 |===
 
 == mTLS considerations for integration flows
-Flex Gateway supports Mutual Transport Layer Security (mTLS) for all Flex Gateway-initiated and Flex Gateway-terminated connections. Mulesoft recommends using mTLS on all communication flows. 
+Omni Gateway supports Mutual Transport Layer Security (mTLS) for all Omni Gateway-initiated and Omni Gateway-terminated connections. Mulesoft recommends using mTLS on all communication flows. 
 
-For inbound connections that cross a network security boundary, use a network application firewall as close to the boundary as possible. For inbound connections, configure the external mTLS connection to terminate at the firewall and configure a new mTLS context between the firewall and Flex Gateway.
+For inbound connections that cross a network security boundary, use a network application firewall as close to the boundary as possible. For inbound connections, configure the external mTLS connection to terminate at the firewall and configure a new mTLS context between the firewall and Omni Gateway.
 
 === Certificate authorities
 Different certificate authorities (CA) participate in the mTLS connection, depending on the type of integration. In the use case diagrams, color codes and labels represent the different mTLS contexts. Each mTLS context contains a truststore that contains CAs for validating far-side certificates and a keystore that contains a certificate issued by this same CA. The following table describes the three possible mTLS contexts:

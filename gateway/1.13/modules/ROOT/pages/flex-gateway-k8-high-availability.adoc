@@ -1,12 +1,12 @@
-= Autoscale and Add Flex Gateway Replicas to a Namespace
+= Autoscale and Add Omni Gateway Replicas to a Namespace
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-For high availability (HA) environments, horizontal scaling distributes load across multiple Flex Gateway instances. By default, the Helm chart for Flex Gateway is configured with one replica. To release more Flex Gateway replicas into a namespace, provide one of the following configurations:
+For high availability (HA) environments, horizontal scaling distributes load across multiple Omni Gateway instances. By default, the Helm chart for Omni Gateway is configured with one replica. To release more Omni Gateway replicas into a namespace, provide one of the following configurations:
 
-* <<replica-count, Set a replica count>>: Set a fixed number of Flex Gateway replicas to create.
+* <<replica-count, Set a replica count>>: Set a fixed number of Omni Gateway replicas to create.
 * <<autoscale, Configure autoscaling>>: Generate replicas automatically based on CPU, memory, and other settings. 
 
 //how to view helm chart defaults:
@@ -16,16 +16,16 @@ include::partial$reference-k8-general.adoc[tags=flex-k8-helm-chart-info]
 
 Ensure that the following prerequisites are in place:
 
-* A Flex Gateway deployment or a registered Flex Gateway instance (gateway)
+* An Omni Gateway deployment or a registered Omni Gateway instance (gateway)
 +
 For gateway registration and deployment processes, see xref:flex-gateway-set-up.adoc[] or xref:flex-gateway-k8-getting-started.adoc[]. 
 
-* A Kubernetes cluster for your Flex Gateway deployment
+* A Kubernetes cluster for your Omni Gateway deployment
 
 [[replica-count]]
 == Set a Replica Count
 
-Configure and verify the number of replicas that you require. Note that new replicas replace existing replicas. If a newer version of Flex Gateway is available, the command replaces your older replica versions with the latest version. 
+Configure and verify the number of replicas that you require. Note that new replicas replace existing replicas. If a newer version of Omni Gateway is available, the command replaces your older replica versions with the latest version. 
 
 The steps to take depend on whether a Helm chart is installed. 
 
@@ -115,7 +115,7 @@ ingress-5b7474b8f6    2         2         2       70s
 [[autoscale]]
 == Configure Autoscaling
 
-Horizontal Pod autoscaling generates Flex Gateway replicas automatically based on CPU, memory, and other target and behavioral settings. For descriptions of these settings, see <<autoscaling-parameters>>. 
+Horizontal Pod autoscaling generates Omni Gateway replicas automatically based on CPU, memory, and other target and behavioral settings. For descriptions of these settings, see <<autoscaling-parameters>>. 
 
 [[autoscaling-config]]
 === Update Your Helm Chart with an Autoscaling Configuration
