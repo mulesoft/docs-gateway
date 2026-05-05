@@ -1,13 +1,13 @@
-= Renew Self-Managed Flex Gateway Registration
+= Renew Self-Managed Omni Gateway Registration
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 
-Anypoint Flex Gateway uses a managed PKI certificate to communicate with Anypoint Platform. This certificate is generated when you register Flex Gateway in either Connected Mode or Local Mode. Updating the certificate ensures the continued operation of your applications.
+Anypoint Omni Gateway uses a managed PKI certificate to communicate with Anypoint Platform. This certificate is generated when you register Omni Gateway in either Connected Mode or Local Mode. Updating the certificate ensures the continued operation of your applications.
 
 You update a certificate by renewing registration via the `flexctl registration renew` command.
 
-* The `renew` command renews an existing Flex Gateway registration with Runtime Manager.
+* The `renew` command renews an existing Omni Gateway registration with Runtime Manager.
 * For authentication, you run the `renew` command with either user credentials or with connected app credentials. Authentication with user credentials requires the `--username` and `--password` flags. Authentication with connected app credentials requires the `--client-id` and `--client-secret` flags.
 
 You verify the renewal process via the `flexctl registration inspect` command.
@@ -18,8 +18,8 @@ You verify the renewal process via the `flexctl registration inspect` command.
 
 To avoid disruptions:
 
-. <<before-you-begin,Download the latest version of Flex Gateway.>>
-. Renew your Flex Gateway registration.
+. <<before-you-begin,Download the latest version of Omni Gateway.>>
+. Renew your Omni Gateway registration.
 +
 Choose one of two methods:
 +
@@ -36,7 +36,7 @@ Choose one of two methods:
 [[before-you-begin]]
 == Before You Begin
 
-To invoke the registration renewal `flexctl` command, download the latest version of Flex Gateway. You don't need to register and run this version of the gateway.
+To invoke the registration renewal `flexctl` command, download the latest version of Omni Gateway. You don't need to register and run this version of the gateway.
 
 * xref:flex-install.adoc[]
 
@@ -72,7 +72,7 @@ To update environment URLs in your registration file, such as the metering envir
 
 Docker::
 +
-For Flex Gateway running in a container, invoke `renew` as part of the container `run` command.
+For Omni Gateway running in a container, invoke `renew` as part of the container `run` command.
 +
 [source,ssh]
 ----
@@ -111,7 +111,7 @@ The command creates a new registration file: `/home/user/flex/new/registration.y
 
 Podman::
 +
-For Flex Gateway running in a container, invoke `renew` as part of the container `run` command.
+For Omni Gateway running in a container, invoke `renew` as part of the container `run` command.
 +
 [source,ssh]
 ----
@@ -151,7 +151,7 @@ Registration renewal completed
 +
 `/usr/local/share/mulesoft/flex-gateway/conf.d/registration.yaml`
 
-. Restart the Flex Gateway replica if one is already running.
+. Restart the Omni Gateway replica if one is already running.
 
 [[renew-with-conn-app]]
 == Renew Registration with Connected App Credentials
@@ -194,7 +194,7 @@ To update environment URLs in your registration file, such as the metering envir
 
 Docker::
 +
-For Flex Gateway running in a container, invoke `renew` as part of the container `run` command.
+For Omni Gateway running in a container, invoke `renew` as part of the container `run` command.
 +
 [source,ssh]
 ----
@@ -233,7 +233,7 @@ The command creates a new registration file: `/home/user/flex/new/registration.y
 
 Podman::
 +
-For Flex Gateway running in a container, invoke `renew` as part of the container `run` command.
+For Omni Gateway running in a container, invoke `renew` as part of the container `run` command.
 +
 [source,ssh]
 ----
@@ -268,7 +268,7 @@ Registration renewal completed
 +
 `/usr/local/share/mulesoft/flex-gateway/conf.d/registration.yaml`
 
-. Restart the Flex Gateway replica if one is already running.
+. Restart the Omni Gateway replica if one is already running.
 
 [[inspect-with-custom-url]]
 == Verify Registration Status with the Default Method
@@ -288,7 +288,7 @@ Use `sudo` if you encounter file permission issues when running this command.
 
 Docker::
 +
-For Flex Gateway running in a container, run `inspect` as part of the container `exec` command. Replace `<container-name-or-id>` with the running container reference.
+For Omni Gateway running in a container, run `inspect` as part of the container `exec` command. Replace `<container-name-or-id>` with the running container reference.
 +
 [source,ssh]
 ----
@@ -297,7 +297,7 @@ docker exec -u $UID <container-name-or-id> flexctl registration inspect
 
 Podman::
 +
-For Flex Gateway running in a container, run `inspect` as part of the container `exec` command. Replace `<container-name-or-id>` with the running container reference.
+For Omni Gateway running in a container, run `inspect` as part of the container `exec` command. Replace `<container-name-or-id>` with the running container reference.
 +
 [source,ssh]
 ----
@@ -332,7 +332,7 @@ Use `sudo` if you encounter file permission issues when running this command.
 
 Docker::
 +
-For Flex Gateway running in a container, invoke `inspect` as part of the container `run` command.
+For Omni Gateway running in a container, invoke `inspect` as part of the container `run` command.
 +
 [source,ssh]
 ----
@@ -344,7 +344,7 @@ registration inspect --file=<path-to-registration-file>
 
 Podman::
 +
-For Flex Gateway running in a container, invoke `inspect` as part of the container `run` command.
+For Omni Gateway running in a container, invoke `inspect` as part of the container `run` command.
 +
 [source,ssh]
 ----
@@ -371,9 +371,9 @@ docker run --entrypoint flexctl \
 registration inspect --file=/registration/registration.yaml
 ----
 
-== Renew Registration for Flex Gateway Running in Kubernetes
+== Renew Registration for Omni Gateway Running in Kubernetes
 
-The following example describes a scenario where Flex Gateway is installed in a `gateway` namespace with an `ingress` release name, and where registration is stored in the Kubernetes database.
+The following example describes a scenario where Omni Gateway is installed in a `gateway` namespace with an `ingress` release name, and where registration is stored in the Kubernetes database.
 
 . Recover the `registration.yaml` file with the following `kubectl` command:
 +
@@ -389,7 +389,7 @@ The command stores the registration file in `./registration.yaml`.
 * <<renew-with-user-password,Renew with Anypoint Platform User Credentials>>
 * <<renew-with-conn-app,Renew with Connected App Credentials>>
 
-. Upgrade Flex Gateway with the following `helm` command:
+. Upgrade Omni Gateway with the following `helm` command:
 +
 [source,ssh]
 ----
@@ -416,7 +416,7 @@ Use `sudo` if you encounter file permission issues when running this command.
 
 Docker::
 +
-For Flex Gateway running in a container, invoke `help` as part of the container `run` command.
+For Omni Gateway running in a container, invoke `help` as part of the container `run` command.
 +
 [source,ssh]
 ----
@@ -425,7 +425,7 @@ docker run --entrypoint flexctl mulesoft/flex-gateway registration renew --help
 
 Podman::
 +
-For Flex Gateway running in a container, invoke `help` as part of the container `run` command.
+For Omni Gateway running in a container, invoke `help` as part of the container `run` command.
 +
 [source,ssh]
 ----
@@ -448,7 +448,7 @@ Use `sudo` if you encounter file permission issues when running this command.
 
 Docker::
 +
-For Flex Gateway running in a container, invoke `help` as part of the container `run` command.
+For Omni Gateway running in a container, invoke `help` as part of the container `run` command.
 +
 [source,ssh]
 ----
@@ -457,7 +457,7 @@ docker run --entrypoint flexctl mulesoft/flex-gateway registration inspect --hel
 
 Podman::
 +
-For Flex Gateway running in a container, invoke `help` as part of the container `run` command.
+For Omni Gateway running in a container, invoke `help` as part of the container `run` command.
 +
 [source,ssh]
 ----
@@ -467,13 +467,13 @@ podman run --entrypoint flexctl docker.io/mulesoft/flex-gateway registration ins
 
 == Renew an Expired Registration
 
-Attempting to run Flex Gateway with an expired certificate in Connected Mode results in the following:
+Attempting to run Omni Gateway with an expired certificate in Connected Mode results in the following:
 
 * New replicas fail to download API configurations from Anypoint Platform, thereby becoming unusable. Existing clusters fail to reload.
 * Logs and metrics fail to upload to Anypoint Platform. Troubleshooting using Anypoint Platform is not possible.
 * Metering information fails to upload to Anypoint Platform. MuleSoft is unable to collect or report usage metrics.
 
-Attempting to run Flex Gateway with an expired certificate in Local Mode results in the following:
+Attempting to run Omni Gateway with an expired certificate in Local Mode results in the following:
 
 * Metering information fails to upload to Anypoint Platform. MuleSoft is unable to collect or report usage metrics.
 

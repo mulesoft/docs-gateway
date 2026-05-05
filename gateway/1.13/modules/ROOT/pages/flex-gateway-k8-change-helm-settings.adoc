@@ -1,15 +1,15 @@
-= Update Pod Settings for a Flex Gateway Deployment Through a Helm Chart
+= Update Pod Settings for an Omni Gateway Deployment Through a Helm Chart
 
-Change requirements for a Pod that contains a Flex Gateway deployment. The example in this guide sets the following CPU and memory requirements in the Helm chart for a Flex Gateway deployment:
+Change requirements for a Pod that contains an Omni Gateway deployment. The example in this guide sets the following CPU and memory requirements in the Helm chart for an Omni Gateway deployment:
 
 * `resources.limits.cpu=1500m`
 * `resources.limits.memory=2048Mi`
 * `resources.requests.cpu=260m`
 * `resources.requests.memory=384Mi`
 
-Use this example as a guide to updating values in the Helm chart for your Flex Gateway deployment. 
+Use this example as a guide to updating values in the Helm chart for your Omni Gateway deployment. 
 
-Find the default Helm chart settings for Flex Gateway through one of the following methods:
+Find the default Helm chart settings for Omni Gateway through one of the following methods:
 
 * Open the *flex-gateway* page in https://artifacthub.io/packages/helm/flex-gateway/flex-gateway[ArtifactHUB^]
 * Run `helm show values &lt;repository-name&gt;/&lt;chart-name&gt;` from a terminal window, for example, `helm show values flex-gateway/flex-gateway`.
@@ -18,12 +18,12 @@ For details about CPU and memory resource settings, see the https://kubernetes.i
 
 == Before You Begin
 
-Register and deploy Flex Gateway to a Kubernetes cluster. For guidance, see xref:flex-gateway-set-up.adoc[] or xref:flex-gateway-k8-getting-started.adoc[].
+Register and deploy Omni Gateway to a Kubernetes cluster. For guidance, see xref:flex-gateway-set-up.adoc[] or xref:flex-gateway-k8-getting-started.adoc[].
 
 [[update-cpu-memory-example]]
 == Check the Current Settings of Your Helm Chart
 
-Before updating settings for a Pod that contains a Flex Gateway deployment, check the Pod's settings for the current deployment.
+Before updating settings for a Pod that contains an Omni Gateway deployment, check the Pod's settings for the current deployment.
 
 . Ensure that your Helm repository is up and available by running the following command from a terminal window:
 +
@@ -82,7 +82,7 @@ resources:
 +
 This example displays settings from `REVISION` number `2`. The output displays only revised settings. If your chart has never revised the default Helm chart values, _no_ revisions appear in the output. 
 
-. Use one of the following procedures to change settings in the Helm chart for your Flex Gateway deployment: 
+. Use one of the following procedures to change settings in the Helm chart for your Omni Gateway deployment: 
 
 * <<use-helm-set-option>> uses `--set` options in a `helm upgrade` command. The command allows multiple `--set` options. 
 * <<use-helm-f-option>> passes a configuration file with multiple settings though the `-f` option to `helm upgrade`. The command allows multiple `-f` options.
@@ -90,7 +90,7 @@ This example displays settings from `REVISION` number `2`. The output displays o
 [[use-helm-set-option]]
 == Modify Settings for Your Helm Chart
 
-After following the steps in <<update-cpu-memory-example>>, use the `--set` option to pass new values individually to the Helm chart for your Flex Gateway deployment. Alternatively, follow the procedure in <<use-helm-f-option>>.
+After following the steps in <<update-cpu-memory-example>>, use the `--set` option to pass new values individually to the Helm chart for your Omni Gateway deployment. Alternatively, follow the procedure in <<use-helm-f-option>>.
 
 . Change the `cpu` and `memory` values by using the `helm upgrade` command.
 +
@@ -155,7 +155,7 @@ resources:
 [[use-helm-f-option]]
 == Provide a File with Modified Settings for Your Helm Chart
 
-After following the steps in <<update-cpu-memory-example>>, use the `-f` option with `helm upgrade` to identify the file that contains new Helm chart settings for your Flex Gateway deployment. Alternatively, follow the procedure in <<use-helm-set-option>>.
+After following the steps in <<update-cpu-memory-example>>, use the `-f` option with `helm upgrade` to identify the file that contains new Helm chart settings for your Omni Gateway deployment. Alternatively, follow the procedure in <<use-helm-set-option>>.
 
 . Create a configuration file that contains your new settings.
 +

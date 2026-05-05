@@ -4,11 +4,11 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Flex Gateway running in Local Mode supports API instances that expose multiple upstream services through a single consumer endpoint.
+Omni Gateway running in Local Mode supports API instances that expose multiple upstream services through a single consumer endpoint.
 
-Flex Gateway manages traffic by using multiple routes with a defined route order and individual rulesets to direct traffic to different sets of upstream services. Each API instance supports multiple routes that can each direct traffic to multiple upstream services.
+Omni Gateway manages traffic by using multiple routes with a defined route order and individual rulesets to direct traffic to different sets of upstream services. Each API instance supports multiple routes that can each direct traffic to multiple upstream services.
 
-For Flex Gateways running in Local Mode, API instances with multiple upstream services are configured by using the `ApiInstance` and the `PolicyBinding` YAML configuration resources. The `ApiInstance` resource defines an API instance, and the `route-weighted` policy resource defines a single route to one or multiple upstream services. To add additional routes, add multiple `route-weighted` resources.
+For Omni Gateways running in Local Mode, API instances with multiple upstream services are configured by using the `ApiInstance` and the `PolicyBinding` YAML configuration resources. The `ApiInstance` resource defines an API instance, and the `route-weighted` policy resource defines a single route to one or multiple upstream services. To add additional routes, add multiple `route-weighted` resources.
 
 The following tutorials use a preconfigured `route-weighted` policy resource. For information about how to configure the resource, see xref:policies-included-traffic-management.adoc[].
 
@@ -24,21 +24,21 @@ The following tutorials use a preconfigured `route-weighted` policy resource. Fo
 |===
 
 [[linux]]
-== Publish an API Running Behind Flex Gateway on Linux 
+== Publish an API Running Behind Omni Gateway on Linux 
 
 === Before You Begin
 
 Before getting started, ensure that you have:
 
-* Downloaded Flex Gateway. For more information, see xref:flex-install.adoc[]. 
-* Registered Flex Gateway and are running it in Local Mode. For more information, see xref:flex-local-reg-run.adoc[Register and Run in Local Mode]. 
+* Downloaded Omni Gateway. For more information, see xref:flex-install.adoc[]. 
+* Registered Omni Gateway and are running it in Local Mode. For more information, see xref:flex-local-reg-run.adoc[Register and Run in Local Mode]. 
 * Your upstream service URLs.
 
 === Publish an API
 
 . Create a configuration file with a `.yaml` file extension:
 .. Give the file a custom name.
-.. Save the file in the Flex Gateway configuration directory `/etc/mulesoft/flex-gateway/conf.d/custom`. This directory can contain multiple configuration files.
+.. Save the file in the Omni Gateway configuration directory `/etc/mulesoft/flex-gateway/conf.d/custom`. This directory can contain multiple configuration files.
 
 . Copy and paste the following YAML snippet into the file, substituting the configuration field values with your values.
 +
@@ -113,22 +113,22 @@ The response looks something like this:
 [envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
 ----
 
-An API with multiple upstream services now runs behind Flex Gateway.
+An API with multiple upstream services now runs behind Omni Gateway.
 
 [[docker]]
-== Publish an API Running Behind Flex Gateway in a Docker Container 
+== Publish an API Running Behind Omni Gateway in a Docker Container 
 
 === Before You Begin
 
 Before getting started, ensure that you have:
 
-* Downloaded Flex Gateway. For more information, see xref:flex-install.adoc[]. 
-* Registered Flex Gateway and are running it in Local Mode. For more information, see xref:flex-local-reg-run.adoc[Register and Run in Local Mode]. 
+* Downloaded Omni Gateway. For more information, see xref:flex-install.adoc[]. 
+* Registered Omni Gateway and are running it in Local Mode. For more information, see xref:flex-local-reg-run.adoc[Register and Run in Local Mode]. 
 * Your upstream service URLs.
 
 === Publish an API
 
-. Open a terminal and navigate to the directory that will contain your Flex Gateway configuration files. This directory was specified when you started Flex Gateway.
+. Open a terminal and navigate to the directory that will contain your Omni Gateway configuration files. This directory was specified when you started Omni Gateway.
 
 . Create a configuration file with a `.yaml` file extension:
 .. Give the file a custom name.
@@ -201,17 +201,17 @@ spec:
 [envoy][info] cds: added/updated 1 cluster(s), skipped 1 unmodified cluster(s)
 ----
 
-An API with multiple upstream services is now running behind Flex Gateway.
+An API with multiple upstream services is now running behind Omni Gateway.
 
 [[kubernetes]]
-== Publish an API Running Behind Flex Gateway in a Kubernetes Cluster 
+== Publish an API Running Behind Omni Gateway in a Kubernetes Cluster 
 
 === Before You Begin
 
 Before getting started, ensure that you have:
 
-* Downloaded Flex Gateway. For more information, see xref:flex-install.adoc[]. 
-* Registered Flex Gateway and are running it in Local Mode. For more information, see xref:flex-local-reg-run.adoc[Register and Run in Local Mode]. 
+* Downloaded Omni Gateway. For more information, see xref:flex-install.adoc[]. 
+* Registered Omni Gateway and are running it in Local Mode. For more information, see xref:flex-local-reg-run.adoc[Register and Run in Local Mode]. 
 * Your upstream service URLs.
 
 include::partial$kubernetes-service-note.adoc[]

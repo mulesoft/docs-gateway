@@ -10,25 +10,25 @@ endif::[]
 >s| Policy Name | GraphQL Static Query Complexity
 >s| Summary | Calculates query complexity and blocks requests that exceed the defined budget
 >s| Category | Security
->s| First Flex Gateway version available | v1.13.0
+>s| First Omni Gateway version available | v1.13.0
 .1+>.^s| Returned status codes
 | 400 - Parse failures always trigger a 400 response. Complexity and list violations return this code only if *Block request* is enabled. The response includes a standard GraphQL errors object.
 |===
 
 == Summary
 
-The GraphQL Static Query Complexity policy estimates the complexity of each incoming GraphQL operation from your GraphQL schema and the operation text. If the estimate exceeds the configured budget or fails other checks enforced by the policy, Flex Gateway rejects the request or logs a warning and forwards it upstream.
+The GraphQL Static Query Complexity policy estimates the complexity of each incoming GraphQL operation from your GraphQL schema and the operation text. If the estimate exceeds the configured budget or fails other checks enforced by the policy, Omni Gateway rejects the request or logs a warning and forwards it upstream.
 
 The policy loads schema in these ways:
 
-* If `source` is `context`, Flex Gateway automatically loads the schema file from the API asset in Anypoint Exchange.
+* If `source` is `context`, Omni Gateway automatically loads the schema file from the API asset in Anypoint Exchange.
 * If `source` is `inline`, provide the schema text directly in the policy configuration. This is required for local mode or environments not connected to Exchange.
 
-After Flex Gateway extracts the GraphQL operation text, the policy analyzes query complexity.
+After Omni Gateway extracts the GraphQL operation text, the policy analyzes query complexity.
 
-If Flex Gateway can't resolve the full operation text, as with persisted queries, it skips complexity analysis.
+If Omni Gateway can't resolve the full operation text, as with persisted queries, it skips complexity analysis.
 
-If a system error occurs during analysis, even if the schema loads into memory, Flex Gateway logs a warning and forwards the request instead of blocking it.
+If a system error occurs during analysis, even if the schema loads into memory, Omni Gateway logs a warning and forwards the request instead of blocking it.
 
 
 == Configuring Policy Parameters
@@ -78,12 +78,12 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `blockOperation`
 | No
 | `true`
-|  Specifies whether Flex Gateway blocks requests that exceed the complexity limit. If `true`, Flex Gateway blocks the request and returns a `400` Bad Request error. If `false`, Flex Gateway logs a warning and forwards the request to your backend. Parse failures always trigger a `400` response, even if this setting is `false`.
+|  Specifies whether Omni Gateway blocks requests that exceed the complexity limit. If `true`, Omni Gateway blocks the request and returns a `400` Bad Request error. If `false`, Omni Gateway logs a warning and forwards the request to your backend. Parse failures always trigger a `400` response, even if this setting is `false`.
 
 | `rejectUnboundedLists`
 | No
 | `true`
-| If `true`, Flex Gateway blocks queries for list fields that lack a limiting argument, such as `first` or `limit`. This prevents users from requesting large datasets.
+| If `true`, Omni Gateway blocks queries for list fields that lack a limiting argument, such as `first` or `limit`. This prevents users from requesting large datasets.
 
 | `directiveName`
 | No
@@ -137,8 +137,8 @@ s|Field s|Description s|Default Value s|Required
 
 | Maximum Complexity |The maximum allowed complexity score for a query. | None | Yes
 | Default Field Cost | The cost applied to fields lacking a specific complexity tag in your schema file. | `1.0` | No
-| Block request | Specifies whether Flex Gateway blocks requests that exceed the complexity limit. If enabled, Flex Gateway blocks the request and returns a `400` error. If disabled, Flex Gateway logs violations as warnings. Parse failures always trigger a `400` response, regardless of this setting. | Enabled | Yes
-| Reject unbounded lists | If enabled, Flex Gateway blocks queries for list fields that lack a limiting argument, such as `first` or `limit`. | Enabled | Yes
+| Block request | Specifies whether Omni Gateway blocks requests that exceed the complexity limit. If enabled, Omni Gateway blocks the request and returns a `400` error. If disabled, Omni Gateway logs violations as warnings. Parse failures always trigger a `400` response, regardless of this setting. | Enabled | Yes
+| Reject unbounded lists | If enabled, Omni Gateway blocks queries for list fields that lack a limiting argument, such as `first` or `limit`. | Enabled | Yes
 | Directive Name | The name of the complexity tag in your schema file that defines per-field costs. | `cost` | No
 | Value Argument | The argument within your complexity tag that specifies the field's base cost. | `weight` | No
 | Multipliers Argument | The argument within your complexity tag that identifies which query parameters multiply the cost. For example, in \@cost(weight: 1, multipliers: ["limit"])`, the multipliers argument is `multipliers`, and the `limit` value multiplies the base cost.| `multipliers` | No
@@ -148,4 +148,4 @@ s|Field s|Description s|Default Value s|Required
 
 * xref:policies-included-directory.adoc[Inbound Policies Directory]
 * xref:policies-included-graphql-schema-validation.adoc[GraphQL Schema Validation Policy]
-* xref:flex-gateway-secure-apis.adoc[Securing Flex Gateway Instances with Policies]
+* xref:flex-gateway-secure-apis.adoc[Securing Omni Gateway Instances with Policies]
