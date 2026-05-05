@@ -4,11 +4,11 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 
-Flex Gateway Policy Development Kit (PDK) provides an automated testing framework to detect integration regressions in your custom policy.
+Omni Gateway Policy Development Kit (PDK) provides an automated testing framework to detect integration regressions in your custom policy.
 
-The integration testing framework provided by PDK only supports Flex Gateway running in Local Mode in a Docker container. If you plan to deploy or policy to Flex Gateway running in Connected Mode or to a different platform, you should still first test your policy in PDK by using Flex Gateway running in Local Mode in a Docker container.
+The integration testing framework provided by PDK only supports Omni Gateway running in Local Mode in a Docker container. If you plan to deploy or policy to Omni Gateway running in Connected Mode or to a different platform, you should still first test your policy in PDK by using Omni Gateway running in Local Mode in a Docker container.
 
-IMPORTANT: You can run Flex Gateway in Local Mode on Docker in Windows only to develop and test your policies. However, Flex Gateway does not support Windows in production environments.
+IMPORTANT: You can run Omni Gateway in Local Mode on Docker in Windows only to develop and test your policies. However, Omni Gateway does not support Windows in production environments.
 
 To test your policy, complete the following tasks:
 
@@ -49,13 +49,13 @@ The `/tests` directory contains the integration tests. By default, the folder co
 * `common/mod.rs` file: A test module that contains functionalities, API configurations, and policy configurations that must be included in every integration test module.
 
 [[register]]
-== Register a Flex Gateway Instance in Local Mode
+== Register a Omni Gateway Instance in Local Mode
 
-To begin using the `make test` command to debug your custom policy, register a Flex Gateway in Local Mode.
+To begin using the `make test` command to debug your custom policy, register a Omni Gateway in Local Mode.
 
-For the `make test` command to work, a Flex Gateway `registration.yaml` file must exist in the `<root-directory>/tests/config` directory. Create this file by running the registration command in the directory, or move a `registration.yaml` file of a previously registered Flex Gateway to the directory.
+For the `make test` command to work, a Omni Gateway `registration.yaml` file must exist in the `<root-directory>/tests/config` directory. Create this file by running the registration command in the directory, or move a `registration.yaml` file of a previously registered Omni Gateway to the directory.
 
-To register Flex Gateway, see:
+To register Omni Gateway, see:
 
 * xref:gateway::flex-local-reg-run-up.adoc#docker[Register and Run with a Username and Password in a Docker Container]
 * xref:gateway::flex-local-reg-run-app.adoc#docker[Register and Run with a Connected App in a Docker Container]
@@ -144,7 +144,7 @@ PDK's test library supports the following services:
 |Service |Description
 
 | `Flex`
-| Flex Gateway service instance.
+| Omni Gateway service instance.
 
 | `httpmock`
 | Service binding to the Rust's https://crates.io/crates/httpmock[httpmock] server.
@@ -297,7 +297,7 @@ async fn say_hello() -> anyhow::Result<()> {
 NOTE: Run `make test` to ensure proper configuration.
 
 [[configure-a-flex-service-instance]]
-=== Configure a Flex Service Instance
+=== Configure a Omni Service Instance
 
 Configure a `Flex` service by registering an instance of the `FlexConfig` struct in `TestComposite`. To complete the `FlexConfig` instance, you must also define a `ApiConfig` and `PolicyConfig` instance.
 
@@ -308,10 +308,10 @@ The `FlexConfig` struct has the following properties:
 |Property |Content
 
 |`version`
-|Flex Gateway version to test.
+|Omni Gateway version to test.
 
 |`image_name`
-|Flex Gateway Docker image name, by default, "mulesoft/flex-gateway".
+|Omni Gateway Docker image name, by default, "mulesoft/flex-gateway".
 
 |`hostname`
 |Hostname of the `Flex` service, by default, "local-flex".
@@ -420,11 +420,11 @@ async fn say_hello() -> anyhow::Result<()> {
 ----
 
 [[alternative-flex-docker-images]]
-=== Configure an Alternative Flex Docker Image
+=== Configure an Alternative Omni Docker Image
 
 To use a `flex` Docker image from another source, instead of the provided default, the configuration builder provides an `image_name()` method to define it explicitly. 
 
-To configure an alternative Flex Docker image, update your `FlexConfig::builder()` definition as in this example:
+To configure an alternative Omni Docker image, update your `FlexConfig::builder()` definition as in this example:
 
 [source,rust]
 ----
@@ -448,10 +448,10 @@ Run `make test` to ensure proper configuration.
 ====
 
 [[flex-service-endpoint-requests]]
-=== Flex Service Endpoint Requests
+=== Omni Service Endpoint Requests
 
 `Flex` service exposes endpoints with external base URLs dependent on the port. To access those URLs, the
-Flex service instance handle provides the `external_url()` method indexed by port, for example:
+Omni service instance handle provides the `external_url()` method indexed by port, for example:
 
 [source,rust]
 ----
