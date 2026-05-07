@@ -1,4 +1,4 @@
-= Deploying a Custom Policy for Flex Gateway in Local Mode
+= Deploying a Custom Policy for Omni Gateway in Local Mode
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -9,18 +9,18 @@ include::partial$pdk-banner.adoc[tag=pdk]
 You can implement custom policies via WebAssembly (WASM) extensions that run on Envoy as custom filters. The following steps demonstrate deploying and applying a custom filter (policy) to an API running in Local Mode:
 
 . Create a configuration YAML file.
-. Save the file in the Flex Gateway configuration directory.
+. Save the file in the Omni Gateway configuration directory.
 . Create the extension definition.
 . Encode the custom policy WASM implementation using `base64`.
 . Link the extension definition to the custom policy WASM binary implementation.
 . Link the custom policy to an API instance.
-. Apply the resources to the Flex Gateway instance.
+. Apply the resources to the Omni Gateway instance.
 
 == Before You Begin
 
 Before getting started, ensure that you have:
 
-* Flex Gateway installed and running in Local Mode. See xref:flex-install.adoc[] for more information about installing and running the gateway.
+* Omni Gateway installed and running in Local Mode. See xref:flex-install.adoc[] for more information about installing and running the gateway.
 * Your upstream service URL. See xref:flex-local-publish-simple-api.adoc[] for an example.
 * A custom policy implemented and compiled. See xref:policies-custom-flex-implement-rust.adoc[].
 
@@ -28,7 +28,7 @@ Before getting started, ensure that you have:
 
 . Create a configuration file called `custom-policy-example.yaml`.
 
-. Save the file in the Flex Gateway configuration directory. For example:
+. Save the file in the Omni Gateway configuration directory. For example:
 +
 * `/etc/mulesoft/flex-gateway/conf.d/policies`
 
@@ -143,7 +143,7 @@ spec:
 +
 * The `spec.config` value contains policy configuration data.
 
-. Apply the resources to the Flex Gateway instance.
+. Apply the resources to the Omni Gateway instance.
 +
 The complete `custom-policy-example.yaml` file now contains the following:
 +
@@ -196,7 +196,7 @@ spec:
     secret-value: "an-example-value"
 ----
 +
-Save the file in the Flex Gateway configuration directory. For example:
+Save the file in the Omni Gateway configuration directory. For example:
 +
 * `/etc/mulesoft/flex-gateway/conf.d/policies`
 

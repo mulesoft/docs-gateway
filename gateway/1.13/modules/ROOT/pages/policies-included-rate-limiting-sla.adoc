@@ -11,7 +11,7 @@ endif::[]
 >s| Policy name | Rate-limiting SLA
 >s| Summary      | Monitors access to an API by defining the maximum number of requests processed within a timespan, based on SLAs
 >s| Category | Quality of Service
->s| First Flex Gateway version available | v1.2.0
+>s| First Omni Gateway version available | v1.2.0
 .4+>.^s| Returned Status Codes
 |401 - Request blocked due to invalid client credentials (client ID or client secret) provided
 |429 - Quota exceeded; requests blocked until the current window finishes
@@ -27,7 +27,7 @@ Each request must be identified by a client ID and an optional client secret (de
 
 [NOTE]
 ====
-A Rate-Limiting SLA policy applied to a Flex Gateway API is scoped to replicas, not the gateway.
+A Rate-Limiting SLA policy applied to an Omni Gateway API is scoped to replicas, not the gateway.
 ====
 
 == Configuring Policy Parameters
@@ -47,7 +47,7 @@ This example looks for an HTTP header called ‘client_id’ and uses its value.
 |Client Secret Expression | A DataWeave expression that resolves the Client application’s client secret for a contract of the API |
 This is an optional value.
 Example: `#[attributes.headers['client_secret']]`
-|Distributed | When enabled, the quota is shared among Flex Replicas |Checked or unchecked
+|Distributed | When enabled, the quota is shared among Omni Replicas |Checked or unchecked
 | Expose Headers| Defines whether to expose the <<response-header,x-ratelimit headers,>> as part of the response | Checked or unchecked
 |Block on unknown quota  | For policies using distributed rate limiting, block requests if the policy can't retrieve the quota from shared storage. If not enabled and the quota can't be retrieved, no rate limiting is applied. | Checked or unchecked
 |===

@@ -30,6 +30,8 @@ To learn more about the authentication challenge response, see <<challenge-respo
 To learn more about token handling, see <<token-handling>>.
 . The policy then forwards the request to upstream services.
 
+When the inbound user can be identified, the policy reuses secondary tokens from a token cache. To learn more about how this policy caches requests, see <<token-caching-intask>>.
+
 [NOTE]
 ====
 To ensure agent discovery works uninterrupted, requests to these agent card endpoints bypass the policy without authentication:
@@ -60,8 +62,8 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Code Challenge Method | PKCE code challenge method. Typically `S256` for SHA-256. | Optional
 | Body Encoding | Encoding format for token request body. Typically `form` for `application/x-www-form-urlencoded`. Default: `form`. | Optional
 | Token Timeout | Timeout in seconds for token requests. | Optional
-| User ID Header | Header name containing the user ID for user context propagation. Default: `X-User-Id`. | Optional
 | Challenge Response Status Code | HTTP status code to return for `auth-required` challenge responses. Typically `200` to maintain JSON-RPC compatibility. | Optional
+|Distributed |When enabled, the token cache is shared across Flex Gateway replicas. Enable this option when running more than one replica to avoid duplicate token requests or repeated auth challenges. | Optional
 |===
 
 [[token-handling]]
@@ -153,7 +155,13 @@ If no secondary authentication token is found, the policy returns an `auth-requi
 }
 ----
 
-NOTE: Only `taskId` and `contextId` are preserved. Snake_case variants,  such as `task_id` or `context_id` are not supported.
+[[token-caching-intask]]
+== Token caching
+
+When the request body includes a secondary access token, the policy stores it for later reuse. When the body doesn't include a token, the policy tries the cache before returning an `auth-required` challenge:
+
+* The cache is keyed per user and is derived from the bearer JWT in the inbound `Authorization` header. The policy uses the first available of the `sub`, `email`, `azp`, or OAuth client identifier claims. If that JWT can't be parsed or none of these claims is present, the policy does not cache or reuse tokens.
+* Cache entry lifetime is derived from the token timeout. When a token expires, it's discarded from the cache.
 
 == See Also
 

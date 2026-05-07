@@ -1,23 +1,23 @@
-= Requirements and Limits for Flex Gateway
+= Requirements and Limits for Omni Gateway
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :page-aliases: runtime-manager::flex-gateway-permissions.adoc
 :imagesdir: ../assets/images
 
-Before you download and install Anypoint Flex Gateway, review the following requirements and limits.
+Before you download and install Anypoint Omni Gateway, review the following requirements and limits.
 
-== Flex Gateway Requirements
+== Omni Gateway Requirements
 
 === Permission Requirements
 
-To use Flex Gateway you must have these permissions:
+To use Omni Gateway you must have these permissions:
 
 [%header,cols="20a,30a,50a"]
 |===
 | Permission | Ability | Notes
-| Manage Servers | Create, update, and delete server and Flex Gateway resources.| Runtime Manager permission, which is assigned to a specific environment in a Business Group.
-| Read Servers | View server and Flex Gateway resources.| Runtime Manager permission, which is assigned to a specific environment in a Business Group.
+| Manage Servers | Create, update, and delete server and Omni Gateway resources.| Runtime Manager permission, which is assigned to a specific environment in a Business Group.
+| Read Servers | View server and Omni Gateway resources.| Runtime Manager permission, which is assigned to a specific environment in a Business Group.
 | Usage Viewer | View gateway metrics. | Usage permission, which can be added only by an organization administrator at the root organization level.
 |===
 
@@ -26,37 +26,37 @@ See xref:access-management::configure-teams.adoc#manage-team-permissions[Manage 
 
 === Connected App Scope Requirements
 
-To register Self-Managed Flex Gateway using a Connected App, the following scopes are required:
+To register Self-Managed Omni Gateway using a Connected App, the following scopes are required:
 
 * Manage Servers
 * Read Servers
 * View Organization
 
-== Managed Flex Gateway Resource Requirements
+== Managed Omni Gateway Resource Requirements
 
-To use Managed Flex Gateway your Business Group must have at least one of these Managed Flex Gateway resources: 
+To use Managed Omni Gateway your Business Group must have at least one of these Managed Omni Gateway resources: 
 
-* Large Managed Flex Gateways
-* Small Managed Flex Gateways
+* Large Managed Omni Gateways
+* Small Managed Omni Gateways
 
-Deploying an Extra Large Managed Flex Gateway requires two Large Managed Flex Gateways resources.
+Deploying an Extra Large Managed Omni Gateway requires two Large Managed Omni Gateways resources.
 
-These resources aren't inherited. To redistribute Managed Flex Gateway resources to a business group, see xref:access-management::business-groups.adoc#redistribute-resources[Redistribute Resources Between Existing Business Groups].
+These resources aren't inherited. To redistribute Managed Omni Gateway resources to a business group, see xref:access-management::business-groups.adoc#redistribute-resources[Redistribute Resources Between Existing Business Groups].
 
-== Managed Flex Gateway Private Space Requirement
+== Managed Omni Gateway Private Space Requirement
 
-To use Managed Flex Gateway, you have created a private space in CloudHub 2.0 or have access to a private space created by someone else. 
+To use Managed Omni Gateway, you have created a private space in CloudHub 2.0 or have access to a private space created by someone else. 
 
 To create a private space, see xref:cloudhub-2::ps-create-configure.adoc[].
  
 
-== Software Requirements for Self-Managed Flex Gateway
+== Software Requirements for Self-Managed Omni Gateway
 
-Flex Gateway isn't supported on Windows or in Docker running on Windows.
+Omni Gateway isn't supported on Windows or in Docker running on Windows.
 
 === Software Requirements for Kubernetes and OpenShift Deployments
 
-Running Flex Gateway requires:
+Running Omni Gateway requires:
 
 * A minimum of either Kubernetes 1.21 or OpenShift 4.8.
 
@@ -96,31 +96,31 @@ include::partial$prerequisites.adoc[tag=red-hat-ibm]
 * {empty}
 include::partial$prerequisites.adoc[tag=ubuntu]
 
-Flex Gateway is designed to run in cloud-native architectures. Therefore, multiple installations on a single Linux VM aren't supported. You can install only one gateway instance per Linux VM.
+Omni Gateway is designed to run in cloud-native architectures. Therefore, multiple installations on a single Linux VM aren't supported. You can install only one gateway instance per Linux VM.
 
 === Software Requirements for Container Deployments
 
-Flex Gateway supports the following:
+Omni Gateway supports the following:
 
 * Docker
 * Podman
 
-Additionally, Flex Gateway supports the following container orchestration services:
+Additionally, Omni Gateway supports the following container orchestration services:
 
 * Amazon Elastic Container Service (Amazon ECS)
 * Azure Container Service (ACS)
 * Google Cloud Run
 * AWS Fargate
 
-== Hardware Requirements for Self-Managed Flex Gateway
+== Hardware Requirements for Self-Managed Omni Gateway
 
-A single Flex Gateway can support multiple backend APIs. To support more backend APIs, you can deploy multiple replicas or additional Flex Gateways. For information about sizing, refer to xref:flex-sizing-guide.adoc[].
+A single Omni Gateway can support multiple backend APIs. To support more backend APIs, you can deploy multiple replicas or additional Omni Gateways. For information about sizing, refer to xref:flex-sizing-guide.adoc[].
 
-Flex Gateway requires either an Intel or AMD-64 processor.
+Omni Gateway requires either an Intel or AMD-64 processor.
 
 == Ports, IPs, and Hostnames Allowlist Requirements
 
-For Flex Gateway to communicate with MuleSoft-managed online Anypoint Platform APIs and services, you must add these hostnames and ports of external resources to the allowlist:
+For Omni Gateway to communicate with MuleSoft-managed online Anypoint Platform APIs and services, you must add these hostnames and ports of external resources to the allowlist:
  
 [%header%autowidth.spread]
 |===
@@ -134,7 +134,7 @@ For Flex Gateway to communicate with MuleSoft-managed online Anypoint Platform A
 |*US*|*exchange2-asset-manager-kprod.s3.amazonaws.com* | 443| Connected| Required to download policies.|  HTTPS
 |*US*|*configuration-resolver.prod.cloudhub.io* | 443| Connected| Required to download policies.| mTLS
 |*US*|*us1.ingest.mulesoft.com* | 443| Both| Required to send analytics data to the control plane.|  HTTPS
-|*US*|*flex-packages.anypoint.mulesoft.com* | 443| Both| Required to download and install Flex Gateway.|  HTTPS
+|*US*|*flex-packages.anypoint.mulesoft.com* | 443| Both| Required to download and install Omni Gateway.|  HTTPS
 |*EU*|*eu1.anypoint.mulesoft.com* | 443| Both| Required to connect with the control plane, push internal metrics, and download custom policy binaries.|  HTTPS
 |*EU*|*arm-mcm2-service.kprod-eu.msap.io* | 443| Both| Required to communicate with the transport layer.| mTLS
 |*EU*|*logging.ingestion.eu-central-1.prod-eu.msap.io* | 443| Both| Required to send analytics data to the control plane.|  HTTPS
@@ -144,8 +144,8 @@ For Flex Gateway to communicate with MuleSoft-managed online Anypoint Platform A
 |*EU*|*configuration-resolver.prod-eu.msap.io* | 443| Connected| Required to download policies.| mTLS
 |*EU*|*exchange-files.eu1.anypoint.mulesoft.com* | 443| Connected| Required to download policies.|  HTTPS
 |*EU*|*exchange2-asset-manager-kprod-eu.s3.eu-central-1.amazonaws.com* | 443| Connected| Required to download policies.|  HTTPS
-|*EU*|*flex-packages.anypoint.mulesoft.com* | 443| Both| Required to download and install Flex Gateway.|  HTTPS
-|*EU*|*flex-packages.eu1.anypoint.mulesoft.com* | 443| Both| Required to download and install Flex Gateway.|  HTTPS
+|*EU*|*flex-packages.anypoint.mulesoft.com* | 443| Both| Required to download and install Omni Gateway.|  HTTPS
+|*EU*|*flex-packages.eu1.anypoint.mulesoft.com* | 443| Both| Required to download and install Omni Gateway.|  HTTPS
 |===
 
 [NOTE]
@@ -154,7 +154,7 @@ Ports 9998 and 9999 are reserved for internal processes and shouldn't be used in
 ====
 
 [[limits]]
-== Flex Gateway Limits and Performance Metrics
+== Omni Gateway Limits and Performance Metrics
 
 [%header%autowidth.spread,cols="a,>.<a,a"]
 |===
@@ -171,9 +171,9 @@ To learn more, see xref:api-manager::create-instance-task-flex.adoc#limits[Multi
 |===
 
 [[managed-flex-gateway-limits]]
-=== Managed Flex Gateway Limits and Performance Metrics
+=== Managed Omni Gateway Limits and Performance Metrics
 
-Each Managed Flex Gateway size has a limit on the number of APIs it can deploy. The platform doesn't allow you to exceed this limit.
+Each Managed Omni Gateway size has a limit on the number of APIs it can deploy. The platform doesn't allow you to exceed this limit.
 
 [%header%autowidth.spread,cols="a,a"]
 |===
@@ -183,7 +183,7 @@ Each Managed Flex Gateway size has a limit on the number of APIs it can deploy. 
 | Small Managed Gateway | 50 
 |===
 
-Each Managed Flex Gateway size supports a maximum number of transactions per second (TPS). Exceeding this number can increase request latency.
+Each Managed Omni Gateway size supports a maximum number of transactions per second (TPS). Exceeding this number can increase request latency.
 
 [%header%autowidth.spread,cols="a,a"]
 |===
@@ -193,7 +193,7 @@ Each Managed Flex Gateway size supports a maximum number of transactions per sec
 | Small Managed Gateway | 50 
 |===
 
-=== Self-Managed Flex Gateway Limits and Performance Metrics
+=== Self-Managed Omni Gateway Limits and Performance Metrics
 
 [%header%autowidth.spread,cols="a,>.<a,a"]
 |===

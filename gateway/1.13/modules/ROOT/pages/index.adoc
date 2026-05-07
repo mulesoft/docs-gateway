@@ -1,21 +1,21 @@
-= Flex Gateway Overview
+= Omni Gateway Overview
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 :page-aliases: gateway::flex-shared-responsibility.adoc, runtime-manager::flex-gateway-about.adoc, runtime-manager::flex-gateway-modes.adoc
 
-Anypoint Flex Gateway is an Envoy-based, ultrafast lightweight API gateway designed to manage and secure APIs running anywhere. Built to seamlessly integrate with DevOps and CI/CD workflows, Flex Gateway delivers the performance required for the most demanding applications and microservices while providing enterprise security and manageability across any environment.
+Anypoint Omni Gateway is an Envoy-based, ultrafast lightweight API gateway designed to manage and secure APIs running anywhere. Built to seamlessly integrate with DevOps and CI/CD workflows, Omni Gateway delivers the performance required for the most demanding applications and microservices while providing enterprise security and manageability across any environment.
 
-The following video provides a quick overview of Flex Gateway:
+The following video provides a quick overview of Omni Gateway:
 
 ++++
 include::_partials/product-spotlight-video.html[]
 ++++
 
-== Flex Gateway Architecture
+== Omni Gateway Architecture
 
-Flex Gateway comprises two components that work in tandem:
+Omni Gateway comprises two components that work in tandem:
 
 * <<control_plane,Control plane>>
 * <<runtime,Runtime>>
@@ -38,14 +38,16 @@ The control plane is a MuleSoft-hosted platform that centralizes management and 
 [[runtime]]
 === Runtime
 
-The gateway runtime receives commands from the control plane and routes and protects the backend APIs. Built with security in mind, Flex Gateway secures communications between the runtime and the control plane through mTLS and HTTPs.
+The gateway runtime receives commands from the control plane and routes and protects the backend APIs. Built with security in mind, Omni Gateway secures communications between the runtime and the control plane through mTLS and HTTPs.
 
 == Scaling
 
-A single Flex Gateway can support up to {gateway-api-max} backend APIs. For high availability, it is best to deploy multiple gateways running in parallel. Deploying multiple gateways increases gateway performance and robustness, and is recommended for high-performance applications that must scale.
+A single Omni Gateway can support up to {gateway-api-max} backend APIs. For high availability, it is best to deploy multiple gateways running in parallel. Deploying multiple gateways increases gateway performance and robustness, and is recommended for high-performance applications that must scale.
 
 == Supported Protocols
-Flex Gateway supports the following protocols:
+
+Omni Gateway supports the following protocols:
+
 * HTTP
 * WebSocket
 * SOAP
@@ -57,45 +59,45 @@ Flex Gateway supports the following protocols:
 
 == Deployment Types
 
-You can deploy Flex Gateway as a Managed or Self-Managed Flex Gateway. Managed Flex Gateway provides a fully managed option on CloudHub 2.0 or Runtime Fabric, and Self-Managed Flex Gateway provides more options and control.
+You can deploy Omni Gateway as a Managed or Self-Managed Omni Gateway. Managed Omni Gateway provides a fully managed option on CloudHub 2.0 or Runtime Fabric, and Self-Managed Omni Gateway provides more options and control.
 
-* <<managed, Managed Flex Gateway>>
-* <<self_managed, Self-Managed Flex Gateway>>
+* <<managed, Managed Omni Gateway>>
+* <<self_managed, Self-Managed Omni Gateway>>
 
 [[managed]]
-=== Managed Flex Gateway
+=== Managed Omni Gateway
 
-Managed Flex Gateway is a fully hosted version of Flex Gateway on CloudHub 2.0 or Runtime Fabric, hosted and managed on the Anypoint Platform by MuleSoft. Managed Flex Gateway provides high availability, autoscaling, less operational overhead, and regular automatic patches and upgrades. It is designed to simplify API gateway operation through point-and-click setup, and monitoring, and MuleSoft handles the maintenance and infrastructure.
+Managed Omni Gateway is a fully hosted version of Omni Gateway on CloudHub 2.0 or Runtime Fabric, hosted and managed on the Anypoint Platform by MuleSoft. Managed Omni Gateway provides high availability, autoscaling, less operational overhead, and regular automatic patches and upgrades. It is designed to simplify API gateway operation through point-and-click setup, and monitoring, and MuleSoft handles the maintenance and infrastructure.
 
-In Managed Flex Gateway, each runtime unit is called a gateway instance.
+In Managed Omni Gateway, each runtime unit is called a gateway instance.
 
 [[self_managed]]
-=== Self-Managed Flex Gateway
+=== Self-Managed Omni Gateway
 
-Self-Managed Flex Gateway is a distributed runtime entity that you can install in any cloud data center or, for testing purposes, on your local laptop. Self-Managed Flex Gateway requires you to manage the underlying infrastructure. Various installation options are available for the Self-Managed Flex Gateway, including Docker containers, as a sidecar to a backend application in a Docker container, as a Kubernetes Deployment, or on various Linux environments.
+Self-Managed Omni Gateway is a distributed runtime entity that you can install in any cloud data center or, for testing purposes, on your local laptop. Self-Managed Omni Gateway requires you to manage the underlying infrastructure. Various installation options are available for the Self-Managed Omni Gateway, including Docker containers, as a sidecar to a backend application in a Docker container, as a Kubernetes Deployment, or on various Linux environments.
 
-In Self-Managed Flex Gateway, each runtime unit is called a replica. For high availability, it is best to deploy Self-Managed Flex Gateway as a cluster with multiple replicas running in parallel. Using clusters increases gateway performance and robustness, and is recommended for high-performance applications that must scale.
+In Self-Managed Omni Gateway, each runtime unit is called a replica. For high availability, it is best to deploy Self-Managed Omni Gateway as a cluster with multiple replicas running in parallel. Using clusters increases gateway performance and robustness, and is recommended for high-performance applications that must scale.
 
-Self-Managed Flex Gateway includes a Fluent Bit implementation, which enables log output to local files, or to aggregators such as New Relic, Sumo Logic, and Splunk. You can also configure external REDIS storage for use with distributed rate limiting and caching. Gateway replicas utilize this storage as a temporary workspace for rate limit coordination, which is pivotal in preserving customer service level agreements.
+Self-Managed Omni Gateway includes a Fluent Bit implementation, which enables log output to local files, or to aggregators such as New Relic, Sumo Logic, and Splunk. You can also configure external REDIS storage for use with distributed rate limiting and caching. Gateway replicas utilize this storage as a temporary workspace for rate limit coordination, which is pivotal in preserving customer service level agreements.
 
-Self-Managed Flex Gateway can be installed in either of these two modes:
+Self-Managed Omni Gateway can be installed in either of these two modes:
 
-* <<connected_mode,Self-Managed Flex Gateway in Connected Mode>>
-* <<local_mode,Self-Managed Flex Gateway in Local Mode>>
+* <<connected_mode,Self-Managed Omni Gateway in Connected Mode>>
+* <<local_mode,Self-Managed Omni Gateway in Local Mode>>
 
 [[connected_mode]]
-=== Self-Managed Flex Gateway in Connected Mode
+=== Self-Managed Omni Gateway in Connected Mode
 In Connected Mode, the gateway is fully connected to the MuleSoft control plane. This connection allows for centralized management, observability, and security. Anypoint API Manager enables full API lifecycle management and policy configuration. Anypoint Runtime Manager enables you to deploy and configure your gateway.
 
 Choose Connected Mode for a UI-based experience to deploy policies, and for managing and monitoring the gateway.
 
 [[local_mode]]
-=== Self-Managed Flex Gateway in Local Mode
+=== Self-Managed Omni Gateway in Local Mode
 
 You can also configure and manage a standalone gateway that is mostly disconnected from the control plane. Choose Local Mode for this experience.
 
 [NOTE]
-Flex Gateway deployed in Local Mode only connects to the control plane for registration and logging usage metrics.
+Omni Gateway deployed in Local Mode only connects to the control plane for registration and logging usage metrics.
 
 In Local Mode, you manage all configuration and policy applications with locally stored declarative configuration files.
 
@@ -110,7 +112,7 @@ The following table summarizes the differences between Connected Mode and Local 
 | | Connected Mode | Local Mode
 
 | *Use Case*
-| Centralize management, observability, and security. Flex Gateway connects to the control plane.
+| Centralize management, observability, and security. Omni Gateway connects to the control plane.
 | Operate independently of the control plane in a mostly disconnected manner. Manage with locally stored declarative configuration files. Build CI/CD pipelines.
 
 | *Policy Application*
@@ -118,8 +120,8 @@ The following table summarizes the differences between Connected Mode and Local 
 | Via local declarative configuration files
 
 | *Air-Gapped?*
-| No. Flex Gateway is connected to the control plane.
-| No. Flex Gateway is managed locally but only connected to the control plane for registration and usage metrics.
+| No. Omni Gateway is connected to the control plane.
+| No. Omni Gateway is managed locally but only connected to the control plane for registration and usage metrics.
 
 |===
 
@@ -128,15 +130,15 @@ The following table summarizes the differences between Connected Mode and Local 
 
 === Managed Deployment Options
 
-You can deploy Managed Flex Gateway on CloudHub 2.0 and Runtime Fabric using Runtime Manager. For details see xref:flex-gateway-managed-set-up.adoc[].
+You can deploy Managed Omni Gateway on CloudHub 2.0 and Runtime Fabric using Runtime Manager. For details see xref:flex-gateway-managed-set-up.adoc[].
 
 === Self-Managed Installation Options
 
-You can install Self-Managed Flex Gateway in a variety of ways:
+You can install Self-Managed Omni Gateway in a variety of ways:
 
 * A standalone runtime in a Docker container deployed on Heroku from Salesforce
 +
-To learn more, see https://blog.heroku.com/mastering-api-integration-salesforce-heroku-mulesoft-anypoint-flex-gateway[Mastering API Integration: Salesforce, Heroku, and MuleSoft Anypoint Flex Gateway].
+To learn more, see https://blog.heroku.com/mastering-api-integration-salesforce-heroku-mulesoft-anypoint-flex-gateway[Mastering API Integration: Salesforce, Heroku, and MuleSoft Anypoint Omni Gateway].
 
 * A standalone runtime in a Docker container
 
@@ -170,18 +172,18 @@ A standalone gateway is good for protecting a limited number of APIs with low tr
 
 == Version Retirement Dates
 
-For information about Flex Gateway version retirement dates, refer to https://www.salesforce.com/en-us/wp-content/uploads/sites/4/documents/legal/Agreements/versioning-back-support-policy.pdf[MuleSoft Product Versioning and Back Support Policy].
+For information about Omni Gateway version retirement dates, refer to https://www.salesforce.com/en-us/wp-content/uploads/sites/4/documents/legal/Agreements/versioning-back-support-policy.pdf[MuleSoft Product Versioning and Back Support Policy].
 
 == Shared Responsibility
 
-The successful operation of Flex Gateway is a responsibility shared between you and MuleSoft.
+The successful operation of Omni Gateway is a responsibility shared between you and MuleSoft.
 
 === MuleSoft Responsibility
 
 MuleSoft is responsible for:
 
-* Providing and supporting Flex Gateway (including the agent, Envoy package, and Fluent Bit package)
-* Providing and supporting a base Helm chart for the installation of Flex Gateway in a Kubernetes cluster
+* Providing and supporting Omni Gateway (including the agent, Envoy package, and Fluent Bit package)
+* Providing and supporting a base Helm chart for the installation of Omni Gateway in a Kubernetes cluster
 * Providing and supporting an online Docker image registry
 * Providing and supporting an online package repository for installation on Linux
 
@@ -190,7 +192,7 @@ MuleSoft is responsible for:
 When running on any target, you are responsible for:
 
 * Maintaining connectivity to the Anypoint Control Plane
-* Not running third-party software that interferes with normal Flex Gateway operation, such as antivirus, DPI, or application security systems
+* Not running third-party software that interferes with normal Omni Gateway operation, such as antivirus, DPI, or application security systems
 
 When running in Kubernetes, you are responsible for:
 
@@ -207,7 +209,7 @@ When running in Kubernetes, you are responsible for:
 *** Your network team to configure allowed ports and proxy settings
 *** Your security team to verify compliance and obtain security certificates
 
-See xref:general::usage-reports.adoc[Viewing Usage Reports] for information about your monthly Flex Gateway usage.
+See xref:general::usage-reports.adoc[Viewing Usage Reports] for information about your monthly Omni Gateway usage.
 
 == Next Steps
 

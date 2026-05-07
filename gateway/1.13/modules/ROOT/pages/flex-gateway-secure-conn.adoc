@@ -1,13 +1,14 @@
-= Applying Policies for Managed Flex Gateways and Connected Mode
+= Applying Policies for Managed Omni Gateways and Connected Mode
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 :page-aliases: policies-included-apply.adoc, api-manager::using-policies.adoc, policies::policies-included-apply.adoc
 
-For Managed Flex Gateway and Flex Gateway running in Connected Mode, you apply inbound and outbound policies using *API Manager*. To find the policies provided by Flex Gateway, see xref:policies-included-directory.adoc[] and xref:policies-outbound-directory.adoc[].
+For Managed Omni Gateway and Omni Gateway running in Connected Mode, you apply inbound and outbound policies using *API Manager*. To find the policies provided by Omni Gateway, see xref:policies-included-directory.adoc[] and xref:policies-outbound-directory.adoc[].
 
-== Apply an Inbound Policy
+[[apply-inbound-policy]]
+== Apply Inbound Policies
 
 . Go to *Anypoint Platform > API Manager*.
 . From *API Instances* or *Agent and Tool Instances*, click the name of the instance to which you want to apply a policy.
@@ -17,12 +18,20 @@ For Managed Flex Gateway and Flex Gateway running in Connected Mode, you apply i
 . Configure the required parameters.
 +
 For policy configuration parameters, see xref:policies-included-directory.adoc[].
-. If necessary, configure *Advanced options*.
+. Click *Advanced options* to configure these optional parameters:
+** *Policy label*: A label to identify the policy, specifically for use cases with multiples of the same policy.
+** *Policy version*: The version of the policy definition to use.
+** Application conditions: Apply the policy to all incoming requests or requests that match specified conditions:
+*** *Methods*: The HTTP methods to apply the policy to.
+*** *URI template regex*: A URI template regex of which request paths to apply the policy to.
+*** *Host*: The host to apply the policy to.
+*** *Headers*: A map of headers names and regex values to apply the policy to.
++ 
+NOTE: If necessary, use multiples of the same policy to meet all required conditions.
 . Click *Apply*.
 
-You can apply a policy to the entire instance by default, or to specific methods and resources within the API.
-
-== Apply an Outbound Policy
+[[apply-outbound-policy]]
+== Apply Outbound Policies
 
 . Go to *Anypoint Platform > API Manager*.
 . From *API Instances* or *Agent and Tool Instances*, click the name of the instance to which you want to apply a policy.
@@ -36,10 +45,15 @@ You can apply a policy to the entire instance by default, or to specific methods
 . Configure the required parameters.
 +
 For policy configuration parameters, see xref:policies-outbound-directory.adoc[].
-. If necessary, configure *Advanced options*.
+. Click *Advanced options* to configure these optional parameters:
+** Policy label: A label to identify the policy, specifically for use cases with multiples of the same policy.
+** *Policy version*: The version of the policy definition to use.
+** Application conditions: Apply the policy to all incoming requests or requests that match specified conditions:
+*** *Methods*: The HTTP methods to apply the policy to.
+*** *Headers*: A map of headers names and regex values to apply the policy to.
++ 
+NOTE: If necessary, use multiples of the same policy to meet all required conditions.
 . Click *Apply*.
-
-You can apply a policy to the entire upstream by default, or to specific methods and resources of the upstream.
 
 == See Also
 

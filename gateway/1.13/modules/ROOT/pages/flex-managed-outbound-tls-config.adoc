@@ -1,11 +1,11 @@
-= Configuring Outbound TLS for Managed Flex Gateway
+= Configuring Outbound TLS for Managed Omni Gateway
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 :page-mode: conn
 
-Outbound Transport Layer Security (TLS) encrypts communication between Flex Gateway and upstream services.
+Outbound Transport Layer Security (TLS) encrypts communication between Omni Gateway and upstream services.
 
 include::partial$task-tls-config.adoc[tag=share-contexts]
 
@@ -17,7 +17,7 @@ include::partial$task-tls-config.adoc[tags=defaultOutboundTLS]
 include::partial$task-tls-config.adoc[tag=aia-support]
 
 == Before You Begin
-Before configuring the outbound TLS context for a Managed Flex Gateway, complete the following tasks:
+Before configuring the outbound TLS context for a Managed Omni Gateway, complete the following tasks:
 
 * xref:anypoint-security::asm-secret-group-creation-task.adoc[Create a Secret Group]
 +
@@ -53,7 +53,7 @@ To simplify your configurations, create different TLS contexts for the different
 
 // Add TLS Context in Secrets Manager
 [[add-a-tls-context]]
-== Add a TLS Context for Flex Gateway
+== Add a TLS Context for Omni Gateway
 
 Adding a TLS context to your secret group requires supplying a name, target, version, and keystore or truststore. You can also add context expiration date and ALPN Protocols and configure the outbound settings. 
 
@@ -79,24 +79,24 @@ To make your secret group downloadable:
 * *Name* +
 Enter a name for your TLS context. 
 * *Target* +
-Select *Flex Gateway* to use the TLS context as the SSL validation for Flex Gateway APIs. 
+Select *Omni Gateway* to use the TLS context as the SSL validation for Omni Gateway APIs. 
 * *Min TLS Version* and *Max TLS Version* +
 Support a range of TLS versions or a single version by selecting the same version for the minimum and maximum.  
 * *Keystore* +
-If necessary for your configuration, select the PEM type keystore to store in the TLS context. The keystore contains the certificate presented by Flex Gateway to the remote party for outbound TLS.
+If necessary for your configuration, select the PEM type keystore to store in the TLS context. The keystore contains the certificate presented by Omni Gateway to the remote party for outbound TLS.
 +
 [NOTE]
 ====
 To comply with security standards, all certificates must be 2048 bits or longer.
 ====
 * *Truststore* +
-If necessary for your configuration, select a PEM type truststore to store certificates trusted by the client. The truststore contains the CA path that Flex uses to validate the remote party certificate for outbound TLS. 
+If necessary for your configuration, select a PEM type truststore to store certificates trusted by the client. The truststore contains the CA path that Omni uses to validate the remote party certificate for outbound TLS. 
 +
 [NOTE]
 ====
 Upstream certificates must include the Subject Alternative Name (SAN) extension. The Common Name (CN) field is deprecated.
 
-Flex Gateway supports the SAN extension of type `dNSName`.
+Omni Gateway supports the SAN extension of type `dNSName`.
 ====
 * *Expiration Date* +
 Optionally, enter an expiration date for the TLS context.

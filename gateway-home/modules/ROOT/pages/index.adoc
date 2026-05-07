@@ -12,20 +12,20 @@ A gateway enables you to add a dedicated orchestration layer on top of your back
 
 Anypoint Platform offers two gateway products for managing and securing your APIs:
 
-* <<anypoint_flex_gateway,Anypoint Flex Gateway>>
+* <<anypoint_flex_gateway,Anypoint Omni Gateway>>
 * <<anypoint_mule_gateway,Anypoint Mule Gateway>>
 
 [[anypoint_flex_gateway]]
-== Anypoint Flex Gateway
+== Anypoint Omni Gateway
 
-Anypoint Flex Gateway is an Envoy-based, ultrafast lightweight API gateway designed to manage and secure APIs running anywhere.
-Built to seamlessly integrate with DevOps and CI/CD workflows, Anypoint Flex Gateway delivers the
+Anypoint Omni Gateway is an Envoy-based, ultrafast lightweight API gateway designed to manage and secure APIs running anywhere.
+Built to seamlessly integrate with DevOps and CI/CD workflows, Anypoint Omni Gateway delivers the
 performance required for the most demanding applications and microservices while providing enterprise
 security and manageability across any environment.
 
 For more information, see xref:gateway::index.adoc[].
 
-//For more information, see xref:gateway::flex-gateway-getting-started.adoc[Getting Started with Flex Gateway].
+//For more information, see xref:gateway::flex-gateway-getting-started.adoc[Getting Started with Omni Gateway].
 
 [[anypoint_mule_gateway]]
 == Anypoint Mule Gateway
@@ -40,21 +40,21 @@ Using Mule Gateway, you can, for example:
 
 For more information, see xref:mule-gateway::mule-gateway-capabilities-mule4.adoc[].
 
-== Flex Gateway vs. Mule Gateway
+== Omni Gateway vs. Mule Gateway
 
-Flex Gateway can manage and secure APIs, both Mule and non-Mule, running anywhere.
+Omni Gateway can manage and secure APIs, both Mule and non-Mule, running anywhere.
 
 In contrast, Mule Gateway protects a single Mule API. The key advantage is that it's easy for Mule app developers to provide basic endpoint protection. You can configure Mule in Anypoint Runtime Manager as a CloudHub proxy application, protecting multiple backends.
 
-Building custom policies on Mule Gateway is similar to building an application with Java using the Mule DSL. Building a custom policy in Flex Gateway is based on Envoy-provided Rust WASM SDKs. A Mule Gateway policy cannot be reused in Flex Gateway and vice versa, because the underlying architectures are fundamentally different.
+Building custom policies on Mule Gateway is similar to building an application with Java using the Mule DSL. Building a custom policy in Omni Gateway is based on Envoy-provided Rust WASM SDKs. A Mule Gateway policy cannot be reused in Omni Gateway and vice versa, because the underlying architectures are fundamentally different.
 
-MuleSoft recommends you choose Flex Gateway for high-availability and high-performance Mule and non-Mule applications.
+MuleSoft recommends you choose Omni Gateway for high-availability and high-performance Mule and non-Mule applications.
 
 To protect Mule applications that do not require the management and maintenance of underlying infrastructure, choose Mule Gateway for CloudHub.
 
 [%header%autowidth.spread,cols="a,a,a"]
 |===
-| | Flex Gateway | Mule Gateway
+| | Omni Gateway | Mule Gateway
 
 | *Summary*
 | Envoy-based API gateway to secure all APIs, Mule and non-Mule, running anywhere
@@ -95,7 +95,7 @@ To protect Mule applications that do not require the management and maintenance 
 
 [%header%autowidth.spread]
 |===
-|Policy | Summary | Managed Flex Gateway | Flex Gateway Connected Mode | Flex Gateway Local Mode | Mule Gateway
+|Policy | Summary | Managed Omni Gateway | Omni Gateway Connected Mode | Omni Gateway Local Mode | Mule Gateway
 
 | A2A Agent Card ^| Rewrites the Agent card URL to match the server instance public URL ^| xref:gateway::policies-included-a2a-agent-card.adoc[Yes] ^| xref:gateway::policies-included-a2a-agent-card.adoc[Yes] ^| No ^| No
 
@@ -147,10 +147,13 @@ To protect Mule applications that do not require the management and maintenance 
 
 | External Processing ^| Sends the incoming HTTP requests or outgoing HTTP responses to an external gRPC service for additional processing ^| xref:gateway::policies-included-external-processing.adoc[Yes] ^| xref:gateway::policies-included-external-processing.adoc[Yes] ^| xref:gateway::policies-included-external-processing.adoc[Yes] ^| No 
 
-| GraphQL Static Query Complexity ^| Calculates query complexity and blocks requests that exceed the defined budget ^| xref:gateway::policies-included-graphql-static-query-complexity.adoc[Yes] ^| xref:gateway::policies-included-graphql-static-query-complexity.adoc[Yes] ^| xref:gateway::policies-included-graphql-static-query-complexity.adoc[Yes] ^| No 
-| GraphQL Schema Validation ^| Validates incoming GraphQL operations against a GraphQL schema definition ^| xref:gateway::policies-included-graphql-schema-validation.adoc[Yes] ^| xref:gateway::policies-included-graphql-schema-validation.adoc[Yes] ^| xref:gateway::policies-included-graphql-schema-validation.adoc[Yes] ^| No 
-| GraphQL Operation Limits ^| Caps depth, aliases, root fields, and directives in GraphQL operations before Flex Gateway forwards traffic upstream ^| xref:gateway::policies-included-graphql-operation-limits.adoc[Yes] ^| xref:gateway::policies-included-graphql-operation-limits.adoc[Yes] ^| xref:gateway::policies-included-graphql-operation-limits.adoc[Yes] ^| No 
 | GraphQL Introspection Control ^| Blocks or allows requests that  access the `__schema`, `__type`, and `__typename` GraphQL meta fields ^| xref:gateway::policies-included-graphql-introspection-control.adoc[Yes] ^| xref:gateway::policies-included-graphql-introspection-control.adoc[Yes] ^| xref:gateway::policies-included-graphql-introspection-control.adoc[Yes] ^| No 
+
+| GraphQL Operation Limits ^| Limits GraphQL operation depth, aliases, root fields, and directives ^| xref:gateway::policies-included-graphql-operation-limits.adoc[Yes] ^| xref:gateway::policies-included-graphql-operation-limits.adoc[Yes] ^| xref:gateway::policies-included-graphql-operation-limits.adoc[Yes] ^| No 
+
+| GraphQL Schema Validation ^| Validates incoming GraphQL operations against a GraphQL schema definition ^| xref:gateway::policies-included-graphql-schema-validation.adoc[Yes] ^| xref:gateway::policies-included-graphql-schema-validation.adoc[Yes] ^| xref:gateway::policies-included-graphql-schema-validation.adoc[Yes] ^| No
+
+| GraphQL Static Query Complexity ^| Calculates query complexity and blocks requests that exceed the defined budget ^| xref:gateway::policies-included-graphql-static-query-complexity.adoc[Yes] ^| xref:gateway::policies-included-graphql-static-query-complexity.adoc[Yes] ^| xref:gateway::policies-included-graphql-static-query-complexity.adoc[Yes] ^| No 
 
 | Header Injection ^| Adds headers to a request or a response ^| xref:gateway::policies-included-header-injection.adoc[Yes] ^| xref:gateway::policies-included-header-injection.adoc[Yes] ^| xref:gateway::policies-included-header-injection.adoc[Yes] ^| xref:mule-gateway::policies-included-header-injection.adoc[Yes] 
 
@@ -180,7 +183,7 @@ To protect Mule applications that do not require the management and maintenance 
 
 | MCP Schema Validation ^| Validates MCP requests to ensure they conform to the MCP specification ^| xref:gateway::policies-included-mcp-schema-validation.adoc[Yes] ^| xref:gateway::policies-included-mcp-schema-validation.adoc[Yes] ^| No ^| No
 
-| MCP Support ^| Adds MCP support to a Flex Gateway MCP server instance. This policy is required for your MCP server instance to function properly. ^| xref:gateway::policies-included-mcp-support.adoc[Yes] ^| xref:gateway::policies-included-mcp-support.adoc[Yes] ^| No ^| No
+| MCP Support ^| Adds MCP support to an Omni Gateway MCP server instance. This policy is required for your MCP server instance to function properly. ^| xref:gateway::policies-included-mcp-support.adoc[Yes] ^| xref:gateway::policies-included-mcp-support.adoc[Yes] ^| No ^| No
 
 | MCP Tool Mapping ^| Renames MCP tool names in requests and responses to provide flexible tool naming ^| xref:gateway::policies-included-mcp-tool-mapping.adoc[Yes] ^| xref:gateway::policies-included-mcp-tool-mapping.adoc[Yes] ^| No ^| No
 
@@ -204,7 +207,7 @@ To protect Mule applications that do not require the management and maintenance 
 
 | Regex Prompt Guard ^| Blocks LLM requests that match deny-list regex patterns ^| xref:gateway::policies-included-regex-prompt-guard.adoc[Yes] ^| xref:gateway::policies-included-regex-prompt-guard.adoc[Yes] ^| No ^| No
 
-| Response Timeout ^| Sets the maximum duration Flex Gateway waits for a response from an upstream service ^| xref:gateway::policies-included-response-timeout.adoc[Yes] ^| xref:gateway::policies-included-response-timeout.adoc[Yes] ^| xref:gateway::policies-included-response-timeout.adoc[Yes] ^| No
+| Response Timeout ^| Sets the maximum duration Omni Gateway waits for a response from an upstream service ^| xref:gateway::policies-included-response-timeout.adoc[Yes] ^| xref:gateway::policies-included-response-timeout.adoc[Yes] ^| xref:gateway::policies-included-response-timeout.adoc[Yes] ^| No
 
 | Schema Validation ^| Validates incoming traffic against a supplied OAS3 schema ^| xref:gateway::policies-included-schema-validation.adoc[Yes] ^| xref:gateway::policies-included-schema-validation.adoc[Yes] ^| xref:gateway::policies-included-schema-validation.adoc[Yes] ^| No 
 
@@ -226,7 +229,7 @@ To protect Mule applications that do not require the management and maintenance 
 
 | Tokenization ^| Transforms sensitive data into a nonsensitive equivalent, named token ^| No ^| No ^| No ^| xref:mule-gateway::policies-included-tokenization.adoc[Yes] 
 
-| Upstream Idle Timeout ^| Sets the maximum duration a stream between Flex Gateway and an upstream service can remain idle ^| xref:gateway::policies-outbound-upstream-idle-timeout.adoc[Yes] ^| xref:gateway::policies-outbound-upstream-idle-timeout.adoc[Yes] ^| xref:gateway::policies-outbound-upstream-idle-timeout.adoc[Yes] ^| No
+| Upstream Idle Timeout ^| Sets the maximum duration a stream between Omni Gateway and an upstream service can remain idle ^| xref:gateway::policies-outbound-upstream-idle-timeout.adoc[Yes] ^| xref:gateway::policies-outbound-upstream-idle-timeout.adoc[Yes] ^| xref:gateway::policies-outbound-upstream-idle-timeout.adoc[Yes] ^| No
 
 | WebSocket Connection Limit ^| Limits the number of simultaneous WebSocket connections that each API instance allows ^| xref:gateway::policies-included-websocket-connection-limit.adoc[Yes] ^| xref:gateway::policies-included-websocket-connection-limit.adoc[Yes] ^| xref:gateway::policies-included-websocket-connection-limit.adoc[Yes] ^| No 
 

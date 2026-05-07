@@ -10,7 +10,7 @@ endif::[]
 >s| Policy Name | OAuth 2.0 OBO Credential Injection
 >s|Summary  | Exchanges incoming bearer tokens using OAuth 2.0 Token Exchange (RFC 8693), Microsoft Entra ID On-Behalf-Of, or OAuth 2.0 Token Exchange with CIBA
 >s|Category | Security
->s|First Flex Gateway version available | v1.11.0
+>s|First Omni Gateway version available | v1.11.0
 >s| Returned Status Codes | No return codes exist for this policy. Error codes are returned from the upstream service.
 |===
 
@@ -19,6 +19,8 @@ endif::[]
 The OAuth 2.0 On-Behalf-Of (OBO) Credential Injection policy exchanges an incoming bearer token for a new token to target specific upstream services. The policy supports OAuth 2.0 Token Exchange (RFC 8693), Microsoft Entra ID On-Behalf-Of protocols, and OAuth 2.0 Token Exchange with Client Initiated Backchannel Authentication (CIBA). This policy is applied to outbound traffic (gateway to the backend service) to automatically exchange the OAuth 2.0 token needed for backend services.
 
 The policy extracts the Bearer token from the incoming request's `Authorization` header and sends a token exchange request to the token endpoint. The policy then replaces the `Authorization` header with the new token returned from the token exchange service and forwards the modified request to the backend service.
+
+To avoid triggering multiple requests for identical tokens, successful token exchanges are cached. By default, the cache only shares tokens between requests to the same replica. Enable distributed caching to share tokens between Omni Replicas. To learn more, see <<token-caching-oauth-obo>>.
 
 == Configuring Policy Parameters
 
@@ -46,6 +48,10 @@ include::partial$policy-title-headers.adoc[tag=ui]
 * Resource: Physical URI of the target resource (RFC 8707)
 |Target Value |Target audience URI or resource URI for the exchanged token. Required for OAuth 2.0 Token Exchange flow.
 
+|Requested Token Type |The desired token type URI for the issued token. When omitted, the parameter is not sent and the authorization server selects the issued token type. OAuth 2.0 Token Exchange flow only.
+
+|Subject Token Type |The token type URI for the incoming subject token from the request `Authorization` header. By default `urn:ietf:params:oauth:token-type:access_token`. For JWT tokens, use `urn:ietf:params:oauth:token-type:jwt`. OAuth 2.0 Token Exchange flow only.
+
 |Scope |OAuth 2.0 scope to request. Required for Microsoft Entra OBO (for example, `api://downstream-client-id/.default`) and OAuth2 Token Exchange with CIBA (for example, `openid`). Optional for OAuth 2.0 Token Exchange (RFC 8693).
 
 |Timeout |Timeout for token exchange requests in milliseconds. Default: 10000.
@@ -57,7 +63,18 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |Login Hint Claim |JWT claim from the incoming subject token to send as `login_hint` in the CIBA request. If no hint is specified, `email` is used.
 
 |Binding Message |Optional human-readable message sent as `binding_message` in the CIBA request and displayed on the authentication device.
+
+|Distributed |When enabled, the token cache and CIBA request state are shared across Omni Gateway replicas. Enable this option when running more than one replica to avoid duplicate token exchanges or duplicate CIBA initiations.
 |===
+
+[[token-caching-oauth-obo]]
+== Token Caching
+
+The policy stores each exchanged downstream access token and reuses it when later requests present the same token. Cached entries are tied to a stable key and expire in line with the token's lifetime:
+
+* *TTL*: Cache entry lifetime is derived from the exchanged token.
+* If the policy cannot determine expiry, it skips caching for that response. If the policy cannot build a cache key, it performs the exchange without using the cache.
+* When *Enable CIBA* is enabled, CIBA initiation and polling state, including the approved access token, is cached through the same mechanism.
 
 == CIBA Behavior
 

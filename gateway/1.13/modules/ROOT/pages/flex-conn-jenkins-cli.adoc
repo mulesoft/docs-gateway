@@ -1,22 +1,22 @@
-= Automating Flex Gateway with a Jenkins Pipeline using Anypoint CLI
+= Automating Omni Gateway with a Jenkins Pipeline using Anypoint CLI
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 :page-mode: conn
 
-You can use a Jenkins Pipeline to automate the workflow for Flex Gateway in Connected Mode. With a Jenkins Pipeline, you can register and run a Flex Gateway and use features of the Anypoint CLI, such as creating and deploying API instances.
+You can use a Jenkins Pipeline to automate the workflow for Omni Gateway in Connected Mode. With a Jenkins Pipeline, you can register and run an Omni Gateway and use features of the Anypoint CLI, such as creating and deploying API instances.
 
 To add additional features from the API Manager CLI, see xref:4.x@anypoint-cli::api-mgr.adoc[].
 
 This tutorial has different steps with different code blocks. As you work through the steps, add the code blocks to the same Jenkinsfile. If you are unfamiliar with the syntax used in a Jenkins Pipeline, see the https://www.jenkins.io/doc/book/pipeline/[Jenkins Pipeline documentation^].
 
-NOTE: Automating your Flex Gateway with Anypoint CLI shares many similarities with Automating your Flex Gateway with the API Manager API. To automate your Flex Gateway using API Manger API requests, see xref:flex-conn-jenkins-api.adoc[].
+NOTE: Automating your Omni Gateway with Anypoint CLI shares many similarities with Automating your Omni Gateway with the API Manager API. To automate your Omni Gateway using API Manger API requests, see xref:flex-conn-jenkins-api.adoc[].
 
 == Before You Begin
 Before you can deploy a Jenkins Pipeline, complete the following tasks:
 
-. xref:flex-install.adoc[Download Flex Gateway].
+. xref:flex-install.adoc[Download Omni Gateway].
 
 . xref:access-management::connected-apps-developers.adoc#create-a-connected-app[Configure a Connected App]:
 
@@ -48,18 +48,18 @@ For example, the version collected from the API Gateway HTTP basic authenticatio
 
 . Collect the following information from your Anypoint Platform instance:
 
-** *Organization ID* for the organization where you want to run Flex Gateway
+** *Organization ID* for the organization where you want to run Omni Gateway
 +
 For more information, see xref:access-management::organization.adoc#find-your-organization-id[Find Your Organization ID].
 
-** *Environment ID* for the environment where you want to run Flex Gateway
+** *Environment ID* for the environment where you want to run Omni Gateway
 +
 For more information, see xref:api-manager::latest-overview-concept.adoc#what-api-manager-looks-like[What API Manager Looks Like].
 
 
 == Initial Configuration
 
-Before you can create and deploy an API instance to your Flex Gateway, you must complete the following steps:
+Before you can create and deploy an API instance to your Omni Gateway, you must complete the following steps:
 
 . <<define-useful-functions, Define Useful Functions>>.
 . <<define-useful-parameters, Define Useful Parameters>>.
@@ -93,16 +93,16 @@ Using the included parameter definitions as a template, you can also define any 
 To define the parameters:
 
 . Collect the following information:
-* `<your-org-id>`: *Organization ID* for the organization where you want to run Flex Gateway
-* `<your-env-id>`: *Environment ID* for the organization where you want to run Flex Gateway
-* `<gateway-version>`: Version of Flex Gateway you are using, for example `1.4.0`
+* `<your-org-id>`: *Organization ID* for the organization where you want to run Omni Gateway
+* `<your-env-id>`: *Environment ID* for the organization where you want to run Omni Gateway
+* `<gateway-version>`: Version of Omni Gateway you are using, for example `1.4.0`
 * `<connected-app-client-id>`: *Id* of your connected app
 * `<connected-app-client-secret>`: *Secret* of your connected app
 * API GAV:
 ** `<asset-group-id>`: Group ID, obtained from Exchange
 ** `<asset-id-from-exchange>`: Asset ID, obtained from Exchange, of the API you want to create
 ** `<asset-version>`: Asset version, obtained from Exchange, of the API  you want to create
-* `<gateway-name>`: Name of your Flex Gateway
+* `<gateway-name>`: Name of your Omni Gateway
 
 . After replacing the sample content, add the parameter definitions to your Jenkinsfile to validate whether all parameters are present. Define the parameters in the `pipeline` block before the `stages` block:
 +
@@ -206,7 +206,7 @@ stage('Run flex gateway') {
 ----
 
 == Create an API Instance
-After installing Anypoint CLI 4.x, you can create an API instance and deploy it to your Flex Gateway. 
+After installing Anypoint CLI 4.x, you can create an API instance and deploy it to your Omni Gateway. 
 
 You can repeat this step to add multiple API instances. For additional API configuration flags, see the xref:4.x@anypoint-cli::api-mgr.adoc#api-mgr-api-manage[api-mgr:api:manage command].
 
@@ -318,9 +318,9 @@ stage("Validate Deployment") {
 ----
 
 
-== Stop the Flex Gateway and Archive the Registration File
+== Stop the Omni Gateway and Archive the Registration File
 
-Use the following code blocks to archive the registration file and remove the Docker container running Flex Gateway. Add the `post` block in the `pipeline` block after the `stages` block:
+Use the following code blocks to archive the registration file and remove the Docker container running Omni Gateway. Add the `post` block in the `pipeline` block after the `stages` block:
 
 [source,Jenkinsfile]
 ----
@@ -343,4 +343,4 @@ post {
 
 * xref:4.x@anypoint-cli::index.adoc[]
 * xref:flex-conn-reg-run-app.adoc[Registering and Running in Connected Mode with a Connected App].
-* xref:flex-conn-manage-public-api.adoc[Manage Flex Gateway Using the API Manager API]
+* xref:flex-conn-manage-public-api.adoc[Manage Omni Gateway Using the API Manager API]

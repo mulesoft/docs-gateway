@@ -10,7 +10,7 @@ endif::[]
 >s| Policy Name | GraphQL Schema Validation
 >s| Summary | Validates incoming GraphQL operations against a GraphQL schema definition
 >s| Category | Security
->s| First Flex Gateway version available | v1.13.0
+>s| First Omni Gateway version available | v1.13.0
 .1+>.^s| Returned status codes
 | 400 - The operation doesn't satisfy the schema. When *Block request* is enabled, the JSON response includes GraphQL-style `errors` with a validation message.
 |===
@@ -21,12 +21,12 @@ The GraphQL Schema Validation policy applies standard GraphQL validation rules, 
 
 The policy loads the schema in these ways:
 
-* If `source` is `context`, Flex Gateway pulls schema from your API asset in Exchange.
-* If `source` is `inline`, you embed your schema directly in the policy configuration.
+* If `source` is `context`, Flex Gateway automatically loads the schema file from the API asset in Anypoint Exchange.
+* If `source` is `inline`, provide the schema text directly in the policy configuration. This is required for local mode or environments not connected to Exchange.
 
-If the document includes an `@link` to the Apollo Federation specification URL, Flex Gateway uses this schema to validate all incoming requests.
+If the document includes an `@link` to the Apollo Federation specification URL, Omni Gateway uses this schema to validate all incoming requests.
 
-After Flex Gateway extracts inline GraphQL operation text from the request, the policy runs validation. If Flex Gateway can't resolve normal operation text, such as persisted query flows, it skips these checks and logs a warning before it forwards the request to the upstream.
+After Omni Gateway extracts inline GraphQL operation text from the request, the policy runs validation. If Omni Gateway can't resolve normal operation text, such as persisted query flows, it skips these checks and logs a warning before it forwards the request to the upstream.
 
 
 == Configuring Policy Parameters
@@ -50,7 +50,7 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `source`
 | No
 | `context`
-| Where Flex Gateway retrieves the schema for validation. If set to `context`, Flex Gateway automatically loads the schema file from the API asset in Anypoint Exchange. If set to `inline`, provide the schema text directly in the policy configuration. This is required for local mode or environments not connected to Exchange.
+| Where Omni Gateway retrieves the schema for validation. If set to `context`, Omni Gateway automatically loads the schema file from the API asset in Anypoint Exchange. If set to `inline`, provide the schema text directly in the policy configuration. This is required for local mode or environments not connected to Exchange.
 
 | `schema`
 | No
@@ -60,7 +60,7 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `blockOperation`
 | No
 | `true`
-| How Flex Gateway handles requests that fail validation. If `true`, Flex Gateway blocks the request and returns a `400` Bad Request. If `false`, Flex Gateway logs a warning and forwards the request to your backend.
+| How Omni Gateway handles requests that fail validation. If `true`, Omni Gateway blocks the request and returns a `400` Bad Request. If `false`, Omni Gateway logs a warning and forwards the request to your backend.
 
 |===
 
@@ -88,7 +88,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 s|Field s|Description s|Default Value s|Required 
 
 | Block request 
-| If enabled and the operation doesn't conform to the schema, Flex Gateway returns a `400` error. If disabled, Flex Gateway logs a warning and forwards the request. 
+| If enabled and the operation doesn't conform to the schema, Omni Gateway returns a `400` error. If disabled, Omni Gateway logs a warning and forwards the request. 
 | Enabled 
 | Yes
 |===
@@ -97,4 +97,4 @@ s|Field s|Description s|Default Value s|Required
 
 * xref:policies-included-directory.adoc[Inbound Policies Directory]
 * xref:policies-included-schema-validation.adoc[Schema Validation Policy]
-* xref:flex-gateway-secure-apis.adoc[Securing Flex Gateway Instances with Policies]
+* xref:flex-gateway-secure-apis.adoc[Securing Omni Gateway Instances with Policies]
