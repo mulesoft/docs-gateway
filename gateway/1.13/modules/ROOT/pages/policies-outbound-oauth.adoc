@@ -1,0 +1,200 @@
+= Credential Injection OAuth 2.0 Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: basic authentication, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Credential Injection OAuth 2.0
+>s|Summary  | Injects an OAuth 2.0 authorization header into outgoing requests
+>s|Category | Security
+>s|First Omni Gateway version available | v1.9.0
+>s| Returned Status Codes | No return codes exist for this policy. Error codes are returned from the upstream service.
+|===
+
+== Summary
+
+The Credential Injection OAuth 2.0 policy injects an `Authorization` token from an OAuth 2.0 service into a request as a header. You can use any third-party OAuth 2.0 Identify Provider (IdP), such as Okta, AWS, Azure, or Google Cloud Platform. The policy allows for tokens based on the OAuth 2.0 Authorization Framework to be injected into requests without having to register an external IdP server in Anypoint Platform.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: credential-injection-oauth2-flex
+  config:
+    oauthService: <string> // REQUIRED
+    grantType: <string> // REQUIRED, supported values: clientCredentials or password
+    credentialLocation: <string> // REQUIRED, supported values: body or header
+    clientId: <string> // REQUIRED for clientCredentials grant type
+    clientSecret: <string> // REQUIRED for clientCredentials grant type
+    username: <string> // REQUIRED for password grant type
+    password: <string> // REQUIRED for password grant type
+    scope:
+      - <string> // OPTIONAL
+    overwrite: <boolean> // REQUIRED
+    tokenFetchTimeout: <number> // REQUIRED
+    allowRequestWithoutCredential: <boolean> // REQUIRED
+    tokenRequestBodyFormat: <string> // REQUIRED, supported values: json or urlEncoded
+    upstreamTokenHeaderName: <string> // OPTIONAL
+    upstreamTokenPrefixName: <string> // OPTIONAL
+    cachingTtl: <number> // REQUIRED
+    customRequestHeaders: // OPTIONAL
+      - name: <string>
+        value: <string>
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `oauthService`
+| Required
+| `<https://oauth-server/tokens>`
+| URL of the OAuth 2.0 service.
+
+| `grantType`
+| Required
+| `clientCredentials`
+| OAuth2 grant type specifying the method used to obtain access tokens from the authorization server. Supported values: `clientCredentials` or `password`.
+
+| `credentialLocation`
+| Required
+| `body`
+| Location of the Client ID and Client Secret in the OAuth2 token request. Supported values: `body` or `header`.
+
+| `clientId`
+| Required for `clientCredentials` grant type
+| N/A
+| Client ID.
+
+| `clientSecret`
+| Required for `clientCredentials` grant type
+| N/A
+| Client Secret.
+
+| `username`
+| Required for `password` grant type
+| N/A
+| Username for password grant type.
+
+| `password`
+| Required for `password` grant type
+| N/A
+| Password for password grant type.
+
+| `scope`
+| Optional
+| N/A
+| Scopes to include in the token.
+
+| `overwrite`
+| Required
+| `true`
+| When enabled, the policy overwrites the `Authorization` header with a new authorization token if the header is present.
+
+| `tokenFetchTimeout`
+| Required
+| 10
+| Time in seconds to wait for the service to return the token.
+
+| `allowRequestWithoutCredential`
+| Required
+| `false`
+| When enabled, if the policy can't retrieve the token, Omni Gateway still sends the request.
+
+| `tokenRequestBodyFormat`
+| Required
+| `urlEncoded`
+| The format of the token request body. Valid values: `json` or `urlEncoded`.
+
+| `upstreamTokenHeaderName`
+| Optional
+| N/A
+| Use a custom header instead of `Authorization`.
+
+| `upstreamTokenPrefixName`
+| Optional
+| N/A
+| Use a custom token prefix instead of `Bearer`.
+
+| `cachingTtl`
+| Required
+| 0
+| Time to live for cached tokens in seconds. If 0, the policy uses the full `expires_in` value from OAuth response. If greater than 0, the policy uses the minimum of the `cachingTtl` value and `expires_in` divided by 2.
+
+| `customRequestHeaders`
+| Optional
+| N/A
+| A list of custom headers to add to the token request. Each header must have a `name` and `value` property.
+|===
+
+==== Client Credentials Configuration Example
+
+----
+- policyRef:
+    name: credential-injection-oauth2-flex
+  config:
+    oauthService: <https://oauth-server/tokens>
+    grantType: clientCredentials
+    credentialLocation: body
+    clientId: id
+    clientSecret: secret
+    scope:
+      - user
+    overwrite: true
+    tokenFetchTimeout: 20
+    allowRequestWithoutCredential: true
+    tokenRequestBodyFormat: urlEncoded
+    cachingTtl: 0
+----
+
+==== Password Configuration Example
+
+----
+- policyRef:
+    name: credential-injection-oauth2-flex
+  config:
+    oauthService: <https://oauth-server/tokens>
+    grantType: password
+    credentialLocation: body
+    clientId: id
+    clientSecret: secret
+    username: myuser
+    password: mypassword
+    scope:
+      - user
+      - read
+    overwrite: true
+    tokenFetchTimeout: 20
+    allowRequestWithoutCredential: true
+    tokenRequestBodyFormat: urlEncoded
+    cachingTtl: 0
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread]
+|===
+|Parameter |Description | Required?
+|OAuth 2.0 service URL |URL of the OAuth 2.0 service. |Required
+|Grant Type |OAuth2 grant type specifying the method used to obtain access tokens from the authorization server. Valid values: Client Credentials or Password. |Required
+|Credential location |Location of the Client ID and Client Secret in the OAuth2 token request.|Required
+|Client ID |Client ID. |Required for Client Credentials grant type
+|Client secret |Client Secret. |Required for Client Credentials grant type
+|Username |Username for password grant type. |Required for Password grant type
+|Password |Password for password grant type. |Required for Password grant type
+|Scope |List of scopes to use for OAuth2 request. |Optional
+|Overwrite header |When enabled, the policy overwrites the `Authorization` header with a new authorization token if the header is present. | Required
+|Token fetch timeout |Time in seconds to wait for the service to return the token. | Required
+|Allow request without credential |When enabled, if the policy can't retrieve the token, Omni Gateway still sends the request. | Required
+|Token Request Body Format |The format of the token request body. Valid values: URL Encoded or JSON. | Required
+|Upstream Custom header |Use a custom header instead of Authorization. |Optional
+|Upstream Custom Token Prefix |Use a custom token prefix instead of Bearer. |Optional
+|Caching TTL (seconds) |Time to live for cached tokens in seconds. If 0, the policy uses the full `expires_in` value from OAuth response. If greater than 0, the policy uses the minimum of the Caching TTL value and `expires_in` divided by 2. | Required
+|Custom Request Headers |A list of custom headers to add to the token request. Each header must have a name and value property. |Optional
+|===
+

@@ -1,0 +1,154 @@
+= AWS Lambda Policy
+
+[%autowidth.spread,cols="a,a"]
+|===
+>s| Policy name | AWS Lambda
+>s| Summary | Triggers an AWS Lambda function from a standard HTTP request
+>s| Category | Transformation
+>s| First Omni Gateway version available | v1.9.0
+.4+>.^s| Returned Status Codes
+|502 - Bad Gateway, requests are blocked due to circuit breaker activation
+|===
+
+== Summary
+
+The AWS Lambda policy triggers an AWS Lambda function from a standard HTTP request. Pass the HTTP request payload as is or wrapped in a JSON schema.
+
+The AWS Lambda policy is an extension of the AWS Lambda filter native to Envoy. To learn more about the AWS Lambda filter, see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/aws_lambda_filter[AWS Lambda Filter]. Not all AWS Lambda filter parameters are available to the AWS Lambda policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>. 
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+[source, yaml]
+----
+- policyRef:
+    name: native-aws-lambda
+  config:
+      arn: <string> // REQUIRED
+      payloadPassthrough: <boolean> // REQUIRED
+      invocationMode: <string> // REQUIRED
+      authenticationMode: <string> // REQUIRED
+      credentialProfile: <string> // OPTIONAL
+      credentials:
+        accessKeyId: <string> // OPTIONAL
+        secretAccessKey: <string> // OPTIONAL
+        sessionToken: <string> // OPTIONAL
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `arn`
+| Required
+| N/A
+| AWS Lambda ARN in this format: `arn:&lt;partition&gt;:lambda:&lt;region&gt;:&lt;account-number&gt;:function:&lt;function-name&gt;`.
+
+| `payloadPassthrough`
+| Required
+| false
+| By default, Omni sends the request to the AWS Lambda function wrapped in JSON. When `payloadPassthrough` is enabled, the request is sent as is.
+
+| `invocationMode`
+| Required
+| sync
+| The way to invoke the Lambda function, either `sync` or `async`. For `sync`, Omni Gateway awaits the AWS response. For `async`, Omni Gateway doesn't wait for the response from AWS.
+
+| `authenticationMode`
+| Required
+| N/A
+| Determines the mode of authentication. Options are: `default`, uses in order credential AWS environment variables, AWS credential file, AWS roles;  `profile`, profile from AWS credential file; `static`, credentials configured in the policy.
+
+| `credentialProfile`
+| Optional
+| N/A
+| Specifies the credential `profile`. Only for `profile` authentication mode.
+
+| `credentials`
+| Optional
+| N/A
+| Configures the `static` credentials object. Only for `static` authentication mode.
+
+| `credentials.accessKeyId`
+| Required
+| N/A
+| AWS access key ID
+
+| `credentials.secretAccessKey`
+| Required
+| N/A
+| AWS access key
+
+| `credentials.sessionToken`
+| Optional
+| N/A
+| Session token
+
+|===
+
+==== Resource Configuration Example
+
+The following example defines a rate limit of three requests every six seconds:
+
+[source, yaml]
+----
+- policyRef:
+    name: native-aws-lambda
+  config:
+      arn: rn:&lt;partition&gt;:lambda:&lt;region&gt;:&lt;account-number&gt;:function:&lt;function-name&gt;
+      payloadPassthrough: true
+      invocationMode: sync
+      authenticationMode: static
+      credentials:
+        accessKeyId: id
+        secretAccessKey: secret
+        sessionToken: token
+----
+
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+|Parameter | Required or Optional | Description
+
+
+| The ARN of the AWS Lambda
+| Required
+| AWS Lambda ARN in this format: `arn:&lt;partition&gt;:lambda:&lt;region&gt;:&lt;account-number&gt;:function:&lt;function-name&gt;`.
+
+| Payload passthrough
+| Required
+| By default, Omni sends the request to the AWS Lambda function wrapped in JSON. When enabled, the request is sent as is.
+
+| Determines the way to invoke the Lambda function
+| Required
+| The way to invoke the Lambda function. For *Sync*, Omni Gateway awaits the AWS response. For *Async*, Omni Gateway doesn't wait for the response from AWS.
+
+| Determines origin of credentials
+| Required
+| Determines the mode of authentication. Options are: *Default*, uses in order credential AWS environment variables, AWS credential file, AWS roles; *Profile*, profile from AWS credential file; *Static*, credentials configured in the policy.
+
+| Credentials profile
+| Optional
+| Specifies the credential profile. Only for *Profile* authentication mode.
+
+| Credentials
+| Optional
+| Configures the static credentials. Only for *Static* authentication mode.
+
+| AccessKeyId
+| Required
+| AWS access key ID
+
+| SecretAccessKey
+| Required
+| AWS access key
+
+| SessionToken
+| Optional
+| Session token
+
+|===

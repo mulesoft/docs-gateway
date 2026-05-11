@@ -1,0 +1,79 @@
+= DataWeave Request Filter Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: dataweave, request filter, transformation, api gateway, flex gateway, gateway, policy
+
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy name | DataWeave Request Filter
+>s|Summary      | Filters requests by using a DataWeave script
+>s|Category | Transformation
+>s| First Omni Gateway version available | 1.12
+.1+>.^s| Returned Status Codes
+| `400` - The DataWeave script failed to execute or returned an invalid result
+|===
+
+== Summary
+
+The DataWeave Request Filter policy evaluates a DataWeave script on the request, including headers and the body, to allow or block the message. The script returns an object with a Boolean `success` value. If `success` is `false`, the script can return a `response` object with `statusCode`, `body`, and `headers`. The gateway sends that as the immediate HTTP response to the client and stops processing. If `success` is `true`, the message continues.
+
+Result format:
+
+* Success: `{ "success": true }`
+* Error: `{ "success": false, "response": { "body": "...", "headers": {}, "statusCode": 400 } }`
+
+== Configure Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+----
+- policyRef:
+    name: dataweave-request-filter-flex
+  config:
+    script: <string>           // REQUIRED - DataWeave script
+    requiresPayload: <boolean> // OPTIONAL, default: false
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required | Default Value | Description
+
+| `script`
+| Required
+| —
+| A DataWeave script that returns an object with a boolean `success` field. If `success` is `false`, the optional `response` is: `{ "body": string, "headers": object, "statusCode": number }`.
+
+| `requiresPayload`
+| Optional
+| false
+| If true, the script receives the message body in the `payload` binding. If true and the body is missing, the gateway returns an error.
+|===
+
+=== Resource Configuration Example
+
+----
+  policies:
+    - policyRef:
+        name: dataweave-request-filter-flex
+      config:
+        script: |
+          %dw 2.0
+          output application/java
+          ---
+          if (attributes.headers["x-api-key"] != null) { success: true }
+          else { success: false, response: { statusCode: 401, body: "Missing API key", headers: {} } }
+        requiresPayload: false
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Parameter | Description
+| Policy type | DataWeave Request Filter
+| Script | The DataWeave script that returns a success or error result
+| Requires payload | Whether the script requires the message body
+|===

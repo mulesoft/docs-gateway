@@ -10,7 +10,7 @@ To define custom configuration parameters, edit the `definition/gcl.yaml` file. 
 
 The configuration parameters you define in the `gcl.yaml` appear as variables in the `src/generated/config.rs` file after you run the `make build-asset-file` command. You set any user input you need for implementing the Rust source code in the `gcl.yaml` file.
 
-Configuration parameters appear in the API Manager UI when applying a policy to Flex Gateway running in Connected Mode. When applying the policy to Flex Gateway running in Local Mode, it is your responsibility to distribute a configuration `yaml` file for your policy.
+Configuration parameters appear in the API Manager UI when applying a policy to Omni Gateway running in Connected Mode. When applying the policy to Omni Gateway running in Local Mode, it is your responsibility to distribute a configuration `yaml` file for your policy.
 
 The default `gcl.yaml` file has the following content:
 
@@ -236,7 +236,7 @@ Limit user's input values by defining parameters with the `enum` property, for e
         - hmac
 ----
 
-In the API Manager UI, `enum` parameters render as radio buttons for three or fewer enumerated values and as a dropdown field for more. For Flex Gateway running in Local Mode, the user must configure the parameter as one of the enumerated values or the policy configuration fails.
+In the API Manager UI, `enum` parameters render as radio buttons for three or fewer enumerated values and as a dropdown field for more. For Omni Gateway running in Local Mode, the user must configure the parameter as one of the enumerated values or the policy configuration fails.
 
 Enumerated parameters don't support the `@visibleOn` tag. To learn more about how to render variables dynamically, see <<define-conditional-parameters>>.
 
@@ -263,8 +263,8 @@ The `string` type also supports enables you to configure a `format` type.
 +
 The supported formatting types are:
 +
-* `dataweave`: Specifies the input parameter is a DataWeave variable and notifies Flex Gateway to transform the input. For more information about DataWeave expressions, see <<dataweave-expressions>>.
-* `service`: Specifies the input parameter is a URI and automatically creates a Flex Gateway service to enable HTTP calls from the policy.
+* `dataweave`: Specifies the input parameter is a DataWeave variable and notifies Omni Gateway to transform the input. For more information about DataWeave expressions, see <<dataweave-expressions>>.
+* `service`: Specifies the input parameter is a URI and automatically creates an Omni Gateway service to enable HTTP calls from the policy.
 * `ipRange`: Specifies the expected text is a range of IPs and provides additional validation on the input.
 * `uri`: Specifies the expected text is a URI and provides additional validation on the input. Only use `uri` when the URI is not a service making HTTP calls from the policy.
 +
@@ -421,7 +421,7 @@ test-local-flex-1  | [flex-gateway-envoy][error] wasm log main: [policy: ingress
 
 When evaluating the DataWeave expression in your policy, you must provide the script to resolve the expression. To learn how to implement DataWeave expressions in your Rust source code, see xref:policies-pdk-configure-features.adoc#use-dataweave-expressions[Implement DataWeave Expressions].
 
-For more information about DataWeave support for Flex Gateway, see xref:gateway::policies-flex-dataweave-support.adoc[].
+For more information about DataWeave support for Omni Gateway, see xref:gateway::policies-flex-dataweave-support.adoc[].
 
 [[use-custom-parameters-in-rust-source-code]]
 == Use Custom Parameters in Rust Source Code

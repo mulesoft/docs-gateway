@@ -1,0 +1,137 @@
+= Credential Injection JWT Generation Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: jwt, token, authentication, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Credential Injection JWT Generation
+>s|Summary  | Generates and injects a JWT token into outgoing requests
+>s|Category | Security
+>s|First Omni Gateway version available | v1.12.0
+>s| Returned Status Codes | No return codes exist for this policy. Error codes are returned from the upstream service.
+|===
+
+== Summary
+
+The Credential Injection JWT Generation policy generates and injects a JWT token into outgoing requests. It signs the token with the configured key and algorithm and supports standard time-based claims, such as `exp`, `iat`, and `nbf`, in addition to custom claims and JWT headers. Each claim and header name and value can be a string or a DataWeave expression. Expressions can reference request attributes or authentication data.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: jwt-generation-flex
+  config:
+    signingMethod: <string> // REQUIRED, default: RS256
+    privateKey: <string> // REQUIRED
+    iat: <boolean> // REQUIRED, default: true
+    exp: <number> // REQUIRED, default: 0
+    nbf: <number> // REQUIRED, default: 0
+    customClaims: // REQUIRED (can be empty array)
+      - name: <string>
+        value: <string>
+    customHeaders: // REQUIRED (can be empty array)
+      - name: <string>
+        value: <string>
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `signingMethod`
+| Required
+| `RS256`
+| The algorithm that signs the JWT. Supported values: `RS256`, `RS384`, `RS512`, `HS256`, `HS384`, `HS512`, `ES256`, and `ES384`.
+
+| `privateKey`
+| Required
+| N/A
+| The key that signs the JWT. Use PEM-formatted pkcs8 for RSA and ES. Use plain text for HS.
+
+| `iat`
+| Required
+| `true`
+| A Boolean value specifying whether to include the issued-at (iat) claim in the JWT.
+
+| `exp`
+| Required
+| `0`
+| The number of seconds from the issue time until expiration. To omit the `exp` claim, enter `0`.
+
+| `nbf`
+| Required
+| `0`
+| The number of seconds from the issue time until the token becomes valid. To omit the `nbf` claim, enter `0`.
+
+| `customClaims`
+| Required
+| N/A
+| The claims to include in the JWT. Each entry has a `name` and a `value`. Each can be a string or a DataWeave expression. The array can be empty.
+
+| `customHeaders`
+| Required
+| N/A
+| The JWT header parameters to include. Each entry has a `name` and a `value`. Each can be a string or a DataWeave expression. The array can be empty.
+|===
+
+==== Resource Configuration Examples
+
+* HMAC-signed JWT with custom claim:
++
+----
+- policyRef:
+    name: jwt-generation-flex
+  config:
+    signingMethod: HS256
+    privateKey: my-secret-key
+    iat: true
+    exp: 3600
+    nbf: 0
+    customClaims:
+      - name: "sub"
+        value: "#[authentication.properties.clientId default 'anonymous']"
+    customHeaders: []
+----
+
+* RSA-signed JWT with custom claims and headers:
++
+----
+- policyRef:
+    name: jwt-generation-flex
+  config:
+    signingMethod: RS256
+    privateKey: |
+      -----BEGIN PRIVATE KEY-----
+      <your-private-key>
+      -----END PRIVATE KEY-----
+    iat: true
+    exp: 7200
+    nbf: 0
+    customClaims:
+      - name: "aud"
+        value: "'https://upstream.example.com'"
+      - name: "client_id"
+        value: "#[authentication.properties.clientId]"
+    customHeaders:
+      - name: "kid"
+        value: "'key-1'"
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread]
+|===
+|Parameter |Description | Required?
+|Signing Method |The algorithm that signs the JWT. Valid values are RS256, RS384, RS512, HS256, HS384, HS512, ES256, and ES384. |Required
+|Private Key |The key that signs the JWT. Use PEM with pkcs8 for RSA and ES. Use plain text for HS. |Required
+|Issued At (iat) |A Boolean value specifying whether to include the issued-at (`iat`) claim in the JWT. |Required
+|Expiration (exp) |The number of seconds from the issue time until expiration. To omit the `exp` claim, enter `0`. |Required
+|Not Before (nbf) |The number of seconds from the issue time until the token becomes valid. To omit the `nbf` claim, enter `0`. |Required
+|Custom Claims |The claims to include in the JWT. Each entry has a `name` and a `value`. Each can be a string or a DataWeave expression. The array can be empty. |Required
+|Custom Headers |The JWT header parameters to include. Each entry has a `name` and a `value`. Each can be a string or a DataWeave expression. The array can be empty.|Required
+|===

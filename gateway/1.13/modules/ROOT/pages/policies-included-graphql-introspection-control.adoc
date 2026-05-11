@@ -1,0 +1,95 @@
+= GraphQL Introspection Control Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: graphql, introspection, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | GraphQL Introspection Control
+>s| Summary | Blocks or allows requests that  access the `__schema`, `__type`, and `__typename` GraphQL meta fields
+>s| Category | Security
+>s| First Omni Gateway version available | v1.13.0
+.1+>.^s| Returned status codes
+| 403 Forbidden — The response follows the standard GraphQL error format, including a message such as `Introspection field '__schema' is not allowed`.
+|===
+
+== Summary
+
+GraphQL servers include built-in introspection fields that allow clients to discover your API's types and structure. Configure The GraphQL Introspection Control policy inspects incoming operations blocks requests that reference restricted fields.
+
+Use the introspection policy to block requests to a combination of these fields:
+
+* `__schema`, used to discover the full API schema.
+* `__type`, used to look up details for a specific type by name.
+* `__typename`, used to read the concrete type name of an object.
+
+Blocking `__typename` can affect GraphQL client libraries that rely on it for result caching.
+
+After Omni Gateway resolves the GraphQL query, the policy evaluates the operation text. Omni Gateway doesn't inspect the operation text for persisted queries and passes them through without introspection checks.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: graphql-introspection-control-flex
+  config:
+    blockSchema: <boolean> // OPTIONAL, default: false
+    blockType: <boolean> // OPTIONAL, default: false
+    blockTypename: <boolean> // OPTIONAL, default: false
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+
+| Parameter | Required | Default Value | Description
+
+| `blockSchema`
+| No
+| `false`
+| If `true`, Omni Gateway blocks queries that use the `__schema` field for full schema discovery.
+
+| `blockType`
+| No
+| `false`
+| If `true`, Omni Gateway blocks queries that use the `__type` field to look up a type by name.
+
+| `blockTypename`
+| No
+| `false`
+| If `true`, Omni Gateway blocks queries that use the `__typename` field to read an object's concrete type name.
+
+|===
+
+==== Resource Configuration Example
+
+This example blocks schema and type introspection, but allows the use `__typename`:
+
+[source,yaml]
+----
+- policyRef:
+    name: graphql-introspection-control-flex
+  config:
+    blockSchema: true
+    blockType: true
+    blockTypename: false
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+s|Field s|Description s|
+
+| **Block** `__schema` (`blockSchema`)
+| If enabled, Omni Gateway blocks queries that use the `__schema` field for full schema discovery.
+
+| **Block** `__type` (`blockType`)
+| If enabled, Omni Gateway blocks queries that use the `__type` field to look up a type by name.
+
+| **Block** `__typename` (`blockTypename`)
+| If enabled, Omni Gateway blocks queries that use the `__typename` field to read an object's concrete type name.
+|===
