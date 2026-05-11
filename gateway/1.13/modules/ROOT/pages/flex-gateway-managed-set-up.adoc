@@ -5,7 +5,7 @@ endif::[]
 :imagesdir: ../assets/images
 
 
-Deploy a Managed Omni Gateway to CloudHub 2.0 or a Runtime Fabric namespace to launch a completely managed gateway. Configure the Managed Omni Gateway as an ingress to your target space by exposing a public endpoint, or configure the gateway to only handle internal traffic. You can have one or more Managed Gateway in each environment that the target space is shared with. Gateways can protect any instance from the same environment of the gateway or services in an external network.
+Deploy a Managed Omni Gateway to a CloudHub 2.0 private space or Runtime Fabric namespace to launch a completely managed gateway. Configure the Managed Omni Gateway as an ingress to your target space by exposing a public endpoint, or configure the gateway to only handle internal traffic. You can have one or more Managed Gateway in each environment that the target space is shared with. Gateways can protect any instance from the same environment of the gateway or services in an external network.
 
 == Before You Begin
 
@@ -16,6 +16,7 @@ Before getting started with Omni Gateway on CloudHub 2.0, make sure:
 * The business group you want to deploy your gateway to has Managed Omni Gateway Resources. To redestribute Managed Omni Gateway resources to a business group, see xref:access-management::business-groups.adoc#redistribute-resources[Redistribute Resources Between Existing Business Groups].
 + 
 NOTE: Gateways cannot be shared across business groups. A user must be a member of the business group to access the Omni Gateway. 
+* xref:cloudhub-2::ps-create-configure.adoc[Create a CloudHub 2.0 Private Space]
 
 [[rtf]]
 === Runtime Fabric
@@ -82,11 +83,9 @@ To learn more about Managed Omni Gateway sizing, see xref:flex-review-prerequisi
 +
 Ingress::
 +
-You can't configure the ingress options for a Managed Omni Gateway deployed to a CloudHub 2.0 shared space. Shared Spaces don't support vanity domains.
-+
 * *Public endpoint*:
 +
-.. Select your desired *Domain*.
+.. Select your desired private space *Domain*.
 +
 To learn more, see xref:cloudhub-2::ps-create-configure.adoc[].
 +
@@ -173,21 +172,6 @@ NOTE: For Omni Gateway Agent Fabric deployments on Runtime Fabric, you must enab
 +
 . Click *Save & deploy*.
 
-[[managed-omni-gateway-endpoints]]
-== Managed Omni Gateway Endpoints
-
-Omni Gateway provides these endpoints:
-
-* *Public Endpoint*: The public endpoint is exposed to the public internet. Traffic comes from the internet through the CloudHub 2.0 load balancer.
-* *Internal Endpoint*: The internal endpoint is not publicly exposed on the internet, but traffic still goes through the CloudHub 2.0 load balancer for internal traffic within the private space. Use when you don't know if traffic comes from inside the cluster or from a connected network. Only available for Managed Omni Gateways deployed to a CloudHub 2.0 Shared Space.
-* *Cluster Endpoint*: Only accessible from inside the cluster. Use when the gateway is acting as an egress gateway recieving traffic from internal apps. Port 8082 is reserverved for cluster endpoint traffic.
-
-To find the endpoint names:
-
-. From Anypoint Platform, select *Runtime Manager > Omni Gateways*.
-. Click the Managed Omni Gateway name.
-. Copy your endpoint from the dashboard.
-
 == Edit a Managed Omni Gateway Settings
 
 To edit a Managed Omni Gateway setting:
@@ -198,7 +182,7 @@ To edit a Managed Omni Gateway setting:
 . Make the necessary edits.
 . Click *Apply changes*.
 
-== Remove a Public Endpoint
+== Remove an Endpoint
 
 To remove an endpoint:
 
