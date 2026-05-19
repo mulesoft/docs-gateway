@@ -1,0 +1,77 @@
+//tag::timeout-types[]
+Omni Gateway offers these timeouts to improve service quality and reduce computing resource waste:
+
+* *Stream Idle Timeout* +
+The Stream Idle Timeout enables you to set a maximum amount of a time a stream can remain idle without receiving any data in either the inbound (client to Omni Gateway) or outbound (Omni Gateway to upstream service) direction.
++
+By default, all Omni Gateway API instances have a stream timeout of 300 seconds.
+
+* *Upstream Idle Timeout* +
+The Upstream Idle Timeout enables you to set a maximum amount of time a stream between Omni Gateway and the upstream service can remain idle between requests.
++
+By default, all Omni Gateway API instances have an upstream idle timeout of 60 seconds.
+
+* *Response Timeout* +
+The Response Timeout enables you to set a maximum amount of a time Omni Gateway waits for a response from an upstream service. The timeout time starts at the last request sent by Omni Gateway.
++
+By default, all Omni Gateway API instances have a response timeout of 15 seconds.
+//end::timeout-types[]
+
+//tag::timeout-runtime-manager[]
+== Configure Timeouts in Runtime Manager
+
+. In Anypoint Platform, select *Runtime Manager*.
+. Select *Omni Gateways*.
+. Select your Omni Gateway.
+. Open *Runtime Configurations*.
+. Open *Timeouts*.
+. Set values for *Stream Idle Timeout*, *Upstream Connection Idle Timeout*, and *Upstream Response Timeout*.
+. Apply the changes.
+
+//end::timeout-runtime-manager[]
+
+//tag::timeout-configuration-env-var[]
+== Configure Timeouts via Environment Variables
+
+Configure timeouts with these environment variables:
+
+----
+FLEX_STREAM_IDLE_TIMEOUT_SECONDS: 300
+FLEX_UPSTREAM_CONNECTION_IDLE_TIMEOUT_SECONDS/FLEX_CONNECTION_IDLE_TIMEOUT_SECONDS: 60
+FLEX_UPSTREAM_RESPONSE_TIMEOUT_SECONDS: 15
+----
+
+Edit the variables with your desired configurations.
+
+//end::timeout-configuration-env-var[]
+
+//tag::timeout-configuration-yaml[]
+== Configure Timeouts via YAML Configuration Resources
+
+Edit and then apply this configuration resource to update your timeouts:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: timeouts-config
+spec:
+  timeouts:
+    upstreamConnectionIdleSeconds: 300
+    upstreamResponseSeconds: 15
+    streamIdleSeconds: 60   
+----
+
+//end::timeout-configuration-yaml[]
+
+//tag::timeout-configuration-policies[]
+== Configure Timeouts via Policies
+
+Apply these policies to your API instance or upstream service:
+
+* xref:policies-included-stream-idle-timeout.adoc[]
+* xref:policies-outbound-upstream-idle-timeout.adoc[]
+* xref:policies-included-response-timeout.adoc[]
+
+//end::timeout-configuration-policies[]

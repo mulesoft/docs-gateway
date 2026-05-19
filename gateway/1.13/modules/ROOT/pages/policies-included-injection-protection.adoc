@@ -1,0 +1,112 @@
+= Injection Protection Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: sql injection, xss, injection protection, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="1,3"]
+|===
+>s|Policy Name| Injection Protection
+>s|Summary| Scans incoming requests to protect against SQL, XSS, and custom injection attacks
+>s|Category| Security
+>s|First Omni Gateway version available |v1.12.0
+>s|Returned Status Codes|`400` - Bad Request
+|===
+
+== Summary
+
+The Injection Protection policy scans incoming request headers, path, query string, and body for SQL injection, XSS (Cross-Site Scripting), and custom injection attacks. The policy provides built-in protections againt SQL and XSS attacks. Configure custom protections by defining regex patterns that the policy should scan for.
+
+The policy checks the request against the enabled built-in and custom rules. Depending on wether *Reject Requests* is enabled, the policy either:
+
+* Rejects the request and returns `400` (Bad Request) with the added response header `x-injection-protection: blocked`.
+* Allows the request to reach the backend service and logs a policy violation.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: injection-protection-flex
+  config:
+    builtInProtections: ["sql", "xss"]  // REQUIRED: include "sql", "xss", or both
+    customProtections: []               // OPTIONAL: list of { name: <string>, regex: <string> }
+    protectPathAndQuery: <bool>         // REQUIRED
+    protectHeaders: <bool>              // REQUIRED
+    protectBody: <bool>                 // REQUIRED
+    headersToProtect: <string>          // OPTIONAL, default: "" (empty = all headers)
+    rejectRequests: <bool>              // REQUIRED: true = reject with 400, false = allow and log
+----
+
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required | Default Value | Description
+
+| `builtInProtections`
+| Yes (at least one protection required)
+| —
+| The built-in protection types to enable. Valid values are `"sql"`, `"xss"`, or both. SQL protection detects patterns such as tautologies (for example, `OR 1=1`), comment-based injection (`--`, `#`), union/select statements, and keywords such as `DROP` and `DELETE`. XSS protection detects patterns such as script and iframe tags, event handlers, and common script schemes.
+
+| `customProtections`
+| No
+| []
+| Custom protection rules for application-specific injection types. Each rule requires a `name` and a `regex` pattern. Values must be valid and not empty.
+
+| `protectPathAndQuery`
+| Yes
+| —
+| If `true`, the policy checks the request path and query string. The policy applies URL decoding to the path and query before matching.
+
+| `protectHeaders`
+| Yes
+| —
+| If `true`, the policy checks request headers. `headersToProtect` specifies which headers the policy checks.
+
+| `headersToProtect`
+| No
+| "" (empty)
+| A case-insensitive, comma-separated list of header names to check. If the value is empty, the policy checks all headers. This parameter is ignored if `protectHeaders` is `false`.
+
+| `protectBody`
+| Yes
+| —
+| If `true`, the policy checks the request body for injection patterns.
+
+| `rejectRequests`
+| Yes
+| —
+| If `true`, the gateway rejects matching requests with a `400` response code and a JSON error message. If `false`, the gateway allows matching requests and logs a warning.
+
+|===
+
+==== Resource Configuration Example
+
+----
+- policyRef:
+    name: injection-protection-flex
+  config:
+    builtInProtections: ["sql", "xss"]
+    customProtections: []
+    protectPathAndQuery: true
+    protectHeaders: true
+    headersToProtect: "referer,user-agent"
+    protectBody: true
+    rejectRequests: true
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+|Field |Description
+|Built-in Protections | The built-in SQL and XSS injection protection settings.
+|Custom Protections | The rules defined with a name and regex pattern for custom injection types.
+|Protect Path and Query | If enabled, the gateway checks the request path and query string.
+|Protect Headers | If enadbled, the gateway checks the request headers.
+|Headers to Protect | List of header names to check. Leave empty to check all headers.
+|Protect Body | If enabled, the gateway checks the request body.
+|Reject Requests | If enabled, the gateway rejects matching requests with a `400` response code. Otherwise, the gateway allows them to reach the upstream service and logs a policy violation.
+|===

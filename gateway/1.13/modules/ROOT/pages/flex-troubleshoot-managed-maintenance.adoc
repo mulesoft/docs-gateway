@@ -1,0 +1,45 @@
+= Troubleshooting Managed Gateway Maintenance
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+When viewing or maintaining Anypoint Managed Omni Gateway instances, you might encounter issues. Check these topics for possible causes and solutions.
+
+* xref:gateway-metrics-not-showing[Missing Gateway Metrics]
+* xref:cant-change-gateway-properties[Gateway Properties Not Editable]
+* xref:timeout-while-waiting-for-update[Timeout While Waiting for Update]
+* xref:gateway-missing-disabled[Gateway is Missing or Disabled]
+* xref:same-path-error[API Path Conflict]
+
+[[gateway-metrics-not-showing]]
+== Missing Gateway Metrics
+
+In Runtime Manager, if you can't see metrics for your gateway from the Managed Omni Gateway dashboard, verify that you have the _Usage Viewer_ permission. 
+
+Verify your permissions::
+
+Check your assigned roles and permissions in Access Management to verify that you have the required _Usage Viewer_ Runtime Manager permission.
+
+Your Anypoint Platform Admin can add these permissions in Access Management.
+For more information, see xref:access-management::configure-teams.adoc#manage-team-permissions[Manage Team Permissions] . 
+
+[[cant-change-gateway-properties]]
+== Can't Change Gateway Properties
+
+You can't edit some Managed Omni Gateway properties, such as *Gateway Name*, *Deployment Target*, and *Flow plans*, after the gateway instance is created. To change these properties, you must delete and recreate your Managed Omni Gateway with the desired values.
+
+[[timeout-while-waiting-for-update]]
+== Timeout While Waiting for Update
+
+If your Managed Omni Gateway update or deletion is stalled, refresh the status and check again in a few minutes. Delays might happen when the Anypoint Platform is handling a lot of traffic.
+
+[[gateway-missing-disabled]]
+== Gateway is Missing or Disabled in API Manager
+
+When adding an API instance to a gateway, if you don't find your Managed Omni Gateway in the API Manager *Select a gateway* list or the Managed Omni Gateway is disabled, view the gateway status in Runtime Manager to ensure the gateway is running. If the gateway status isn't *Running*, fix the probelm from Runtime Manager. If the gateway status is *Running* but still unavailable in API Manager, there might be a cluster issue, and you should contact MuleSoft Support for assistance.
+
+[[same-path-error]]
+== API Path Conflict
+
+When an API to a Managed Omni Gateway, if you see the *This path conflicts with another API* error in API Manager, you must choose a different base path. Each API instance in an Omni Gateway must be unique within the gateway. To fix this problem, change the API path to a unique value or edit the path of the other API instance. Click *API* in the error message to view and edit the API instance with the conflicting path.

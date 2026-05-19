@@ -1,0 +1,112 @@
+= GraphQL Operation Limits Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: graphql, operation limits, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | GraphQL Operation Limits
+>s| Summary | Limits GraphQL operation depth, aliases, root fields, and directives
+>s| Category | Security
+>s| First Omni Gateway version available | v1.13.0
+.1+>.^s| Returned status codes
+| 400 - Operations that exceed a configured limit. The response follows the standard GraphQL error format and lists each violation. For example, `Query depth of 7 exceeds the maximum allowed depth of 5`
+|===
+
+== Summary
+
+The GraphQL Operation Limits policy restricts the depth, aliases, root fields, and directives in incoming requests. If an operation exceeds a limit, Omni Gateway returns a 400 error with a JSON `errors` array detailing each violation.
+
+Omni Gateway evaluates limits at parse time from the document text. Because fragment spreads don't expand, metrics reflect the written document instead of a fully expanded query plan that the gateway builds at runtime.
+
+For persisted queries, the gateway resolves the document without inline query text. The policy bypasses these requests and allows them to pass to the upstream service.
+
+If the parser can't read the query, the policy logs a debug message and doesn't block the request, so upstream validation or other policies can still run.
+
+
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: graphql-operation-limits-flex
+  config:
+    maxDepth: <integer> // OPTIONAL, use -1 or omit to disable
+    maxAliases: <integer> // OPTIONAL, use -1 or omit to disable
+    maxRootFields: <integer> // OPTIONAL, use -1 or omit to disable
+    maxDirectives: <integer> // OPTIONAL, use -1 or omit to disable
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+
+| Parameter | Required | Description
+
+| `maxDepth`
+| No
+| Omit or set to `-1` to disable
+| Maximum depth of nested fields in a single document.
+
+| `maxAliases`
+| No
+| Omit or set to `-1` to disable
+| Maximum number of field aliases.
+
+| `maxRootFields`
+| No
+| Omit or set to `-1` to disable
+| Maximum number of top-level fields.
+
+| `maxDirectives`
+| No
+| Omit or set to `-1` to disable
+| Maximum number of directives across the document.
+
+|===
+
+==== Resource Configuration Example
+
+This example caps depth and aliases while leaving root fields and directives unrestricted.
+
+[source,yaml]
+----
+- policyRef:
+    name: graphql-operation-limits-flex
+  config:
+    maxDepth: 8
+    maxAliases: 20
+    maxRootFields: -1
+    maxDirectives: -1
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+|Field |Description ||Required
+
+| Maximum Depth
+| Deepest level of field nesting in a document. For example, `{ hero { name } }` has a depth of 2.
+| No
+
+| Maximum Aliases
+| Maximum number of field aliases in the document.
+| No
+
+| Maximum Root Fields
+| Maximum number of top-level fields that an operation can declare.
+| No
+
+| Maximum Directives
+| Maximum number of directives across the document.
+| No
+
+
+== See Also
+
+* xref:policies-included-directory.adoc[Inbound Policies Directory]
+* xref:flex-gateway-secure-apis.adoc[Securing Omni Gateway Instances with Policies]

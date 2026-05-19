@@ -1,0 +1,71 @@
+= MCP Personally Identifiable Information (PII) Detector Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | MCP PII Detector Policy
+>s|Summary      | Blocks elicitation responses containing personally identifiable information (PII) from reaching MCP servers
+>s|Category | MCP
+>s|First Omni Gateway version available | v1.9.3
+>s| Returned Status Codes | No return codes exist for this policy. The policy reports a policy violation when PII is detected.
+|===
+
+== Summary
+
+The MCP PII Detector policy blocks elicitation responses containing personally identifiable information (PII) from reaching MCP servers. 
+
+When PII is detected in the elicitation response `result` field, the policy:
+
+* Reports a policy violation.
+* Sends a modified response to the MCP server that the request was declined and includes the message `PII data requested or found in user response`.
+
+The policy doesn't send a response to the client when PII is detected.
+
+The policy only scans JSON-RPC responses that contain a `result` field. JSON-RPC requests with a `method` field are ignored.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The MCP PII Detector policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+
+|===
+| Element | Description
+|  Entities| Array that defines the types of PII to detect. You can select multiple PII types. Supported values are `Email`, `US SSN`, `Credit Card`, `Phone Number`.
+ + 
+For more information, see <<pii-types>>.
+|===
+
+[[pii-types]]
+=== PII Types
+
+When you configure an MCP PII Detector policy, you can choose which types of PII to detect:
+
+
+
+[%header,cols='1a,5a'] 
+|===
+|PII Type
+|Description
+
+|Email
+|Standard email addresses such as `User.Name+tag@example.com`.
+
+|US SSN
+|United States Social Security Numbers (SSNs) in the standard format: `XXX-XX-XXXX` where each `X` is a digit. For example, `123-45-6789`.
+
+|Credit Card
+|Credit card numbers in the form of four groups of four digits, separated by optional spaces or hyphens. For example,`1234-5678-9012-3456`, `1234 5678 9012 3456`, or `1234567890123456`.
+
+|Phone Number
+|United States phone numbers in various formats, with or without country code, parentheses, spaces, hyphens, or dots. For example, `123-456-7890`, `(123) 456-7890`, `123.456.7890`, `+1 123 456 7890`, or `1234567890`.
+|===
+
