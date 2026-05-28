@@ -12,7 +12,7 @@ endif::[]
 >s|Category | LLM
 >s|First Omni Gateway version available | v1.13.0
 .>s| Returned Status Codes
-|403 - Forbidden: Request blocked because PII was detected and action is set to `Reject`
+|403 - Forbidden
 |===
 
 == Summary
@@ -34,26 +34,27 @@ include::partial$policy-title-headers.adoc[tag=ui]
 [%header%autowidth.spread,cols="a,a,a"]
 |===
 | Element | Required | Description
-| PII Types (`entities`) | Yes | Array of built-in PII types to detect. Supported values are `Email`, `US SSN`, `Credit Card`, and `Phone Number`. For more information, see <<pii-types>>.
-| Action (`action`) | No | Action to take when PII is detected in a request. Supported values are `Reject`, `Log`, and `Log and mask`. Default is `Log`.
-| Custom PII Patterns (`customPatterns`) | No | Array of custom regex patterns to detect additional sensitive values. Each object requires a `name` and `pattern`.
+| PII Types | Yes | Array of built-in PII types to detect. Supported values are *Email*, *US SSN*, *Credit Card*, and *Phone Number*. For more information, see <<pii-types>>.
+| Action | No | Action to take when PII is detected in a request. Supported values are *Reject*, *Log*, and *Log and mask*. Default is *Log*.
+| Custom PII Patterns | No | Array of custom regex patterns to detect additional sensitive values. Define a name and regex pattern for each array entry.
 |===
 
 == How This Policy Works
 
 The policy scans only OpenAI-format JSON traffic. It recursively inspects all string values in the JSON body, including all conversation messages.
 
+The policy only inspects requests whose method is `POST`, the body is JSON, and the `x-input-format` header indicates an OpenAI format.
+
 For request processing:
 
-* If `action` is `Reject`, the policy blocks the request and returns HTTP `403`.
-* If `action` is `Log` or `Log and mask`, the policy forwards the request and logs findings.
+* If *Action* is *Reject*, the policy blocks the request and returns HTTP `403`.
+* If *Action* is *Log* or *Log and mask*, the policy forwards the request and logs findings.
 
 For response processing:
 
 * The policy scans JSON responses and logs findings.
 * Responses are not blocked, regardless of action.
 
-The policy does not inspect requests when the method is not `POST`, the body isn't JSON, or the `x-input-format` header indicates a non-OpenAI format.
 
 == Response on Reject
 
@@ -72,7 +73,7 @@ When the policy blocks a request, it returns a `403` response with this structur
 [[pii-types]]
 == PII Types
 
-When you configure the LLM PII Detection policy, you can choose which types of PII to detect.
+When you configure the LLM PII Detection policy, choose which types of PII to detect.
 
 [%header,cols='1a,5a']
 |===
