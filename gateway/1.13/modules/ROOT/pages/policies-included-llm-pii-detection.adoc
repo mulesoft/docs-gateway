@@ -1,0 +1,120 @@
+= LLM Personally Identifiable Information (PII) Detection Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, llm, pii, personally identifiable information
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | LLM PII Detection Policy
+>s|Summary      | Detects personally identifiable information (PII) in OpenAI-format LLM Proxy requests and responses
+>s|Category | LLM
+>s|First Omni Gateway version available | v1.13.0
+.>s| Returned Status Codes
+|403 - Forbidden: Request blocked because PII was detected and action is set to `Reject`
+|===
+
+== Summary
+
+The LLM PII Detection policy scans OpenAI-format LLM Proxy traffic for personally identifiable information (PII).
+
+The policy inspects:
+
+* Request bodies for supported OpenAI-format calls.
+* Response bodies from upstream LLM providers.
+
+When PII is detected, the policy always reports a policy violation. For request traffic, you configure whether to reject the request, log findings, or log masked findings. Response traffic is never blocked.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The LLM PII Detection policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+| PII Types (`entities`) | Yes | Array of built-in PII types to detect. Supported values are `Email`, `US SSN`, `Credit Card`, and `Phone Number`. For more information, see <<pii-types>>.
+| Action (`action`) | No | Action to take when PII is detected in a request. Supported values are `Reject`, `Log`, and `Log and mask`. Default is `Log`.
+| Custom PII Patterns (`customPatterns`) | No | Array of custom regex patterns to detect additional sensitive values. Each object requires a `name` and `pattern`.
+|===
+
+== How This Policy Works
+
+The policy scans only OpenAI-format JSON traffic. It recursively inspects all string values in the JSON body, including all conversation messages.
+
+For request processing:
+
+* If `action` is `Reject`, the policy blocks the request and returns HTTP `403`.
+* If `action` is `Log` or `Log and mask`, the policy forwards the request and logs findings.
+
+For response processing:
+
+* The policy scans JSON responses and logs findings.
+* Responses are not blocked, regardless of action.
+
+The policy does not inspect requests when the method is not `POST`, the body isn't JSON, or the `x-input-format` header indicates a non-OpenAI format.
+
+== Response on Reject
+
+When the policy blocks a request, it returns a `403` response with this structure:
+
+[source,json]
+----
+{
+  "error": {
+    "message": "Request contains PII data: <findings>",
+    "type": "pii_detected"
+  }
+}
+----
+
+[[pii-types]]
+== PII Types
+
+When you configure the LLM PII Detection policy, you can choose which types of PII to detect.
+
+[%header,cols='1a,5a']
+|===
+|PII Type
+|Description
+
+|Email
+|Standard email addresses such as `User.Name+tag@example.com`.
+
+|US SSN
+|United States Social Security Numbers (SSNs), including formats such as `123-45-6789`, `123 45 6789`, or `123456789`.
+
+|Credit Card
+|Credit card numbers such as Visa, MasterCard, American Express, and Discover, with or without separators.
+
+|Phone Number
+|Phone numbers in common domestic and international formats, for example `123-456-7890` or `+1 123 456 7890`.
+|===
+
+== Example Configuration
+
+[source,yaml]
+----
+policies:
+  - policyRef:
+      name: llm-pii-detection-policy-flex
+      namespace: default
+    config:
+      entities:
+        - Email
+        - US SSN
+      action: Reject
+      customPatterns:
+        - name: AWS Access Key
+          pattern: AKIA[0-9A-Z]{16}
+----
+
+== See Also
+
+* xref:flex-gateway-llm-proxy.adoc[LLM Proxy]
+* xref:policies-included-regex-prompt-guard.adoc[Regex Prompt Guard]
+* xref:policies-included-llm-token-rate-limit.adoc[LLM Token Based Rate Limit]
