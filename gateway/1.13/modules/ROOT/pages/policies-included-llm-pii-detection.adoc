@@ -1,4 +1,4 @@
-= LLM Personally Identifiable Information (PII) Detection Policy
+= LLM PII Detection Policy
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -8,7 +8,7 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | LLM PII Detection Policy
->s|Summary      | Detects personally identifiable information (PII) in OpenAI-format LLM Proxy requests and responses
+>s|Summary      | Detects personally identifiable information (PII) in OpenAI-format LLM requests and responses
 >s|Category | LLM
 >s|First Omni Gateway version available | v1.13.0
 .>s| Returned Status Codes
@@ -17,14 +17,11 @@ endif::[]
 
 == Summary
 
-The LLM PII Detection policy scans OpenAI-format LLM Proxy traffic for personally identifiable information (PII).
+The LLM Personally Identifiable Information (PII) Detection policy scans OpenAI-format LLM Proxy traffic for PII.
 
-The policy inspects:
+The policy inspects incoming request bodies and outgoing response bodies for PII.
 
-* Request bodies for supported OpenAI-format calls.
-* Response bodies from upstream LLM providers.
-
-When PII is detected, the policy always reports a policy violation. For request traffic, you configure whether to reject the request, log findings, or log masked findings. Response traffic is never blocked.
+When PII is detected, the policy reports a policy violation. For request traffic, you configure whether to reject the request, log findings, or log masked findings. Response traffic is never blocked.
 
 == Configuring Policy Parameters
 
