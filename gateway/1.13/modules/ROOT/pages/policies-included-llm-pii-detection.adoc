@@ -36,8 +36,16 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Element | Required | Description
 | PII Types | Yes | Array of built-in PII types to detect. Supported values are *Email*, *US SSN*, *Credit Card*, and *Phone Number*. For more information, see <<pii-types>>.
 | Action | No | Action to take when PII is detected in a request. Supported values are *Reject*, *Log*, and *Log and mask*. Default is *Log*.
-| Custom PII Patterns | No | Array of custom regex patterns to detect additional sensitive values. Define a name and regex pattern for each array entry.
+| Custom PII Patterns | No | Array of custom regex patterns to detect additional sensitive values. Define a name and regex pattern for each array entry. For example, use `name: AWS Access Key` and `pattern: AKIA[0-9A-Z]{16}` to detect AWS access keys.
 |===
+
+.Custom Patterns Example
+[source,yaml]
+----
+customPatterns:
+  - name: AWS Access Key
+    pattern: AKIA[0-9A-Z]{16}
+----
 
 == How This Policy Works
 
@@ -54,7 +62,6 @@ For response processing:
 
 * The policy scans JSON responses and logs findings.
 * Responses are not blocked, regardless of action.
-
 
 == Response on Reject
 
@@ -93,23 +100,87 @@ When you configure the LLM PII Detection policy, choose which types of PII to de
 |Phone numbers in common domestic and international formats, for example `123-456-7890` or `+1 123 456 7890`.
 |===
 
-== Example Configuration
+== Example Request and Logging
 
-[source,yaml]
+This example shows a request containing PII and the corresponding log output for different action configurations.
+
+[source,http]
 ----
-policies:
-  - policyRef:
-      name: llm-pii-detection-policy-flex
-      namespace: default
-    config:
-      entities:
-        - Email
-        - US SSN
-      action: Reject
-      customPatterns:
-        - name: AWS Access Key
-          pattern: AKIA[0-9A-Z]{16}
+POST /v1/chat/completions HTTP/1.1
+Content-Type: application/json
+
+{
+  "model": "gemini/gemini-2.5-flash",
+  "messages": [
+    {"role": "user", "content": "Look up the account for SSN 123-45-6789 and email john@example.com"},
+    {"role": "user", "content": "Look up the account for credit card 4123 8171 5881 9171"},
+    {"role": "user", "content": "hello"}
+  ]
+}
 ----
+
+[tabs]
+====
+Log::
++
+--
+When the action is set to *Log*, the policy logs detected PII with the actual values:
+
+[source,json]
+----
+[accessLog]  PII detected in LLM request (log only): [
+  {
+    "pii_type": "SSN",
+    "value": "123-45-6789",
+    "start": 28,
+    "end": 39
+  },
+  {
+    "pii_type": "Email",
+    "value": "john@example.com",
+    "start": 50,
+    "end": 66
+  },
+  {
+    "pii_type": "CreditCard",
+    "value": "4123 8171 5881 9171",
+    "start": 31,
+    "end": 50
+  }
+]
+----
+--
+
+Log and Mask::
++
+--
+When the action is set to *Log and mask*, the policy logs detected PII with masked values:
+
+[source,json]
+----
+[accessLog]  PII detected in LLM request (log only): [
+  {
+    "pii_type": "SSN",
+    "masked_value": "***-**-*789",
+    "start": 28,
+    "end": 39
+  },
+  {
+    "pii_type": "Email",
+    "masked_value": "****@example.com",
+    "start": 50,
+    "end": 66
+  },
+  {
+    "pii_type": "CreditCard",
+    "masked_value": "*************171",
+    "start": 31,
+    "end": 50
+  }
+]
+----
+--
+====
 
 == See Also
 
