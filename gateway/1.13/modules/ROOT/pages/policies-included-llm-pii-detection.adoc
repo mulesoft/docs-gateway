@@ -11,7 +11,7 @@ endif::[]
 >s|Summary      | Detects personally identifiable information (PII) in OpenAI-format LLM requests and responses
 >s|Category | LLM
 >s|First Omni Gateway version available | v1.13.0
-.>s| Returned Status Codes
+>s| Returned Status Codes
 |403 - Forbidden
 |===
 
@@ -41,9 +41,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 == How This Policy Works
 
-The policy scans only OpenAI-format JSON traffic. It recursively inspects all string values in the JSON body, including all conversation messages.
-
-The policy only inspects requests whose method is `POST`, the body is JSON, and the `x-input-format` header indicates an OpenAI format.
+The policy scans only OpenAI-format JSON body traffic. It recursively inspects all string values in the JSON body, including all conversation messages. The policy only inspects requests whose method is `POST`.
 
 For request processing:
 
