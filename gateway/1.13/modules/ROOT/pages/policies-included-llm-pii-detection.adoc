@@ -55,20 +55,6 @@ For response processing:
 * The policy scans JSON responses and logs findings.
 * Responses are not blocked, regardless of action.
 
-== Response on Reject
-
-When the policy blocks a request, it returns a `403` response with this structure:
-
-[source,json]
-----
-{
-  "error": {
-    "message": "Request contains PII data: <findings>",
-    "type": "pii_detected"
-  }
-}
-----
-
 [[pii-types]]
 == PII Types
 
@@ -91,6 +77,20 @@ When you configure the LLM PII Detection policy, choose which types of PII to de
 |Phone Number
 |Phone numbers in common domestic and international formats, for example `123-456-7890` or `+1 123 456 7890`.
 |===
+
+== Response on Reject
+
+When the policy blocks a request, it returns a `403` response with this structure:
+
+[source,json]
+----
+{
+  "error": {
+    "message": "Request contains PII data: <findings>",
+    "type": "pii_detected"
+  }
+}
+----
 
 == Example Request and Logging
 
