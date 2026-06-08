@@ -196,15 +196,15 @@ Contextual grounding helps detect hallucinations by scoring LLM responses on two
 
 To enable contextual grounding:
 
-. Enable the contextual grounding feature on your AWS Bedrock guardrail
-. Configure both `groundingSourceSelector` and `groundingQuerySelector` in the policy
+. Enable the contextual grounding feature on your AWS Bedrock guardrail.
+. Configure both *Grounding Source Selector* and *Grounding Query Selector* in the policy.
 
 The selectors are DataWeave expressions that extract:
 
 * *Grounding source*: The reference text the answer should be based on (often the first message in a RAG conversation)
 * *Query*: The user's actual question (often the last message)
 
-Both must be configured together. Configuring only one causes the Bedrock API to return HTTP 400.
+Both must be configured together. Configuring only one causes the Bedrock API to return an `400` error code.
 
 .Example Configuration
 [source,yaml]
