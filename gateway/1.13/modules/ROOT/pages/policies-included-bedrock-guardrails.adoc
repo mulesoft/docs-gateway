@@ -20,16 +20,20 @@ endif::[]
 
 The Amazon Bedrock Guardrails policy provides comprehensive content moderation for LLM-based APIs by evaluating prompts and responses against Amazon Bedrock guardrails. The policy integrates with AWS Bedrock's https://aws.amazon.com/bedrock/guardrails/[Guardrails^] feature to enforce content safety policies including:
 
-* Content filters (hate, insults, sexual, violence)
-* Denied topics
-* Word filters (profanity and custom terms)
-* PII detection and redaction
-* Contextual grounding (hallucination detection)
+The policy supports all Amazon Bedrock Guardrail features:
+
+* *Content filters*: Detects and blocks harmful content across four categories (hate, insults, sexual, violence) with configurable filter strengths (NONE, LOW, MEDIUM, HIGH).
+* *Denied topics*: Blocks content related to specific topics you define, for example, financial advice, medical diagnosis
+* *Word filters*: Blocks profanity and custom words or phrases you specify
+* *PII detection*: Detects and optionally redacts personally identifiable information, for example, names, addresses, SSNs, credit cards
+* *Contextual grounding*: Evaluates whether LLM responses are grounded in provided reference text and relevant to the user query (hallucination detection)
+
+The guardrail's configuration is managed entirely in AWS. The policy enforces whatever rules you've configured in the specified guardrail.
 
 The policy operates in two independent phases:
 
 * **Request phase** — Moderates user prompts before they reach the upstream LLM, preventing harmful or inappropriate prompts from being processed.
-* **Response phase** — Moderates LLM responses before they reach the client, ensuring outputs comply with safety policies. Note that streaming responses (`text/event-stream`) are not moderated.
+* **Response phase** — Moderates LLM responses before they reach the client, ensuring outputs comply with safety policies. Streaming responses (`text/event-stream`) are not moderated.
 
 When content violates guardrail policies, the request is rejected with a `403` error code and never reaches the LLM (request phase) or the client receives a 403 instead of the LLM response (response phase).
 
@@ -113,9 +117,7 @@ The policy uses AWS Signature V4 to authenticate with the Bedrock API. Both long
 
 | Region
 | Yes
-| AWS region of the Bedrock Runtime endpoint (for example, `us-east-1`).
-
-*Important:* Must match the region in the Bedrock Runtime Endpoint URL.
+| AWS region of the Bedrock Runtime endpoint (for example, `us-east-1`). This must match the region in the Bedrock Runtime Endpoint URL.
 
 |===
 
@@ -165,54 +167,41 @@ See <<contextual-grounding>> for more information.
 
 The Amazon Bedrock Guardrails policy integrates with AWS Bedrock's content moderation service to evaluate LLM prompts and responses against configurable safety policies.
 
-=== Two-Phase Moderation
+=== Request and Response Moderation
 
-The policy supports independent evaluation in two phases:
+The policy supports independent evaluation in for request and response. The two phases mirror AWS Bedrock's INPUT and OUTPUT scopes, enabling you to apply different filter strengths to prompts versus responses when configuring the guardrail in AWS:
 
-1. **Request Phase** (when `moderateRequest` is enabled):
-   * Extracts the user prompt from the request
-   * Sends the prompt to Bedrock's `ApplyGuardrail` API
-   * If the prompt violates any guardrail policies, blocks the request with HTTP 403
-   * If the prompt passes, forwards the original request to the upstream LLM
+. *Request Phase* (when `moderateRequest` is enabled):
+.. The policy extracts the user prompt from the request.
+.. The policy sends the prompt to Bedrock's `ApplyGuardrail` API.
+.. If the prompt violates any guardrail policies, the policy blocks the request and returns a `403` error code to the client.
+.. If the prompt passes, the policy forwards the original request to the upstream LLM.
 
-2. **Response Phase** (when `moderateResponse` is enabled):
-   * Intercepts the LLM response
-   * Sends the response to Bedrock's `ApplyGuardrail` API
-   * If the response violates any guardrail policies, returns HTTP 403 to the client
-   * If the response passes, forwards the original response to the client
-   * *Note:* Streaming responses (`text/event-stream`) are skipped and pass through unmoderated
-
-This two-phase approach mirrors AWS Bedrock's INPUT and OUTPUT scopes, allowing you to apply different filter strengths to prompts versus responses when configuring the guardrail in AWS.
-
-=== Supported Guardrail Features
-
-The policy supports all Amazon Bedrock Guardrail features:
-
-* **Content filters**: Detects and blocks harmful content across four categories (hate, insults, sexual, violence) with configurable filter strengths (NONE, LOW, MEDIUM, HIGH)
-* **Denied topics**: Blocks content related to specific topics you define (for example, financial advice, medical diagnosis)
-* **Word filters**: Blocks profanity and custom words or phrases you specify
-* **PII detection**: Detects and optionally redacts personally identifiable information (for example, names, addresses, SSNs, credit cards)
-* **Contextual grounding**: Evaluates whether LLM responses are grounded in provided reference text and relevant to the user query (hallucination detection)
-
-The guardrail's configuration is managed entirely in AWS. The policy enforces whatever rules you've configured in the specified guardrail.
+. *Response Phase* (when `moderateResponse` is enabled):
+.. The policy intercepts the LLM response.
+.. The policy sends the response to Bedrock's `ApplyGuardrail` API.
+.. If the response violates any guardrail policies, the policy returns a `403` error code to the client. 
+.. If the response passes, the policy forwards the original response to the client.
++
+NOTE: Streaming responses (`text/event-stream`) are skipped and pass through without moderation.
 
 [[contextual-grounding]]
 === Contextual Grounding
 
 Contextual grounding helps detect hallucinations by scoring LLM responses on two dimensions:
 
-* **Grounding**: Is the response derived from the provided reference text?
-* **Relevance**: Does the response actually answer the user's question?
+* *Grounding*: Is the response derived from the provided reference text?
+* *Relevance*: Does the response actually answer the user's question?
 
 To enable contextual grounding:
 
-1. Enable the contextual grounding feature on your AWS Bedrock guardrail
-2. Configure both `groundingSourceSelector` and `groundingQuerySelector` in the policy
+. Enable the contextual grounding feature on your AWS Bedrock guardrail
+. Configure both `groundingSourceSelector` and `groundingQuerySelector` in the policy
 
 The selectors are DataWeave expressions that extract:
 
-* **Grounding source**: The reference text the answer should be based on (often the first message in a RAG conversation)
-* **Query**: The user's actual question (often the last message)
+* *Grounding source*: The reference text the answer should be based on (often the first message in a RAG conversation)
+* *Query*: The user's actual question (often the last message)
 
 Both must be configured together. Configuring only one causes the Bedrock API to return HTTP 400.
 
