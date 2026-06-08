@@ -29,7 +29,7 @@ The Azure Content Safety policy provides comprehensive content moderation for LL
 The policy operates in two independent phases:
 
 * *Request phase* — Moderates user prompts before they reach the upstream LLM, preventing harmful or inappropriate prompts from being processed.
-* *Response phase* — Moderates LLM responses before they reach the client, ensuring outputs comply with safety policies. Streaming responses (`text/event-stream`) are not moderated.
+* *Response phase* — Moderates LLM responses before they reach the client, ensuring outputs comply with safety policies. Streaming responses (`text/event-stream`) aren't moderated.
 
 When content violates safety policies, the request is rejected with a `403` error code and never reaches the LLM (request phase) or the client receives a `403` instead of the LLM response (response phase).
 
@@ -57,31 +57,23 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Element | Required | Description
 | Azure Content Safety Endpoint
 | Yes
-| Azure Content Safety endpoint base URL. Example: `https://<resource>.cognitiveservices.azure.com`
+| Azure Content Safety endpoint base URL, for example, `https://<resource>.cognitiveservices.azure.com`.
 
 | Azure API Key
 | Yes
-| Azure Content Safety subscription key (sent as the `Ocp-Apim-Subscription-Key` header)
+| Azure Content Safety subscription key. The key is passed in the `Ocp-Apim-Subscription-Key` header.
 
 | Moderate Request
 | No
 | When enabled, evaluates the user prompt against Azure Content Safety before forwarding to the upstream LLM. Rejected prompts never reach the LLM.
 
-Default: enabled
-
 | Moderate Response
 | No
-| When enabled, evaluates the LLM response against Azure Content Safety before returning to the client. Rejected responses return `403` error code.
-
-*Note:* Streaming responses (`text/event-stream`) are not moderated and pass through unchanged.
-
-Default: enabled
+| When enabled, evaluates the LLM response against Azure Content Safety before returning to the client. Rejected responses return `403` error code. Streaming responses (`text/event-stream`) aren't moderated and pass through unchanged.
 
 | Default Severity Threshold
 | No
-| Severity threshold applied to all four harm categories (Hate, SelfHarm, Sexual, Violence). Content with severity at or above this value is rejected. Supported values are *0*, *2*, *4*, and *6*.
-
-Default: `2`
+| Severity threshold applied to all four harm categories (Hate, SelfHarm, Sexual, Violence). Content with severity at or above this value is rejected. Supported values are *0*, *2* (default), *4*, and *6*.
 
 For details, see <<severity-thresholds>>.
 |===
@@ -93,17 +85,13 @@ For details, see <<severity-thresholds>>.
 | Element | Required | Description
 | API Version
 | No
-| Azure Content Safety API version used for all endpoint calls.
+| Azure Content Safety API version used for all endpoint calls. Default: `2024-09-01`.
 
-Default: `2024-09-01`
-
-To enable Groundedness Detection, override this to a supported preview version (for example, `2024-09-15-preview`).
+To enable Groundedness Detection, override this to a supported preview version, for example, `2024-09-15-preview`.
 
 | Enable Prompt Shield
 | No
 | When enabled, calls text:shieldPrompt alongside text:analyze on the request to detect jailbreak attempts and indirect prompt-injection attacks.
-
-Default: enabled
 
 | Hate Severity Threshold
 | No
@@ -129,32 +117,24 @@ Default: enabled
 | No
 | When enabled, calls text:detectGroundedness on the LLM response to detect hallucinated statements. Requires Moderate Response enabled and Grounding Source Selector to be set. Only available in Azure regions that support the API, and only on preview API versions (for example, `2024-09-15-preview`).
 
-Default: disabled
-
 | Grounding Source Selector
 | No
-| DataWeave expression resolving the grounding source text from the request body. Required when Groundedness Detection is enabled.
-
-Example: `#[payload.context.documents[0].content]`
+| DataWeave expression resolving the grounding source text from the request body. Required when Groundedness Detection is enabled. For example: `#[payload.context.documents[0].content]`.
 
 | Enable Protected Material Detection
 | No
 | When enabled, calls text:detectProtectedMaterial on the LLM response to detect known copyrighted text. Requires Moderate Response enabled.
 
-Default: disabled
-
 | API Timeout (ms)
 | No
-| Per-request timeout for each Azure Content Safety API call in milliseconds. Must be between 1000 and 30000.
-
-Default: `5000`
+| Per-request timeout for each Azure Content Safety API call in milliseconds. Must be between 1000 and 30000. Default: `5000`
 
 | Fail Open
 | No
 | Determines behavior when the Azure API call fails or times out:
 
 * Disabled (default): Rejects the request with HTTP `503`
-* Enabled: Allows traffic to proceed unmoderated (fail-open mode)
+* Enabled: Allows traffic to proceed without moderation (fail-open mode)
 |===
 
 == How This Policy Works
@@ -363,17 +343,10 @@ This example applies different thresholds to different harm categories:
       failOpen: false
 ----
 
-== Known Limitations
-
-* Streaming (SSE / `text/event-stream`) responses are not moderated. The policy detects streaming responses and skips moderation while still injecting the action header from the request phase.
-* Groundedness Detection requires a preview API version (e.g., `2024-09-15-preview`) and is only available in Azure regions that support the preview endpoint.
-* Protected Material Detection requires a minimum of 110 characters in the completion text, as specified by the Azure API contract.
-* Indirect injection detection (via the `documents[]` array in Prompt Shield) is not currently supported. Only user-prompt jailbreak detection is active.
-
 == See Also
 
-* https://learn.microsoft.com/en-us/azure/ai-services/content-safety/overview[Azure AI Content Safety^] - Microsoft Azure documentation
-* https://learn.microsoft.com/en-us/azure/ai-services/content-safety/concepts/jailbreak-detection[Prompt Shield^] - Azure jailbreak detection documentation
-* https://learn.microsoft.com/en-us/azure/ai-services/content-safety/concepts/groundedness[Groundedness Detection^] - Azure hallucination detection documentation
-* xref:flex-gateway-llm-proxy.adoc[LLM Proxy] - Overview of LLM Proxy and routing
-* xref:flex-gateway-llm-proxy-policies.adoc[LLM Proxy Policies] - Other LLM policies
+* https://learn.microsoft.com/en-us/azure/ai-services/content-safety/overview[Azure AI Content Safety^]
+* https://learn.microsoft.com/en-us/azure/ai-services/content-safety/concepts/jailbreak-detection[Prompt Shield^]
+* https://learn.microsoft.com/en-us/azure/ai-services/content-safety/concepts/groundedness[Groundedness Detection^]
+* xref:flex-gateway-llm-proxy.adoc[LLM Proxy]
+* xref:flex-gateway-llm-proxy-policies.adoc[LLM Proxy Policies]
