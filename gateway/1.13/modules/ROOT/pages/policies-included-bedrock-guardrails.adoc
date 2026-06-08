@@ -1,0 +1,341 @@
+= Amazon Bedrock Guardrails Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, llm, bedrock, guardrails, content safety, pii
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Amazon Bedrock Guardrails Policy
+>s|Summary      | Evaluates LLM prompts and responses against Amazon Bedrock guardrails for content safety, PII detection, and contextual grounding
+>s|Category | LLM
+>s|First Omni Gateway version available | v1.13.0
+.>s| Returned Status Codes
+|403 - Forbidden: Content violates guardrail policies
+|503 - Service Unavailable: Bedrock API call failed (only when fail-open is disabled)
+|===
+
+== Summary
+
+The Amazon Bedrock Guardrails policy provides comprehensive content moderation for LLM-based APIs by evaluating prompts and responses against Amazon Bedrock guardrails. The policy integrates with AWS Bedrock's https://aws.amazon.com/bedrock/guardrails/[Guardrails^] feature to enforce content safety policies including:
+
+* Content filters (hate, insults, sexual, violence)
+* Denied topics
+* Word filters (profanity and custom terms)
+* PII detection and redaction
+* Contextual grounding (hallucination detection)
+
+The policy operates in two independent phases:
+
+* **Request phase** — Moderates user prompts before they reach the upstream LLM, preventing harmful or inappropriate prompts from being processed.
+* **Response phase** — Moderates LLM responses before they reach the client, ensuring outputs comply with safety policies. Note that streaming responses (`text/event-stream`) are not moderated.
+
+When content violates guardrail policies, the request is rejected with a `403` error code and never reaches the LLM (request phase) or the client receives a 403 instead of the LLM response (response phase).
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The Amazon Bedrock Guardrails policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+=== Basic Configuration
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+
+| Bedrock Runtime Endpoint
+| Yes
+| Amazon Bedrock Runtime endpoint URL. Must match your AWS region.
+
+Example: `\https://bedrock-runtime.us-east-1.amazonaws.com`
+
+| AWS Credentials
+| Yes
+| AWS credentials and region used for signing requests to the Bedrock API. See <<aws-credentials>>.
+
+| Guardrail Identifier
+| Yes
+| The unique ID of the Bedrock guardrail to apply (for example, `paccgfhgnj1dc`).
+
+Find this in AWS Console → Amazon Bedrock → Guardrails.
+
+| Guardrail Version
+| No
+| Guardrail version to apply.
+
+* `DRAFT` (default): Uses the working draft version for development and testing
+* Numeric version (for example, `"1"`, `"2"`): Pins to a specific published version for production deployments
+
+| Moderate Request
+| No
+| When `true` (default), evaluates the user prompt against the guardrail before forwarding to the upstream LLM. Rejected prompts never reach the LLM.
+
+| Moderate Response
+| No
+| When `true` (default), evaluates the LLM response against the guardrail before returning to the client. Rejected responses return HTTP 403.
+
+*Note:* Streaming responses (`text/event-stream`) are not moderated and pass through unchanged.
+
+|===
+
+[[aws-credentials]]
+=== AWS Credentials
+
+The policy uses AWS Signature V4 to authenticate with the Bedrock API. Both long-lived IAM credentials and temporary STS credentials are supported.
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+
+| Access Key ID
+| Yes
+| AWS access key ID. Supports both:
+
+* Long-lived IAM user credentials (starting with `AKIA`)
+* Temporary credentials from STS or SSO (starting with `ASIA`)
+
+| Secret Access Key
+| Yes
+| AWS secret access key corresponding to the Access Key ID.
+
+| Session Token
+| Conditional
+| Required when using temporary credentials (Access Key ID starting with `ASIA`). Leave empty for long-lived IAM user credentials.
+
+| Region
+| Yes
+| AWS region of the Bedrock Runtime endpoint (for example, `us-east-1`).
+
+*Important:* Must match the region in the Bedrock Runtime Endpoint URL.
+
+|===
+
+=== Advanced Configuration
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+
+| Grounding Source Selector
+| No
+| DataWeave expression that extracts the reference text for contextual grounding from the request body.
+
+Required only when contextual grounding is enabled on the AWS guardrail. Must be configured together with Grounding Query Selector.
+
+Example: `#[payload.messages[0].content]`
+
+See <<contextual-grounding>> for more information.
+
+| Grounding Query Selector
+| No
+| DataWeave expression that extracts the user query for contextual grounding from the request body.
+
+Required only when contextual grounding is enabled on the AWS guardrail. Must be configured together with Grounding Source Selector.
+
+Example: `#[payload.messages[-1].content]`
+
+See <<contextual-grounding>> for more information.
+
+| API Timeout (ms)
+| No
+| Timeout in milliseconds for calls to the Bedrock `ApplyGuardrail` API.
+
+* Default: `5000`
+* Range: `1000` - `30000`
+
+| Fail Open
+| No
+| Determines behavior when the Bedrock API call fails or times out:
+
+* `false` (default): Rejects the request with HTTP 503
+* `true`: Allows traffic to proceed unmoderated (fail-open mode)
+
+|===
+
+== How This Policy Works
+
+The Amazon Bedrock Guardrails policy integrates with AWS Bedrock's content moderation service to evaluate LLM prompts and responses against configurable safety policies.
+
+=== Two-Phase Moderation
+
+The policy supports independent evaluation in two phases:
+
+1. **Request Phase** (when `moderateRequest` is enabled):
+   * Extracts the user prompt from the request
+   * Sends the prompt to Bedrock's `ApplyGuardrail` API
+   * If the prompt violates any guardrail policies, blocks the request with HTTP 403
+   * If the prompt passes, forwards the original request to the upstream LLM
+
+2. **Response Phase** (when `moderateResponse` is enabled):
+   * Intercepts the LLM response
+   * Sends the response to Bedrock's `ApplyGuardrail` API
+   * If the response violates any guardrail policies, returns HTTP 403 to the client
+   * If the response passes, forwards the original response to the client
+   * *Note:* Streaming responses (`text/event-stream`) are skipped and pass through unmoderated
+
+This two-phase approach mirrors AWS Bedrock's INPUT and OUTPUT scopes, allowing you to apply different filter strengths to prompts versus responses when configuring the guardrail in AWS.
+
+=== Supported Guardrail Features
+
+The policy supports all Amazon Bedrock Guardrail features:
+
+* **Content filters**: Detects and blocks harmful content across four categories (hate, insults, sexual, violence) with configurable filter strengths (NONE, LOW, MEDIUM, HIGH)
+* **Denied topics**: Blocks content related to specific topics you define (for example, financial advice, medical diagnosis)
+* **Word filters**: Blocks profanity and custom words or phrases you specify
+* **PII detection**: Detects and optionally redacts personally identifiable information (for example, names, addresses, SSNs, credit cards)
+* **Contextual grounding**: Evaluates whether LLM responses are grounded in provided reference text and relevant to the user query (hallucination detection)
+
+The guardrail's configuration is managed entirely in AWS. The policy enforces whatever rules you've configured in the specified guardrail.
+
+[[contextual-grounding]]
+=== Contextual Grounding
+
+Contextual grounding helps detect hallucinations by scoring LLM responses on two dimensions:
+
+* **Grounding**: Is the response derived from the provided reference text?
+* **Relevance**: Does the response actually answer the user's question?
+
+To enable contextual grounding:
+
+1. Enable the contextual grounding feature on your AWS Bedrock guardrail
+2. Configure both `groundingSourceSelector` and `groundingQuerySelector` in the policy
+
+The selectors are DataWeave expressions that extract:
+
+* **Grounding source**: The reference text the answer should be based on (often the first message in a RAG conversation)
+* **Query**: The user's actual question (often the last message)
+
+Both must be configured together. Configuring only one causes the Bedrock API to return HTTP 400.
+
+.Example Configuration
+[source,yaml]
+----
+advancedConfiguration:
+  groundingSourceSelector: "#[payload.messages[0].content]"
+  groundingQuerySelector: "#[payload.messages[-1].content]"
+----
+
+=== Response Headers
+
+Every moderated response includes observability headers:
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Header | Values | Description
+
+| `x-llm-proxy-bedrock-guardrail-action`
+| `allow`, `reject`
+| Final moderation decision. `reject` indicates content violated one or more policies.
+
+| `x-llm-proxy-bedrock-guardrail-phase`
+| `request`, `response`
+| Which phase performed the moderation. Useful for understanding whether the prompt or response was blocked.
+
+| `x-llm-proxy-bedrock-guardrail-reason`
+| `content_filter`, `denied_topic`, `word_filter`, `pii`, `grounding`, `service_unavailable`
+| Why the content was rejected. Multiple reasons are comma-separated if the content violated multiple policies.
+
+|===
+
+== Before You Begin
+
+Before configuring this policy, you need:
+
+1. **AWS Account** with access to Amazon Bedrock
+2. **Bedrock Guardrail** created and configured in AWS Console
+3. **IAM Credentials** with permissions to call `bedrock:ApplyGuardrail`
+4. **Guardrail ID** from the AWS Console (Bedrock → Guardrails)
+
+== Example Configurations
+
+=== Minimal Configuration — Request and Response Moderation
+
+[source,yaml]
+----
+- policyRef:
+    name: bedrock-guardrails-policy-v1-0-impl
+  config:
+    bedrockEndpoint: https://bedrock-runtime.us-east-1.amazonaws.com
+    awsCredentials:
+      accessKeyId: "${AWS_ACCESS_KEY_ID}"
+      secretAccessKey: "${AWS_SECRET_ACCESS_KEY}"
+      region: us-east-1
+    guardrailIdentifier: "${GUARDRAIL_IDENTIFIER}"
+    guardrailVersion: "1"
+    moderateRequest: true
+    moderateResponse: true
+----
+
+=== Request-Only Moderation (Block Harmful Prompts)
+
+[source,yaml]
+----
+- policyRef:
+    name: bedrock-guardrails-policy-v1-0-impl
+  config:
+    bedrockEndpoint: https://bedrock-runtime.us-east-1.amazonaws.com
+    awsCredentials:
+      accessKeyId: "${AWS_ACCESS_KEY_ID}"
+      secretAccessKey: "${AWS_SECRET_ACCESS_KEY}"
+      region: us-east-1
+    guardrailIdentifier: paccgfhgnj1dc
+    guardrailVersion: "1"
+    moderateRequest: true
+    moderateResponse: false
+----
+
+=== With Contextual Grounding (Hallucination Detection)
+
+[source,yaml]
+----
+- policyRef:
+    name: bedrock-guardrails-policy-v1-0-impl
+  config:
+    bedrockEndpoint: https://bedrock-runtime.us-east-1.amazonaws.com
+    awsCredentials:
+      accessKeyId: "${AWS_ACCESS_KEY_ID}"
+      secretAccessKey: "${AWS_SECRET_ACCESS_KEY}"
+      sessionToken: "${AWS_SESSION_TOKEN}"  # for temporary credentials
+      region: us-east-1
+    guardrailIdentifier: paccgfhgnj1dc
+    guardrailVersion: DRAFT
+    moderateRequest: false
+    moderateResponse: true
+    advancedConfiguration:
+      groundingSourceSelector: "#[payload.messages[0].content]"
+      groundingQuerySelector: "#[payload.messages[-1].content]"
+      apiTimeoutMs: 8000
+      failOpen: false
+----
+
+=== Fail-Open Configuration (High Availability)
+
+[source,yaml]
+----
+- policyRef:
+    name: bedrock-guardrails-policy-v1-0-impl
+  config:
+    bedrockEndpoint: https://bedrock-runtime.us-east-1.amazonaws.com
+    awsCredentials:
+      accessKeyId: "${AWS_ACCESS_KEY_ID}"
+      secretAccessKey: "${AWS_SECRET_ACCESS_KEY}"
+      region: us-east-1
+    guardrailIdentifier: paccgfhgnj1dc
+    guardrailVersion: "1"
+    moderateRequest: true
+    moderateResponse: true
+    advancedConfiguration:
+      failOpen: true  # Allow traffic if Bedrock is unavailable
+      apiTimeoutMs: 3000
+----
+
+== See Also
+
+* https://aws.amazon.com/bedrock/guardrails/[Amazon Bedrock Guardrails^] - AWS documentation
+* https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ApplyGuardrail.html[ApplyGuardrail API Reference^] - AWS API documentation
+* xref:flex-gateway-llm-proxy.adoc[LLM Proxy] - Overview of LLM Proxy and routing
+* xref:flex-gateway-llm-proxy-policies.adoc[LLM Proxy Policies] - Other LLM policies
