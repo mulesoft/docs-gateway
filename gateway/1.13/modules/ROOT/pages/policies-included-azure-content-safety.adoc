@@ -55,11 +55,35 @@ include::partial$policy-title-headers.adoc[tag=ui]
 [%header%autowidth.spread,cols="a,a,a"]
 |===
 | Element | Required | Description
-| Azure Content Safety Endpoint | Yes | Azure Content Safety endpoint base URL. Example: `https://<resource>.cognitiveservices.azure.com`
-| Azure API Key | Yes | Azure Content Safety subscription key (sent as the `Ocp-Apim-Subscription-Key` header)
-| Moderate Request | No | When true, evaluate the request prompt against Azure Content Safety before forwarding to the upstream LLM. Default is *true*.
-| Moderate Response | No | When true, evaluate the LLM response against Azure Content Safety before returning it to the client. Streaming (SSE / text/event-stream) responses are skipped automatically. Default is *true*.
-| Default Severity Threshold | No | Severity threshold applied to all four harm categories (Hate, SelfHarm, Sexual, Violence). Content with severity at or above this value is rejected. Supported values are *0*, *2*, *4*, and *6*. Default is *2*. For details, see <<severity-thresholds>>.
+| Azure Content Safety Endpoint
+| Yes
+| Azure Content Safety endpoint base URL. Example: `https://<resource>.cognitiveservices.azure.com`
+
+| Azure API Key
+| Yes
+| Azure Content Safety subscription key (sent as the `Ocp-Apim-Subscription-Key` header)
+
+| Moderate Request
+| No
+| When enabled, evaluates the user prompt against Azure Content Safety before forwarding to the upstream LLM. Rejected prompts never reach the LLM.
+
+Default: enabled
+
+| Moderate Response
+| No
+| When enabled, evaluates the LLM response against Azure Content Safety before returning to the client. Rejected responses return `403` error code.
+
+*Note:* Streaming responses (`text/event-stream`) are not moderated and pass through unchanged.
+
+Default: enabled
+
+| Default Severity Threshold
+| No
+| Severity threshold applied to all four harm categories (Hate, SelfHarm, Sexual, Violence). Content with severity at or above this value is rejected. Supported values are *0*, *2*, *4*, and *6*.
+
+Default: `2`
+
+For details, see <<severity-thresholds>>.
 |===
 
 === Advanced Configuration
@@ -67,18 +91,70 @@ include::partial$policy-title-headers.adoc[tag=ui]
 [%header%autowidth.spread,cols="a,a,a"]
 |===
 | Element | Required | Description
-| API Version | No | Azure Content Safety API version used for all endpoint calls. Default is `2024-09-01`. To enable Groundedness Detection, override this to a supported preview version (e.g., `2024-09-15-preview`).
-| Enable Prompt Shield | No | When true, call text:shieldPrompt alongside text:analyze on the request to detect jailbreak attempts and indirect prompt-injection attacks. Default is *true*.
-| Hate Severity Threshold | No | Per-category override for the Hate harm category. Leave as "default" to inherit Default Severity Threshold. Supported values are *default*, *0*, *2*, *4*, and *6*.
-| SelfHarm Severity Threshold | No | Per-category override for the SelfHarm harm category. Leave as "default" to inherit Default Severity Threshold.
-| Sexual Severity Threshold | No | Per-category override for the Sexual harm category. Leave as "default" to inherit Default Severity Threshold.
-| Violence Severity Threshold | No | Per-category override for the Violence harm category. Leave as "default" to inherit Default Severity Threshold.
-| Blocklist Names | No | Names of Azure-managed blocklists (created in Azure Content Safety Studio) to evaluate against the input text.
-| Enable Groundedness Detection | No | When true, call text:detectGroundedness on the LLM response to detect hallucinated statements. Requires Moderate Response=true and Grounding Source Selector to be set. Only available in Azure regions that support the API, and only on preview API versions (e.g., `2024-09-15-preview`). Default is *false*.
-| Grounding Source Selector | No | DataWeave expression resolving the grounding source text from the request body. Required when Groundedness Detection is enabled. Example: `#[payload.context.documents[0].content]`
-| Enable Protected Material Detection | No | When true, call text:detectProtectedMaterial on the LLM response to detect known copyrighted text. Requires Moderate Response=true. Default is *false*.
-| API Timeout (ms) | No | Per-request timeout for each Azure Content Safety API call in milliseconds. Must be between 1000 and 30000. Default is *5000*.
-| Fail Open | No | When true, allow traffic to proceed unmoderated if any Azure Content Safety API call fails or times out. When false (default), reject with HTTP 503.
+| API Version
+| No
+| Azure Content Safety API version used for all endpoint calls.
+
+Default: `2024-09-01`
+
+To enable Groundedness Detection, override this to a supported preview version (for example, `2024-09-15-preview`).
+
+| Enable Prompt Shield
+| No
+| When enabled, calls text:shieldPrompt alongside text:analyze on the request to detect jailbreak attempts and indirect prompt-injection attacks.
+
+Default: enabled
+
+| Hate Severity Threshold
+| No
+| Per-category override for the Hate harm category. Leave as "default" to inherit Default Severity Threshold. Supported values are *default*, *0*, *2*, *4*, and *6*.
+
+| SelfHarm Severity Threshold
+| No
+| Per-category override for the SelfHarm harm category. Leave as "default" to inherit Default Severity Threshold.
+
+| Sexual Severity Threshold
+| No
+| Per-category override for the Sexual harm category. Leave as "default" to inherit Default Severity Threshold.
+
+| Violence Severity Threshold
+| No
+| Per-category override for the Violence harm category. Leave as "default" to inherit Default Severity Threshold.
+
+| Blocklist Names
+| No
+| Names of Azure-managed blocklists (created in Azure Content Safety Studio) to evaluate against the input text.
+
+| Enable Groundedness Detection
+| No
+| When enabled, calls text:detectGroundedness on the LLM response to detect hallucinated statements. Requires Moderate Response enabled and Grounding Source Selector to be set. Only available in Azure regions that support the API, and only on preview API versions (for example, `2024-09-15-preview`).
+
+Default: disabled
+
+| Grounding Source Selector
+| No
+| DataWeave expression resolving the grounding source text from the request body. Required when Groundedness Detection is enabled.
+
+Example: `#[payload.context.documents[0].content]`
+
+| Enable Protected Material Detection
+| No
+| When enabled, calls text:detectProtectedMaterial on the LLM response to detect known copyrighted text. Requires Moderate Response enabled.
+
+Default: disabled
+
+| API Timeout (ms)
+| No
+| Per-request timeout for each Azure Content Safety API call in milliseconds. Must be between 1000 and 30000.
+
+Default: `5000`
+
+| Fail Open
+| No
+| Determines behavior when the Azure API call fails or times out:
+
+* Disabled (default): Rejects the request with HTTP `503`
+* Enabled: Allows traffic to proceed unmoderated (fail-open mode)
 |===
 
 == How This Policy Works
@@ -94,7 +170,7 @@ The policy supports independent evaluation for request and response:
 .. The policy extracts the user prompt from the request body.
 .. The policy sends the prompt to Azure Content Safety APIs in parallel:
   * `text:analyze` — Evaluates harm categories (Hate, SelfHarm, Sexual, Violence) and checks blocklists
-  * `text:shieldPrompt` — Detects jailbreak attempts and indirect injections (when `enablePromptShield` is true)
+  * `text:shieldPrompt` — Detects jailbreak attempts and indirect injections (when `enablePromptShield` is enabled)
 .. If the prompt violates any policies, the policy blocks the request and returns a `403` error code to the client.
 .. If the prompt passes, the policy forwards the original request to the upstream LLM.
 +
@@ -204,7 +280,7 @@ When the policy blocks content, it returns a `403` response with this structure:
 
 === Fail Closed (Default)
 
-When `Fail Open` is false (the default), any Azure API error or timeout results in rejection:
+When `Fail Open` is disabled (the default), any Azure API error or timeout results in rejection:
 
 * Request phase: HTTP 503 with body `{"error":"Azure Content Safety service unavailable"}`
 * Response phase: The response is rewritten to HTTP 503 with the same body
@@ -212,7 +288,7 @@ When `Fail Open` is false (the default), any Azure API error or timeout results 
 
 === Fail Open
 
-When `Fail Open` is true, Azure API errors are logged but traffic continues unmoderated. The `x-llm-proxy-azure-content-safety-reason` header is still set to `service_unavailable` for observability, allowing you to detect partial-coverage moderation in monitoring systems.
+When `Fail Open` is enabled, Azure API errors are logged but traffic continues unmoderated. The `x-llm-proxy-azure-content-safety-reason` header is still set to `service_unavailable` for observability, allowing you to detect partial-coverage moderation in monitoring systems.
 
 == Example Configurations
 
