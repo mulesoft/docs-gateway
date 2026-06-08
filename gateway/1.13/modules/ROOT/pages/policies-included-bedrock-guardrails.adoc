@@ -35,7 +35,7 @@ The policy operates in two independent phases:
 * **Request phase** — Moderates user prompts before they reach the upstream LLM, preventing harmful or inappropriate prompts from being processed.
 * **Response phase** — Moderates LLM responses before they reach the client, ensuring outputs comply with safety policies. Streaming responses (`text/event-stream`) are not moderated.
 
-When content violates guardrail policies, the request is rejected with a `403` error code and never reaches the LLM (request phase) or the client receives a 403 instead of the LLM response (response phase).
+When content violates guardrail policies, the request is rejected with a `403` error code and never reaches the LLM (request phase) or the client receives a `403` instead of the LLM response (response phase).
 
 == Before You Begin
 
@@ -44,7 +44,7 @@ Before configuring this policy, you need:
 1. **AWS Account** with access to Amazon Bedrock
 2. **Bedrock Guardrail** created and configured in AWS Console
 3. **IAM Credentials** with permissions to call `bedrock:ApplyGuardrail`
-4. **Guardrail ID** from the AWS Console (Bedrock → Guardrails)
+4. **Guardrail ID** from the AWS Console
 
 == Configuring Policy Parameters
 
@@ -158,7 +158,7 @@ See <<contextual-grounding>> for more information.
 | No
 | Determines behavior when the Bedrock API call fails or times out:
 
-* Disabled (default): Rejects the request with HTTP 503
+* Disabled (default): Rejects the request with HTTP `503`
 * Enabled: Allows traffic to proceed unmoderated (fail-open mode)
 
 |===
