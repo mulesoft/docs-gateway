@@ -33,6 +33,15 @@ The policy operates in two independent phases:
 
 When content violates guardrail policies, the request is rejected with a `403` error code and never reaches the LLM (request phase) or the client receives a 403 instead of the LLM response (response phase).
 
+== Before You Begin
+
+Before configuring this policy, you need:
+
+1. **AWS Account** with access to Amazon Bedrock
+2. **Bedrock Guardrail** created and configured in AWS Console
+3. **IAM Credentials** with permissions to call `bedrock:ApplyGuardrail`
+4. **Guardrail ID** from the AWS Console (Bedrock → Guardrails)
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
@@ -49,9 +58,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 | Bedrock Runtime Endpoint
 | Yes
-| Amazon Bedrock Runtime endpoint URL. Must match your AWS region.
-
-Example: `\https://bedrock-runtime.us-east-1.amazonaws.com`
+| Amazon Bedrock Runtime endpoint URL. Must match your AWS region, for example: `\https://bedrock-runtime.us-east-1.amazonaws.com`.
 
 | AWS Credentials
 | Yes
@@ -61,22 +68,20 @@ Example: `\https://bedrock-runtime.us-east-1.amazonaws.com`
 | Yes
 | The unique ID of the Bedrock guardrail to apply (for example, `paccgfhgnj1dc`).
 
-Find this in AWS Console → Amazon Bedrock → Guardrails.
-
 | Guardrail Version
 | No
-| Guardrail version to apply.
+| Version of the guardrail to apply.
 
-* `DRAFT` (default): Uses the working draft version for development and testing
-* Numeric version (for example, `"1"`, `"2"`): Pins to a specific published version for production deployments
+* `DRAFT` (default): Use the working draft version for development and testing
+* Numeric version (for example, `"1"`, `"2"`): Use a published version for production deployments
 
 | Moderate Request
 | No
-| When `true` (default), evaluates the user prompt against the guardrail before forwarding to the upstream LLM. Rejected prompts never reach the LLM.
+| When enabled, evaluates the user prompt against the guardrail before forwarding to the upstream LLM. Rejected prompts never reach the LLM. 
 
 | Moderate Response
 | No
-| When `true` (default), evaluates the LLM response against the guardrail before returning to the client. Rejected responses return HTTP 403.
+| When enabled, evaluates the LLM response against the guardrail before returning to the client. Rejected responses return `403` error code.
 
 *Note:* Streaming responses (`text/event-stream`) are not moderated and pass through unchanged.
 
@@ -151,8 +156,8 @@ See <<contextual-grounding>> for more information.
 | No
 | Determines behavior when the Bedrock API call fails or times out:
 
-* `false` (default): Rejects the request with HTTP 503
-* `true`: Allows traffic to proceed unmoderated (fail-open mode)
+* Disabled (default): Rejects the request with HTTP 503
+* Enabled: Allows traffic to proceed unmoderated (fail-open mode)
 
 |===
 
@@ -241,14 +246,7 @@ Every moderated response includes observability headers:
 
 |===
 
-== Before You Begin
 
-Before configuring this policy, you need:
-
-1. **AWS Account** with access to Amazon Bedrock
-2. **Bedrock Guardrail** created and configured in AWS Console
-3. **IAM Credentials** with permissions to call `bedrock:ApplyGuardrail`
-4. **Guardrail ID** from the AWS Console (Bedrock → Guardrails)
 
 == Example Configurations
 
