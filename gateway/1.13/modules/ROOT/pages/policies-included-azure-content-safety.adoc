@@ -1,0 +1,344 @@
+= Azure Content Safety Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, llm, content safety, azure, guardrails, harm detection
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Azure Content Safety Policy
+>s|Summary      | Evaluates LLM prompts and responses against Azure AI Content Safety for harmful content, jailbreak attempts, hallucinations, and copyrighted material
+>s|Category | LLM
+>s|First Omni Gateway version available | v1.13.0
+.>s| Returned Status Codes
+|403 - Forbidden: Content violates Azure Content Safety policies
+|503 - Service Unavailable: Azure API call failed (only when fail-open is disabled)
+|===
+
+== Summary
+
+The Azure Content Safety policy provides comprehensive content moderation for LLM-based APIs by evaluating prompts and responses against the Azure AI Content Safety service. The policy integrates with https://learn.microsoft.com/en-us/azure/ai-services/content-safety/overview[Azure AI Content Safety^] to enforce content safety policies including:
+
+* *Content filters*: Detects and blocks harmful content across four categories (*Hate*, *SelfHarm*, *Sexual*, and *Violence*) with configurable severity thresholds (`0`, `2`, `4`, `6`).
+* *Prompt Shield*: Detects jailbreak attempts and indirect prompt-injection attacks using Azure's advanced detection capabilities.
+* *Blocklists*: Blocks content matching Azure-managed custom blocklists you define in Azure Content Safety Studio.
+* *Groundedness Detection*: Evaluates whether LLM responses are grounded in provided reference text (hallucination detection for RAG applications).
+* *Protected Material Detection*: Detects known copyrighted text in LLM responses.
+
+The policy operates in two independent phases:
+
+* *Request phase*: Moderates user prompts before they reach the upstream LLM, preventing harmful or inappropriate prompts from being processed.
+* *Response phase*: Moderates LLM responses before they reach the client, ensuring outputs comply with safety policies. Streaming responses (`text/event-stream`) aren't moderated.
+
+When content violates safety policies, the request is rejected with a `403` error code and never reaches the LLM (request phase) or the client receives a `403` instead of the LLM response (response phase).
+
+== Before You Begin
+
+Before configuring this policy, you need:
+
+1. *Azure Account* with access to Azure AI Content Safety
+2. *Azure Content Safety Resource* created in the Azure Portal
+3. *Subscription Key* from the Azure Portal (Keys and Endpoint section)
+4. *Resource Endpoint URL* from the Azure Portal
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The Azure Content Safety policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+=== Basic Configuration
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+| Azure Content Safety Endpoint
+| Yes
+| Azure Content Safety endpoint base URL, for example, `\https://<resource>.cognitiveservices.azure.com`.
+
+| Azure API Key
+| Yes
+| Azure Content Safety subscription key. The key is passed in the `Ocp-Apim-Subscription-Key` header.
+
+| Moderate Request
+| No
+| When enabled, evaluates the user prompt against Azure Content Safety before forwarding to the upstream LLM. Rejected prompts never reach the LLM.
+
+| Moderate Response
+| No
+| When enabled, evaluates the LLM response against Azure Content Safety before returning to the client. Rejected responses return `403` error code. Streaming responses (`text/event-stream`) aren't moderated and pass through unchanged.
+
+| Default Severity Threshold
+| No
+| Severity threshold applied to all four harm categories (Hate, SelfHarm, Sexual, Violence). Content with severity at or above this value is rejected. Supported values are `0`, `2` (default), `4`, and `6`.
+
+For details, see <<severity-thresholds>>.
+|===
+
+=== Advanced Configuration
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+| API Version
+| No
+| Azure Content Safety API version used for all endpoint calls. Default: `2024-09-01`.
+
+To enable Groundedness Detection, override this to a supported preview version, for example, `2024-09-15-preview`.
+
+| Enable Prompt Shield
+| No
+| When enabled, calls `text:shieldPrompt` alongside `text:analyze` on the request to detect jailbreak attempts and indirect prompt-injection attacks.
+
+| Hate Severity Threshold
+| No
+| Per-category override for the Hate harm category. Leave as `default` to inherit Default Severity Threshold. See <<severity-thresholds>> for supported values.
+
+| SelfHarm Severity Threshold
+| No
+| Per-category override for the SelfHarm harm category. Leave as `default` to inherit Default Severity Threshold. See <<severity-thresholds>> for supported values.
+
+| Blocklist Names
+| No
+| Names of Azure-managed blocklists (created in Azure Content Safety Studio) to evaluate against the input text.
+
+| Enable Groundedness Detection
+| No
+| When enabled, calls `text:detectGroundedness` on the LLM response to detect hallucinated statements. Requires Moderate Response enabled and Grounding Source Selector to be set. Only available in Azure regions that support the API, and only on preview API versions (for example, `2024-09-15-preview`).
+
+| Grounding Source Selector
+| No
+| DataWeave expression resolving the grounding source text from the request body. Required when Groundedness Detection is enabled. For example: `#[payload.context.documents[0].content]`.
+
+| Enable Protected Material Detection
+| No
+| When enabled, calls `text:detectProtectedMaterial` on the LLM response to detect known copyrighted text. Requires Moderate Response enabled.
+
+| API Timeout (ms)
+| No
+| Per-request timeout for each Azure Content Safety API call in milliseconds. Must be between 1000 and 30000. Default: `5000`
+
+| Fail Open
+| No
+| Determines behavior when the Azure API call fails or times out:
+
+* Disabled (default): Rejects the request with HTTP `503`
+* Enabled: Allows traffic to proceed without moderation (fail-open mode)
+|===
+
+== How This Policy Works
+
+The Azure Content Safety policy integrates with Azure AI Content Safety to evaluate LLM prompts and responses against configurable safety policies.
+
+[[request-and-response-moderation]]
+=== Request and Response Moderation
+
+The policy supports independent evaluation for request and response:
+
+. *Request Phase* (when `moderateRequest` is enabled):
+.. The policy extracts the user prompt from the request body.
+.. The policy sends the prompt to Azure Content Safety APIs in parallel:
+  * `text:analyze` — Evaluates harm categories (Hate, SelfHarm, Sexual, Violence) and checks blocklists
+  * `text:shieldPrompt` — Detects jailbreak attempts and indirect injections (when `enablePromptShield` is enabled)
+.. If the prompt violates any policies, the policy blocks the request and returns a `403` error code to the client.
+.. If the prompt passes, the policy forwards the original request to the upstream LLM.
++
+If grounding source and query selectors are configured, the policy extracts them during request processing and stores the values for use in response processing.
+
+. *Response Phase* (when `moderateResponse` is enabled):
+.. The policy intercepts the LLM response.
+.. The policy sends the completion to Azure Content Safety APIs in parallel:
+  * `text:analyze` — Evaluates harm categories and checks blocklists
+  * `text:detectGroundedness` — Scores the response against the grounding source (when enabled and grounding source is available)
+  * `text:detectProtectedMaterial` — Detects known copyrighted text (when enabled)
+.. If the response violates any policies, the policy returns a `403` error code to the client.
+.. If the response passes, the policy forwards the original response to the client.
++
+NOTE: Streaming responses (`text/event-stream`) are skipped and pass through without moderation.
+
+[[groundedness-detection]]
+=== Groundedness Detection
+
+Groundedness detection helps detect hallucinations by evaluating whether LLM responses are grounded in the provided reference text. This is particularly useful for RAG (Retrieval-Augmented Generation) applications.
+
+To enable groundedness detection:
+
+. Enable groundedness detection in Advanced Configuration (`enableGroundednessDetection: true`).
+. Configure the *Grounding Source Selector* to extract the reference text from the request body.
+. Set the API Version to a preview version that supports the groundedness endpoint (for example, `2024-09-15-preview`).
+
+The grounding source selector is a DataWeave expression that extracts the reference text the LLM response should be based on (typically documents or context provided in the request).
+
+.Example Configuration
+[source,yaml]
+----
+advancedConfiguration:
+  apiVersion: "2024-09-15-preview"
+  enableGroundednessDetection: true
+  groundingSourceSelector: "#[payload.context.documents[0].content]"
+----
+
+[[severity-thresholds]]
+=== Severity Thresholds
+
+Azure AI Content Safety evaluates content across four harm categories and assigns a severity level to each:
+
+* *0* — Safe (no harmful content detected)
+* *2* — Low severity
+* *4* — Medium severity
+* *6* — High severity
+
+The policy rejects content when the severity level is at or above the configured threshold:
+
+[%header,cols='1a,5a']
+|===
+|Threshold Value
+|Content Blocked
+
+|0
+|Any flagged content (severity > 0) is blocked. This is the strictest setting.
+
+|2
+|Content with low, medium, or high severity is blocked. This is the recommended default.
+
+|4
+|Content with medium or high severity is blocked. This allows low-severity content.
+
+|6
+|Only high-severity content is blocked. This is the most permissive setting.
+|===
+
+You can configure a default threshold that applies to all categories, and optionally override the threshold for specific categories.
+
+[[response-headers]]
+=== Response Headers
+
+Every moderated response includes observability headers:
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Header | Values | Description
+
+| `x-llm-proxy-azure-content-safety-action`
+| `allow`, `reject`
+| Final moderation decision. `reject` indicates content violated one or more policies.
+
+| `x-llm-proxy-azure-content-safety-phase`
+| `request`, `response`
+| Which phase performed the moderation. Useful for understanding whether the prompt or response was blocked.
+
+| `x-llm-proxy-azure-content-safety-reason`
+| `severity_hate`, `severity_self_harm`, `severity_sexual`, `severity_violence`, `blocklist`, `prompt_shield`, `groundedness`, `protected_material`, `service_unavailable`
+| Why the content was rejected. Multiple reasons are comma-separated if the content violated multiple policies.
+
+|===
+
+== Response on Reject
+
+When the policy blocks content, it returns a `403` response with this structure:
+
+[source,json]
+----
+{
+  "error": "Content blocked by Azure Content Safety",
+  "categories": ["severity_hate", "blocklist"]
+}
+----
+
+== Error Handling
+
+=== Fail Closed (Default)
+
+When *Fail Open* is disabled (the default), any Azure API error or timeout results in rejection:
+
+* Request phase: HTTP `503` with body `{"error":"Azure Content Safety service unavailable"}`
+* Response phase: The response is rewritten to HTTP `503` with the same body
+* The `x-llm-proxy-azure-content-safety-reason` header is set to `service_unavailable`
+
+=== Fail Open
+
+When *Fail Open* is enabled, Azure API errors are logged but traffic continues unmoderated. The `x-llm-proxy-azure-content-safety-reason` header is still set to `service_unavailable` for observability, allowing you to detect partial-coverage moderation in monitoring systems.
+
+== Example Configurations
+
+=== Minimal Configuration — Request and Response Moderation
+
+[source,yaml]
+----
+- policyRef:
+    name: azure-content-safety-policy-v1-0-impl
+    namespace: default
+  config:
+    azureEndpoint: https://llmproxy-azure-cs.cognitiveservices.azure.com
+    azureApiKey: "${AZURE_CONTENT_SAFETY_KEY}"
+----
+
+=== Strict Threshold with Blocklists
+
+This example blocks any flagged content and applies custom blocklists:
+
+[source,yaml]
+----
+- policyRef:
+    name: azure-content-safety-policy-v1-0-impl
+    namespace: default
+  config:
+    azureEndpoint: https://llmproxy-azure-cs.cognitiveservices.azure.com
+    azureApiKey: "${AZURE_CONTENT_SAFETY_KEY}"
+    defaultSeverityThreshold: 0
+    advancedConfiguration:
+      blocklistNames:
+        - competitor-names
+        - internal-codenames
+----
+
+=== Per-Category Thresholds
+
+This example applies different thresholds to different harm categories:
+
+[source,yaml]
+----
+- policyRef:
+    name: azure-content-safety-policy-v1-0-impl
+    namespace: default
+  config:
+    azureEndpoint: https://llmproxy-azure-cs.cognitiveservices.azure.com
+    azureApiKey: "${AZURE_CONTENT_SAFETY_KEY}"
+    defaultSeverityThreshold: 2
+    advancedConfiguration:
+      selfHarmSeverityThreshold: "4"    # Allow low-severity SelfHarm discussion
+      violenceSeverityThreshold: "0"    # Block any flagged Violence
+----
+
+=== With Groundedness Detection (Hallucination Detection)
+
+[source,yaml]
+----
+- policyRef:
+    name: azure-content-safety-policy-v1-0-impl
+    namespace: default
+  config:
+    azureEndpoint: https://llmproxy-azure-cs-eastus.cognitiveservices.azure.com
+    azureApiKey: "${AZURE_CONTENT_SAFETY_KEY}"
+    defaultSeverityThreshold: 4
+    advancedConfiguration:
+      apiVersion: "2024-09-15-preview"
+      enableGroundednessDetection: true
+      groundingSourceSelector: "#[payload.context.documents[0].content]"
+      enableProtectedMaterialDetection: true
+      blocklistNames:
+        - my-blocklist
+      apiTimeoutMs: 10000
+      failOpen: false
+----
+
+== See Also
+
+* https://learn.microsoft.com/en-us/azure/ai-services/content-safety/overview[Azure AI Content Safety^]
+* https://learn.microsoft.com/en-us/azure/ai-services/content-safety/concepts/jailbreak-detection[Prompt Shield^]
+* https://learn.microsoft.com/en-us/azure/ai-services/content-safety/concepts/groundedness[Groundedness Detection^]
+* xref:flex-gateway-llm-proxy.adoc[LLM Proxy]
+* xref:flex-gateway-llm-proxy-policies.adoc[LLM Proxy Policies]
