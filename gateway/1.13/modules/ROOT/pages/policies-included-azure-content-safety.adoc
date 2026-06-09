@@ -252,15 +252,15 @@ When the policy blocks content, it returns a `403` response with this structure:
 
 === Fail Closed (Default)
 
-When `Fail Open` is disabled (the default), any Azure API error or timeout results in rejection:
+When *Fail Open* is disabled (the default), any Azure API error or timeout results in rejection:
 
-* Request phase: HTTP 503 with body `{"error":"Azure Content Safety service unavailable"}`
-* Response phase: The response is rewritten to HTTP 503 with the same body
+* Request phase: HTTP `503` with body `{"error":"Azure Content Safety service unavailable"}`
+* Response phase: The response is rewritten to HTTP `503` with the same body
 * The `x-llm-proxy-azure-content-safety-reason` header is set to `service_unavailable`
 
 === Fail Open
 
-When `Fail Open` is enabled, Azure API errors are logged but traffic continues unmoderated. The `x-llm-proxy-azure-content-safety-reason` header is still set to `service_unavailable` for observability, allowing you to detect partial-coverage moderation in monitoring systems.
+When *Fail Open* is enabled, Azure API errors are logged but traffic continues unmoderated. The `x-llm-proxy-azure-content-safety-reason` header is still set to `service_unavailable` for observability, allowing you to detect partial-coverage moderation in monitoring systems.
 
 == Example Configurations
 
