@@ -28,8 +28,8 @@ The Azure Content Safety policy provides comprehensive content moderation for LL
 
 The policy operates in two independent phases:
 
-* *Request phase* — Moderates user prompts before they reach the upstream LLM, preventing harmful or inappropriate prompts from being processed.
-* *Response phase* — Moderates LLM responses before they reach the client, ensuring outputs comply with safety policies. Streaming responses (`text/event-stream`) aren't moderated.
+* *Request phase*: Moderates user prompts before they reach the upstream LLM, preventing harmful or inappropriate prompts from being processed.
+* *Response phase*: Moderates LLM responses before they reach the client, ensuring outputs comply with safety policies. Streaming responses (`text/event-stream`) aren't moderated.
 
 When content violates safety policies, the request is rejected with a `403` error code and never reaches the LLM (request phase) or the client receives a `403` instead of the LLM response (response phase).
 
@@ -91,23 +91,15 @@ To enable Groundedness Detection, override this to a supported preview version, 
 
 | Enable Prompt Shield
 | No
-| When enabled, calls text:shieldPrompt alongside text:analyze on the request to detect jailbreak attempts and indirect prompt-injection attacks.
+| When enabled, calls `text:shieldPrompt` alongside `text:analyze` on the request to detect jailbreak attempts and indirect prompt-injection attacks.
 
 | Hate Severity Threshold
 | No
-| Per-category override for the Hate harm category. Leave as "default" to inherit Default Severity Threshold. Supported values are *default*, *0*, *2*, *4*, and *6*.
+| Per-category override for the Hate harm category. Leave as `default` to inherit Default Severity Threshold. See <<severity-thresholds>> for supported values.
 
 | SelfHarm Severity Threshold
 | No
-| Per-category override for the SelfHarm harm category. Leave as "default" to inherit Default Severity Threshold.
-
-| Sexual Severity Threshold
-| No
-| Per-category override for the Sexual harm category. Leave as "default" to inherit Default Severity Threshold.
-
-| Violence Severity Threshold
-| No
-| Per-category override for the Violence harm category. Leave as "default" to inherit Default Severity Threshold.
+| Per-category override for the SelfHarm harm category. Leave as `default` to inherit Default Severity Threshold. See <<severity-thresholds>> for supported values.
 
 | Blocklist Names
 | No
@@ -115,7 +107,7 @@ To enable Groundedness Detection, override this to a supported preview version, 
 
 | Enable Groundedness Detection
 | No
-| When enabled, calls text:detectGroundedness on the LLM response to detect hallucinated statements. Requires Moderate Response enabled and Grounding Source Selector to be set. Only available in Azure regions that support the API, and only on preview API versions (for example, `2024-09-15-preview`).
+| When enabled, calls `text:detectGroundedness` on the LLM response to detect hallucinated statements. Requires Moderate Response enabled and Grounding Source Selector to be set. Only available in Azure regions that support the API, and only on preview API versions (for example, `2024-09-15-preview`).
 
 | Grounding Source Selector
 | No
@@ -123,7 +115,7 @@ To enable Groundedness Detection, override this to a supported preview version, 
 
 | Enable Protected Material Detection
 | No
-| When enabled, calls text:detectProtectedMaterial on the LLM response to detect known copyrighted text. Requires Moderate Response enabled.
+| When enabled, calls `text:detectProtectedMaterial` on the LLM response to detect known copyrighted text. Requires Moderate Response enabled.
 
 | API Timeout (ms)
 | No
