@@ -1,0 +1,51 @@
+The Circuit Breaker policy prevents upstream services from receiving too many requests or connections at a time. When requests or connections exceed the defined thresholds, Omni Gateway returns a `503 - Service Unavailable` error.
+
+Omni Gateway offers these circuit breaker thresholds:
+
+* *Maximum Connections* +
+The maximum number of connections per API to an upstream.
+
+* *Maximum Pending Requests* +
+The maximum number of queued requests while waiting for a connection.
+
+* *Maximum Requests* +
+The maximum number of outstanding requests to an upstream.
+
+* *Maximum Retries* +
+The maximum number of outstanding retries.
+
+* *Maximum Connection Pools* +
+The maximum number of connection pools concurrently initiated to an upstream.
+
+All thresholds are optional. For Managed Omni Gateways and Connected Mode, each API instance has its own independent limit per upstream, so each can use the full maximum. In Local Mode, limits are shared among different API instances for the same upstream. For all modes, each gateway replica can use the full maximum and limits aren't distributed across replicas.
+
+Configure circuit breaker thresholds via:
+
+* Configuration YAML file: Applies to all API instances and is easy to adjust.
+* Policy: Applies to one API instance or upstream for granularity and flexibility.
+
+== Configure Circuit Breaker via YAML Configuration Resources
+
+Edit and then apply this configuration resource to update your circuit breaker thresholds:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: Configuration
+metadata:
+  name: circuit-breaker
+spec:
+  circuitBreaker:
+    thresholds:
+      maxConnections: <number>
+      maxPendingRequests: <number>
+      maxRequests: <number>
+      maxRetries: <number>
+      maxConnectionPools: <number>
+----
+
+== Configure Circuit Breaker via Policies
+
+Apply the Circuit Breaker policy to your API instance or upstream service:
+
+* xref:policies-outbound-circuit-breaker.adoc[]
