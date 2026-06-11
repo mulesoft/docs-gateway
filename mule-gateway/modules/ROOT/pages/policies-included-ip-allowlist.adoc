@@ -20,7 +20,7 @@ endif::[]
 
 The IP Allowlist policy allows a list or a range of specified IP addresses access to a protected resource when a match is found between a source IP (specified when configuring the policy) and a list of individual IPs or range of IPs.
 
-Based on your business need, specify either a DataWeave 2.0 expression for Mule 4 or a MEL expression for Mule 3. These expressions define the source IP used by the policy to determine whether the IP belongs to the policy's restricted IP list.
+You can specify a DataWeave 2.0 expression to define the source IP used by the policy to determine whether the IP belongs to the policy's restricted IP list.
 
 == Configuring Policy Parameters
 
@@ -31,7 +31,7 @@ When you apply the IP Allowlist policy to your API from the UI, configure the fo
 [%header%autowidth.spread,cols="a,a"]
 |===
 | Parameter | Description
-|IP expression  |The DataWeave 2.0 or MEL expression to be used for extracting the IP address from this API request.
+|IP expression  |The DataWeave 2.0 expression to be used for extracting the IP address from this API request.
 |Allowlist |The list of IP addresses allowed access to the API. You can define one IP or IP range at a time, as many times as required.  For more information, see <<specifying_ip_address,Specifying IP Addresses to Allowlist in Your Policy>>.
 |Method & Resource conditions |The option to add configurations either to a select few or to all methods and resources of the API.
 |===
@@ -42,7 +42,7 @@ When you apply the IP Allowlist policy to your API from the UI, configure the fo
 Specify IP addresses to allow access to your policy based on:
 
 * The IP address of the request
-* The origin IP address that is determined by resolving a specific DataWeave or MEL expression, such as the https://en.wikipedia.org/wiki/X-Forwarded-For[x-Forwarded-For^] header
+* The origin IP address that is determined by resolving a specific DataWeave expression, such as the https://en.wikipedia.org/wiki/X-Forwarded-For[x-Forwarded-For^] header
 * Any other origin.
 
 === Allowlisting Access Based on the IP address of the Request
@@ -62,6 +62,6 @@ For example, if you want to allowlist `192.168.2.3`(private IP) and the address 
 
 Typically, applications use the `X-Forwarded-For` header to identify the origin IP addresses of a request that was redirected to your endpoint.
 
-You can use a DataWeave 2.0 or MEL (Mule 3 only) expression in the policy to instruct the service to look for the IP address in the `x-Forwarded-For` header.
+You can use a DataWeave 2.0 expression in the policy to instruct the service to look for the IP address in the `x-Forwarded-For` header.
 
 When you insert the IP address in the IP expression field of the policy parameters, Anypoint Platform is instructed to look for the starting IP address in the concatenated values of the `x-Forwarded-For` header of the request.

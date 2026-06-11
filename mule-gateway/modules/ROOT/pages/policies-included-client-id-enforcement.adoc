@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 :keywords: clientid enforcement, api gateway, mule gateway, gateway, policy
-// :page-aliases: api-manager::client-id-based-policies.adoc
+:page-aliases: api-manager::client-id-based-policies.adoc, api-manager::policy-mule3-client-id-based-policies.adoc, policies::policies-mule3-client-id-based-policies.adoc
 
 [width="100%", cols="5,15"]
 |===
@@ -52,7 +52,7 @@ For Mule applications, the following parameters are displayed:
 | Specifies from where in the request to extract the values:
 
 * HTTP Basic Authentication Header: Requires credentials as part of the authorization header. The application consuming the API must use the basic authentication scheme to send the credentials in the requests.
-* Custom Expression: Accepts an expression each for client ID and client secret, indicating where to extract the credentials from the request. For Mule 3, use MEL Expressions and for Mule 4 and Omni, use a DataWeave 2.0 expression. Use this option to send the credentials in a custom header or any other format. You can leave the field blank to configure the client secret requirement as optional.
+* Custom Expression: Accepts a DataWeave 2.0 expression for each client ID and client secret, indicating where to extract the credentials from the request. Use this option to send the credentials in a custom header or any other format. You can leave the field blank to configure the client secret requirement as optional.
 | Must choose from one of the options.
 | Client ID Expression
 | The DataWeave 2.0 expression to use for obtaining the client ID from API requests.
@@ -160,14 +160,6 @@ Example DataWeave 2.0 expression to be used when configuring the policy for Mule
 
 In this example, the requester must send the two specified query parameters with the request. Although this is a supported configuration, it poses possible security risks. The recommended method is to use headers. DataWeave 2.0 is fully supported in Mule 4 as wells as a subset in Omni.
 //TODO: LINK to DW Omni support for v1.0.0 docs TBD.
-
-Example MEL expression to be used when configuring the policy with headers for Mule 3:
-[source,text]
-
-----
-#[message.inboundProperties['client_id']]
-#[message.inboundProperties['client_secret']]
-----
 
 === Obtaining Credentials Using HTTP Request Payload (Mule only)
 
