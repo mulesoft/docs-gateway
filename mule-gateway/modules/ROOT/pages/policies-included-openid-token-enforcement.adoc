@@ -29,12 +29,7 @@ This policy is available only to an organization that is configured to use the O
 
 === Mule Gateway
 
-When you apply the policy to your API from the UI, a list of parameters is displayed based on whether your environment includes a Mule app.
-// or xref:service-mesh::index.adoc[non-Mule application managed by Anypoint Service Mesh].
-
-==== Configuring Parameters for Mule Applications and Omni Gateway
-
-The following parameters are displayed:
+When you apply the policy to your API from the UI, these parameters are displayed:
 
 [%header%autowidth.spread,cols="30,40,30"]
 |===
@@ -47,17 +42,6 @@ If the 'Contains all scopes' value is selected, the tokens with the scopes `READ
 | Expose Headers | In a proxy scenario, specifies whether headers must be exposed in the request to the backend. User properties returned by the federation server are prefixed with 'X-AGW-' and sent as headers to the backend. | See <<leveraging-TVE-information,Leveraging Token Validation Endpoint Information for Mule Applications>> for more information about this element.
 | Skip Client Id Validation | Skips the client application's API contract validation. | If selected, Step 4 of the diagram in the <<how-this-policy-works,How This Policy Works>> section is skipped.
 | Authentication request timeout | Sets the maximum time, in milliseconds, to wait for a response when authenticating with the Access Token validation endpoint. | `10000`
-|===
-
-==== Configuring Parameters for Non-Mule Applications (Anypoint Service Mesh)
-
-For non-Mule applications that are managed by Anypoint Service Mesh, the following parameters are displayed:
-
-[%header%autowidth.spread,cols="30,40,30"]
-|===
-| Element | Description | Example
-| Scopes | Displays a space-separated list of supported scopes. | `READ`, `WRITE`, `READ AND WRITE`
-| Skip Client Id Validation | Skips the client application's API contract validation. | If selected, the Step 4 of the diagram in the <<how-this-policy-works,How This Policy Works>> section is skipped.
 |===
 
 [[how-this-policy-works]]
@@ -106,43 +90,19 @@ After the system validates a token, that token is cached (by default), until it 
 
 The validation endpoint sends multiple properties to the policy, including the expiration time of the token. If the expiration information is not available, tokens are not cached.
 
-To control the time taken to cache the tokens, before you attempt revalidating against the token validation endpoint, set this configuration in engine:
+To control the time taken to cache the tokens, before you attempt revalidating against the token validation endpoint, specify the following property when starting Mule runtime engine:
 
-- *Mule*: specify the following property when starting Mule runtime engine:
-
- `anypoint.platform.max_federation_expiration_time=<expiration time in seconds>`
+`anypoint.platform.max_federation_expiration_time=<expiration time in seconds>`
 
 Alternatively, you can specify this parameter in the `wrapper.conf` file.
-
-- *Omni Gateway*: specify this property in YAML policy config:
-
- ----
- - policyRef:
-     name: openidconnect-access-token-enforcement-flex
-   config:
-     ...
-     maxFederationExpirationTime: <expiration time in seconds>
- ----
 
 Setting this property caches the token for the specified amount of time or until the tokens expire, whichever occurs first. If you have enabled this property and the validation endpoint does not send the expiration information, tokens are not cached.
 
-To control the number of tokens that can be cached simultaneously, set this configuration in engine:
+To control the number of tokens that can be cached simultaneously, specify the following property when starting Mule runtime engine:
 
-- *Mule*: specify the following property when starting Mule runtime engine:
-
- `anypoint.platform.openid_connect_cache_max_size=<amount of tokens to be cached; default value is 10.000; specify 0 to disable caching>`
+`anypoint.platform.openid_connect_cache_max_size=<amount of tokens to be cached; default value is 10.000; specify 0 to disable caching>`
 
 Alternatively, you can specify this parameter in the `wrapper.conf` file.
-
-- *Omni Gateway*: specify this property in YAML policy config:
-
- ----
-  - policyRef:
-     name: openidconnect-access-token-enforcement-flex
-    config:
-     ...
-     maxCacheSize: <amount of tokens to be cached; default value is 1.000; specify 0 to disable caching>
- ----
 
 [[token-validation-endpoint-authentication]]
 === Token Validation Endpoint Authentication

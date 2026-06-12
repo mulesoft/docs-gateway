@@ -53,32 +53,6 @@ Example: `#[attributes.headers['client_secret']]`
 | Expose Headers| Defines whether to expose the <<response-header,x-ratelimit headers,>> as part of the response | Checked or unchecked
 |===
 
-=== Configuring Policy Parameters for Anypoint Service Mesh (Non-Mule Applications)
-
-The Rate-Limiting SLA policy works in the same way for Anypoint Service Mesh (non-Mule applications), excluding the following differences:
-
-* The policy does not offer the option to expose headers
-* The client ID and client secret retrieving parameters differ, as explained in the following table.
-
-[%header%autowidth.spread,cols="a,a,a"]
-|===
-| Element | Description | Required
-| Credentials Origin
-| Origin of the client ID and client secret credentials:
-
-* `client_id` and `client_secret` headers
-* Custom headers
-| Yes
-
-| Client ID Header
-| The header name from where to extract the client ID in API requests
-| Yes, if you set the credentials origin to *Custom Headers*
-
-| Client Secret Header
-| The header name from where to extract the client secret in API requests
-| No
-|===
-
 == How This Policy Works
 
 The Rate-Limiting SLA policy monitors the number of requests made in the current window (the available quota), allowing the requests to reach the backend only if the available quota is greater than zero.
