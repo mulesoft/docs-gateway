@@ -7,6 +7,7 @@ endif::[]
 By default, LLM Proxy applies these policies:
 
 * Client ID Enforcement
+* LLM Proxy Core Policy
 * Model Based Routing Policy or Semantic Routing Policy (policy name dependent on embedded service provider)
 
 You don't need to modify these policies.
@@ -48,6 +49,10 @@ To remove the Client ID Enforcement policy, ensure that you either:
 ** xref:policies-included-openid-token-enforcement.adoc[] (If Client ID enforcement is configured, `skipClientIdValidation=false`)
 ** xref:policies-included-jwt-validation.adoc[] (If Client ID enforcement is configured, `skipClientIdValidation=false`)
 ** A custom policy that populates `Authentication.clientName`
+
+* Edit the dataweave variable in LLM Proxy Core to extract a different unique identifier, such as `clientid`, `userid`, or `departmentid`.
++
+NOTE: You can't filter by this unique identifier in Usage Reports.
 
 == See Also
 
