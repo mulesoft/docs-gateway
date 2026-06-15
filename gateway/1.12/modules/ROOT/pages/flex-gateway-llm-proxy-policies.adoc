@@ -7,7 +7,6 @@ endif::[]
 By default, LLM Proxy applies these policies:
 
 * Client ID Enforcement
-* xref:policies-included-llm-proxy-core.adoc[LLM Proxy Core Policy]
 * Model Based Routing Policy or Semantic Routing Policy (policy name dependent on embedded service provider)
 
 You don't need to modify these policies.
@@ -18,7 +17,6 @@ NOTE: LLM Proxy doesn't support xref:policies-included-rate-limiting-sla.adoc[].
 
 These policies are specfic and useful for LLM Proxies:
 
-* xref:policies-included-llm-proxy-core.adoc[]
 * xref:policies-included-regex-prompt-guard.adoc[]
 * xref:policies-included-llm-token-rate-limit.adoc[]
 
@@ -38,7 +36,7 @@ For policy configuration parameters, see xref:policies-included-directory.adoc[]
 == LLM Proxy Authentication Policy
 
 By default, the LLM Proxy has the Client ID Enforcement policy applied.
-This is required because the Client ID Enforcement populates the `Authentication.clientName` variable in the `Authentication` object that is used by the xref:policies-included-llm-proxy-core.adoc[LLM Proxy Core Policy] as a unique identifier for LLM Metrics.
+This is required because the Client ID Enforcement populates the `Authentication.clientName` variable in the `Authentication` object that is used as a unique identifier for LLM Metrics.
 
 To remove the Client ID Enforcement policy, ensure that you either:
 
@@ -50,10 +48,6 @@ To remove the Client ID Enforcement policy, ensure that you either:
 ** xref:policies-included-openid-token-enforcement.adoc[] (If Client ID enforcement is configured, `skipClientIdValidation=false`)
 ** xref:policies-included-jwt-validation.adoc[] (If Client ID enforcement is configured, `skipClientIdValidation=false`)
 ** A custom policy that populates `Authentication.clientName`
-
-* Edit the `Client Identifier` parameter in the xref:policies-included-llm-proxy-core.adoc[LLM Proxy Core Policy] to extract a different unique identifier, such as `#[attributes.headers['client-id']]`, `#[attributes.headers['user-id']]`, or `#[attributes.headers['department-id']]`.
-+
-NOTE: You can't filter by this unique identifier in Usage Reports.
 
 == See Also
 
