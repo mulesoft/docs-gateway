@@ -1,0 +1,115 @@
+= LLM Proxy Core Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, llm, metrics
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | LLM Proxy Core Policy
+>s|Summary | Establishes core functionality for LLM Proxy, including input format detection and metrics collection. This policy is required for all LLM Proxy instances.
+>s|Category | LLM
+>s|First Flex Gateway version available | v1.11.0
+>s| Returned Status Codes | No return codes exist for this policy.
+|===
+
+== Summary
+
+The LLM Proxy Core Policy is the foundational policy in the LLM Proxy policy chain. It establishes the core functionality required by all downstream LLM-related policies, including format specification and metrics collection.
+
+This policy *must be applied first* in the LLM Proxy policy chain to ensure proper initialization and context for subsequent policies. If you don't apply this policy, Flex Gateway might throw a runtime error.
+
+The LLM Proxy Core Policy performs two primary functions:
+
+* *Input Format Detection*: Injects the `x-input-format` header into the request to specify the format of the incoming LLM request (for example, `openai`, `gemini`). This enables downstream policies to properly parse and handle requests from different LLM providers.
+
+* *Metrics Collection*: Emits token usage metrics for LLM requests, enabling monitoring and observability through the LLM Token Usage Report. The policy collects input tokens, output tokens, and total tokens from both streaming and non-streaming responses.
+
+NOTE: This policy must come first in policy order. If this policy doesn't come first, Flex Gateway might throw a runtime error.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The LLM Proxy Core policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+| Client Identifier | No | DataWeave expression to resolve the client name used in usage metrics. +
+Default: `#[authentication.clientName]` +
+This identifier is used to group token usage metrics per client in the LLM Token Usage Report.
+|===
+
+== How This Policy Works
+
+=== Input Format Detection
+
+On startup, the policy fetches the API asset from Anypoint Exchange and reads the platform value from the asset metadata (for example, `openai`, `gemini`).
+
+When a request is received, the policy injects the `x-input-format` header with the platform value. If the asset is not yet loaded or the fetch fails, the policy falls back to `openai` as the default format.
+
+This header is propagated to all downstream policies, allowing them to properly parse and handle the request based on the LLM provider's format.
+
+=== Metrics Collection
+
+The policy extracts token usage information from LLM API responses and emits metrics that populate the LLM Token Usage Report. The policy supports both streaming (Server-Sent Events) and non-streaming JSON responses.
+
+For non-streaming responses, the policy extracts metrics from the response body's `usage` object.
+
+For streaming responses, the policy processes the Server-Sent Events stream and extracts cumulative token usage from the final chunk containing usage information.
+
+The collected metrics include:
+
+* *Input tokens (prompt tokens)*: Number of tokens in the request
+* *Output tokens (completion tokens)*: Number of tokens in the response
+* *Total tokens*: Sum of input and output tokens
+
+These metrics are associated with:
+
+* Client identifier (resolved from the `Client Identifier` parameter)
+* API instance name
+* Routing type (if available)
+* LLM provider (if available)
+* LLM model (if available)
+
+=== Response Headers
+
+When a request completes successfully (HTTP 200), the policy adds the `x-llm-proxy-request-success` header to the response with details about the provider and model used.
+
+== Default Policies
+
+By default, LLM Proxy instances include these policies:
+
+* Client ID Enforcement
+* LLM Proxy Core Policy
+* Model Based Routing Policy or Semantic Routing Policy
+
+You don't need to modify these policies unless you want to customize the client identifier for metrics collection.
+
+== LLM Proxy Authentication Requirements
+
+The LLM Proxy Core Policy requires a unique client identifier to properly attribute token usage in metrics. By default, it uses `authentication.clientName`, which is populated by the Client ID Enforcement policy.
+
+If you remove the Client ID Enforcement policy, ensure that you either:
+
+* Apply a policy that populates `authentication.clientName`:
+** xref:policies-included-client-id-enforcement.adoc[]
+** xref:policies-included-oauth-token-introspection.adoc[] (if Client ID enforcement is configured, `skipClientIdValidation=false`)
+** xref:policies-included-openid-token-enforcement.adoc[] (if Client ID enforcement is configured, `skipClientIdValidation=false`)
+** xref:policies-included-jwt-validation.adoc[] (if Client ID enforcement is configured, `skipClientIdValidation=false`)
+** A custom policy that populates `authentication.clientName`
+
+* Edit the `Client Identifier` parameter in the LLM Proxy Core Policy to extract a different unique identifier, such as `#[attributes.headers['client-id']]` or `#[attributes.headers['user-id']]`.
+
+NOTE: If you use a custom identifier, you can't filter by `authentication.clientName` in the LLM Token Usage Report.
+
+== See Also
+
+* xref:flex-gateway-llm-proxy.adoc[LLM Proxy] - Overview of LLM Proxy and routing
+* xref:flex-gateway-llm-proxy-policies.adoc[LLM Proxy Policies] - LLM Proxy policy chain
+* xref:flex-gateway-llm-proxy-token-reports.adoc[Viewing Token Usage and LLM Metrics] - Token usage reports and limiting usage
+* xref:policies-included-llm-token-rate-limit.adoc[LLM Token Based Rate Limit] - Token-based rate limiting for LLM traffic
