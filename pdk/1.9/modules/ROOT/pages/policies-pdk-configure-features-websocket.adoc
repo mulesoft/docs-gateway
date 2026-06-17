@@ -57,11 +57,11 @@ To maintain the WebSocket protocol integrity, pass control frames (Close, Ping, 
 
 == Maintain Frame Boundaries
 
-To ensure your policy processes complete WebSocket messages regardless of how they arrive from the network.
+Make sure your policy processes complete WebSocket messages regardless of how they arrive from the network.
 
 WebSocket frames might be fragmented across multiple chunks. PDK ensures your policy processes complete WebSocket messages regardless of how they arrive by:
 
-. Accumulating bytes using `state.accumulate().await` when no complete frames are available.
+. Accumulating bytes using `state.accumulate().await` when complete frames aren't available.
 . Tracking remainder bytes between iterations.
 . Parsing complete frames only when sufficient data is available.
 
