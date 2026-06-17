@@ -217,6 +217,58 @@ fn test_grpc_policy() {
 }
 ----
 
+== Test WebSocket Policies
+
+To test custom policies that support WebSocket APIs, use the WebSocket testing capabilities in `pdk-unit`. WebSocket tests differ from standard HTTP tests because they establish an upgrade connection and test bidirectional frame exchange.
+
+To test a WebSocket policy:
+
+. Configure the backend as `UnitHttpResponse::upgrade()` to simulate a successful WebSocket upgrade.
+. Call the `upgrade` method with `UnitHttpRequest::upgrade()` instead of `request`.
+. The result provides an `UpgradeConnection` with the upgrade response and handles to send frames in both directions.
+
+[source,rust]
+----
+use pdk_unit::{UnitTestBuilder, UnitHttpRequest, UnitHttpResponse, UnitFrame, UnitFrameType};
+
+#[test]
+fn websocket_non_text_frames_are_forwarded_unchanged() {
+    let mut tester = UnitTestBuilder::default()
+        .with_backend(UnitHttpResponse::upgrade())
+        .with_entrypoint(crate::configure);
+
+    let conn = tester.upgrade(UnitHttpRequest::upgrade()).unwrap();
+
+    assert_eq!(conn.response().header("custom"), Some("Some"));
+
+    // Test client to server frames
+    conn.client().send_to_server(UnitFrame::ping());
+    let frame = conn.server().next();
+    assert!(frame.is_some());
+    assert_eq!(frame.unwrap().frame_type(), UnitFrameType::Ping);
+
+    // Test server to client frames
+    conn.server().send_to_client(UnitFrame::pong());
+    let frame = conn.client().next();
+    assert!(frame.is_some());
+    assert_eq!(frame.unwrap().frame_type(), UnitFrameType::Pong);
+}
+----
+
+The `UpgradeConnection` provides:
+
+* `response()`: Returns the upgrade response for asserting headers or status.
+* `client()`: Handle to send frames from client to server and receive frames from server.
+* `server()`: Handle to send frames from server to client and receive frames from client.
+
+Use `UnitFrame` to construct WebSocket frames for testing:
+
+* `UnitFrame::text(payload)`: Creates a text frame.
+* `UnitFrame::binary(payload)`: Creates a binary frame.
+* `UnitFrame::ping()`: Creates a ping control frame.
+* `UnitFrame::pong()`: Creates a pong control frame.
+* `UnitFrame::close()`: Creates a close control frame.
+
 == Test Client ID Enforcement
 
 `add_contract_data` seeds the built-in Anypoint Platform stub with a registered API contract to test policies that validate client credentials.
@@ -369,6 +421,15 @@ NOTE: Using `SystemTime::now` creates non-deterministic tests.
 
 |`protobuf_grpc_backend`
 |Proc-macro that derives `GrpcBackend` from annotated `impl` methods and handles protobuf encode/decode.
+
+|`UpgradeConnection`
+|WebSocket connection handle returned by `upgrade()`. Provides `response()` for the upgrade response, `client()` for client-side frame operations, and `server()` for server-side frame operations.
+
+|`UnitFrame`
+|WebSocket frame for testing. Create with `text()`, `binary()`, `ping()`, `pong()`, or `close()`. Query the type with `frame_type()`.
+
+|`UnitFrameType`
+|Enum for WebSocket frame types: `Text`, `Binary`, `Ping`, `Pong`, `Close`.
 
 |`StopIterationMode`
 |Controls ordering when resuming paused requests. Enabled with the `enable_stop_iteration` feature (stable since 1.8).
