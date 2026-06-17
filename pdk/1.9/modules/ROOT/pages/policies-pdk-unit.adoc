@@ -23,7 +23,58 @@ Add `pdk-unit` as a dev-dependency in your policy's `Cargo.toml`:
 [source,toml]
 ----
 [dev-dependencies]
-pdk-unit = { version = "1.8" }
+pdk-unit = { version = "1.9" }
+----
+
+=== Enable pdk-unit for Non-PDK Policies
+
+PDK-Unit supports testing any policy built with https://github.com/proxy-wasm/proxy-wasm-rust-sdk[proxy-wasm-rust-sdk]. You can write and run unit tests for existing proxy-wasm policies without migrating them to PDK first. Use this functionality to:
+
+* Validate behavior before migration: Test your legacy proxy-wasm policies to establish a behavioral baseline.
+* Identify regressions during migration: Establish tests before migrating your policy to PDK to make sure behavioral differences surface immediately.
+* Adopt PDK incrementally: Migrate your policies to PDK at your own pace while still performing unit testing.
+
+To test non-PDK policies with pdk-unit:
+
+. Make these edits to the custom policy's `Cargo.toml` file before compilation:
++
+* Replace the `pdk-proxy-wasm-stub` target instead of using `proxy-wasm`.
++
+NOTE: Don't make this edit for `wasm32` architecture.
+* Add the `pdk_unit` dependency.
++
+[source,toml]
+----
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+proxy-wasm = "0.2.5"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+pdk-proxy-wasm-stub = "1.9.0"
+
+[dev-dependencies]
+pdk_unit = { version = "1.9.0", default-features = false, features = ["proxy-wasm-rust-sdk"] }
+----
+
+. Conditionally import the appropriate crate in your policy code:
++
+[source,rust]
+----
+#[cfg(target_arch = "wasm32")]
+use proxy_wasm as pw;
+#[cfg(not(target_arch = "wasm32"))]
+use pdk_proxy_wasm_stub as pw;
+----
+
+. Write your tests as you would for a PDK policy. However, use the `with_context` method instead of the `with_entrypoint` method. The `with_context` method receives a function that creates a root context of the root filter:
++
+[source,rust]
+----
+let mut tester = UnitTestBuilder::default()
+    .with_backend(TraceBackend::new(UnitHttpResponse::upgrade()))
+    .with_http_upstream("name.namespace.svc", |req: UnitHttpRequest| {
+        UnitHttpResponse::new(200)
+    })
+    .with_context(|| Box::new(WebSocketRoot));
 ----
 
 == Basic Request and Response Test
