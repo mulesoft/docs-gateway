@@ -28,7 +28,7 @@ pdk-unit = { version = "1.9" }
 
 === Enable pdk-unit for Non-PDK Policies
 
-PDK-Unit supports testing any policy built with https://github.com/proxy-wasm/proxy-wasm-rust-sdk[proxy-wasm-rust-sdk]. You can write and run unit tests for existing proxy-wasm policies without needing to migrate them to PDK first. Use this functionality to:
+PDK-Unit supports testing any policy built with https://github.com/proxy-wasm/proxy-wasm-rust-sdk[proxy-wasm-rust-sdk]. You can write and run unit tests for existing proxy-wasm policies without migrating them to PDK first. Use this functionality to:
 
 * Validate behavior before migration: Test your legacy proxy-wasm policies to establish a behavioral baseline.
 * Identify regressions during migration: Establish tests before migrating your policy to PDK to make sure behavioral differences surface immediately.
@@ -38,9 +38,9 @@ To test non-PDK policies with pdk-unit:
 
 . Make these edits to the custom policy's `Cargo.toml` file before compilation:
 +
-* Replace the `pdk-proxy-wasm-stub` target instead of `proxy-wasm`.
+* Replace the `pdk-proxy-wasm-stub` target instead of using `proxy-wasm`.
 +
-NOTE: Don't make this edit for wasm32 architecture.
+NOTE: Don't make this edit for `wasm32` architecture.
 * Add the `pdk_unit` dependency.
 +
 [source,toml]
