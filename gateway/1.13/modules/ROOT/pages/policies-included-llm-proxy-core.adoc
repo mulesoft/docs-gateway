@@ -1,0 +1,61 @@
+= LLM Proxy Core Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, llm, metrics
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | LLM Proxy Core Policy
+>s|Summary | Establishes core functionality and metrics collection for LLM Proxies
+>s|First Flex Gateway version available | v1.11.0
+>s| Returned Status Codes | No return codes exist for this policy.
+|===
+
+== Summary
+
+The LLM Proxy Core Policy is the foundational policy in the LLM Proxy policy chain and enables LLM Proxy metric collection. The policy is applied automatically when creating an LLM Proxy.
+
+NOTE: This policy doesn't collect metrics for Gemini format LLM Proxies.
+
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The LLM Proxy Core policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+| Client Identifier | No | DataWeave expression to resolve the client name used in usage metrics. +
+Default: `#[authentication.clientName]` +
+This identifier is used to group token usage metrics per client in the LLM Token Usage Report.
+|===
+
+== LLM Proxy Authentication Requirements
+
+The LLM Proxy Core Policy requires a unique client identifier to properly attribute token usage in metrics. By default, it uses `authentication.clientName`, which is populated by the Client ID Enforcement policy.
+
+If you remove the Client ID Enforcement policy, ensure that you either:
+
+* Apply a policy that populates `authentication.clientName`:
+** xref:policies-included-client-id-enforcement.adoc[]
+** xref:policies-included-oauth-token-introspection.adoc[] (if Client ID enforcement is configured, `skipClientIdValidation=false`)
+** xref:policies-included-openid-token-enforcement.adoc[] (if Client ID enforcement is configured, `skipClientIdValidation=false`)
+** xref:policies-included-jwt-validation.adoc[] (if Client ID enforcement is configured, `skipClientIdValidation=false`)
+** A custom policy that populates `authentication.clientName`
+
+* Edit the `Client Identifier` parameter in the LLM Proxy Core Policy to extract a different unique identifier, such as `#[attributes.headers['client-id']]` or `#[attributes.headers['user-id']]`.
+
+NOTE: If you use a custom identifier, you can't filter by `authentication.clientName` in the LLM Token Usage Report.
+
+== See Also
+
+* xref:flex-gateway-llm-proxy.adoc[LLM Proxy] - Overview of LLM Proxy and routing
+* xref:flex-gateway-llm-proxy-policies.adoc[LLM Proxy Policies] - LLM Proxy policy chain
+* xref:flex-gateway-llm-proxy-token-reports.adoc[Viewing Token Usage and LLM Metrics] - Token usage reports and limiting usage
+* xref:policies-included-llm-token-rate-limit.adoc[LLM Token Based Rate Limit] - Token-based rate limiting for LLM traffic
