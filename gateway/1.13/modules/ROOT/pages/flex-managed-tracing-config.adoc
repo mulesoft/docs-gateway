@@ -1,4 +1,4 @@
-= Configuring Distributed Tracing for Managed Omni Gateway
+= Configure Distributed Tracing for Managed Omni Gateway
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -6,30 +6,19 @@ endif::[]
 
 include::partial$tracing-support.adoc[]
 
-== Enable and Configure Distributed Tracing for your Managed Omni Gateway
+Configure distributed tracing for Managed Omni Gateway via:
 
-To enable distributed tracing for your Managed Omni Gateway:
+* Managed Omni Gateway deployment: Set initial distributed tracing values when you create the gateway.
+* Runtime Manager runtime configurations: Applies to all API instances in the gateway after the gateway is deployed.
+* Policy: Applies to one API instance and provides granular control.
 
-. From Anypoint Platform, select *Runtime Manager > Omni Gateways*.
-. Click the Managed Omni Gateway name.
-. In the navigation menu, click Settings.
-. Click *Advanced options*.
-. Click *Tracing*.
-. Turn on *Distributed tracing*.
-. Set the *Sampling percentage* to the percentage of transactions that you want to trace.
-** This setting corresponds to the `overall` sampling percentage. The `client` and `random` sampling percentages are set to 100% by default, if the sampling percentage is set to a non-zero value here.
-** Set the *Sampling percentage* to 0 if you want to specify the sampling percentage only on a per-API basis, using the Tracing policy.
-. Click *Apply Changes*.
+== Configure Distributed Tracing During Managed Gateway Deployment
+
+Set distributed tracing values in the deployment flow when you create a Managed Omni Gateway.
+For the UI steps and parameter descriptions, see xref:flex-gateway-managed-set-up.adoc[].
+
+include::partial$tracing-export.adoc[tags=tracing-runtime-manager]
 
 include::partial$tracing-export.adoc[tags=telemtery-exporter]
-
-// == Configure Labels
-
-// To configure labels for your Managed Omni Gateway:
-
-// . From Anypoint Platform, select *Runtime Manager > Omni Gateways*.
-// . Click the Managed Omni Gateway name.
-// . In the navigation menu, click Settings.
-// . Click *Advanced options*.
 
 include::partial$tracing-configuration.adoc[]
