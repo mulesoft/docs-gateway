@@ -11,7 +11,7 @@ endif::[]
 >s| Policy Name | OAuth Protected Resource Metadata
 >s|Summary      | Serves OAuth 2.0 Protected Resource Metadata at the well-known endpoint
 >s|Category | Security
->s|First Omni Gateway version available | v1.13.0
+>s|First Omni Gateway version available | v1.9.3
 .3+>.^s| Returned Status Codes
 |200 - Successfully returned metadata document
 |404 - Request path does not match the well-known endpoint
@@ -167,176 +167,6 @@ Example: `["ES256"]`
 
 |===
 
-==== Resource Configuration Examples
-
-===== Minimal Configuration
-
-This example shows the minimum required configuration with basic scope and authorization server information:
-
-[source,yaml]
-----
-- policyRef:
-    name: oauth-protected-resource-metadata-policy-flex
-  config:
-    resource: "https://api.example.com"
-    scopesSupported:
-      - "read"
-      - "write"
-    authorizationServers:
-      - "https://auth.example.com"
-----
-
-Request:
-[source,http]
-----
-GET /.well-known/oauth-protected-resource HTTP/1.1
-Host: api.example.com
-----
-
-Response:
-[source,json]
-----
-{
-  "resource": "https://api.example.com",
-  "authorization_servers": ["https://auth.example.com"],
-  "scopes_supported": ["read", "write"]
-}
-----
-
-===== Full Configuration
-
-This example demonstrates all available configuration parameters:
-
-[source,yaml]
-----
-- policyRef:
-    name: oauth-protected-resource-metadata-policy-flex
-  config:
-    resource: "https://api.example.com/v1"
-    authorizationServers:
-      - "https://auth.example.com"
-      - "https://backup-auth.example.com"
-    jwksUri: "https://api.example.com/.well-known/jwks.json"
-    scopesSupported:
-      - "read"
-      - "write"
-      - "admin"
-    bearerMethodsSupported:
-      - "header"
-    resourceSigningAlgValuesSupported:
-      - "RS256"
-      - "ES256"
-    resourceName: "Example API"
-    resourceDocumentation: "https://docs.example.com/api"
-    resourcePolicyUri: "https://example.com/privacy"
-    resourceTosUri: "https://example.com/tos"
-    tlsClientCertificateBoundAccessTokens: true
-    authorizationDetailsTypesSupported:
-      - "payment_initiation"
-    dpopSigningAlgValuesSupported:
-      - "ES256"
-    dpopBoundAccessTokensRequired: true
-----
-
-Response:
-[source,json]
-----
-{
-  "resource": "https://api.example.com/v1",
-  "authorization_servers": ["https://auth.example.com", "https://backup-auth.example.com"],
-  "jwks_uri": "https://api.example.com/.well-known/jwks.json",
-  "scopes_supported": ["read", "write", "admin"],
-  "bearer_methods_supported": ["header"],
-  "resource_signing_alg_values_supported": ["RS256", "ES256"],
-  "resource_name": "Example API",
-  "resource_documentation": "https://docs.example.com/api",
-  "resource_policy_uri": "https://example.com/privacy",
-  "resource_tos_uri": "https://example.com/tos",
-  "tls_client_certificate_bound_access_tokens": true,
-  "authorization_details_types_supported": ["payment_initiation"],
-  "dpop_signing_alg_values_supported": ["ES256"],
-  "dpop_bound_access_tokens_required": true
-}
-----
-
-===== Per-Resource Scope Overrides
-
-This example shows how to configure different scopes for different resource paths:
-
-[source,yaml]
-----
-- policyRef:
-    name: oauth-protected-resource-metadata-policy-flex
-  config:
-    resource: "https://api.example.com"
-    authorizationServers:
-      - "https://auth.example.com"
-    scopesSupported:
-      - "read"
-      - "write"
-    resourceScopesOverrides:
-      - path: "users"
-        scopesSupported:
-          - "users:read"
-          - "users:write"
-          - "users:delete"
-      - path: "orders"
-        scopesSupported:
-          - "orders:read"
-          - "orders:create"
-----
-
-Request to default endpoint:
-[source,http]
-----
-GET /.well-known/oauth-protected-resource HTTP/1.1
-Host: api.example.com
-----
-
-Response (default scopes):
-[source,json]
-----
-{
-  "resource": "https://api.example.com",
-  "authorization_servers": ["https://auth.example.com"],
-  "scopes_supported": ["read", "write"]
-}
-----
-
-Request to users-specific endpoint:
-[source,http]
-----
-GET /.well-known/oauth-protected-resource/users HTTP/1.1
-Host: api.example.com
-----
-
-Response (overridden scopes for `/users`):
-[source,json]
-----
-{
-  "resource": "https://api.example.com",
-  "authorization_servers": ["https://auth.example.com"],
-  "scopes_supported": ["users:read", "users:write", "users:delete"]
-}
-----
-
-Request to unconfigured endpoint:
-[source,http]
-----
-GET /.well-known/oauth-protected-resource/billing HTTP/1.1
-Host: api.example.com
-----
-
-Response (falls back to default):
-[source,json]
-----
-{
-  "resource": "https://api.example.com",
-  "authorization_servers": ["https://auth.example.com"],
-  "scopes_supported": ["read", "write"]
-}
-----
-
 include::partial$policy-title-headers.adoc[tag=ui]
 
 [%header%autowidth.spread,cols="a,a,a"]
@@ -446,13 +276,83 @@ The policy maps configuration properties to JSON response fields using snake_cas
 | `dpopBoundAccessTokensRequired` | `dpop_bound_access_tokens_required`
 |===
 
-=== Omission Rules
+=== Example Responses
 
-To minimize response size and comply with RFC 9728, the policy omits certain fields from the response:
+The following examples show the JSON metadata document the policy returns for a `GET` request to the well-known endpoint. They apply to both Omni Gateway Local Mode and Managed Omni Gateway and Omni Gateway Connected Mode—only the configuration format differs between modes; the served response is the same.
 
-* Optional fields not configured (e.g., if `jwksUri` is not set, `jwks_uri` is not included in the response)
-* Boolean fields with default values: `tlsClientCertificateBoundAccessTokens` and `dpopBoundAccessTokensRequired` are omitted when `false`
-* Empty arrays explicitly configured are included (they carry semantic meaning per RFC 9728)
+==== Minimal Configuration
+
+When only `resource`, `authorizationServers`, and `scopesSupported` are configured, a `GET` request to `/.well-known/oauth-protected-resource` returns:
+
+[source,json]
+----
+{
+  "resource": "https://api.example.com",
+  "authorization_servers": ["https://auth.example.com"],
+  "scopes_supported": ["read", "write"]
+}
+----
+
+==== Full Configuration
+
+When all parameters are configured, a `GET` request to `/.well-known/oauth-protected-resource` returns all configured fields:
+
+[source,json]
+----
+{
+  "resource": "https://api.example.com/v1",
+  "authorization_servers": ["https://auth.example.com", "https://backup-auth.example.com"],
+  "jwks_uri": "https://api.example.com/.well-known/jwks.json",
+  "scopes_supported": ["read", "write", "admin"],
+  "bearer_methods_supported": ["header"],
+  "resource_signing_alg_values_supported": ["RS256", "ES256"],
+  "resource_name": "Example API",
+  "resource_documentation": "https://docs.example.com/api",
+  "resource_policy_uri": "https://example.com/privacy",
+  "resource_tos_uri": "https://example.com/tos",
+  "tls_client_certificate_bound_access_tokens": true,
+  "authorization_details_types_supported": ["payment_initiation"],
+  "dpop_signing_alg_values_supported": ["ES256"],
+  "dpop_bound_access_tokens_required": true
+}
+----
+
+==== Per-Resource Scope Overrides
+
+When `resourceScopesOverrides` maps the `users` path suffix to `["users:read", "users:write", "users:delete"]` over a top-level default of `["read", "write"]`:
+
+* A `GET` request to the default endpoint, `/.well-known/oauth-protected-resource`, returns the top-level scopes:
++
+[source,json]
+----
+{
+  "resource": "https://api.example.com",
+  "authorization_servers": ["https://auth.example.com"],
+  "scopes_supported": ["read", "write"]
+}
+----
++
+* A `GET` request to `/.well-known/oauth-protected-resource/users` matches the `users` override and returns its scopes:
++
+[source,json]
+----
+{
+  "resource": "https://api.example.com",
+  "authorization_servers": ["https://auth.example.com"],
+  "scopes_supported": ["users:read", "users:write", "users:delete"]
+}
+----
++
+* A `GET` request to an unconfigured suffix, such as `/.well-known/oauth-protected-resource/billing`, falls back to the top-level scopes:
++
+[source,json]
+----
+{
+  "resource": "https://api.example.com",
+  "authorization_servers": ["https://auth.example.com"],
+  "scopes_supported": ["read", "write"]
+}
+----
 
 === Edge Cases
 
@@ -461,33 +361,3 @@ To minimize response size and comply with RFC 9728, the policy omits certain fie
 * *Case sensitivity:* Path matching is case-sensitive per RFC 9728 and RFC 8615.
 * *Query parameters:* Query strings on the well-known URL are ignored (the path is matched without query or fragment).
 * *Empty `bearerMethodsSupported`:* An explicitly configured empty array `[]` is serialized in the response (it signals "no bearer methods supported"), distinct from omitting the field entirely.
-
-=== Caching
-
-The policy does not set `Cache-Control` headers by default. HTTP caching is delegated to the gateway's infrastructure or a separate caching policy.
-
-== Non-GET Request Handling
-
-When a non-GET request is made to the well-known endpoint, the policy responds with a `405 Method Not Allowed` status code:
-
-Request:
-[source,http]
-----
-POST /.well-known/oauth-protected-resource HTTP/1.1
-Host: api.example.com
-----
-
-Response:
-[source,http]
-----
-HTTP/1.1 405 Method Not Allowed
-Allow: GET
-----
-
-== See Also
-
-* xref:policies-included-jwt-validation.adoc[JWT Validation Policy]
-* xref:policies-included-oauth-token-introspection.adoc[OAuth 2.0 Token Introspection Policy]
-* xref:policies-included-openid-token-enforcement.adoc[OpenID Connect OAuth 2.0 Token Enforcement Policy]
-* https://www.rfc-editor.org/rfc/rfc9728[RFC 9728: OAuth 2.0 Protected Resource Metadata^]
-* https://www.rfc-editor.org/rfc/rfc8707[RFC 8707: Resource Indicators for OAuth 2.0^]
