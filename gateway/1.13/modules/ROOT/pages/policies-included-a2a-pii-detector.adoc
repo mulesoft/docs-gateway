@@ -172,6 +172,29 @@ When the action is set to *Log and mask*, the policy logs detected PII with mask
 ]
 ----
 --
+
+Reject::
++
+--
+When the action is set to *Reject*, the policy blocks the request and returns a JSON-RPC 2.0 error response:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": "<request-id>",
+  "error": {
+    "code": -32001,
+    "message": "PII Validation Failed",
+    "data": {
+      "details": "Detected PII in request"
+    }
+  }
+}
+----
+
+The agent does not receive the original request containing PII.
+--
 ====
 
 === Custom Pattern Example

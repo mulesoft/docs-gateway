@@ -179,6 +179,39 @@ The client does not receive the original response containing PII.
 --
 ====
 
+=== Custom Pattern Example
+
+This example shows detection of a custom AWS Access Key pattern:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Use this AWS key: AKIAIOSFODNN7EXAMPLE for deployment"
+      }
+    ]
+  }
+}
+----
+
+With a custom pattern configured (`name: AWS Access Key`, `pattern: AKIA[0-9A-Z]{16}`), the policy logs:
+
+[source,json]
+----
+[accessLog] PII detected in MCP response (log only): [
+  {
+    "pii_type": "AWS Access Key",
+    "masked_value": "********************",
+    "location": "result.content[0].text"
+  }
+]
+----
+
 == See Also
 
 * xref:policies-included-a2a-pii-detector.adoc[A2A PII Detector Policy]

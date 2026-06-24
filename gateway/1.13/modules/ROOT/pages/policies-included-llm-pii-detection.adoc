@@ -172,6 +172,37 @@ When the action is set to *Log and mask*, the policy logs detected PII with mask
 --
 ====
 
+=== Custom Pattern Example
+
+This example shows detection of a custom AWS Access Key pattern:
+
+[source,http]
+----
+POST /v1/chat/completions HTTP/1.1
+Content-Type: application/json
+
+{
+  "model": "gemini/gemini-2.5-flash",
+  "messages": [
+    {"role": "user", "content": "Use this AWS key: AKIAIOSFODNN7EXAMPLE for deployment"}
+  ]
+}
+----
+
+With a custom pattern configured (`name: AWS Access Key`, `pattern: AKIA[0-9A-Z]{16}`), the policy logs:
+
+[source,json]
+----
+[accessLog] PII detected in LLM request (log only): [
+  {
+    "pii_type": "AWS Access Key",
+    "masked_value": "********************",
+    "start": 19,
+    "end": 39
+  }
+]
+----
+
 == See Also
 
 * xref:flex-gateway-llm-proxy.adoc[LLM Proxy]
