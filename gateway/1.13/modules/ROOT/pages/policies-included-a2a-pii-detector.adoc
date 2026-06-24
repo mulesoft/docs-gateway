@@ -12,13 +12,14 @@ endif::[]
 >s|Category | A2A
 >s|First Omni Gateway version available | v1.9.3
 >s| Returned Status Codes |
+JSON-RPC 2.0 error with code `-32001`
 |===
 
 include::partial$a2a-version-support.adoc[]
 
 == Summary
 
-The A2A PII Detector policy detects personally identifiable information (PII) in requests sent to the agent. If PII is detected, you can either log or block the request. A policy violation is always reported if PII is detected.
+The A2A PII Detector policy detects personally identifiable information (PII) in requests sent to the agent. If PII is detected, you can either log or block the request. A policy violation is reported when PII is detected.
 
 == Configuring Policy Parameters
 
@@ -28,38 +29,106 @@ The A2A PII Detector policy isn't supported in Local Mode.
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
-[%header%autowidth.spread,cols="a,a"]
+[%header%autowidth.spread,cols="a,a,a"]
 
 |===
-| Element | Description
-|  Entities| Array that defines the types of PII to detect. You can select multiple PII types. Supported values are `Email`, `US SSN`, `Credit Card`, `Phone Number`.
- + 
-For more information, see <<pii-types>>.
-|  Action | Action to take when PII is detected. Supported values are `Log` or `Block`.
+| Element | Required | Description
+| PII Types | Yes | Array of built-in PII types to detect. Supported values are *Email*, *US SSN*, *Credit Card*, and *Phone Number*. For more information, see <<pii-types>>.
+| Custom PII Patterns | No | Array of custom regex patterns to detect additional sensitive values. Define a name and regex pattern for each array entry. For example, use `name: AWS Access Key` and `pattern: AKIA[0-9A-Z]{16}` to detect AWS access keys.
+| Action | No | Action to take when PII is detected. Supported values are *Reject* and *Log*. Default is *Log*.
 |===
+
+== How This Policy Works
+
+The policy scans A2A requests for PII. It recursively inspects all string values in the JSON body, including all task parts and message content.
+
+For request processing:
+
+* If *Action* is *Reject*, the policy blocks the request and returns a JSON-RPC 2.0 error response.
+* If *Action* is *Log*, the policy forwards the request and logs findings with masked values.
+
+The policy detects overlapping PII patterns and keeps the longest (most specific) match. For example, a credit card number with delimiters that could also match an SSN pattern is detected as a credit card.
 
 [[pii-types]]
-=== PII Types
+== PII Types
 
-When you configure an A2A PII Detector policy, you can choose which types of PII to detect.
+When you configure the A2A PII Detector policy, choose which types of PII to detect.
 
-
-The following table describes the type of PII this policy can detect:
-
-[%header,cols='1a,5a'] 
+[%header,cols='1a,5a']
 |===
 |PII Type
 |Description
 
 |Email
-|Standard email addresses such as `User.Name+tag@example.com`
+|Standard email addresses such as `User.Name+tag@example.com`.
 
 |US SSN
-|United States Social Security Numbers (SSNs) in the standard format: `XXX-XX-XXXX` where each `X` is a digit. For example: `123-45-6789`.
+|United States Social Security Numbers (SSNs), including formats with various delimiters such as `123-45-6789`, `123 45 6789`, `123.45.6789`, `123,45,6789`, `123/45/6789`, `123\45\6789`, or `123456789`.
 
 |Credit Card
-|Credit card numbers in the form of four groups of four digits, separated by optional spaces or hyphens. Examples: `1234-5678-9012-3456`, `1234 5678 9012 3456`, or `1234567890123456`.
+|Credit card numbers for Visa, MasterCard, American Express, and Discover, with or without separators. Examples: `4111-1111-1111-1111`, `4111 1111 1111 1111`, `4111111111111111`, `4111.1111.1111.1111`, `5500-0000-0000-0004`, `3782-822463-10005`, `6011-0000-0000-0004`.
 
 |Phone Number
-|United States phone numbers in various formats, with or without country code, parentheses, spaces, hyphens, or dots. Examples: `123-456-7890`, `(123) 456-7890`, `123.456.7890`, `+1 123 456 7890`, or `1234567890`.
+|Phone numbers in common domestic and international formats based on ITU E.164 country codes. Examples include US numbers like `(555) 123-4567`, `555-123-4567`, `+1-555-123-4567`, and international numbers like `+91 98765 43210`, `+44 20 7946 0958`, `+49 30 12345678`.
 |===
+
+== Response on Reject
+
+When the policy blocks a request, it returns a JSON-RPC 2.0 compliant error response with code `-32001`:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": "<request-id>",
+  "error": {
+    "code": -32001,
+    "message": "PII Validation Failed",
+    "data": {
+      "details": "Detected PII in request"
+    }
+  }
+}
+----
+
+== Example Request and Logging
+
+This example shows a request containing PII and the corresponding log output:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "method": "message/send",
+  "params": {
+    "text": "Please contact me at john.doe@example.com or call (555) 123-4567. My SSN is 123-45-6789."
+  }
+}
+----
+
+When the action is set to *Log*, the policy logs detected PII with masked values:
+
+[source,json]
+----
+[accessLog] PII detected in A2A request (log only): [
+  {
+    "pii_type": "Email",
+    "masked_value": "********@example.com",
+    "location": "params.text"
+  },
+  {
+    "pii_type": "Phone",
+    "masked_value": "+1******567",
+    "location": "params.text"
+  },
+  {
+    "pii_type": "SSN",
+    "masked_value": "***-**-789",
+    "location": "params.text"
+  }
+]
+----
+
+== See Also
+
+* xref:policies-included-llm-pii-detection.adoc[LLM PII Detection Policy]
