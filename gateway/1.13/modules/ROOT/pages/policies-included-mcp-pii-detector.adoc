@@ -16,16 +16,9 @@ endif::[]
 
 == Summary
 
-The MCP PII Detector policy blocks elicitation responses containing personally identifiable information (PII) from reaching MCP servers. 
+The MCP PII Detector policy detects personally identifiable information (PII) in elicitation responses from MCP servers.
 
-When PII is detected in the elicitation response `result` field, the policy:
-
-* Reports a policy violation.
-* Sends a modified response to the MCP server that the request was declined and includes the message `PII data requested or found in user response`.
-
-The policy doesn't send a response to the client when PII is detected.
-
-The policy only scans JSON-RPC responses that contain a `result` field. JSON-RPC requests with a `method` field are ignored.
+When PII is detected, you can configure the policy to reject the response, log findings, or log masked findings. The policy reports a policy violation when PII is detected.
 
 == Configuring Policy Parameters
 
@@ -41,17 +34,18 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Element | Required | Description
 | PII Types | Yes | Array of built-in PII types to detect. Supported values are *Email*, *US SSN*, *Credit Card*, and *Phone Number*. For more information, see <<pii-types>>.
 | Custom PII Patterns | No | Array of custom regex patterns to detect additional sensitive values. Define a name and regex pattern for each array entry. For example, use `name: AWS Access Key` and `pattern: AKIA[0-9A-Z]{16}` to detect AWS access keys.
+| Action | No | Action to take when PII is detected. Supported values are *Reject*, *Log*, and *Log and mask*. Default is *Log*.
 |===
 
 == How This Policy Works
 
-The policy scans JSON-RPC responses containing a `result` field for PII. It recursively inspects all string values in the response body.
+The policy scans JSON-RPC responses containing a `result` field for PII. It recursively inspects all string values in the response body. The policy only scans JSON-RPC responses that contain a `result` field. JSON-RPC requests with a `method` field are ignored.
 
-When PII is detected in the elicitation response:
+For response processing:
 
-* The policy reports a policy violation with masked PII values in the logs.
-* The policy sends a modified response to the MCP server indicating the request was declined.
-* The client does not receive the original response containing PII.
+* If *Action* is *Reject*, the policy blocks the response and sends a modified response to the MCP server indicating the request was declined. The client does not receive the original response containing PII.
+* If *Action* is *Log*, the policy forwards the response and logs findings with actual PII values.
+* If *Action* is *Log and mask*, the policy forwards the response and logs findings with masked values.
 
 The policy detects overlapping PII patterns and keeps the longest (most specific) match. For example, a credit card number with delimiters that could also match an SSN pattern is detected as a credit card.
 
@@ -80,7 +74,7 @@ When you configure an MCP PII Detector policy, you can choose which types of PII
 
 == Example Response and Logging
 
-This example shows an elicitation response containing PII and the corresponding log output:
+This example shows an elicitation response containing PII and the corresponding log output for different action configurations:
 
 [source,json]
 ----
@@ -98,11 +92,48 @@ This example shows an elicitation response containing PII and the corresponding 
 }
 ----
 
-When PII is detected, the policy logs the findings with masked values:
+[tabs]
+====
+Log::
++
+--
+When the action is set to *Log*, the policy logs detected PII with the actual values:
 
 [source,json]
 ----
-[accessLog] PII detected in MCP response: [
+[accessLog] PII detected in MCP response (log only): [
+  {
+    "pii_type": "Email",
+    "value": "john.doe@example.com",
+    "location": "result.content[0].text"
+  },
+  {
+    "pii_type": "Phone",
+    "value": "(555) 123-4567",
+    "location": "result.content[0].text"
+  },
+  {
+    "pii_type": "SSN",
+    "value": "123-45-6789",
+    "location": "result.content[0].text"
+  },
+  {
+    "pii_type": "CreditCard",
+    "value": "4532 1234 5678 9012",
+    "location": "result.content[0].text"
+  }
+]
+----
+--
+
+Log and Mask::
++
+--
+When the action is set to *Log and mask*, the policy logs detected PII with masked values:
+
+[source,json]
+----
+[accessLog] PII detected in MCP response (log only): [
   {
     "pii_type": "Email",
     "masked_value": "********@example.com",
@@ -125,8 +156,12 @@ When PII is detected, the policy logs the findings with masked values:
   }
 ]
 ----
+--
 
-The MCP server receives a modified response indicating the request was declined:
+Reject::
++
+--
+When the action is set to *Reject*, the policy blocks the response. The MCP server receives a modified response indicating the request was declined:
 
 [source,json]
 ----
@@ -139,6 +174,10 @@ The MCP server receives a modified response indicating the request was declined:
   }
 }
 ----
+
+The client does not receive the original response containing PII.
+--
+====
 
 == See Also
 
