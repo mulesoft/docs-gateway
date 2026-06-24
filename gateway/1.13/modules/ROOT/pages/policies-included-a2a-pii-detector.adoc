@@ -93,7 +93,7 @@ When the policy blocks a request, it returns a JSON-RPC 2.0 compliant error resp
 
 == Example Request and Logging
 
-This example shows a request containing PII and the corresponding log output:
+This example shows a request containing multiple PII types and the corresponding log output:
 
 [source,json]
 ----
@@ -101,7 +101,7 @@ This example shows a request containing PII and the corresponding log output:
   "jsonrpc": "2.0",
   "method": "message/send",
   "params": {
-    "text": "Please contact me at john.doe@example.com or call (555) 123-4567. My SSN is 123-45-6789."
+    "text": "Contact me at john.doe@example.com or call (555) 123-4567. My SSN is 123-45-6789 and my credit card is 4532 1234 5678 9012."
   }
 }
 ----
@@ -123,8 +123,49 @@ When the action is set to *Log*, the policy logs detected PII with masked values
   },
   {
     "pii_type": "SSN",
-    "masked_value": "***-**-789",
+    "masked_value": "***-**-6789",
     "location": "params.text"
+  },
+  {
+    "pii_type": "CreditCard",
+    "masked_value": "*************9012",
+    "location": "params.text"
+  }
+]
+----
+
+=== Custom Pattern Example
+
+This example shows detection of a custom AWS Access Key pattern:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "method": "tasks/get",
+  "params": {
+    "taskId": "123",
+    "includeDescription": true
+  }
+}
+
+Response:
+{
+  "result": {
+    "description": "Use this AWS key: AKIAIOSFODNN7EXAMPLE for deployment"
+  }
+}
+----
+
+With a custom pattern configured (`name: AWS Access Key`, `pattern: AKIA[0-9A-Z]{16}`), the policy logs:
+
+[source,json]
+----
+[accessLog] PII detected in A2A request (log only): [
+  {
+    "pii_type": "AWS Access Key",
+    "masked_value": "********************",
+    "location": "result.description"
   }
 ]
 ----

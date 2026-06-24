@@ -35,14 +35,25 @@ The MCP PII Detector policy isn't supported in Local Mode.
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
-[%header%autowidth.spread,cols="a,a"]
+[%header%autowidth.spread,cols="a,a,a"]
 
 |===
-| Element | Description
-|  Entities| Array that defines the types of PII to detect. You can select multiple PII types. Supported values are `Email`, `US SSN`, `Credit Card`, `Phone Number`.
- + 
-For more information, see <<pii-types>>.
+| Element | Required | Description
+| PII Types | Yes | Array of built-in PII types to detect. Supported values are *Email*, *US SSN*, *Credit Card*, and *Phone Number*. For more information, see <<pii-types>>.
+| Custom PII Patterns | No | Array of custom regex patterns to detect additional sensitive values. Define a name and regex pattern for each array entry. For example, use `name: AWS Access Key` and `pattern: AKIA[0-9A-Z]{16}` to detect AWS access keys.
 |===
+
+== How This Policy Works
+
+The policy scans JSON-RPC responses containing a `result` field for PII. It recursively inspects all string values in the response body.
+
+When PII is detected in the elicitation response:
+
+* The policy reports a policy violation with masked PII values in the logs.
+* The policy sends a modified response to the MCP server indicating the request was declined.
+* The client does not receive the original response containing PII.
+
+The policy detects overlapping PII patterns and keeps the longest (most specific) match. For example, a credit card number with delimiters that could also match an SSN pattern is detected as a credit card.
 
 [[pii-types]]
 == PII Types
@@ -66,4 +77,71 @@ When you configure an MCP PII Detector policy, you can choose which types of PII
 |Phone Number
 |Phone numbers in common domestic and international formats based on ITU E.164 country codes. Examples include US numbers like `(555) 123-4567`, `555-123-4567`, `+1-555-123-4567`, and international numbers like `+91 98765 43210`, `+44 20 7946 0958`, `+49 30 12345678`.
 |===
+
+== Example Response and Logging
+
+This example shows an elicitation response containing PII and the corresponding log output:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "User contact information: Email is john.doe@example.com, phone is (555) 123-4567, SSN is 123-45-6789, and credit card is 4532 1234 5678 9012."
+      }
+    ]
+  }
+}
+----
+
+When PII is detected, the policy logs the findings with masked values:
+
+[source,json]
+----
+[accessLog] PII detected in MCP response: [
+  {
+    "pii_type": "Email",
+    "masked_value": "********@example.com",
+    "location": "result.content[0].text"
+  },
+  {
+    "pii_type": "Phone",
+    "masked_value": "+1******567",
+    "location": "result.content[0].text"
+  },
+  {
+    "pii_type": "SSN",
+    "masked_value": "***-**-6789",
+    "location": "result.content[0].text"
+  },
+  {
+    "pii_type": "CreditCard",
+    "masked_value": "*************9012",
+    "location": "result.content[0].text"
+  }
+]
+----
+
+The MCP server receives a modified response indicating the request was declined:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "declined": true,
+    "message": "PII data requested or found in user response"
+  }
+}
+----
+
+== See Also
+
+* xref:policies-included-a2a-pii-detector.adoc[A2A PII Detector Policy]
+* xref:policies-included-llm-pii-detection.adoc[LLM PII Detection Policy]
 
