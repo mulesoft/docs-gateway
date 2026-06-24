@@ -167,6 +167,87 @@ Example: `["ES256"]`
 
 |===
 
+==== Resource Configuration Examples
+
+===== Minimal Configuration
+
+This example shows the minimum required configuration with basic scope and authorization server information:
+
+[source,yaml]
+----
+- policyRef:
+    name: oauth-protected-resource-metadata-policy-flex
+  config:
+    resource: "https://api.example.com"
+    scopesSupported:
+      - "read"
+      - "write"
+    authorizationServers:
+      - "https://auth.example.com"
+----
+
+===== Full Configuration
+
+This example demonstrates all available configuration parameters:
+
+[source,yaml]
+----
+- policyRef:
+    name: oauth-protected-resource-metadata-policy-flex
+  config:
+    resource: "https://api.example.com/v1"
+    authorizationServers:
+      - "https://auth.example.com"
+      - "https://backup-auth.example.com"
+    jwksUri: "https://api.example.com/.well-known/jwks.json"
+    scopesSupported:
+      - "read"
+      - "write"
+      - "admin"
+    bearerMethodsSupported:
+      - "header"
+    resourceSigningAlgValuesSupported:
+      - "RS256"
+      - "ES256"
+    resourceName: "Example API"
+    resourceDocumentation: "https://docs.example.com/api"
+    resourcePolicyUri: "https://example.com/privacy"
+    resourceTosUri: "https://example.com/tos"
+    tlsClientCertificateBoundAccessTokens: true
+    authorizationDetailsTypesSupported:
+      - "payment_initiation"
+    dpopSigningAlgValuesSupported:
+      - "ES256"
+    dpopBoundAccessTokensRequired: true
+----
+
+===== Per-Resource Scope Overrides
+
+This example shows how to configure different scopes for different resource paths:
+
+[source,yaml]
+----
+- policyRef:
+    name: oauth-protected-resource-metadata-policy-flex
+  config:
+    resource: "https://api.example.com"
+    authorizationServers:
+      - "https://auth.example.com"
+    scopesSupported:
+      - "read"
+      - "write"
+    resourceScopesOverrides:
+      - path: "users"
+        scopesSupported:
+          - "users:read"
+          - "users:write"
+          - "users:delete"
+      - path: "orders"
+        scopesSupported:
+          - "orders:read"
+          - "orders:create"
+----
+
 include::partial$policy-title-headers.adoc[tag=ui]
 
 [%header%autowidth.spread,cols="a,a,a"]
