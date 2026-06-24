@@ -35,7 +35,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Element | Required | Description
 | PII Types | Yes | Array of built-in PII types to detect. Supported values are *Email*, *US SSN*, *Credit Card*, and *Phone Number*. For more information, see <<pii-types>>.
 | Custom PII Patterns | No | Array of custom regex patterns to detect additional sensitive values. Define a name and regex pattern for each array entry. For example, use `name: AWS Access Key` and `pattern: AKIA[0-9A-Z]{16}` to detect AWS access keys.
-| Action | No | Action to take when PII is detected. Supported values are *Reject* and *Log*. Default is *Log*.
+| Action | No | Action to take when PII is detected. Supported values are *Reject*, *Log*, and *Log and mask*. Default is *Log*.
 |===
 
 == How This Policy Works
@@ -45,7 +45,8 @@ The policy scans A2A requests for PII. It recursively inspects all string values
 For request processing:
 
 * If *Action* is *Reject*, the policy blocks the request and returns a JSON-RPC 2.0 error response.
-* If *Action* is *Log*, the policy forwards the request and logs findings with masked values.
+* If *Action* is *Log*, the policy forwards the request and logs findings with actual PII values.
+* If *Action* is *Log and mask*, the policy forwards the request and logs findings with masked values.
 
 The policy detects overlapping PII patterns and keeps the longest (most specific) match. For example, a credit card number with delimiters that could also match an SSN pattern is detected as a credit card.
 
@@ -93,7 +94,7 @@ When the policy blocks a request, it returns a JSON-RPC 2.0 compliant error resp
 
 == Example Request and Logging
 
-This example shows a request containing multiple PII types and the corresponding log output:
+This example shows a request containing multiple PII types and the corresponding log output for different action configurations:
 
 [source,json]
 ----
@@ -106,7 +107,44 @@ This example shows a request containing multiple PII types and the corresponding
 }
 ----
 
-When the action is set to *Log*, the policy logs detected PII with masked values:
+[tabs]
+====
+Log::
++
+--
+When the action is set to *Log*, the policy logs detected PII with the actual values:
+
+[source,json]
+----
+[accessLog] PII detected in A2A request (log only): [
+  {
+    "pii_type": "Email",
+    "value": "john.doe@example.com",
+    "location": "params.text"
+  },
+  {
+    "pii_type": "Phone",
+    "value": "(555) 123-4567",
+    "location": "params.text"
+  },
+  {
+    "pii_type": "SSN",
+    "value": "123-45-6789",
+    "location": "params.text"
+  },
+  {
+    "pii_type": "CreditCard",
+    "value": "4532 1234 5678 9012",
+    "location": "params.text"
+  }
+]
+----
+--
+
+Log and Mask::
++
+--
+When the action is set to *Log and mask*, the policy logs detected PII with masked values:
 
 [source,json]
 ----
@@ -133,6 +171,8 @@ When the action is set to *Log*, the policy logs detected PII with masked values
   }
 ]
 ----
+--
+====
 
 === Custom Pattern Example
 
