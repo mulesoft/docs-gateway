@@ -1,0 +1,424 @@
+= OAuth 2.0 Protected Resource Metadata Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: oauth, protected resource, metadata, rfc 9728, api gateway, flex gateway, gateway, policy
+:page-aliases: policies::policies-included-oauth-protected-resource-metadata.adoc
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | OAuth 2.0 Protected Resource Metadata
+>s|Summary      | Serves OAuth 2.0 Protected Resource Metadata at the well-known endpoint
+>s|Category | Security
+>s|First Omni Gateway version available | v1.9.3
+.2+>.^s| Returned Status Codes
+|404 - Request path does not match the well-known endpoint
+|405 - HTTP method is not GET
+|===
+
+== Summary
+
+The OAuth Protected Resource Metadata policy serves a JSON document describing the protected resource's OAuth 2.0 metadata at `/.well-known/oauth-protected-resource` (with optional path suffix), as defined by https://www.rfc-editor.org/rfc/rfc9728[RFC 9728^]. The metadata document is fully configured via the policy's parameters—the policy does not fetch metadata from an external source; it simply serves the configured values as a well-formed JSON response.
+
+This policy enables authorization servers and client applications to discover important OAuth 2.0 configuration details about your protected resource, such as:
+
+* Which authorization servers' tokens are accepted
+* What scopes are available for authorization
+* How bearer tokens should be sent (header, body, or query)
+* Whether DPoP or mTLS token binding is required
+* URLs for resource documentation, policy, and terms of service
+
+The policy is designed to be applied exclusively to the `/.well-known/oauth-protected-resource` route. Requests to paths that do not match the well-known segment receive a `404 Not Found` response. Non-GET requests to the well-known path receive a `405 Method Not Allowed` response with an `Allow: GET` header.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The OAuth 2.0 Protected Resource Metadata policy doesn't support Omni Gateway running in Local Mode.
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `resource`
+| Required
+|
+| The protected resource identifier (RFC 8707). Must be an `https` URL without a fragment. This value is returned as the `resource` field in the metadata response and is used by clients to validate the response matches the resource they intended to query. +
+Example: `"https://api.example.com/v1"`
+
+| `authorizationServers`
+| Optional
+| (omitted from response)
+| Array of OAuth 2.0 authorization server issuer identifier URLs (per RFC 8414) whose tokens are accepted by this protected resource. +
+Example: `["https://auth.example.com"]`
+
+| `jwksUri`
+| Optional
+| (omitted from response)
+| URL of the resource's JWK Set document containing its public keys (e.g., for signing resource responses). Must use `https` scheme. +
+Example: `"https://api.example.com/.well-known/jwks.json"`
+
+| `scopesSupported`
+| Optional (recommended by RFC 9728)
+| (omitted from response)
+| Array of default OAuth 2.0 scope values that can be used to request access to this resource. This value is returned when the well-known path has no suffix or when the suffix does not match any entry in `resourceScopesOverrides`. +
+Example: `["read", "write", "admin"]`
+
+| `resourceScopesOverrides`
+| Optional
+| `[]` (no overrides)
+| Array of objects mapping per-resource-path overrides for `scopes_supported`. Each entry maps a path suffix to a specific set of scopes. When a client requests `/.well-known/oauth-protected-resource/<suffix>`, the policy looks for a matching entry; if found, the entry's scopes replace the default `scopesSupported` in the response. +
+Each object contains:
+
+* `path` (string, required) - The path suffix to match (e.g., `"users"`, `"orders/items"`). Matched case-sensitively against the portion of the request path after `/.well-known/oauth-protected-resource/`.
+* `scopesSupported` (array of strings, required) - The scopes to return for this resource path. +
+Example:
+[source,yaml]
+----
+resourceScopesOverrides:
+  - path: "users"
+    scopesSupported:
+      - "users:read"
+      - "users:write"
+  - path: "orders"
+    scopesSupported:
+      - "orders:read"
+      - "orders:create"
+----
+
+| `bearerMethodsSupported`
+| Optional
+| (omitted from response)
+| Array of methods supported for sending bearer access tokens. Defined values are `"header"`, `"body"`, and `"query"` (per RFC 6750 Sections 2.1-2.3). An empty array means no bearer token methods are supported. +
+Example: `["header"]`
+
+| `resourceSigningAlgValuesSupported`
+| Optional
+| (omitted from response)
+| Array of JWS `alg` values the resource uses to sign responses. +
+Example: `["RS256", "ES256"]`
+
+| `resourceName`
+| Optional (recommended by RFC 9728)
+| (omitted from response)
+| Human-readable name of the protected resource, suitable for display to end users. +
+Example: `"Example API"`
+
+| `resourceDocumentation`
+| Optional
+| (omitted from response)
+| URL of a page containing human-readable developer documentation for the resource. +
+Example: `"https://docs.example.com/api"`
+
+| `resourcePolicyUri`
+| Optional
+| (omitted from response)
+| URL of a page describing the resource's data-use policy for clients. +
+Example: `"https://example.com/privacy"`
+
+| `resourceTosUri`
+| Optional
+| (omitted from response)
+| URL of a page with the resource's terms of service. +
+Example: `"https://example.com/tos"`
+
+| `tlsClientCertificateBoundAccessTokens`
+| Optional
+| `false` (omitted from response when `false`)
+| Boolean indicating whether the resource requires mutual-TLS certificate-bound access tokens (RFC 8705).
+
+| `authorizationDetailsTypesSupported`
+| Optional
+| (omitted from response)
+| Array of authorization details `type` values the resource supports (RFC 9396). +
+Example: `["payment_initiation"]`
+
+| `dpopSigningAlgValuesSupported`
+| Optional
+| (omitted from response)
+| Array of JWS `alg` values the resource accepts for DPoP proof JWTs (RFC 9449). +
+Example: `["ES256"]`
+
+| `dpopBoundAccessTokensRequired`
+| Optional
+| `false` (omitted from response when `false`)
+| Boolean indicating whether DPoP-bound access tokens are always required by this resource.
+
+|===
+
+=== Resource Configuration Examples
+
+==== Minimal Configuration
+
+This example shows the minimum required configuration with basic scope and authorization server information:
+
+[source,yaml]
+----
+- policyRef:
+    name: oauth-protected-resource-metadata-policy-flex
+  config:
+    resource: "https://api.example.com"
+    scopesSupported:
+      - "read"
+      - "write"
+    authorizationServers:
+      - "https://auth.example.com"
+----
+
+==== Full Configuration
+
+This example demonstrates all available configuration parameters:
+
+[source,yaml]
+----
+- policyRef:
+    name: oauth-protected-resource-metadata-policy-flex
+  config:
+    resource: "https://api.example.com/v1"
+    authorizationServers:
+      - "https://auth.example.com"
+      - "https://backup-auth.example.com"
+    jwksUri: "https://api.example.com/.well-known/jwks.json"
+    scopesSupported:
+      - "read"
+      - "write"
+      - "admin"
+    bearerMethodsSupported:
+      - "header"
+    resourceSigningAlgValuesSupported:
+      - "RS256"
+      - "ES256"
+    resourceName: "Example API"
+    resourceDocumentation: "https://docs.example.com/api"
+    resourcePolicyUri: "https://example.com/privacy"
+    resourceTosUri: "https://example.com/tos"
+    tlsClientCertificateBoundAccessTokens: true
+    authorizationDetailsTypesSupported:
+      - "payment_initiation"
+    dpopSigningAlgValuesSupported:
+      - "ES256"
+    dpopBoundAccessTokensRequired: true
+----
+
+==== Per-Resource Scope Overrides
+
+This example shows how to configure different scopes for different resource paths:
+
+[source,yaml]
+----
+- policyRef:
+    name: oauth-protected-resource-metadata-policy-flex
+  config:
+    resource: "https://api.example.com"
+    authorizationServers:
+      - "https://auth.example.com"
+    scopesSupported:
+      - "read"
+      - "write"
+    resourceScopesOverrides:
+      - path: "users"
+        scopesSupported:
+          - "users:read"
+          - "users:write"
+          - "users:delete"
+      - path: "orders"
+        scopesSupported:
+          - "orders:read"
+          - "orders:create"
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Parameter | Description | Required
+
+| Resource Identifier
+| The protected resource identifier (RFC 8707). Must be an `https` URL without a fragment.
+| Yes
+
+| Authorization Servers
+| OAuth 2.0 authorization server issuer identifier URLs whose tokens are accepted by this resource. Enter multiple values separated by commas or on separate lines.
+| No
+
+| JWK Set URI
+| URL of the resource's JWK Set document containing its public keys.
+| No
+
+| Scopes Supported
+| Default OAuth 2.0 scope values that can be used to request access to this resource. Enter multiple values separated by commas or on separate lines.
+| No
+
+| Resource Scopes Overrides
+| Per-resource-path overrides for scopes. Each entry maps a path suffix to specific scopes.
+| No
+
+| Bearer Methods Supported
+| Methods for sending bearer access tokens. Valid values are `header`, `body`, and `query`.
+| No
+
+| Resource Signing Algorithm Values
+| JWS signing algorithms used by the resource to sign responses.
+| No
+
+| Resource Name
+| Human-readable name of the protected resource for display to end users.
+| No
+
+| Resource Documentation URL
+| URL of a page containing human-readable developer documentation.
+| No
+
+| Resource Policy URI
+| URL of a page describing the resource's data-use policy.
+| No
+
+| Resource Terms of Service URI
+| URL of a page with the resource's terms of service.
+| No
+
+| TLS Client Certificate Bound Access Tokens
+| Whether the resource requires mutual-TLS certificate-bound access tokens (RFC 8705).
+| No
+
+| Authorization Details Types Supported
+| Authorization details type values the resource supports (RFC 9396).
+| No
+
+| DPoP Signing Algorithm Values
+| JWS algorithm values the resource accepts for DPoP proof JWTs (RFC 9449).
+| No
+
+| DPoP Bound Access Tokens Required
+| Whether DPoP-bound access tokens are always required by this resource.
+| No
+
+|===
+
+== How This Policy Works
+
+The OAuth Protected Resource Metadata policy operates as follows:
+
+=== Request Processing
+
+. *Path Matching:* The policy checks whether the request path ends with `/.well-known/oauth-protected-resource` or contains `/.well-known/oauth-protected-resource/` followed by a suffix. This supports per-path resources on the same host, as specified in RFC 9728 Section 3.1. If the path does not match, the policy returns `404 Not Found`.
+
+. *Method Validation:* If the path matches but the HTTP method is not `GET`, the policy returns `405 Method Not Allowed` with an `Allow: GET` header.
+
+. *Scope Resolution:* If the request path has a suffix after `/.well-known/oauth-protected-resource/`, the policy searches `resourceScopesOverrides` for an entry whose `path` matches the suffix exactly. If found, that entry's `scopesSupported` replaces the top-level default in the response. If no override matches, the top-level `scopesSupported` is used.
+
+. *Metadata Response:* For matching `GET` requests, the policy constructs a JSON object from the configured properties, omitting any property whose value is absent or equal to its default. The response is returned with:
+   * Status: `200 OK`
+   * `Content-Type: application/json`
+   * Body: the serialized JSON metadata document
+
+=== Property Mapping
+
+The policy maps configuration properties to JSON response fields using snake_case naming:
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Configuration Property | JSON Response Field
+
+| `resource` | `resource`
+| `authorizationServers` | `authorization_servers`
+| `jwksUri` | `jwks_uri`
+| `scopesSupported` | `scopes_supported`
+| `bearerMethodsSupported` | `bearer_methods_supported`
+| `resourceSigningAlgValuesSupported` | `resource_signing_alg_values_supported`
+| `resourceName` | `resource_name`
+| `resourceDocumentation` | `resource_documentation`
+| `resourcePolicyUri` | `resource_policy_uri`
+| `resourceTosUri` | `resource_tos_uri`
+| `tlsClientCertificateBoundAccessTokens` | `tls_client_certificate_bound_access_tokens`
+| `authorizationDetailsTypesSupported` | `authorization_details_types_supported`
+| `dpopSigningAlgValuesSupported` | `dpop_signing_alg_values_supported`
+| `dpopBoundAccessTokensRequired` | `dpop_bound_access_tokens_required`
+|===
+
+=== Example Responses
+
+The following examples show the JSON metadata document the policy returns for a `GET` request to the well-known endpoint. They apply to both Omni Gateway Local Mode and Managed Omni Gateway and Omni Gateway Connected Mode—only the configuration format differs between modes; the served response is the same.
+
+==== Minimal Configuration
+
+When only `resource`, `authorizationServers`, and `scopesSupported` are configured, a `GET` request to `/.well-known/oauth-protected-resource` returns:
+
+[source,json]
+----
+{
+  "resource": "https://api.example.com",
+  "authorization_servers": ["https://auth.example.com"],
+  "scopes_supported": ["read", "write"]
+}
+----
+
+==== Full Configuration
+
+When all parameters are configured, a `GET` request to `/.well-known/oauth-protected-resource` returns all configured fields:
+
+[source,json]
+----
+{
+  "resource": "https://api.example.com/v1",
+  "authorization_servers": ["https://auth.example.com", "https://backup-auth.example.com"],
+  "jwks_uri": "https://api.example.com/.well-known/jwks.json",
+  "scopes_supported": ["read", "write", "admin"],
+  "bearer_methods_supported": ["header"],
+  "resource_signing_alg_values_supported": ["RS256", "ES256"],
+  "resource_name": "Example API",
+  "resource_documentation": "https://docs.example.com/api",
+  "resource_policy_uri": "https://example.com/privacy",
+  "resource_tos_uri": "https://example.com/tos",
+  "tls_client_certificate_bound_access_tokens": true,
+  "authorization_details_types_supported": ["payment_initiation"],
+  "dpop_signing_alg_values_supported": ["ES256"],
+  "dpop_bound_access_tokens_required": true
+}
+----
+
+==== Per-Resource Scope Overrides
+
+When `resourceScopesOverrides` maps the `users` path suffix to `["users:read", "users:write", "users:delete"]` over a top-level default of `["read", "write"]`:
+
+* A `GET` request to the default endpoint, `/.well-known/oauth-protected-resource`, returns the top-level scopes:
++
+[source,json]
+----
+{
+  "resource": "https://api.example.com",
+  "authorization_servers": ["https://auth.example.com"],
+  "scopes_supported": ["read", "write"]
+}
+----
++
+* A `GET` request to `/.well-known/oauth-protected-resource/users` matches the `users` override and returns its scopes:
++
+[source,json]
+----
+{
+  "resource": "https://api.example.com",
+  "authorization_servers": ["https://auth.example.com"],
+  "scopes_supported": ["users:read", "users:write", "users:delete"]
+}
+----
++
+* A `GET` request to an unconfigured suffix, such as `/.well-known/oauth-protected-resource/billing`, falls back to the top-level scopes:
++
+[source,json]
+----
+{
+  "resource": "https://api.example.com",
+  "authorization_servers": ["https://auth.example.com"],
+  "scopes_supported": ["read", "write"]
+}
+----
+
+=== Edge Cases
+
+* *Non-matching paths:* Any request whose path does not contain `/.well-known/oauth-protected-resource` receives `404 Not Found`. The policy is intended to be route-scoped to the well-known path.
+* *Trailing slash:* `/.well-known/oauth-protected-resource/` (with trailing slash) is treated as a match with an empty suffix. Since an empty string won't match any `resourceScopesOverrides` entry, the top-level `scopesSupported` is returned.
+* *Case sensitivity:* Path matching is case-sensitive per RFC 9728 and RFC 8615.
+* *Query parameters:* Query strings on the well-known URL are ignored (the path is matched without query or fragment).
+* *Empty `bearerMethodsSupported`:* An explicitly configured empty array `[]` is serialized in the response (it signals "no bearer methods supported"), distinct from omitting the field entirely.
