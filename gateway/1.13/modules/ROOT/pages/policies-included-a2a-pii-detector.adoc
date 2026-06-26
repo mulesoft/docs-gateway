@@ -12,14 +12,14 @@ endif::[]
 >s|Category | A2A
 >s|First Omni Gateway version available | v1.9.3
 >s| Returned Status Codes |
-JSON-RPC 2.0 error with code `-32001`
+HTTP 403 with JSON-RPC 2.0 error code `-32600`
 |===
 
 include::partial$a2a-version-support.adoc[]
 
 == Summary
 
-The A2A PII Detector policy detects personally identifiable information (PII) in requests sent to the agent. If PII is detected, you can either log or block the request. A policy violation is reported when PII is detected.
+The A2A PII Detector policy detects personally identifiable information (PII) in requests sent to the agent. The policy is request-side only and never inspects or rewrites responses. If PII is detected, you can either log or block the request. A policy violation is reported when PII is detected.
 
 == Configuring Policy Parameters
 
@@ -40,7 +40,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 == How This Policy Works
 
-The policy scans A2A requests for PII. It recursively inspects all string values in the JSON body, including all task parts and message content.
+The policy scans A2A v1 requests for PII. It only scans requests using the `SendMessage` and `SendStreamingMessage` methods. Within those requests, the policy recursively inspects all string values in `Part::Text` entries inside `params.message.parts[]`. Other request types, file parts (`Part::File`), and structured data parts (`Part::Data`) are never scanned.
 
 For request processing:
 
@@ -75,19 +75,24 @@ When you configure the A2A PII Detector policy, choose which types of PII to det
 
 == Response on Reject
 
-When the policy blocks a request, it returns a JSON-RPC 2.0 compliant error response with code `-32001`:
+When the policy blocks a request, it returns an HTTP 403 status with a JSON-RPC 2.0 error response:
 
 [source,json]
 ----
 {
   "jsonrpc": "2.0",
-  "id": "<request-id>",
+  "id": null,
   "error": {
-    "code": -32001,
-    "message": "PII Validation Failed",
-    "data": {
-      "details": "Detected PII in request"
-    }
+    "code": -32600,
+    "message": "Request contains PII data: SSN: 123-45-6789",
+    "data": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "domain": "a2a-protocol.org",
+        "reason": "FORBIDDEN",
+        "metadata": { "detail": "Request contains PII data: SSN: 123-45-6789" }
+      }
+    ]
   }
 }
 ----
@@ -114,30 +119,9 @@ Log::
 --
 When the action is set to *Log*, the policy logs detected PII with the actual values:
 
-[source,json]
+[source,text]
 ----
-[accessLog] PII detected in A2A request (log only): [
-  {
-    "pii_type": "Email",
-    "value": "john.doe@example.com",
-    "location": "params.text"
-  },
-  {
-    "pii_type": "Phone",
-    "value": "(555) 123-4567",
-    "location": "params.text"
-  },
-  {
-    "pii_type": "SSN",
-    "value": "123-45-6789",
-    "location": "params.text"
-  },
-  {
-    "pii_type": "CreditCard",
-    "value": "4532 1234 5678 9012",
-    "location": "params.text"
-  }
-]
+WARN Request: `Contact me at john.doe@example.com or call (555) 123-4567. My SSN is 123-45-6789 and my credit card is 4532 1234 5678 9012.` has sensitive data: [Email: john.doe@example.com, Phone: (555) 123-4567, SSN: 123-45-6789, CreditCard: 4532 1234 5678 9012]
 ----
 --
 
@@ -146,76 +130,56 @@ Log and Mask::
 --
 When the action is set to *Log and mask*, the policy logs detected PII with masked values:
 
-[source,json]
+[source,text]
 ----
-[accessLog] PII detected in A2A request (log only): [
-  {
-    "pii_type": "Email",
-    "masked_value": "********@example.com",
-    "location": "params.text"
-  },
-  {
-    "pii_type": "Phone",
-    "masked_value": "+1******567",
-    "location": "params.text"
-  },
-  {
-    "pii_type": "SSN",
-    "masked_value": "***-**-6789",
-    "location": "params.text"
-  },
-  {
-    "pii_type": "CreditCard",
-    "masked_value": "*************9012",
-    "location": "params.text"
-  }
-]
+WARN Request: `Contact me at ********@example.com or call +1******567. My SSN is ***-**-6789 and my credit card is *************9012.` has sensitive data: [{"type": "Email", "masked_value": "********@example.com"}, {"type": "Phone", "masked_value": "+1******567"}, {"type": "SSN", "masked_value": "***-**-6789"}, {"type": "CreditCard", "masked_value": "*************9012"}]
 ----
 --
 
 Reject::
 +
 --
-When the action is set to *Reject*, the policy blocks the request and returns a JSON-RPC 2.0 error response:
+When the action is set to *Reject*, the policy blocks the request and returns an HTTP 403 error response. The agent does not receive the original request containing PII.
 
 [source,json]
 ----
 {
   "jsonrpc": "2.0",
-  "id": "<request-id>",
+  "id": null,
   "error": {
-    "code": -32001,
-    "message": "PII Validation Failed",
-    "data": {
-      "details": "Detected PII in request"
-    }
+    "code": -32600,
+    "message": "Request contains PII data: SSN: 123-45-6789",
+    "data": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "domain": "a2a-protocol.org",
+        "reason": "FORBIDDEN",
+        "metadata": { "detail": "Request contains PII data: SSN: 123-45-6789" }
+      }
+    ]
   }
 }
 ----
-
-The agent does not receive the original request containing PII.
 --
 ====
 
 === Custom Pattern Example
 
-This example shows detection of a custom AWS Access Key pattern:
+This example shows detection of a custom AWS Access Key pattern in a request:
 
 [source,json]
 ----
 {
   "jsonrpc": "2.0",
-  "method": "tasks/get",
+  "method": "SendMessage",
   "params": {
-    "taskId": "123",
-    "includeDescription": true
-  }
-}
-
-Response:
-{
-  "result": {
-    "description": "Use this AWS key: AKIAIOSFODNN7EXAMPLE for deployment"
+    "message": {
+      "parts": [
+        {
+          "text": "Use this AWS key: AKIAIOSFODNN7EXAMPLE for deployment"
+        }
+      ]
+    }
   }
 }
 ----
@@ -224,15 +188,43 @@ With a custom pattern configured (`name: AWS Access Key`, `pattern: AKIA[0-9A-Z]
 
 [source,json]
 ----
-[accessLog] PII detected in A2A request (log only): [
-  {
-    "pii_type": "AWS Access Key",
-    "masked_value": "********************",
-    "location": "result.description"
-  }
-]
+WARN Request: `Use this AWS key: AKIAIOSFODNN7EXAMPLE for deployment` has sensitive data: [AWS Access Key: AKIAIOSFODNN7EXAMPLE]
 ----
+
+== Compliance and Data Flow
+
+The following table shows where raw PII values may appear based on the configured action:
+
+[%header,cols="1,2,2"]
+|===
+|Action
+|Request Body on Wire
+|Access Log
+
+|Reject
+|Blocked (HTTP 403 error with masked findings in error envelope)
+|No log emitted on reject
+
+|Log and mask
+|Forwarded unchanged (raw PII flows upstream)
+|Masked
+
+|Log
+|Forwarded unchanged (raw PII flows upstream)
+|Raw
+|===
+
+IMPORTANT: For the A2A PII Detector policy, the *Log and mask* action only masks the access log, not the request body. Raw PII still flows to the upstream agent when using *Log* or *Log and mask* actions. Only *Reject* prevents PII from reaching the agent.
+
+== Transport Support
+
+The A2A PII Detector policy supports all three A2A v1 transports:
+
+* *JSON-RPC over HTTP*: Returns HTTP 403 with JSON-RPC error envelope
+* *HTTP+JSON*: Returns HTTP 403 with standard error structure
+* *gRPC*: Returns HTTP 200 with grpc-status: 7 (PERMISSION_DENIED) in trailer
 
 == See Also
 
+* xref:policies-included-mcp-pii-detector.adoc[MCP PII Detector Policy]
 * xref:policies-included-llm-pii-detection.adoc[LLM PII Detection Policy]
