@@ -41,110 +41,99 @@ include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
 The OAuth 2.0 Protected Resource Metadata policy doesn't support Omni Gateway running in Local Mode.
 
+include::partial$policy-title-headers.adoc[tag=ui]
+
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
-|Parameter | Required or Optional | Default Value | Description
+| Parameter | Required or Optional | Default Value | Description
 
-| `resource`
+| Resource Identifier
 | Required
 |
 | The protected resource identifier (RFC 8707). Must be an `https` URL without a fragment. This value is returned as the `resource` field in the metadata response and is used by clients to validate the response matches the resource they intended to query. +
 Example: `"https://api.example.com/v1"`
 
-| `authorizationServers`
+| Authorization Servers
 | Optional
 | (omitted from response)
-| Array of OAuth 2.0 authorization server issuer identifier URLs (per RFC 8414) whose tokens are accepted by this protected resource. +
+| Array of OAuth 2.0 authorization server issuer identifier URLs (per RFC 8414) whose tokens are accepted by this protected resource. Enter multiple values separated by commas or on separate lines. +
 Example: `["https://auth.example.com"]`
 
-| `jwksUri`
+| JWK Set URI
 | Optional
 | (omitted from response)
 | URL of the resource's JWK Set document containing its public keys (e.g., for signing resource responses). Must use `https` scheme. +
 Example: `"https://api.example.com/.well-known/jwks.json"`
 
-| `scopesSupported`
+| Scopes Supported
 | Optional (recommended by RFC 9728)
 | (omitted from response)
-| Array of default OAuth 2.0 scope values that can be used to request access to this resource. This value is returned when the well-known path has no suffix or when the suffix does not match any entry in `resourceScopesOverrides`. +
+| Array of default OAuth 2.0 scope values that can be used to request access to this resource. This value is returned when the well-known path has no suffix or when the suffix does not match any entry in Resource Scopes Overrides. Enter multiple values separated by commas or on separate lines. +
 Example: `["read", "write", "admin"]`
 
-| `resourceScopesOverrides`
+| Resource Scopes Overrides
 | Optional
 | `[]` (no overrides)
-| Array of objects mapping per-resource-path overrides for `scopes_supported`. Each entry maps a path suffix to a specific set of scopes. When a client requests `/.well-known/oauth-protected-resource/<suffix>`, the policy looks for a matching entry; if found, the entry's scopes replace the default `scopesSupported` in the response. +
-Each object contains:
+| Array of objects mapping per-resource-path overrides for `scopes_supported`. Each entry maps a path suffix to a specific set of scopes. When a client requests `/.well-known/oauth-protected-resource/<suffix>`, the policy looks for a matching entry; if found, the entry's scopes replace the default Scopes Supported in the response. +
+Each object contains: +
+ +
+* `path` (string, required) - The path suffix to match (e.g., `"users"`, `"orders/items"`). Matched case-sensitively against the portion of the request path after `/.well-known/oauth-protected-resource/`. +
+* `scopesSupported` (array of strings, required) - The scopes to return for this resource path.
 
-* `path` (string, required) - The path suffix to match (e.g., `"users"`, `"orders/items"`). Matched case-sensitively against the portion of the request path after `/.well-known/oauth-protected-resource/`.
-* `scopesSupported` (array of strings, required) - The scopes to return for this resource path. +
-Example:
-[source,yaml]
-----
-resourceScopesOverrides:
-  - path: "users"
-    scopesSupported:
-      - "users:read"
-      - "users:write"
-  - path: "orders"
-    scopesSupported:
-      - "orders:read"
-      - "orders:create"
-----
-
-| `bearerMethodsSupported`
+| Bearer Methods Supported
 | Optional
 | (omitted from response)
 | Array of methods supported for sending bearer access tokens. Defined values are `"header"`, `"body"`, and `"query"` (per RFC 6750 Sections 2.1-2.3). An empty array means no bearer token methods are supported. +
 Example: `["header"]`
 
-| `resourceSigningAlgValuesSupported`
+| Resource Signing Algorithm Values
 | Optional
 | (omitted from response)
 | Array of JWS `alg` values the resource uses to sign responses. +
 Example: `["RS256", "ES256"]`
 
-| `resourceName`
+| Resource Name
 | Optional (recommended by RFC 9728)
 | (omitted from response)
 | Human-readable name of the protected resource, suitable for display to end users. +
 Example: `"Example API"`
 
-| `resourceDocumentation`
+| Resource Documentation URL
 | Optional
 | (omitted from response)
 | URL of a page containing human-readable developer documentation for the resource. +
 Example: `"https://docs.example.com/api"`
 
-| `resourcePolicyUri`
+| Resource Policy URI
 | Optional
 | (omitted from response)
 | URL of a page describing the resource's data-use policy for clients. +
 Example: `"https://example.com/privacy"`
 
-| `resourceTosUri`
+| Resource Terms of Service URI
 | Optional
 | (omitted from response)
 | URL of a page with the resource's terms of service. +
 Example: `"https://example.com/tos"`
 
-| `tlsClientCertificateBoundAccessTokens`
+| TLS Client Certificate Bound Access Tokens
 | Optional
 | `false` (omitted from response when `false`)
 | Boolean indicating whether the resource requires mutual-TLS certificate-bound access tokens (RFC 8705).
 
-| `authorizationDetailsTypesSupported`
+| Authorization Details Types Supported
 | Optional
 | (omitted from response)
 | Array of authorization details `type` values the resource supports (RFC 9396). +
 Example: `["payment_initiation"]`
 
-| `dpopSigningAlgValuesSupported`
+| DPoP Signing Algorithm Values
 | Optional
 | (omitted from response)
 | Array of JWS `alg` values the resource accepts for DPoP proof JWTs (RFC 9449). +
 Example: `["ES256"]`
 
-| `dpopBoundAccessTokensRequired`
+| DPoP Bound Access Tokens Required
 | Optional
 | `false` (omitted from response when `false`)
 | Boolean indicating whether DPoP-bound access tokens are always required by this resource.
@@ -152,10 +141,10 @@ Example: `["ES256"]`
 |===
 
 [[resource-configuration-examples]]
-=== Resource Configuration Examples
+== Resource Configuration Examples
 
 [[minimal-configuration]]
-==== Minimal Configuration
+=== Minimal Configuration
 
 This example shows the minimum required configuration with basic scope and authorization server information:
 
@@ -173,7 +162,7 @@ This example shows the minimum required configuration with basic scope and autho
 ----
 
 [[full-configuration]]
-==== Full Configuration
+=== Full Configuration
 
 This example demonstrates all available configuration parameters:
 
@@ -209,7 +198,7 @@ This example demonstrates all available configuration parameters:
 ----
 
 [[per-resource-scope-overrides]]
-==== Per-Resource Scope Overrides
+=== Per-Resource Scope Overrides
 
 This example shows how to configure different scopes for different resource paths:
 
@@ -235,75 +224,6 @@ This example shows how to configure different scopes for different resource path
           - "orders:read"
           - "orders:create"
 ----
-
-include::partial$policy-title-headers.adoc[tag=ui]
-
-[%header%autowidth.spread,cols="a,a,a"]
-|===
-| Parameter | Description | Required
-
-| Resource Identifier
-| The protected resource identifier (RFC 8707). Must be an `https` URL without a fragment.
-| Yes
-
-| Authorization Servers
-| OAuth 2.0 authorization server issuer identifier URLs whose tokens are accepted by this resource. Enter multiple values separated by commas or on separate lines.
-| No
-
-| JWK Set URI
-| URL of the resource's JWK Set document containing its public keys.
-| No
-
-| Scopes Supported
-| Default OAuth 2.0 scope values that can be used to request access to this resource. Enter multiple values separated by commas or on separate lines.
-| No
-
-| Resource Scopes Overrides
-| Per-resource-path overrides for scopes. Each entry maps a path suffix to specific scopes.
-| No
-
-| Bearer Methods Supported
-| Methods for sending bearer access tokens. Valid values are `header`, `body`, and `query`.
-| No
-
-| Resource Signing Algorithm Values
-| JWS signing algorithms used by the resource to sign responses.
-| No
-
-| Resource Name
-| Human-readable name of the protected resource for display to end users.
-| No
-
-| Resource Documentation URL
-| URL of a page containing human-readable developer documentation.
-| No
-
-| Resource Policy URI
-| URL of a page describing the resource's data-use policy.
-| No
-
-| Resource Terms of Service URI
-| URL of a page with the resource's terms of service.
-| No
-
-| TLS Client Certificate Bound Access Tokens
-| Whether the resource requires mutual-TLS certificate-bound access tokens (RFC 8705).
-| No
-
-| Authorization Details Types Supported
-| Authorization details type values the resource supports (RFC 9396).
-| No
-
-| DPoP Signing Algorithm Values
-| JWS algorithm values the resource accepts for DPoP proof JWTs (RFC 9449).
-| No
-
-| DPoP Bound Access Tokens Required
-| Whether DPoP-bound access tokens are always required by this resource.
-| No
-
-|===
-
 
 [[request-processing]]
 == Request Processing
