@@ -62,7 +62,7 @@ Example: `["https://auth.example.com"]`
 | JWK Set URI
 | Optional
 | (omitted from response)
-| URL of the resource's JWK Set document containing its public keys (e.g., for signing resource responses). Must use `https` scheme. +
+| URL of the resource's JWK Set document containing its public keys for signing resource responses. Must use `https` scheme. +
 Example: `"https://api.example.com/.well-known/jwks.json"`
 
 | Scopes Supported
@@ -77,7 +77,7 @@ Example: `["read", "write", "admin"]`
 | Array of objects mapping per-resource-path overrides for `scopes_supported`. Each entry maps a path suffix to a specific set of scopes. When a client requests `/.well-known/oauth-protected-resource/<suffix>`, the policy looks for a matching entry; if found, the entry's scopes replace the default Scopes Supported in the response. +
 Each object contains: +
  +
-* `path` (string, required) - The path suffix to match (e.g., `"users"`, `"orders/items"`). Matched case-sensitively against the portion of the request path after `/.well-known/oauth-protected-resource/`. +
+* `path` (string, required) - The path suffix to match. Matched case-sensitively against the portion of the request path after `/.well-known/oauth-protected-resource/`. +
 * `scopesSupported` (array of strings, required) - The scopes to return for this resource path.
 
 | Bearer Methods Supported
@@ -239,11 +239,11 @@ This example shows how to configure different scopes for different resource path
 [[property-mapping]]
 == Property Mapping
 
-The policy maps UI configuration parameters to JSON response fields using snake_case naming:
+The policy maps configuration parameters to JSON response fields using snake_case naming:
 
 [%header%autowidth.spread,cols="a,a"]
 |===
-| UI Configuration Parameter | JSON Response Field
+| Configuration Parameter | JSON Response Field
 
 | Resource Identifier | `resource`
 | Authorization Servers | `authorization_servers`
