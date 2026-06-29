@@ -28,7 +28,7 @@ This policy enables authorization servers and client applications to discover im
 * What scopes are available for authorization
 * How to send bearer tokens (header, body, or query)
 * Whether DPoP or mTLS token binding is required
-* URLs for resource documentation, policy, and terms of service 
+* What URLs are available for resource documentation, policy, and terms of service 
 
 IMPORTANT: This policy rejects all requests that aren't made to the `/.well-known/oauth-protected-resource` route with a `404 Not Found` response.
 
@@ -66,7 +66,7 @@ Example: `"https://api.example.com/.well-known/jwks.json"`
 | Scopes Supported
 | Optional (recommended by RFC 9728)
 | (omitted from response)
-| Array of default OAuth 2.0 scope values that can be used to request access to this resource. This value is returned when the well-known path has no suffix or when the suffix does not match any entry in Resource Scopes Overrides. Enter multiple values separated by commas or on separate lines. +
+| Array of default OAuth 2.0 scope values that can be used to request access to this resource. This value is returned when the well-known path has no suffix or when the suffix doesn't match any entry in Resource Scopes Overrides. Enter multiple values separated by commas or on separate lines. +
 Example: `["read", "write", "admin"]`
 
 | Resource Scopes Overrides
@@ -345,7 +345,7 @@ When `resourceScopesOverrides` maps the `users` path suffix to `["users:read", "
 == Edge Cases
 
 * *Non-matching paths:* Any request whose path doesn't contain `/.well-known/oauth-protected-resource` receives `404 Not Found`. The policy is intended to be route-scoped to the well-known path.
-* *Trailing slash:* `/.well-known/oauth-protected-resource/` (with trailing slash) is treated as a match with an empty suffix. Since an empty string won't match any `resourceScopesOverrides` entry, the top-level `scopesSupported` is returned.
+* *Trailing slash:* `/.well-known/oauth-protected-resource/` (with trailing slash) is treated as a match with an empty suffix. Since an empty string won't match any `resourceScopesOverrides` entries, the top-level `scopesSupported` is returned.
 * *Case sensitivity:* Path matching is case-sensitive per RFC 9728 and RFC 8615.
 * *Query parameters:* Query strings on the well-known URL are ignored (the path is matched without query or fragment).
 * *Empty `bearerMethodsSupported`:* An explicitly configured empty array `[]` is serialized in the response (it signals "no bearer methods supported"), distinct from omitting the field entirely.
