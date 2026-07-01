@@ -12,7 +12,9 @@ endif::[]
 >s|Category | A2A
 >s|First Omni Gateway version available | v1.9.3
 >s| Returned Status Codes |
-HTTP 403 with JSON-RPC 2.0 error code `-32600`
+* JSON-RPC over HTTP: HTTP 403 with JSON-RPC 2.0 error code `-32600`
+* HTTP+JSON: HTTP 403 with error code `403`
+* gRPC: HTTP 200 with `grpc-status: 7` (PERMISSION_DENIED)
 |===
 
 include::partial$a2a-version-support.adoc[]
@@ -20,6 +22,12 @@ include::partial$a2a-version-support.adoc[]
 == Summary
 
 The A2A PII Detector policy detects personally identifiable information (PII) in requests sent to the agent. The policy is request-side only and never inspects or rewrites responses. If PII is detected, you can either log or block the request. A policy violation is reported when PII is detected.
+
+The policy supports all three A2A v1 transports:
+
+* JSON-RPC over HTTP (returns HTTP 403 with JSON-RPC error code `-32600`)
+* HTTP+JSON (returns HTTP 403 with error code `403`)
+* gRPC (returns HTTP 200 with `grpc-status: 7` PERMISSION_DENIED)
 
 == Configuring Policy Parameters
 
@@ -49,6 +57,14 @@ For request processing:
 * If *Action* is *Log and mask*, the policy forwards the request and logs findings with masked values.
 
 The policy detects overlapping PII patterns and keeps the longest (most specific) match. For example, a credit card number with delimiters that could also match an SSN pattern is detected as a credit card.
+
+== Transport Support
+
+The A2A PII Detector policy supports all three A2A v1 transports:
+
+* *JSON-RPC over HTTP*: Returns HTTP 403 with JSON-RPC error envelope
+* *HTTP+JSON*: Returns HTTP 403 with standard error structure
+* *gRPC*: Returns HTTP 200 with grpc-status: 7 (PERMISSION_DENIED) in trailer
 
 [[pii-types]]
 == PII Types
@@ -215,14 +231,6 @@ The following table shows where raw PII values may appear based on the configure
 |===
 
 IMPORTANT: For the A2A PII Detector policy, the *Log and mask* action only masks the access log, not the request body. Raw PII still flows to the upstream agent when using *Log* or *Log and mask* actions. Only *Reject* prevents PII from reaching the agent.
-
-== Transport Support
-
-The A2A PII Detector policy supports all three A2A v1 transports:
-
-* *JSON-RPC over HTTP*: Returns HTTP 403 with JSON-RPC error envelope
-* *HTTP+JSON*: Returns HTTP 403 with standard error structure
-* *gRPC*: Returns HTTP 200 with grpc-status: 7 (PERMISSION_DENIED) in trailer
 
 == See Also
 

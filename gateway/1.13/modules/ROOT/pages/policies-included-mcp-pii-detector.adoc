@@ -48,29 +48,33 @@ The policy scans:
 * *Elicitation responses*: JSON-RPC responses sent from client back to server (MCP elicitation pattern)
 * *SSE streams*: Each `data:` payload in Server-Sent Events (MCP Streamable HTTP transport)
 
-For request processing:
+[%header,cols="1,2,2,2"]
+|===
+|Traffic Type
+|Reject
+|Log
+|Log and Mask
 
-* If *Action* is *Reject*, the policy blocks the request with an HTTP 403 error response. The upstream server never receives the request.
-* If *Action* is *Log*, the policy forwards the request and logs findings with actual PII values.
-* If *Action* is *Log and mask*, the policy forwards the request and logs findings with masked values.
+|Request processing
+|Blocks the request with HTTP 403 error response. The upstream server never receives the request.
+|Forwards the request and logs findings with actual PII values.
+|Forwards the request and logs findings with masked values.
 
-For response processing (application/json):
+|Response processing (application/json)
+|Blocks the response with HTTP 403 error response. The client does not receive the original response containing PII.
+|Forwards the response and logs findings with actual PII values.
+|Rewrites every string under `result` with masked values and forwards the sanitized response.
 
-* If *Action* is *Reject*, the policy blocks the response with an HTTP 403 error response. The client does not receive the original response containing PII.
-* If *Action* is *Log*, the policy forwards the response and logs findings with actual PII values.
-* If *Action* is *Log and mask*, the policy rewrites every string under `result` with masked values and forwards the sanitized response.
+|Elicitation responses (client → server)
+|Rewrites the result to indicate the response was declined and forwards the sanitized body to the server.
+|Forwards the response and logs findings.
+|Forwards the response and logs masked findings.
 
-For elicitation responses (client → server):
-
-* If *Action* is *Reject*, the policy rewrites the result to indicate the response was declined and forwards the sanitized body to the server.
-* If *Action* is *Log*, the policy forwards the response and logs findings.
-* If *Action* is *Log and mask*, the policy forwards the response and logs masked findings.
-
-For SSE streams (text/event-stream):
-
-* If *Action* is *Reject*, the entire stream is replaced with a single JSON-RPC error envelope and Content-Type changes to application/json.
-* If *Action* is *Log*, the policy forwards the stream unchanged and logs findings.
-* If *Action* is *Log and mask*, each event's result strings are rewritten with masked variants while preserving SSE framing.
+|SSE streams (text/event-stream)
+|Entire stream is replaced with a single JSON-RPC error envelope and Content-Type changes to application/json.
+|Forwards the stream unchanged and logs findings.
+|Each event's result strings are rewritten with masked variants while preserving SSE framing.
+|===
 
 The policy detects overlapping PII patterns and keeps the longest (most specific) match. For example, a credit card number with delimiters that could also match an SSN pattern is detected as a credit card.
 
