@@ -130,7 +130,7 @@ When the action is set to *Log*, the policy logs detected PII with the actual va
 
 [source,text]
 ----
-[accessLog] PII detected in request (log only): [{"pii_type": "Email", "value": "john.doe@example.com", "location": "params.arguments.to"}, {"pii_type": "Phone", "value": "(555) 123-4567", "location": "params.arguments.message"}, {"pii_type": "SSN", "value": "123-45-6789", "location": "params.arguments.message"}]
+[accessLog] PII detected in request (log only): [{"pii_type": "Email", "value": "john.doe@example.com", "start": 0, "end": 20}, {"pii_type": "Phone", "value": "(555) 123-4567", "start": 0, "end": 14}, {"pii_type": "SSN", "value": "123-45-6789", "start": 0, "end": 11}]
 ----
 --
 
@@ -141,15 +141,22 @@ When the action is set to *Log and mask*, the policy logs detected PII with mask
 
 [source,text]
 ----
-[accessLog] PII detected in request (log only): [{"pii_type": "Email", "masked_value": "********@example.com", "location": "params.arguments.to"}, {"pii_type": "Phone", "masked_value": "+1******567", "location": "params.arguments.message"}, {"pii_type": "SSN", "masked_value": "***-**-6789", "location": "params.arguments.message"}]
+[accessLog] PII detected in request (log only): [{"pii_type": "Email", "masked_value": "****@example.com", "start": 0, "end": 20}, {"pii_type": "Phone", "masked_value": "+1******567", "start": 0, "end": 14}, {"pii_type": "SSN", "masked_value": "***-**-*789", "start": 0, "end": 11}]
 ----
 --
 
 Reject::
 +
 --
-When the action is set to *Reject*, the policy blocks the request and returns an HTTP 403 error response:
+When the action is set to *Reject*, the policy blocks the request, logs masked findings, and returns an HTTP 403 error response:
 
+Log output:
+[source,text]
+----
+[accessLog] PII detected in request and declined: [{"pii_type": "Email", "masked_value": "****@example.com", "start": 0, "end": 20}, {"pii_type": "Phone", "masked_value": "+1******567", "start": 0, "end": 14}, {"pii_type": "SSN", "masked_value": "***-**-*789", "start": 0, "end": 11}]
+----
+
+Error response:
 [source,json]
 ----
 {
@@ -207,7 +214,7 @@ When the action is set to *Log*, the policy forwards the response and logs detec
 
 [source,text]
 ----
-[accessLog] PII detected in server response (log only): [{"pii_type": "Email", "value": "john.doe@example.com", "location": "result.content[0].text"}, {"pii_type": "SSN", "value": "123-45-6789", "location": "result.content[0].text"}]
+[accessLog] PII detected in server response (log only): [{"pii_type": "Email", "value": "john.doe@example.com", "start": 14, "end": 34}, {"pii_type": "SSN", "value": "123-45-6789", "start": 41, "end": 52}]
 ----
 --
 
@@ -236,15 +243,22 @@ Response sent to client:
 Log output:
 [source,text]
 ----
-[accessLog] PII detected in server response (masked in body): [{"pii_type": "Email", "masked_value": "****@example.com", "location": "result.content[0].text"}, {"pii_type": "SSN", "masked_value": "***-**-*789", "location": "result.content[0].text"}]
+[accessLog] PII detected in server response (masked in body): [{"pii_type": "Email", "masked_value": "****@example.com", "start": 14, "end": 34}, {"pii_type": "SSN", "masked_value": "***-**-*789", "start": 41, "end": 52}]
 ----
 --
 
 Reject::
 +
 --
-When the action is set to *Reject*, the policy blocks the response and returns an HTTP 403 error:
+When the action is set to *Reject*, the policy blocks the response, logs masked findings, and returns an HTTP 403 error:
 
+Log output:
+[source,text]
+----
+[accessLog] PII detected in server response and declined: [{"pii_type": "Email", "masked_value": "****@example.com", "start": 14, "end": 34}, {"pii_type": "SSN", "masked_value": "***-**-*789", "start": 41, "end": 52}]
+----
+
+Error response:
 [source,json]
 ----
 {
@@ -327,7 +341,7 @@ With a custom pattern configured (`name: AWS Access Key`, `pattern: AKIA[0-9A-Z]
 
 [source,text]
 ----
-[accessLog] PII detected in request (log only): [{"pii_type": "AWS Access Key", "masked_value": "********************", "location": "params.arguments.key"}]
+[accessLog] PII detected in request (log only): [{"pii_type": "AWS Access Key", "value": "AKIAIOSFODNN7EXAMPLE", "start": 0, "end": 20}]
 ----
 
 == Server-Sent Events (SSE) Considerations
