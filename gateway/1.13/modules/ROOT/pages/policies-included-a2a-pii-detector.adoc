@@ -48,7 +48,7 @@ The policy scans A2A  JSON-RPC traffic for PII on both request and response side
 
 === Request-Side Enforcement
 
-The policy scans the following A2A  JSON-RPC methods:
+The policy scans requests for the following A2A JSON-RPC methods:
 
 * `message/send`
 * `message/stream`
@@ -56,21 +56,19 @@ The policy scans the following A2A  JSON-RPC methods:
 * `tasks/stream`
 * `tasks/resubscribe`
 
-Within those requests, the policy scans three field paths:
+For each request, the policy inspects these field paths in order:
 
-1. `params.message.parts[]` — every text part
-2. `params.task.parts[]` — every text part
-3. `params.task.description` — string value
+. `params.message.parts[]` — scans each `text` JSON object
+. `params.task.parts[]` — scans each `text` JSON object
+. `params.task.description` — scans the string value
 
-A "text part" is a JSON object whose `kind` or `type` field equals `"text"`. The text is read from the part's `text` field. Parts with `kind` or `type` of `file`, `data`, or any other value are skipped.
+The policy stops scanning at the first PII detection and applies the configured action to the entire request.
 
-The scan is short-circuit: the first field that produces a detection decides the action for the whole request.
+Based on the configured action:
 
-For request processing:
-
-* If *Action* is *Reject*, the policy blocks the request and returns HTTP 403 with a JSON-RPC 2.0 error response. The upstream never receives the request.
-* If *Action* is *Log*, the policy forwards the request and logs findings with actual PII values.
-* If *Action* is *Log and mask*, the policy forwards the request and logs findings with masked values.
+* *Reject*: Blocks the request and returns HTTP 403 with a JSON-RPC 2.0 error response. The upstream never receives the request.
+* *Log*: Forwards the request unchanged and logs findings with actual PII values.
+* *Log and mask*: Forwards the request unchanged and logs findings with masked values.
 
 === Response-Side Logging
 
