@@ -1,4 +1,5 @@
 //tag::tracing-runtime-manager[]
+[[runtime-manager-config]]
 == Configuring Omni Gateway Distributed Tracing in Runtime Manager
 
 . In Anypoint Platform, select *Runtime Manager*.
@@ -7,35 +8,35 @@
 . Open *Runtime Configurations*.
 . Open *Distributed Tracing*.
 . Enable *Distributed tracing*.
-. Set the *Sampling percentage* to the percentage of transactions you want to trace.
+. Set the *Sampling percentage* to the percentage of transactions to trace.
 +
-To configure sampling only on a per-API basis using the Tracing policy, set *Sampling percentage* to `0`.
+To configure sampling only on a per-API basis with the Tracing policy, set *Sampling percentage* to `0`.
 . Apply the changes.
 
 NOTE: The *Sampling percentage* corresponds to the `overall` sampling percentage. The `client` and `random` sampling percentages default to `100` when *Sampling percentage* is set to a non-zero value.
 
 //end::tracing-runtime-manager[]
 
-//tag::telemtery-exporter[]
+//tag::telemetry-exporter[]
 [[export-otel-traces-from-monitoring-telemetry-exporter]]
 == Export traces from the Anypoint Monitoring Telemetry Exporter
 
-To export traces to third party providers using the Anypoint Monitoring Telemetry Exporter, see xref:monitoring::telemetry-exporter.adoc[How to export telemetry data to third-party monitoring systems].
+To export traces to third-party providers using the Anypoint Monitoring Telemetry Exporter, see xref:monitoring::telemetry-exporter.adoc[Exporting telemetry data to third-party monitoring systems].
 
-//end::telemtery-exporter[]
+//end::telemetry-exporter[]
 
-//tag::telemtery-exporter-note[]
+//tag::telemetry-exporter-note[]
 
 To export traces using the Anypoint Monitoring Telemetry Exporter, first configure the Telemetry Exporter in Anypoint Monitoring.
 
-//end::telemtery-exporter-note[]
+//end::telemetry-exporter-note[]
 
 //tag::export-anypoint[]
 [[export-traces-to-anypoint-monitoring]]
-== Export Traces to Anypoint Monitoring
+=== Export Traces to Anypoint Monitoring
 
-Edit and then apply this configuration resource to enable distributed tracing. This configuration resource applies to all API instances.
-This example sets sampling to 0% for all traces, and sampling is configured on a per-API basis using policies.
+Edit and apply this configuration resource to enable distributed tracing. This configuration resource applies to all API instances.
+This example sets global sampling to 0%; policies configure sampling per API.
 
 [source,yaml]
 ----
@@ -72,9 +73,9 @@ spec:
 
 //tag::export-grpc[]
 [[export-traces-to-a-grpc-open-telemetry-endpoint]]
-== Export Traces to a gRPC OpenTelemetry Endpoint
+=== Export Traces to a gRPC OpenTelemetry Endpoint
 
-To configure OpenTelemetry tracing with a gRPC endpoint in Omni, use the following YAML configuration as an example:
+To configure OpenTelemetry tracing with a gRPC endpoint in Omni, apply this YAML configuration:
 
 [source,yaml]
 ----
@@ -115,10 +116,10 @@ spec:
 //end::export-grpc[]
 
 //tag::export-http[]
-[[export-traces-to-a-http-open-telemetry-endpoint]]
-== Export Traces to a HTTP OpenTelemetry Endpoint
+[[export-traces-to-an-http-open-telemetry-endpoint]]
+=== Export Traces to an HTTP OpenTelemetry Endpoint
 
-To configure OpenTelemetry tracing with a HTTP endpoint, use the following YAML configuration as an example:
+To configure OpenTelemetry tracing with an HTTP endpoint, apply this YAML configuration:
 
 [source,yaml]
 ----
