@@ -61,7 +61,7 @@ The policy scans:
 |Forwards the request and logs findings with masked values.
 
 |Response processing (application/json)
-|Blocks the response with HTTP 403 error response. The client does not receive the original response containing PII.
+|Blocks the response with HTTP 403 error response. The client doesn't receive the original response containing PII.
 |Forwards the response and logs findings with actual PII values.
 |Rewrites every string under `result` with masked values and forwards the sanitized response.
 
@@ -126,7 +126,7 @@ This example shows a request containing PII and the corresponding log output for
 Log::
 +
 --
-When the action is set to *Log*, the policy logs detected PII with the actual values:
+When the action is set to *Log*, the policy logs detect PII with the actual values:
 
 [source,text]
 ----
@@ -137,7 +137,7 @@ When the action is set to *Log*, the policy logs detected PII with the actual va
 Log and Mask::
 +
 --
-When the action is set to *Log and mask*, the policy logs detected PII with masked values:
+When the action is set to *Log and mask*, the policy logs detect PII with masked values:
 
 [source,text]
 ----
@@ -350,15 +350,15 @@ When the MCP server uses Server-Sent Events (text/event-stream) for streaming re
 
 * *Log*: The stream is forwarded unchanged with raw PII values logged.
 * *Log and mask*: Each event's result strings are rewritten with masked values while preserving SSE framing (event names, IDs, comments).
-* *Reject*: The entire stream is replaced with a single JSON-RPC error envelope and the Content-Type changes to application/json with HTTP 403 status.
+* *Reject*: The entire stream is replaced with a single JSON-RPC error envelope, and the Content-Type changes to application/json with HTTP 403 status.
 
-IMPORTANT: SSE buffering is suitable for short-lived tool-call responses but may not be appropriate for long-lived server-pushed streams. For notification streams or progress updates, use the *Log* action to avoid buffering.
+IMPORTANT: SSE buffering is suitable for short-lived tool-call responses but might not be appropriate for long-lived server-pushed streams. For notification streams or progress updates, use the *Log* action to avoid buffering.
 
-NOTE: When *Reject* is applied to an SSE stream, the response Content-Type changes from text/event-stream to application/json. Clients that strictly require SSE formatting may need to handle this change.
+NOTE: When *Reject* is applied to an SSE stream, the response Content-Type changes from text/event-stream to application/json. Clients that strictly require SSE formatting might need to handle this change.
 
 == Compliance and Data Flow
 
-The following table shows where raw PII values may appear based on the configured action:
+This table shows where raw PII values appear based on the configured action:
 
 [%header,cols="1,2,2"]
 |===
