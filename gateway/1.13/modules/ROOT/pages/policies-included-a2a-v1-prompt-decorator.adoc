@@ -8,7 +8,7 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | A2A v1 Prompt Decorator
->s|Summary      | Decorates prompts with context information on A2A v1 JSON-RPC and HTTP+JSON traffic
+>s|Summary      | Decorates A2A v1 prompts with additional context information
 >s|Category | A2A
 >s|First Omni Gateway version available | v1.13.0
 >s| Returned Status Codes | No return codes exist for this policy.
@@ -23,6 +23,7 @@ The A2A v1 Prompt Decorator policy injects additional content into agent prompts
 You can decorate prompts with either text content or file references. Text decorators add plain text to the beginning of the message, while file decorators add external resources via URL or inline base64-encoded content. All decorators support conditional evaluation using DataWeave expressions, enabling you to control when specific decorations are applied based on request attributes, authentication context, or message parameters.
 
 The policy injects content to the beginning of the user message's `parts[]` array before the request reaches the upstream agent, ensuring the additional context appears before the user's original message.
+The A2A v1 Prompt Decorator policy decorates A2A v1 prompts with additional context information. You can add text instructions or file references (via URL or base64-encoded content) to the beginning of messages before they reach the upstream agent. This policy supports A2A v1.0 traffic across all transport protocols: JSON-RPC, HTTP+JSON, and gRPC.
 
 NOTE: This policy supports A2A v1.0 traffic only. For pre-v1.0 A2A traffic, use the xref:policies-included-a2a-prompt-decorator.adoc[A2A Prompt Decorator Policy].
 
