@@ -237,9 +237,9 @@ spec:
 
 == Logging Examples
 
-This example shows how the policy logs PII detections based on the configured action.
+This example shows an A2A v1 request containing multiple PII types and the corresponding log output for different action configurations.
 
-Sample request containing multiple PII types:
+Sample request:
 
 [source,json]
 ----
@@ -259,27 +259,175 @@ Sample request containing multiple PII types:
 }
 ----
 
-=== Log Action
+[tabs]
+====
+Log::
++
+--
+When the action is set to *Log*, the policy logs detected PII with the actual values:
 
-When the action is set to *Log*, the policy logs detected PII with actual values:
-
-[source,text]
+[source,json]
 ----
-[WARN] Request: `Contact me at john.doe@example.com or call (555) 123-4567. My SSN is 123-45-6789.` contains PII: Email: john.doe@example.com, Phone Number: (555) 123-4567, US SSN: 123-45-6789
+[accessLog] Request: `Contact me at john.doe@example.com or call (555) 123-4567. My SSN is 123-45-6789.` has sensitive data: [
+  {
+    "pii_type": "Email",
+    "value": "john.doe@example.com",
+    "start": 14,
+    "end": 34
+  },
+  {
+    "pii_type": "Phone Number",
+    "value": "(555) 123-4567",
+    "start": 43,
+    "end": 57
+  },
+  {
+    "pii_type": "US SSN",
+    "value": "123-45-6789",
+    "start": 70,
+    "end": 81
+  }
+]
 ----
+--
 
-=== Log and Mask Action
-
+Log and mask::
++
+--
 When the action is set to *Log and mask*, the policy logs detected PII with masked values:
 
-[source,text]
+[source,json]
 ----
-[WARN] Request: `Contact me at ***@example.com or call ***. My SSN is ***.` contains PII: Email: ***, Phone Number: ***, US SSN: ***
+[accessLog] Request: `Contact me at ***@example.com or call ***. My SSN is ***.` has sensitive data: [
+  {
+    "pii_type": "Email",
+    "masked_value": "***",
+    "start": 14,
+    "end": 34
+  },
+  {
+    "pii_type": "Phone Number",
+    "masked_value": "***",
+    "start": 43,
+    "end": 57
+  },
+  {
+    "pii_type": "US SSN",
+    "masked_value": "***",
+    "start": 70,
+    "end": 81
+  }
+]
+----
+--
+
+Reject::
++
+--
+When the action is set to *Reject*, the policy blocks the request and returns an error response in the transport's format. The upstream agent never receives the original request containing PII.
+
+For this JSON-RPC request, the response would be:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": null,
+  "error": {
+    "code": -32600,
+    "message": "Request contains PII data: US SSN: 123-45-6789",
+    "data": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "domain": "a2a-protocol.org",
+        "reason": "FORBIDDEN",
+        "metadata": {
+          "detail": "Request contains PII data: US SSN: 123-45-6789"
+        }
+      }
+    ]
+  }
+}
 ----
 
-=== Reject Action
+A policy violation is reported for monitoring purposes.
+--
+====
 
-When the action is set to *Reject*, the policy blocks the request and returns an error response. No log entry is created for the request. A policy violation is reported for monitoring purposes.
+=== Custom Pattern Example
+
+This example shows detection of a custom AWS Access Key pattern in a request:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "method": "SendMessage",
+  "params": {
+    "message": {
+      "parts": [
+        {
+          "kind": "text",
+          "text": "Use this AWS key: AKIAIOSFODNN7EXAMPLE for deployment"
+        }
+      ]
+    }
+  }
+}
+----
+
+With a custom pattern configured (`name: AWS Access Key`, `pattern: AKIA[0-9A-Z]{16}`), the policy logs:
+
+[source,json]
+----
+[accessLog] Request: `Use this AWS key: AKIAIOSFODNN7EXAMPLE for deployment` has sensitive data: [
+  {
+    "pii_type": "AWS Access Key",
+    "value": "AKIAIOSFODNN7EXAMPLE",
+    "start": 18,
+    "end": 38
+  }
+]
+----
+
+== Edge Cases
+
+The policy passes through these requests without scanning:
+
+* Non-A2A traffic
+* A2A methods other than `SendMessage` and `SendStreamingMessage` (such as `GetTask`, `ListTasks`, agent card requests)
+* Requests with missing or malformed `params`
+* Message parts with types other than `Part::Text` (`Part::File` and `Part::Data` are not scanned)
+* Empty text parts
+
+If a regex engine error occurs while scanning a text part, the error is logged and that part is skipped, but remaining parts continue to be scanned.
+
+== Compliance and Data Flow
+
+This table shows where raw PII values appear based on the configured action.
+
+[%header,cols="1,2,2"]
+|===
+|Action
+|Request Body on Wire
+|Access Log
+
+|Reject
+|Blocked (error response; raw PII values may appear in error message)
+|No log emitted on reject
+
+|Log
+|Forwarded unchanged (raw PII flows upstream)
+|Raw
+
+|Log and mask
+|Forwarded unchanged (raw PII flows upstream)
+|Masked
+|===
+
+IMPORTANT: The *Log and mask* action only masks the access log, not the request body. Raw PII still flows to the upstream agent when using *Log* or *Log and mask* actions. Only *Reject* prevents PII from reaching the agent.
+
+NOTE: The A2A v1 PII Detector policy scans requests only. It does not scan responses. For pre-v1.0 A2A traffic that requires both request and response scanning, use the xref:policies-included-a2a-pii-detector.adoc[A2A PII Detector Policy].
 
 == See Also
 
