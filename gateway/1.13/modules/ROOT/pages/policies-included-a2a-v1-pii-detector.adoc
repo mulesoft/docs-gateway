@@ -11,7 +11,7 @@ endif::[]
 >s|Summary      | Detects personally identifiable information (PII) in A2A v1 requests across all transports
 >s|Category | A2A
 >s|First Omni Gateway version available | v1.13.0
->s| Returned Status Codes |
+>s| Returned Status Codes | 403: Forbidden: PII detected and action is set to Reject
 |===
 
 include::partial$a2a-version-support.adoc[]
@@ -46,9 +46,9 @@ For more information, see <<pii-types>>. | Yes | None
 For more information, see <<custom-patterns>>. | No | Empty array
 | Action | Action to take when PII is detected. Supported values are:
 
-* `Reject` - Blocks the request and returns a 403 Forbidden error
-* `Log` - Allows the request to continue but logs the PII detection
-* `Log and mask` - Allows the request to continue, logs the detection, and masks the sensitive data in logs
+* `Reject`: Blocks the request and returns a 403 Forbidden error
+* `Log`: Allows the request to continue but logs the PII detection
+* `Log and mask`: Allows the request to continue, logs the detection, and masks the sensitive data in logs
 | No | `Log`
 |===
 
@@ -91,7 +91,7 @@ Custom patterns are evaluated alongside the built-in PII types.
 
 === Basic Configuration
 
-The following example shows a basic configuration that detects US SSNs and credit card numbers, and rejects requests containing PII:
+This example shows a basic configuration that detects US SSNs and credit card numbers, and rejects requests containing PII:
 
 [source,yaml]
 ----
@@ -114,7 +114,7 @@ spec:
 
 === Configuration with Custom Patterns
 
-The following example shows a configuration that detects email addresses along with a custom pattern for internal project codes. The policy logs detections and masks the sensitive data:
+This example shows a configuration that detects email addresses along with a custom pattern for internal project codes. The policy logs detections and masks the sensitive data:
 
 [source,yaml]
 ----
