@@ -8,26 +8,25 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | A2A v1 Token Based Rate Limit
->s|Summary      | Controls API usage by enforcing token-based rate limits
+>s|Summary      | Rate limits v1 A2A agent usage of upstream resources
 >s|Category | A2A
 >s|First Omni Gateway version available | v1.13.0
->s| Returned Status Codes |
+.>s| Returned Status Codes
+|429 - Too Many Requests: Token limit exceeded, requests are blocked until the current window finishes
 |===
-
-include::partial$a2a-version-support.adoc[]
 
 == Summary
 
-The A2A v1 Token Based Rate Limit policy enforces token-based rate limiting on A2A v1.0 agent requests across all transport protocols: JSON-RPC, HTTP+JSON, and gRPC. This policy counts tokens using the GPT-4o-mini BPE tokenizer model and enforces a per-key budget over a configurable time window, helping organizations manage costs and prevent abuse.
+The A2A v1 Token Based Rate Limit policy enforces token-based rate limiting on A2A v1.0 agent requests across all transport protocols: JSON-RPC, HTTP+JSON, and gRPC. This policy counts tokens using the GPT-4o-mini tokenizer model and enforces a per-key budget over a configurable time window.
 
 The policy counts tokens from both request and response payloads:
 
-* *Request tokens* - Counted from `SendMessage` and `SendStreamingMessage` requests. Only text parts (`Part::Text`) and data parts (`Part::Data`) are counted; file parts (`Part::File`) are not counted since file URLs or base64 content are not sent directly to the LLM.
-* *Response tokens* - Counted from response content including message parts, status messages, artifacts, and Server-Sent Events (SSE) streams. Response tokens are billed to the same bucket to ensure a single conversation cannot exceed the limit by sending tiny prompts.
+* *Request tokens* - Counted from `SendMessage` and `SendStreamingMessage` requests. Only text parts (`Part::Text`) and data parts (`Part::Data`) are counted. File parts (`Part::File`) aren't counted since file URLs or base64 content aren't sent directly to the LLM.
+* *Response tokens* - Counted from response content including message parts, status messages, artifacts, and Server-Sent Events (SSE) streams. Response tokens are counted toward the same limit to ensure a single conversation can't exceed the limit by sending tiny prompts.
 
 Read-only methods (`GetTask`, `ListTasks`, push notification methods, agent card requests) and non-A2A traffic pass through without consuming tokens.
 
-When the token limit is exceeded, the policy blocks the request and returns HTTP 429 (Too Many Requests) with rate limit headers indicating the limit, remaining tokens, and reset time.
+When the token limit is exceeded, the policy blocks the request and returns a `429 - Too Many Requests` error with rate limit headers indicating the limit, remaining tokens, and reset time.
 
 NOTE: This policy is designed for A2A v1.0 traffic only. For pre-v1.0 A2A traffic, use the xref:policies-included-a2a-token-rate-limit.adoc[A2A Token Based Rate Limit Policy].
 
@@ -43,33 +42,33 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |===
 | Element | Required | Description
 
-| Maximum Tokens | Yes | Maximum number of tokens allowed per resolved key within the specified time period. Must be a positive integer of one or greater.
+| Maximum Tokens | Yes | Maximum number of tokens allowed per resolved key within the specified time period. Must be a positive integer of 1 or greater.
 
 | Time Period (ms) | Yes | Time period in milliseconds for the rate limit sliding window. Minimum value is 1000 milliseconds (1 second). The bucket refills once the window rolls.
 
 | Key Selector | Yes | DataWeave expression that selects the key for rate limiting. This creates independent rate limit counters for each unique value resolved by the expression. The expression is evaluated once per request before A2A parsing.
- +
+
 Common examples:
 
-* `#[attributes.headers['ClientId']]` - Rate limit per client ID
-* `#[attributes.principal]` - Rate limit per authenticated user
-* `#[attributes.headers['X-Forwarded-For']]` - Rate limit per source IP address
- +
+* `#[attributes.headers['ClientId']]`: Rate limit per client ID
+* `#[attributes.principal]`: Rate limit per authenticated user
+* `#[attributes.headers['X-Forwarded-For']]`: Rate limit per source IP address
+
 If the expression fails to resolve to a string, the policy returns HTTP 400 (Bad Request).
 |===
 
 == How This Policy Works
 
-The A2A v1 Token Based Rate Limit policy uses a sliding-window rate limiting algorithm. Each unique key (resolved by the Key Selector expression) has its own independent token budget and time window.
+The A2A v1 Token Based Rate Limit policy uses a sliding-window rate limiting algorithm. Each unique key (resolved by the **Key Selector** expression) has its own independent token budget and time window.
 
 When a request arrives:
 
-1. The policy resolves the Key Selector expression to determine the rate limit key
-2. For `SendMessage` and `SendStreamingMessage` requests, the policy parses the A2A v1.0 message and counts request tokens
-3. The policy checks if sufficient tokens remain in the bucket for this key
-4. If tokens are available, the request proceeds to the backend
-5. Response tokens are counted and billed to the same bucket
-6. If the bucket is exhausted, subsequent requests are rejected with HTTP 429 until the window resets
+. The policy resolves the **Key Selector** expression to determine the rate limit key
+. For `SendMessage` and `SendStreamingMessage` requests, the policy parses the A2A v1.0 message and counts request tokens
+. The policy checks if sufficient tokens remain in the bucket for this key
+. If tokens are available, the request proceeds to the backend
+. Response tokens are counted and billed to the same bucket
+. If the bucket is exhausted, subsequent requests are rejected with HTTP 429 until the window resets
 
 === Token Counting
 
@@ -81,13 +80,13 @@ The policy uses the GPT-4o-mini BPE tokenizer model to count tokens. Within `Sen
 |Token Counting Behavior
 
 |`Part::Text`
-|Yes - The `text` value is tokenized and counted
+|Yes: The `text` value is tokenized and counted
 
 |`Part::Data`
-|Yes - The JSON-serialized `data` payload is tokenized and counted
+|Yes: The JSON-serialized `data` payload is tokenized and counted
 
 |`Part::File`
-|No - File URLs (`url`) and base64 content (`raw`) are not counted since they are not sent directly to the LLM
+|No: File URLs (`url`) and base64 content (`raw`) aren't counted since they aren't sent directly to the LLM
 |===
 
 Response tokens are counted from:
@@ -103,9 +102,9 @@ For more information about the tokenizer model, see the https://platform.openai.
 
 When a request is processed (whether accepted or rejected), the policy adds the following headers to the response:
 
-* `x-token-limit` - The maximum number of tokens allowed per window for this key
-* `x-token-remaining` - The number of tokens remaining in the current window for this key
-* `x-token-reset` - The remaining time in milliseconds until the window resets for this key
+* `x-token-limit`: The maximum number of tokens allowed per window for this key
+* `x-token-remaining`: The number of tokens remaining in the current window for this key
+* `x-token-reset`: The remaining time in milliseconds until the window resets for this key
 
 == Examples
 
