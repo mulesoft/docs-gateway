@@ -44,7 +44,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 | Maximum Tokens | Yes | Maximum number of tokens allowed per resolved key within the specified time period. Must be a positive integer of 1 or greater.
 
-| Time Period (ms) | Yes | Time period in milliseconds for the rate limit sliding window. Minimum value is 1000 milliseconds (1 second). The bucket refills once the window rolls.
+| Time Period (ms) | Yes | Time period in milliseconds for the rate limit sliding window. Minimum value is 1000 milliseconds (1 second). The limit refills once the window rolls.
 
 | Key Selector | Yes | DataWeave expression that selects the key for rate limiting. This creates independent rate limit counters for each unique value resolved by the expression. The expression is evaluated once per request before A2A parsing.
 
@@ -65,10 +65,10 @@ When a request arrives:
 
 . The policy resolves the **Key Selector** expression to determine the rate limit key
 . For `SendMessage` and `SendStreamingMessage` requests, the policy parses the A2A v1.0 message and counts request tokens
-. The policy checks if sufficient tokens remain in the bucket for this key
+. The policy checks if sufficient tokens remain in the limit for this key
 . If tokens are available, the request proceeds to the backend
-. Response tokens are counted and billed to the same bucket
-. If the bucket is exhausted, subsequent requests are rejected with HTTP 429 until the window resets
+. Response tokens are counted toward the same limit
+. If the limit is exhausted, subsequent requests are rejected with HTTP 429 until the window resets
 
 === Token Counting
 
