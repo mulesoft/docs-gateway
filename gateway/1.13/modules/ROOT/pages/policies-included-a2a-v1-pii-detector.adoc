@@ -14,7 +14,6 @@ endif::[]
 >s| Returned Status Codes | 403: Forbidden: PII detected and action is set to Reject
 |===
 
-include::partial$a2a-version-support.adoc[]
 
 == Summary
 
@@ -108,7 +107,7 @@ Based on the configured action:
 
 * *Reject*: Blocks the request and returns an error response in the transport's format. The upstream agent never receives the request.
 * *Log*: Forwards the request unchanged and logs findings with actual PII values.
-* *Log and mask*: Forwards the request unchanged and logs findings with masked values (replaced with `\***`).
+* *Log and mask*: Forwards the request unchanged and logs findings with masked values. Masking preserves some characters (for example, email domains, last digits of SSNs) while obscuring sensitive portions.
 
 NOTE: The *Log* and *Log and mask* actions forward the request with raw PII to the upstream agent. Only *Reject* prevents PII from reaching the agent.
 
@@ -298,22 +297,22 @@ When the action is set to *Log and mask*, the policy logs detected PII with mask
 
 [source,json]
 ----
-[accessLog] Request: `Contact me at ***@example.com or call ***. My SSN is ***.` has sensitive data: [
+[accessLog] Request: `Contact me at ********@example.com or call (***) ***-4567. My SSN is ***-**-6789.` has sensitive data: [
   {
     "pii_type": "Email",
-    "masked_value": "***",
+    "masked_value": "********@example.com",
     "start": 14,
     "end": 34
   },
   {
     "pii_type": "Phone Number",
-    "masked_value": "***",
+    "masked_value": "(***) ***-4567",
     "start": 43,
     "end": 57
   },
   {
     "pii_type": "US SSN",
-    "masked_value": "***",
+    "masked_value": "***-**-6789",
     "start": 70,
     "end": 81
   }
