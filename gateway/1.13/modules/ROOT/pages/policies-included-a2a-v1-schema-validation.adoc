@@ -26,7 +26,9 @@ The policy performs the following validations:
 * *HTTP+JSON*: Validates that URLs match A2A v1.0 HTTP+JSON routes and that request bodies conform to the schema for the matched route.
 * *gRPC*: Validates that the protobuf payload decodes successfully against the A2A v1.0 gRPC service definition.
 
-When validation fails, the policy returns an error response in the same transport format as the request, with appropriate HTTP status codes (400 for invalid parameters, 404 for unknown methods).
+When validation fails, the policy returns an error response with the appropriate HTTP status code in the same transport format as the request.
+
+NOTE: This policy is designed for A2A v1.0 traffic only. If you need to support pre-v1.0 agents, use the xref:policies-included-a2a-schema-validation.adoc[A2A Schema Validation] policy instead. Do not apply both policies to the same agent.
 
 === When to Use This Policy
 
@@ -37,9 +39,6 @@ Apply this policy when:
 * You want consistent validation across JSON-RPC, HTTP+JSON, and gRPC transports
 * You need to return validation errors before requests reach backend services
 
-=== Version Compatibility
-
-This policy is designed for A2A v1.0 traffic only. If you need to support pre-v1.0 agents, use the xref:policies-included-a2a-schema-validation.adoc[A2A Schema Validation] policy instead. Do not apply both policies to the same agent.
 
 == Transport-Specific Validation
 
@@ -94,34 +93,13 @@ include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
 The A2A v1 Schema Validation policy isn't supported in Local Mode.
 
-include::partial$policy-title-headers.adoc[tag=ui]
+include::partial$policy-title-headers.adoc[tag=uiTitleOnly]
 
 This policy has no configurable parameters.
 
-== Examples
+== Example Validation Errors
 
-=== Basic Configuration
-
-Apply the policy with default validation rules:
-
-[source,yaml]
-----
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: PolicyBinding
-metadata:
-  name: a2a-v1-schema-validation
-spec:
-  targetRef:
-    kind: ApiInstance
-    name: my-a2a-v1-agent
-  policyRef:
-    name: a-two-a-v1-schema-validation-flex
-    namespace: default
-----
-
-=== Example Validation Errors
-
-==== Invalid JSON-RPC Method Name
+=== Invalid JSON-RPC Method Name
 
 Request with v0.3-style path method name:
 
@@ -159,7 +137,7 @@ Response (HTTP 404):
 }
 ----
 
-==== Invalid Request Parameters
+=== Invalid Request Parameters
 
 Request with missing required field:
 
