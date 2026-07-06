@@ -18,7 +18,13 @@ include::partial$a2a-version-support.adoc[]
 
 == Summary
 
-The A2A v1 PII Detector policy detects personally identifiable information (PII) in A2A v1 requests across all transports (JSON-RPC, HTTP+JSON, gRPC). If PII is detected, you can either log or block the request. A policy violation is always reported if PII is detected.
+The A2A v1 PII Detector policy detects personally identifiable information (PII) in A2A v1.0 agent requests across all three transport protocols: JSON-RPC, HTTP+JSON, and gRPC. This policy scans the message content of `SendMessage` and `SendStreamingMessage` requests for configured PII patterns and can either reject the request, log the detection, or log and mask the sensitive data.
+
+The policy scans only the text parts of message content (`Part::Text` entries in `message.parts[]`). File references (`Part::File`) and structured data (`Part::Data`) are not scanned. Read-only methods like `GetTask`, `ListTasks`, and agent card requests pass through without inspection.
+
+When PII is detected and the action is set to `Reject`, the policy returns an appropriate error response in the request's transport protocol format. A policy violation is always reported when PII is detected, regardless of the configured action.
+
+NOTE: This policy is designed for A2A v1.0 traffic only. For pre-v1.0 A2A traffic, use the xref:policies-included-a2a-pii-detector.adoc[A2A PII Detector Policy].
 
 == Configuring Policy Parameters
 
@@ -28,4 +34,107 @@ The A2A v1 PII Detector policy isn't supported in Local Mode.
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
-This policy has no configurable parameters in the UI.
+[%header%autowidth.spread,cols="a,a,a,a"]
+
+|===
+| Element | Description | Required | Default
+| PII Types | Array that defines the types of PII to detect. You can select multiple PII types. Supported values are `Email`, `US SSN`, `Credit Card`, `Phone Number`.
+ +
+For more information, see <<pii-types>>. | Yes | None
+| Custom PII Patterns | Optional array of custom regex patterns for detecting additional PII types beyond the built-in ones. Each pattern requires a `name` and a `pattern` (regular expression).
+ +
+For more information, see <<custom-patterns>>. | No | Empty array
+| Action | Action to take when PII is detected. Supported values are:
+
+* `Reject` - Blocks the request and returns a 403 Forbidden error
+* `Log` - Allows the request to continue but logs the PII detection
+* `Log and mask` - Allows the request to continue, logs the detection, and masks the sensitive data in logs
+| No | `Log`
+|===
+
+[[pii-types]]
+=== PII Types
+
+When you configure an A2A v1 PII Detector policy, you can choose which types of PII to detect.
+
+The following table describes the types of PII this policy can detect:
+
+[%header,cols='1a,5a']
+|===
+|PII Type
+|Description
+
+|Email
+|Standard email addresses such as `User.Name+tag@example.com`
+
+|US SSN
+|United States Social Security Numbers (SSNs) in the standard format: `XXX-XX-XXXX` where each `X` is a digit. For example: `123-45-6789`.
+
+|Credit Card
+|Credit card numbers in the form of four groups of four digits, separated by optional spaces or hyphens. Examples: `1234-5678-9012-3456`, `1234 5678 9012 3456`, or `1234567890123456`.
+
+|Phone Number
+|United States phone numbers in various formats, with or without country code, parentheses, spaces, hyphens, or dots. Examples: `123-456-7890`, `(123) 456-7890`, `123.456.7890`, `+1 123 456 7890`, or `1234567890123456`.
+|===
+
+[[custom-patterns]]
+=== Custom PII Patterns
+
+In addition to the built-in PII types, you can define custom patterns to detect organization-specific sensitive data. Each custom pattern consists of:
+
+* *Pattern Name*: A descriptive name to identify this PII pattern in detection results
+* *Regex Pattern*: A regular expression pattern to match the sensitive data
+
+Custom patterns are evaluated alongside the built-in PII types.
+
+== Examples
+
+=== Basic Configuration
+
+The following example shows a basic configuration that detects US SSNs and credit card numbers, and rejects requests containing PII:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-pii-detector
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-v1-agent
+  policyRef:
+    name: a-two-a-v1-pii-detector-flex
+  config:
+    entities:
+      - US SSN
+      - Credit Card
+    action: Reject
+----
+
+=== Configuration with Custom Patterns
+
+The following example shows a configuration that detects email addresses along with a custom pattern for internal project codes. The policy logs detections and masks the sensitive data:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-pii-detector-custom
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-v1-agent
+  policyRef:
+    name: a-two-a-v1-pii-detector-flex
+  config:
+    entities:
+      - Email
+    customPatterns:
+      - name: Internal Project Code
+        pattern: 'PROJ-[A-Z0-9]{6}'
+      - name: Employee ID
+        pattern: 'EMP-\d{5}'
+    action: Log and mask
+----
