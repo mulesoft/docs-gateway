@@ -8,7 +8,7 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | A2A v1 Agent Card
->s|Summary      | Rewrites the JSON-RPC interface URL in the A2A v1.0 agent card to match the gateway's public address
+>s|Summary      | Rewrites interface URLs in the A2A v1.0 agent card to match the gateway's public address
 >s|Category | A2A
 >s|First Omni Gateway version available | v1.13.0
 >s| Returned Status Codes | No return codes exist for this policy.
@@ -18,9 +18,9 @@ endif::[]
 
 The A2A v1 Agent Card Policy rewrites the interface URLs inside an A2A v1.0 agent card so that clients reach the agent through Omni Gateway rather than connecting directly to backend services. This ensures that all client requests are routed through Omni Gateway, enabling it to enforce security and access controls.
 
-The policy rewrites the `url` field for every supported interface (`JSONRPC`, `GRPC`, `HTTP+JSON`) in the `supportedInterfaces[]` array of the agent card response. Custom protocol bindings are left untouched.
+The policy rewrites the `url` field for every supported interface (`JSONRPC`, `GRPC`, `HTTP+JSON`) in the `supportedInterfaces[]` array of the agent card response. Custom protocol bindings aren't edited.
 
-The policy handles three response shapes:
+The policy handles the following response formats:
 
 * Bare card response (`GET /.well-known/agent-card.json` or `GET /extendedAgentCard`)
 * JSON-RPC envelope responses (`GetExtendedAgentCard`)
@@ -42,41 +42,41 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Parameter | Description | Required | Default Value | Example
 
 | Consumer URL
-| The base gateway URL injected into the agent card's `supportedInterfaces[]` entries. Each binding's final URL is the Consumer URL joined with its Interface Paths value (or the bare Consumer URL when no path is set). +
-  +
-If not set, the gateway resolves its public consumer URL from the Anypoint platform.
+| The base gateway URL injected into the agent card's `supportedInterfaces[]` entries. Each binding's final URL is the Consumer URL joined with its Interface Paths value (or the bare Consumer URL when no path is set).
+
+When undefined, the gateway resolves its public consumer URL from the Anypoint platform.
 | No
 | Resolved from platform
 | `\https://gateway.public.example.com/agent/`
 
 | Agent Card Path
-| The suffix path where the well-known agent card is published. The match is case-insensitive and suffix-based, so the configured path resolves under any tenant prefix. +
-  +
+| The suffix path where the well-known agent card is published. The match is case-insensitive and suffix-based, so the configured path resolves under any tenant prefix.
+
 Configure this when the gateway publishes the card under a custom sub-path.
 | No
 | `/.well-known/agent-card.json`
 | `/agents/finance/.well-known/agent-card.json`
 
 | Interface Paths - JSON-RPC Path
-| Path appended to Consumer URL for interfaces with `protocolBinding` of `JSONRPC`. +
-  +
-When unset, the binding uses the bare Consumer URL.
+| Path appended to Consumer URL for interfaces with `protocolBinding` of `JSONRPC`.
+
+When undefined, the binding uses the bare Consumer URL.
 | No
 | (bare Consumer URL)
 | `/jsonrpc`
 
 | Interface Paths - gRPC Path
-| Path appended to Consumer URL for interfaces with `protocolBinding` of `GRPC`. +
-  +
-When unset, the binding uses the bare Consumer URL.
+| Path appended to Consumer URL for interfaces with `protocolBinding` of `GRPC`.
+
+When undefined, the binding uses the bare Consumer URL.
 | No
 | (bare Consumer URL)
 | `/grpc`
 
 | Interface Paths - HTTP+JSON Path
-| Path appended to Consumer URL for interfaces with `protocolBinding` of `HTTP+JSON`. +
-  +
-When unset, the binding uses the bare Consumer URL.
+| Path appended to Consumer URL for interfaces with `protocolBinding` of `HTTP+JSON`.
+
+When undefined, the binding uses the bare Consumer URL.
 | No
 | (bare Consumer URL)
 | `/rest`
