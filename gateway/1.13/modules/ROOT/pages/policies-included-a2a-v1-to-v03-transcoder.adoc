@@ -14,6 +14,8 @@ endif::[]
 >s| Returned Status Codes |
 |===
 
+include::partial$a2a-version-support.adoc[]
+
 == Summary
 
 The A2A v1 to v0.3 Transcoder policy enables A2A v1.0 JSON-RPC clients (such as Broker v2 and Mule A2A Connector v2) to communicate with A2A v0.3 backend agents without requiring backend upgrades. This policy transcodes protocol messages bidirectionally, enabling organizations to upgrade their clients to A2A v1.0 while continuing to use existing v0.3 backends, including third-party agents.
@@ -38,7 +40,7 @@ The following A2A v1.0 methods are not supported when transcoding to v0.3:
 
 All other v1.0 methods are supported with full transcoding.
 
-NOTE: This policy supports A2A v1.0 JSON-RPC clients only. The HTTP+JSON REST binding is not currently supported.
+NOTE: This policy supports A2A v1.0 JSON-RPC clients only. The HTTP+JSON REST binding is not supported.
 
 == Configuring Policy Parameters
 
@@ -54,7 +56,7 @@ This policy has no configurable parameters. The method mappings, enum conversion
 
 === Basic Configuration
 
-The following example applies the transcoder policy to a v0.3 backend agent, allowing v1.0 clients to communicate with it:
+This example applies the transcoder policy to a v0.3 backend agent, allowing v1.0 clients to communicate with it:
 
 [source,yaml]
 ----
@@ -74,8 +76,8 @@ spec:
 
 This policy is useful for organizations performing a gradual migration from A2A v0.3 to v1.0:
 
-1. Upgrade client applications (Broker, connectors) to A2A v1.0
-2. Apply this transcoder policy to existing v0.3 backend agents
-3. Clients can immediately use v1.0 features while backends remain on v0.3
-4. Upgrade backend agents to v1.0 at your own pace
-5. Remove the transcoder policy once all backends are upgraded to v1.0
+. Upgrade client applications (Broker, connectors) to A2A v1.0.
+. Apply this transcoder policy to existing v0.3 backend agents.
+. Clients can immediately use v1.0 features while backends remain on v0.3.
+. Upgrade backend agents to v1.0 at your own pace.
+. Remove the transcoder policy once all backends are upgraded to v1.0.
