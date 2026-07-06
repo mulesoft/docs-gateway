@@ -41,11 +41,11 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Element | Description | Required | Default
 
 | Text Decorators | Array of text decorations to add to prompts. Each decorator can include a text expression and an optional condition.
-+
+
 For more information, see <<text-decorators>>. | No | Empty array
 
 | File Decorators | Array of file-type decorations to add to prompts. Each decorator specifies file content (URL or base64), file type, and optional metadata like filename and MIME type.
-+
+
 For more information, see <<file-decorators>>. | No | Empty array
 |===
 
@@ -59,9 +59,9 @@ Text decorators add plain text content to the beginning of the message. Each tex
 | Property | Description | Required | Default
 
 | Prompt Text | DataWeave expression that generates the prompt text injected into the request. The result is added as a text part with media type `text/plain`.
- +
+
 *Example:* `#['Use Imperial metric units']`
- +
+
 The expression can access:
 
 * `attributes` - Request attributes (headers, query parameters, etc.)
@@ -70,7 +70,7 @@ The expression can access:
 | Yes | None
 
 | Condition | Optional DataWeave expression that filters which prompts to decorate. If the expression evaluates to `true`, the decorator is applied; otherwise, it is skipped.
- +
+
 *Example:* `#[attributes.headers['x-environment']=='production']`
 | No | Always applied
 |===
@@ -85,13 +85,12 @@ File decorators add file references or inline file content to the beginning of t
 | Property | Description | Required | Default
 
 | Content | DataWeave expression containing either a URL to an external file (when File Source is `Uri`) or base64-encoded file content (when File Source is `Base64`).
- +
+
 *URI Example:* `#['https://example.com/schema.json']`
- +
 *Base64 Example:* `#['QmFzZTY0IGVuY29kZWQgZmlsZSBjb250ZW50']`
- +
+
 Base64 content is validated against the pattern `^[A-Za-z0-9+/]*={0,2}$`. Invalid content causes the decorator to be skipped with a warning logged.
- +
+
 The expression can access `attributes`, `authentication`, and `vars.params`.
 | Yes | None
 
@@ -102,19 +101,19 @@ The expression can access `attributes`, `authentication`, and `vars.params`.
 | Yes | `Base64`
 
 | File Name | Optional DataWeave expression that generates the filename for the injected file part.
- +
+ 
 *Example:* `#['api-schema.json']`
 | No | None
 
 | File Mime Type | Optional DataWeave expression that generates the MIME type for the injected file part.
- +
+ 
 *Example:* `#['application/json']`
- +
+ 
 If not specified, defaults to `application/octet-stream`.
 | No | `application/octet-stream`
 
 | Condition | Optional DataWeave expression that filters which prompts to decorate. If the expression evaluates to `true`, the decorator is applied; otherwise, it is skipped.
- +
+ 
 *Example:* `#[attributes.headers['x-include-schema']=='true']`
 | No | Always applied
 |===
