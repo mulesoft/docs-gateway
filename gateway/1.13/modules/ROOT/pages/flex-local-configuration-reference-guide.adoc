@@ -479,9 +479,39 @@ spec:
 [[shared-storage]]
 === Shared Storage
 
-The `sharedStorage` object configures the gateway for shared storage. Production workflows should use https://redis.io/[Redis^] (minimum version 4.0.0), though defining it is optional. If Redis is not defined, shared storage services at port 4000 are still available but will use an in-memory implementation.
+The `sharedStorage` object configures the gateway for shared storage. Omni Gateway supports three types of shared storage:
+
+* *Distributed shared storage*: Enables multiple gateway replicas to share state across a distributed deployment. Data is lost after gateway restarts.
+* *Redis shared storage*: Provides persistent storage that survives gateway restarts. Requires https://redis.io/[Redis^] (minimum version 4.0.0).
+* *Local shared storage*: In-memory implementation. All data is lost when Omni Gateway is stopped or restarted.
 
 Optionally, you can use Redis with Transport Layer Security (TLS) to protect sensitive data, prevent unauthorized access, and maintain the reliability of your services.
+
+==== Distributed Shared Storage
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: api-shared-storage
+spec:
+  sharedStorage:
+    objectStore:
+      url: <string> // REQUIRED
+----
+
+[cols="2,1,1,3"]
+|===
+|Parameter |Required or Optional |Default Value |Description
+
+|`sharedStorage.objectStore.url`
+|Required
+|N/A
+|The distributed shared storage URL in the format `distributed://<bind-address>:<port>?join=<host1>:<port1>,<host2>:<port2>,...`
+
+|===
+
+==== Redis Shared Storage
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -627,6 +657,26 @@ spec:
 Optionally, you can use Redis with TLS to protect data and ensure secure communication.
 
 include::partial$task-shared-storage-config.adoc[tags=tls-sample-config]
+====
+
+.*Distributed Shared Storage Example*
+[%collapsible]
+====
+Distributed shared storage enables multiple gateway replicas to share state across a distributed deployment. Data is not persistent and is lost after gateway restarts.
+
+[source, yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: api-shared-storage
+spec:
+  sharedStorage:
+    objectStore:
+      url: distributed://0.0.0.0:30001?join=flex:30001
+----
+
+NOTE: You can specify multiple host names in the `join` parameter by separating them with commas. For example: `distributed://0.0.0.0:30001?join=node1.example.com:30001,node2.example.com:30001,192.168.1.10:30001`
 ====
 
 .*Local Shared Storage Example*
