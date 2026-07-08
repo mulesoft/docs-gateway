@@ -14,7 +14,7 @@ Omni Gateway configuration caching works by:
 
 If caching is configured and shared storage errors occur, each replica downloads configurations directly from Anypoint Platform. If Omni Gateway disconnects from Anypoint Platform, Omni Gateway uses the cached configuration until connections are restored.
 
-NOTE: When using distributed shared storage, cached configurations are lost after gateway restarts. For persistent caching across gateway restarts, use xref:flex-conn-shared-storage-config.adoc[Redis shared storage].
+NOTE: When using distributed shared storage, cached configurations are lost when all replicas go down (Managed Gateway is stopped or self-managed is scaled to zero replicas). For persistent caching, use xref:flex-conn-shared-storage-config.adoc[Redis shared storage].
 
 == Enable Omni Gateway Configuration Caching
 
@@ -22,7 +22,7 @@ NOTE: When using distributed shared storage, cached configurations are lost afte
 +
 Configure either:
 +
-* xref:flex-conn-distributed-shared-storage-config.adoc[Distributed shared storage]: Cached configurations are lost after gateway restarts
-* xref:flex-conn-shared-storage-config.adoc[Redis shared storage]: Cached configurations persist across gateway restarts
+* xref:flex-conn-distributed-shared-storage-config.adoc[Distributed shared storage]: Cached configurations are lost when all replicas go down
+* xref:flex-conn-shared-storage-config.adoc[Redis shared storage]: Cached configurations persist when all replicas go down
 
 . Enable the `FLEX_DATASOURCE_CONTROL_NODE_ENABLED=true` environment variable.

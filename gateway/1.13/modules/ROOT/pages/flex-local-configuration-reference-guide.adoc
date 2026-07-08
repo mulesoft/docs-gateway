@@ -481,8 +481,8 @@ spec:
 
 The `sharedStorage` object configures the gateway for shared storage. Omni Gateway supports three types of shared storage:
 
-* *Distributed shared storage*: Enables multiple gateway replicas to share state across a distributed deployment. Data is lost after gateway restarts.
-* *Redis shared storage*: Provides persistent storage that survives gateway restarts. Requires https://redis.io/[Redis^] (minimum version 4.0.0).
+* *Distributed shared storage*: Enables multiple gateway replicas to share state across a distributed deployment. Data is lost when all replicas go down (scaled to zero replicas).
+* *Redis shared storage*: Provides persistent storage when all replicas go down (scaled to zero replicas). Requires https://redis.io/[Redis^] (minimum version 4.0.0).
 * *Local shared storage*: In-memory implementation. All data is lost when Omni Gateway is stopped or restarted.
 
 Optionally, you can use Redis with Transport Layer Security (TLS) to protect sensitive data, prevent unauthorized access, and maintain the reliability of your services.
@@ -673,10 +673,10 @@ metadata:
 spec:
   sharedStorage:
     objectStore:
-      url: distributed://0.0.0.0:30001?join=flex:30001
+      url: distributed://0.0.0.0:30001?join=flex.hostname.com:30001
 ----
 
-NOTE: You can specify multiple host names in the `join` parameter by separating them with commas. For example: `distributed://0.0.0.0:30001?join=node1.example.com:30001,node2.example.com:30001,192.168.1.10:30001`
+NOTE: You can specify multiple host names in the `join` parameter by separating them with commas. For example: `distributed://0.0.0.0:30001?join=node1.example.com:30001,node2.example.com:30001,192.168.1.10:30001`. The hostname must resolve to the IPs of the Omni Gateway replicas. Firewall rules must allow Omni Gateway replicas to create connections between each other on port 30001.
 ====
 
 .*Local Shared Storage Example*

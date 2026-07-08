@@ -3,11 +3,11 @@ Enable distributed shared storage for distributed caching, gateway configuration
 
 Distributed shared storage enables multiple gateway replicas to share state across a distributed deployment.
 
-Distributed shared storage isn't persistant and is unavailable after a gateway restart. For persistant shared storage, xref:flex-{page-mode}-shared-storage-config.adoc[configure Redis shared storage].
+Distributed shared storage isn't persistent and data is lost when all replicas go down (scaled to zero replicas). For persistent shared storage, xref:flex-{page-mode}-shared-storage-config.adoc[configure Redis shared storage].
 
 //end::intro1[]
 //tag::intro2[]
-You configure distributed shared storage via a custom YAML file.
+You configure distributed shared storage via a storage YAML file.
 
 The following steps demonstrate distributed shared storage support for Omni Gateway running in a Docker container, as a Linux Service,
 or as a Kubernetes cluster.
@@ -42,25 +42,25 @@ Before configuring shared storage for Omni Gateway, complete the following tasks
 [[linux]]
 == Configure Shared Storage for Omni Gateway as a Linux Service
 
-. Create a folder in the `/etc/mulesoft/flex-gateway/conf.d` directory and name it `custom`:
+. Create a folder in the `/etc/mulesoft/flex-gateway/conf.d` directory and name it `storage`:
 +
 [source,ssh]
 ----
-sudo mkdir /etc/mulesoft/flex-gateway/conf.d/custom
+sudo mkdir /etc/mulesoft/flex-gateway/conf.d/storage
 ----
 
-. Create a YAML configuration file in the `custom` folder:
+. Create a YAML configuration file in the `storage` folder:
 +
 [source,ssh]
 ----
-sudo touch /etc/mulesoft/flex-gateway/conf.d/custom/shared-storage-config.yaml
+sudo touch /etc/mulesoft/flex-gateway/conf.d/storage/shared-storage-config.yaml
 ----
 
 . Update the file with your distributed shared storage configuration details. For example:
 +
 [source,ssh]
 ----
-sudo vi /etc/mulesoft/flex-gateway/conf.d/custom/shared-storage-config.yaml
+sudo vi /etc/mulesoft/flex-gateway/conf.d/storage/shared-storage-config.yaml
 ----
 +
 . Apply this configuration to all Omni Gateway replicas for them to share data.
@@ -105,8 +105,8 @@ metadata:
 spec:
   sharedStorage:
     objectStore:
-      url: distributed://0.0.0.0:30001?join=flex:30001
+      url: distributed://0.0.0.0:30001?join=flex.hostname.com:30001
 ----
 
-NOTE: You can specify multiple host names in the `join` parameter by separating them with commas. For example: `distributed://0.0.0.0:30001?join=node1.example.com:30001,node2.example.com:30001,192.168.1.10:30001`
+NOTE: You can specify multiple host names in the `join` parameter by separating them with commas. For example: `distributed://0.0.0.0:30001?join=node1.example.com:30001,node2.example.com:30001,192.168.1.10:30001`. The hostname must resolve to the IPs of the Omni Gateway replicas. Firewall rules must allow Omni Gateway replicas to create connections between each other on port 30001.
 //end::sample-config-all[]

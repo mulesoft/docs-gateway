@@ -1,11 +1,11 @@
 //tag::intro1[]
 Enable https://redis.io/[Redis^] shared storage for distributed caching, gateway configuration caching (Connected Mode), rate limiting policies.
 
-Configure Redis shared storage if persistant storage after gateway restarts is required. If persitant shared storage isn't required, xref:flex-{page-mode}-distributed-shared-storage-config.adoc[configure distributed shared storage].
+Configure Redis shared storage if persistent storage is required when all replicas go down (scaled to zero replicas). If persistent shared storage isn't required, xref:flex-{page-mode}-distributed-shared-storage-config.adoc[configure distributed shared storage].
 
 //end::intro1[]
 //tag::intro2[]
-You configure shared storage via a custom YAML file.
+You configure shared storage via a storage YAML file.
 
 The following steps demonstrate Redis-based storage support for Omni Gateway running in a Docker container, as a Linux Service,
 or as a Kubernetes cluster.
@@ -44,14 +44,14 @@ Before configuring shared storage for Omni Gateway, complete the following tasks
 [[linux]]
 == Configure Shared Storage for Omni Gateway as a Linux Service
 
-. Create a folder in the `/etc/mulesoft/flex-gateway/conf.d` directory and name it `custom`:
+. Create a folder in the `/etc/mulesoft/flex-gateway/conf.d` directory and name it `storage`:
 +
 [source,ssh]
 ----
-sudo mkdir /etc/mulesoft/flex-gateway/conf.d/custom
+sudo mkdir /etc/mulesoft/flex-gateway/conf.d/storage
 ----
 
-. Create a YAML configuration file in the `custom` folder:
+. Create a YAML configuration file in the `storage` folder:
 +
 [source,ssh]
 ----
@@ -62,7 +62,7 @@ sudo touch /etc/mulesoft/flex-gateway/conf.d/custom/shared-storage-config.yaml
 +
 [source,ssh]
 ----
-sudo vi /etc/mulesoft/flex-gateway/conf.d/custom/shared-storage-config.yaml
+sudo vi /etc/mulesoft/flex-gateway/conf.d/storage/shared-storage-config.yaml
 ----
 +
 . Apply this configuration to all Omni Gateway replicas for them to share data.
