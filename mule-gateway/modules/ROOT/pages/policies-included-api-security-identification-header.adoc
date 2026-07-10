@@ -1,0 +1,87 @@
+= API Security-Identification Header Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api security, identification, correlation, api gateway, mule gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | API Security-Identification Header
+>s|Summary      | Adds API instance identifiers as response headers for external security platform correlation
+>s|Category | Security
+>s| First Mule version available | v4.0.0
+^s| Returned Status Codes | No return codes exist for this policy.
+|===
+
+== Summary
+
+The API Security-Identification Header policy injects organization and API instance identifiers as response headers to enable correlation with external security platforms such as Noname Security and Akamai.
+
+The policy operates exclusively in the response phase and adds two headers:
+
+* `x-ms-correlation-id-1`: Contains the organization ID
+* `x-ms-correlation-id-2`: Contains the API instance ID
+
+These identifiers enable external security platforms to correlate API traffic with specific organizations and API instances for monitoring, threat detection, and security analytics.
+
+The policy has no configuration parameters and operates transparently without blocking traffic. If metadata is unavailable, the response continues without the correlation headers.
+
+== How the Policy Works
+
+The policy executes after the backend response is received and performs the following steps:
+
+. Retrieves the organization ID by calling the Anypoint Platform API at startup using client credentials configured via system properties (`anypoint.platform.client_id`, `anypoint.platform.client_secret`, and `anypoint.platform.base_uri`)
+. Retrieves the API instance ID from the Mule runtime API metadata
+. Adds `x-ms-correlation-id-1` header with the organization ID value
+. Adds `x-ms-correlation-id-2` header with the API instance ID value
+. Passes the response to the client
+
+The organization ID is retrieved once during policy initialization and cached for the lifetime of the policy instance. The API instance ID is obtained from Mule runtime metadata for each request.
+
+=== Edge Cases
+
+* If the required system properties (`anypoint.platform.client_id`, `anypoint.platform.client_secret`, or `anypoint.platform.base_uri`) are not configured, the organization ID cannot be retrieved and `x-ms-correlation-id-1` will be omitted from responses. A warning is logged during policy initialization.
+* If the organization ID or API instance ID is unavailable or null, the corresponding header is omitted from the response.
+* If both identifiers are unavailable, the response passes through without modification.
+* If the backend already returns `x-ms-correlation-id-1` or `x-ms-correlation-id-2` headers, the policy overwrites these values with the platform metadata values.
+* The policy never generates error responses or blocks traffic. It operates in fail-open mode, allowing responses to proceed even if metadata retrieval fails.
+
+== Configuring Policy Parameters
+
+=== Mule Gateway
+
+This policy has no user-configurable parameters.
+
+The policy requires the following system properties to be configured for the Mule runtime to retrieve the organization ID:
+
+* `anypoint.platform.client_id`: The client ID for authenticating with Anypoint Platform
+* `anypoint.platform.client_secret`: The client secret for authenticating with Anypoint Platform
+* `anypoint.platform.base_uri`: The base URI for the Anypoint Platform API (for example, `https://anypoint.mulesoft.com`)
+
+These properties are typically configured automatically when running Mule runtime in connected mode with Anypoint Platform.
+
+== Logging
+
+The policy logs the following information:
+
+* *INFO level*: Organization ID retrieval status during policy initialization (for example: `OrgIdRetriever.initialise() complete — organizationId=<value>`)
+* *WARN level*: When system properties are not configured or when organization ID retrieval fails during initialization
+
+== Example Response
+
+Given the following metadata:
+
+* Organization ID: `a1b2c3d4-e5f6-7890-abcd-ef1234567890`
+* API instance ID: `19203842`
+
+The policy adds the following response headers:
+
+----
+x-ms-correlation-id-1: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+x-ms-correlation-id-2: 19203842
+----
+
+== Additional References
+
+* xref:policies-mule4.adoc[Policies in Mule 4]
