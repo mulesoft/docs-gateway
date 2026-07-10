@@ -10,39 +10,23 @@ endif::[]
 >s| Policy Name | API Security-Identification Header
 >s|Summary      | Adds API instance identifiers as response headers for external security platform correlation
 >s|Category | Security
->s|First Omni Gateway version available | v1.0.0
+>s|First Omni Gateway version available | v1.13.0
 ^s| Returned Status Codes | No return codes exist for this policy.
 |===
 
 == Summary
 
-The API Security-Identification Header policy injects organization and API instance identifiers as response headers to enable correlation with external security platforms such as Noname Security and Akamai.
+The API Security-Identification Header policy injects organization and API instance identifiers as response headers to enable integration with external security platforms such as Noname Security and Akamai.
 
-The policy operates exclusively in the response phase and adds two headers:
+The policy adds these headers in the response phase:
 
 * `x-ms-correlation-id-1`: Contains the organization ID
 * `x-ms-correlation-id-2`: Contains the API instance ID
 
-These identifiers enable external security platforms to correlate API traffic with specific organizations and API instances for monitoring, threat detection, and security analytics.
+The policy has no configuration parameters and operates transparently without blocking traffic. If the required metadata is unavailable, the response continues without the headers but logs a warning is logged for each missing identifier.
 
-The policy has no configuration parameters and operates transparently without blocking traffic. If metadata is unavailable, the response continues without the correlation headers.
+If the backend already returns `x-ms-correlation-id-1` or `x-ms-correlation-id-2` headers, the policy overwrites these values with the platform metadata values.
 
-== How the Policy Works
-
-The policy executes after the backend response is received and performs the following steps:
-
-. Retrieves the organization ID from platform metadata
-. Retrieves the API instance ID from platform metadata
-. Adds `x-ms-correlation-id-1` header with the organization ID value
-. Adds `x-ms-correlation-id-2` header with the API instance ID value
-. Passes the response to the client
-
-=== Edge Cases
-
-* If either the organization ID or API instance ID is unavailable or empty, the corresponding header is omitted from the response. A warning is logged for each missing identifier.
-* If both identifiers are unavailable, the response passes through without modification.
-* If the backend already returns `x-ms-correlation-id-1` or `x-ms-correlation-id-2` headers, the policy overwrites these values with the platform metadata values.
-* The policy never generates error responses or blocks traffic. It operates in fail-open mode, allowing responses to proceed even if metadata retrieval fails.
 
 == Configuring Policy Parameters
 
@@ -50,21 +34,10 @@ include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
 The API Security-Identification Header policy isn't supported in Local Mode.
 
-This policy has no user-configurable parameters.
+include::partial$policy-title-headers.adoc[tag=uiFileTitleOnly]
 
-----
-- policyRef:
-    name: api-security-api-identification-header-flex
-  config: {}
-----
+The API Security-Identification Header policy doesn't have configuration parameters.
 
-=== Resource Configuration Example
-
-----
-- policyRef:
-    name: api-security-api-identification-header-flex
-  config: {}
-----
 
 == Logging
 
