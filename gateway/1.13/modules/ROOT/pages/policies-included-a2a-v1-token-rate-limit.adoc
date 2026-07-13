@@ -8,17 +8,27 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | A2A v1 Token Based Rate Limit
->s|Summary      | Controls API usage by enforcing token-based rate limits
+>s|Summary      | Rate limits v1 A2A agent usage of upstream resources
 >s|Category | A2A
 >s|First Omni Gateway version available | v1.13.0
->s| Returned Status Codes |
+.>s| Returned Status Codes
+|429 - Too Many Requests: Token limit exceeded, requests are blocked until the current window finishes
 |===
-
-include::partial$a2a-version-support.adoc[]
 
 == Summary
 
-The A2A v1 Token Based Rate Limit policy controls API usage by enforcing token-based rate limits. This policy helps manage costs and prevent abuse by limiting the number of tokens consumed by A2A v1 agent requests.
+The A2A v1 Token Based Rate Limit policy enforces token-based rate limiting on A2A v1.0 agent requests across all transport protocols: JSON-RPC, HTTP+JSON, and gRPC. This policy counts tokens using the GPT-4o-mini tokenizer model and enforces a per-key budget over a configurable time window.
+
+The policy counts tokens from both request and response payloads:
+
+* *Request tokens* - Counted from `SendMessage` and `SendStreamingMessage` requests. Only text parts (`Part::Text`) and data parts (`Part::Data`) are counted. File parts (`Part::File`) aren't counted since file URLs or base64 content aren't sent directly to the LLM.
+* *Response tokens* - Counted from response content including message parts, status messages, artifacts, and Server-Sent Events (SSE) streams. Response tokens are counted toward the same limit to ensure a single conversation can't exceed the limit by sending tiny prompts.
+
+Read-only methods (`GetTask`, `ListTasks`, push notification methods, agent card requests) and non-A2A traffic pass through without consuming tokens.
+
+When the token limit is exceeded, the policy blocks the request and returns a `429 - Too Many Requests` error with rate limit headers indicating the limit, remaining tokens, and reset time.
+
+NOTE: This policy is designed for A2A v1.0 traffic only. For pre-v1.0 A2A traffic, use the xref:policies-included-a2a-token-rate-limit.adoc[A2A Token Based Rate Limit Policy].
 
 == Configuring Policy Parameters
 
@@ -28,4 +38,138 @@ The A2A v1 Token Based Rate Limit policy isn't supported in Local Mode.
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
-This policy has no configurable parameters in the UI.
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+
+| Maximum Tokens | Yes | Maximum number of tokens allowed per resolved key within the specified time period. Must be a positive integer of 1 or greater.
+
+| Time Period (ms) | Yes | Time period in milliseconds for the rate limit sliding window. Minimum value is 1000 milliseconds (1 second). The limit refills once the window rolls.
+
+| Key Selector | Yes | DataWeave expression that selects the key for rate limiting. This creates independent rate limit counters for each unique value resolved by the expression. The expression is evaluated once per request before A2A parsing.
+
+Common examples:
+
+* `#[attributes.headers['ClientId']]`: Rate limit per client ID
+* `#[attributes.principal]`: Rate limit per authenticated user
+* `#[attributes.headers['X-Forwarded-For']]`: Rate limit per source IP address
+
+If the expression fails to resolve to a string, the policy returns HTTP 400 (Bad Request).
+|===
+
+== How This Policy Works
+
+The A2A v1 Token Based Rate Limit policy uses a sliding-window rate limiting algorithm. Each unique key (resolved by the **Key Selector** expression) has its own independent token budget and time window.
+
+When a request arrives:
+
+. The policy resolves the **Key Selector** expression to determine the rate limit key
+. For `SendMessage` and `SendStreamingMessage` requests, the policy parses the A2A v1.0 message and counts request tokens
+. The policy checks if sufficient tokens remain in the limit for this key
+. If tokens are available, the request proceeds to the backend
+. Response tokens are counted toward the same limit
+. If the limit is exhausted, subsequent requests are rejected with HTTP 429 until the window resets
+
+=== Token Counting
+
+The policy uses the GPT-4o-mini BPE tokenizer model to count tokens. Within `SendMessage` and `SendStreamingMessage` requests:
+
+[%header,cols='1a,5a']
+|===
+|Part Type
+|Token Counting Behavior
+
+|`Part::Text`
+|Yes: The `text` value is tokenized and counted
+
+|`Part::Data`
+|Yes: The JSON-serialized `data` payload is tokenized and counted
+
+|`Part::File`
+|No: File URLs (`url`) and base64 content (`raw`) aren't counted since they aren't sent directly to the LLM
+|===
+
+Response tokens are counted from:
+
+* Direct message parts in responses
+* Status message parts
+* Artifact parts
+* Server-Sent Events (SSE) stream data (billed once per event)
+
+For more information about the tokenizer model, see the https://platform.openai.com/tokenizer[OpenAI Platform Tokenizer^].
+
+=== Response Headers
+
+When a request is processed (whether accepted or rejected), the policy adds the following headers to the response:
+
+* `x-token-limit`: The maximum number of tokens allowed per window for this key
+* `x-token-remaining`: The number of tokens remaining in the current window for this key
+* `x-token-reset`: The remaining time in milliseconds until the window resets for this key
+
+== Examples
+
+=== Basic Configuration
+
+This example limits each authenticated user to 10,000 tokens per minute:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-token-rate-limit
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-v1-agent
+  policyRef:
+    name: a-two-a-v1-token-rate-limit-flex
+  config:
+    maximumTokens: 10000
+    timePeriodInMilliseconds: 60000
+    keySelector: "#[attributes.principal]"
+----
+
+=== Rate Limit by Client ID
+
+This example limits each client to 50,000 tokens per 5 minutes, based on a `ClientId` header:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-token-rate-limit-client
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-v1-agent
+  policyRef:
+    name: a-two-a-v1-token-rate-limit-flex
+  config:
+    maximumTokens: 50000
+    timePeriodInMilliseconds: 300000
+    keySelector: "#[attributes.headers['ClientId']]"
+----
+
+=== Rate Limit by IP Address
+
+This example limits each source IP address to 5,000 tokens per 10 seconds:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-token-rate-limit-ip
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-v1-agent
+  policyRef:
+    name: a-two-a-v1-token-rate-limit-flex
+  config:
+    maximumTokens: 5000
+    timePeriodInMilliseconds: 10000
+    keySelector: "#[attributes.headers['X-Forwarded-For']]"
+----
