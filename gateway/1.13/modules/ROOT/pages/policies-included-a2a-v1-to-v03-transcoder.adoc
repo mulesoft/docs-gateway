@@ -8,17 +8,39 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | A2A v1 to v0.3 Transcoder
->s|Summary      | Enables A2A v1.0 JSON-RPC clients to consume A2A v0.3 servers by transcoding protocol messages
+>s|Summary      | Transcodes protocol messages bidirectionally between A2A v1.0 JSON-RPC clients and A2A v0.3 backend servers
 >s|Category | A2A
 >s|First Omni Gateway version available | v1.13.0
->s| Returned Status Codes |
+>s| Returned Status Codes | -32601 (UNSUPPORTED_METHOD_FOR_V03), -32003 (PUSH_NOTIFICATION_NOT_SUPPORTED)
 |===
 
 include::partial$a2a-version-support.adoc[]
 
 == Summary
 
-The A2A v1 to v0.3 Transcoder policy lets A2A v1.0 JSON-RPC clients consume A2A v0.3 servers by transcoding requests, responses, errors, SSE streams, and agent cards on the wire. This policy enables compatibility between v1.0 clients and legacy v0.3 backend agents.
+The A2A v1 to v0.3 Transcoder policy enables A2A v1.0 JSON-RPC clients, such as Broker v2 and Mule A2A Connector v2, to communicate with A2A v0.3 backend agents without requiring backend upgrades. Apply this policy to A2A v0.3 backend server instances. The policy transcodes protocol messages bidirectionally, enabling organizations to upgrade their clients to A2A v1.0 while continuing to use existing v0.3 backends, including third-party agents.
+
+The policy transforms the following elements between v1.0 and v0.3 formats:
+
+* *Method names*: Converts between v1.0 method names (`SendMessage`, `GetTask`, `SubscribeToTask`) and v0.3 method names (`message/send`, `tasks/get`, `tasks/resubscribe`)
+* *Message part structure*: Converts between v1.0 JSON member names and the v0.3 `kind` discriminator (`text`, `file`, `data`)
+* *Enumerations*: Transcodes enum values such as `Message.role` from `ROLE_USER` to `user` and `TaskState` from `TASK_STATE_SUBMITTED` to `submitted`
+* *Error formats*: Converts between the v1.0 `google.rpc.ErrorInfo` array format and the v0.3 plain string format
+* *Agent cards*: Transforms agent card responses from the v0.3 format to the v1.0 format with `additionalInterfaces`
+* *Server-Sent Events (SSE)*: Transcodes SSE streams for `SendStreamingMessage` and `SubscribeToTask` per-event
+
+The policy applies these transformations in both directions: v1.0 to v0.3 for outbound requests and v0.3 to v1.0 for inbound responses.
+
+=== Transformation Limitations
+
+The following A2A v1.0 methods aren't supported when transcoding to v0.3:
+
+* *ListTasks*: The v0.3 protocol has no JSON-RPC equivalent for this method. Requests are rejected with error code `-32601 UNSUPPORTED_METHOD_FOR_V03`.
+* *Push notification configuration methods*: All push notification methods (`CreateTaskPushNotificationConfig`, `GetTaskPushNotificationConfig`, `ListTaskPushNotificationConfigs`, `DeleteTaskPushNotificationConfig`) are rejected with error code `-32003 PUSH_NOTIFICATION_NOT_SUPPORTED`.
+
+All other v1.0 methods are supported with full transcoding.
+
+NOTE: This policy supports A2A v1.0 JSON-RPC clients only. The HTTP+JSON REST binding isn't supported.
 
 == Configuring Policy Parameters
 
@@ -28,4 +50,34 @@ The A2A v1 to v0.3 Transcoder policy isn't supported in Local Mode.
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
-This policy has no configurable parameters in the UI.
+This policy has no configurable parameters. The method mappings, enum conversions, and limitation gates are built into the policy and are automatically applied.
+
+== Examples
+
+=== Basic Configuration
+
+This example applies the transcoder policy to a v0.3 backend agent and allows v1.0 clients to communicate with it:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-to-v03-transcoder
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-v03-a2a-agent
+  policyRef:
+    name: a2a-v1-to-v03-transcoder
+----
+
+=== Use Case: Gradual Migration
+
+This policy is useful for organizations performing a gradual migration from A2A v0.3 to v1.0:
+
+. Upgrade client applications such as Broker and connectors to A2A v1.0.
+. Apply this transcoder policy to existing v0.3 backend agents.
+. Clients can immediately use v1.0 features while backends remain on v0.3.
+. Upgrade backend agents to v1.0 at your own pace.
+. Remove the transcoder policy once all backends are upgraded to v1.0.
