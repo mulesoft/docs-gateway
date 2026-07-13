@@ -8,17 +8,22 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | A2A v1 PII Detector
->s|Summary      | Detects personally identifiable information (PII) in A2A v1 requests across all transports
+>s|Summary      | Detects personally identifiable information (PII) in A2A v1 requests
 >s|Category | A2A
 >s|First Omni Gateway version available | v1.13.0
->s| Returned Status Codes |
+>s| Returned Status Codes | 403: Forbidden: PII detected and action is set to Reject
 |===
 
-include::partial$a2a-version-support.adoc[]
 
 == Summary
 
-The A2A v1 PII Detector policy detects personally identifiable information (PII) in A2A v1 requests across all transports (JSON-RPC, HTTP+JSON, gRPC). If PII is detected, you can either log or block the request. A policy violation is always reported if PII is detected.
+The A2A v1 PII Detector policy detects personally identifiable information (PII) in A2A v1.0 agent requests across all three transport protocols: JSON-RPC, HTTP+JSON, and gRPC. This policy scans the message content of `SendMessage` and `SendStreamingMessage` requests for configured PII patterns and can either reject the request, log the detection, or log and mask the sensitive data.
+
+The policy scans only the text parts of message content (`Part::Text` entries in `message.parts[]`). File references (`Part::File`) and structured data (`Part::Data`) are not scanned. Read-only methods like `GetTask`, `ListTasks`, and agent card requests pass through without inspection.
+
+When PII is detected and the action is set to `Reject`, the policy returns an appropriate error response in the request's transport protocol format. A policy violation is always reported when PII is detected, regardless of the configured action.
+
+NOTE: This policy is designed for A2A v1.0 traffic only. For pre-v1.0 A2A traffic, use the xref:policies-included-a2a-pii-detector.adoc[A2A PII Detector Policy].
 
 == Configuring Policy Parameters
 
@@ -28,4 +33,403 @@ The A2A v1 PII Detector policy isn't supported in Local Mode.
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
-This policy has no configurable parameters in the UI.
+[%header%autowidth.spread,cols="a,a,a,a"]
+
+|===
+| Element | Description | Required | Default
+| PII Types | Array that defines the types of PII to detect. You can select multiple PII types. Supported values are `Email`, `US SSN`, `Credit Card`, `Phone Number`.
+ +
+For more information, see <<pii-types>>. | Yes | None
+| Custom PII Patterns | Optional array of custom regex patterns for detecting additional PII types beyond the built-in ones. Each pattern requires a `name` and a `pattern` (regular expression).
+ +
+For more information, see <<custom-patterns>>. | No | Empty array
+| Action | Action to take when PII is detected. Supported values are:
+
+* `Reject`: Blocks the request and returns a 403 Forbidden error
+* `Log`: Allows the request to continue but logs the PII detection
+* `Log and mask`: Allows the request to continue, logs the detection, and masks the sensitive data in logs
+| No | `Log`
+|===
+
+[[pii-types]]
+=== PII Types
+
+When you configure an A2A v1 PII Detector policy, you can choose which types of PII to detect.
+
+This table describes the types of PII this policy can detect:
+
+[%header,cols='1a,5a']
+|===
+|PII Type
+|Description
+
+|Email
+|Standard email addresses such as `User.Name+tag@example.com`
+
+|US SSN
+|United States Social Security Numbers (SSNs) in the standard format: `XXX-XX-XXXX` where each `X` is a digit. For example: `123-45-6789`.
+
+|Credit Card
+|Credit card numbers in the form of four groups of four digits, separated by optional spaces or hyphens. Examples: `1234-5678-9012-3456`, `1234 5678 9012 3456`, or `1234567890123456`.
+
+|Phone Number
+|United States phone numbers in various formats, with or without country code, parentheses, spaces, hyphens, or dots. Examples: `123-456-7890`, `(123) 456-7890`, `123.456.7890`, `+1 123 456 7890`, or `1234567890123456`.
+|===
+
+[[custom-patterns]]
+=== Custom PII Patterns
+
+In addition to the built-in PII types, you can define custom patterns to detect organization-specific sensitive data. Each custom pattern consists of:
+
+* *Pattern Name*: A descriptive name to identify this PII pattern in detection results
+* *Regex Pattern*: A regular expression pattern to match the sensitive data
+
+Custom patterns are evaluated alongside the built-in PII types.
+
+== How This Policy Works
+
+The A2A v1 PII Detector policy scans A2A v1.0 requests for PII across all three transport protocols: JSON-RPC, HTTP+JSON, and gRPC.
+
+=== Request Scanning
+
+The policy scans only these A2A v1.0 methods:
+
+* `SendMessage`
+* `SendStreamingMessage`
+
+For each request, the policy inspects `params.message.parts[]` and scans only `Part::Text` entries. File references (`Part::File`) and structured data (`Part::Data`) are not scanned.
+
+Read-only methods such as `GetTask`, `ListTasks`, and agent card requests pass through without inspection. Non-A2A traffic also passes through unchanged.
+
+The policy stops scanning at the first PII detection and applies the configured action to the entire request.
+
+Based on the configured action:
+
+* *Reject*: Blocks the request and returns an error response in the transport's format. The upstream agent never receives the request.
+* *Log*: Forwards the request unchanged and logs findings with actual PII values.
+* *Log and mask*: Forwards the request unchanged and logs findings with masked values. Masking preserves some characters (for example, email domains, last digits of SSNs) while obscuring sensitive portions.
+
+NOTE: The *Log* and *Log and mask* actions forward the request with raw PII to the upstream agent. Only *Reject* prevents PII from reaching the agent.
+
+=== Response Handling
+
+Unlike the pre-v1.0 A2A PII Detector policy, the A2A v1 PII Detector policy does not scan responses. This policy is request-only by design.
+
+== Response on Reject
+
+When the policy blocks a request (action set to *Reject*), it returns an error response in the format appropriate for the transport protocol.
+
+=== JSON-RPC Transport
+
+HTTP 403 with a JSON-RPC 2.0 error response:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": null,
+  "error": {
+    "code": -32600,
+    "message": "Request contains PII data: US SSN: 123-45-6789",
+    "data": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "domain": "a2a-protocol.org",
+        "reason": "FORBIDDEN",
+        "metadata": {
+          "detail": "Request contains PII data: US SSN: 123-45-6789"
+        }
+      }
+    ]
+  }
+}
+----
+
+The error code `-32600` maps to the A2A v1.0 `FORBIDDEN` reason code.
+
+=== HTTP+JSON Transport
+
+HTTP 403 with a Google RPC Status error response:
+
+[source,json]
+----
+{
+  "error": {
+    "code": 403,
+    "message": "Request contains PII data: US SSN: 123-45-6789",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "domain": "a2a-protocol.org",
+        "reason": "FORBIDDEN",
+        "metadata": {
+          "detail": "Request contains PII data: US SSN: 123-45-6789"
+        }
+      }
+    ]
+  }
+}
+----
+
+=== gRPC Transport
+
+HTTP 200 with gRPC status headers:
+
+----
+grpc-status: 7
+grpc-message: Request%20contains%20PII%20data%3A%20US%20SSN%3A%20123-45-6789
+----
+
+The `grpc-status` code `7` corresponds to `PERMISSION_DENIED`. The response body is empty.
+
+== Examples
+
+=== Basic Configuration
+
+This example shows a basic configuration that detects US SSNs and credit card numbers, and rejects requests containing PII:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-pii-detector
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-v1-agent
+  policyRef:
+    name: a-two-a-v1-pii-detector-flex
+  config:
+    entities:
+      - US SSN
+      - Credit Card
+    action: Reject
+----
+
+=== Configuration with Custom Patterns
+
+This example shows a configuration that detects email addresses along with a custom pattern for internal project codes. The policy logs detections and masks the sensitive data:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-pii-detector-custom
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-v1-agent
+  policyRef:
+    name: a-two-a-v1-pii-detector-flex
+  config:
+    entities:
+      - Email
+    customPatterns:
+      - name: Internal Project Code
+        pattern: 'PROJ-[A-Z0-9]{6}'
+      - name: Employee ID
+        pattern: 'EMP-\d{5}'
+    action: Log and mask
+----
+
+== Logging Examples
+
+This example shows an A2A v1 request containing multiple PII types and the corresponding log output for different action configurations.
+
+Sample request:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "method": "SendMessage",
+  "params": {
+    "message": {
+      "parts": [
+        {
+          "kind": "text",
+          "text": "Contact me at john.doe@example.com or call (555) 123-4567. My SSN is 123-45-6789."
+        }
+      ]
+    }
+  }
+}
+----
+
+[tabs]
+====
+Log::
++
+--
+When the action is set to *Log*, the policy logs detected PII with the actual values:
+
+[source,json]
+----
+[accessLog] Request: `Contact me at john.doe@example.com or call (555) 123-4567. My SSN is 123-45-6789.` has sensitive data: [
+  {
+    "pii_type": "Email",
+    "value": "john.doe@example.com",
+    "start": 14,
+    "end": 34
+  },
+  {
+    "pii_type": "Phone Number",
+    "value": "(555) 123-4567",
+    "start": 43,
+    "end": 57
+  },
+  {
+    "pii_type": "US SSN",
+    "value": "123-45-6789",
+    "start": 70,
+    "end": 81
+  }
+]
+----
+--
+
+Log and mask::
++
+--
+When the action is set to *Log and mask*, the policy logs detected PII with masked values:
+
+[source,json]
+----
+[accessLog] Request: `Contact me at ********@example.com or call (***) ***-4567. My SSN is ***-**-6789.` has sensitive data: [
+  {
+    "pii_type": "Email",
+    "masked_value": "********@example.com",
+    "start": 14,
+    "end": 34
+  },
+  {
+    "pii_type": "Phone Number",
+    "masked_value": "(***) ***-4567",
+    "start": 43,
+    "end": 57
+  },
+  {
+    "pii_type": "US SSN",
+    "masked_value": "***-**-6789",
+    "start": 70,
+    "end": 81
+  }
+]
+----
+--
+
+Reject::
++
+--
+When the action is set to *Reject*, the policy blocks the request and returns an error response in the transport's format. The upstream agent never receives the original request containing PII.
+
+For this JSON-RPC request, the response would be:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": null,
+  "error": {
+    "code": -32600,
+    "message": "Request contains PII data: US SSN: 123-45-6789",
+    "data": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "domain": "a2a-protocol.org",
+        "reason": "FORBIDDEN",
+        "metadata": {
+          "detail": "Request contains PII data: US SSN: 123-45-6789"
+        }
+      }
+    ]
+  }
+}
+----
+
+A policy violation is reported for monitoring purposes.
+--
+====
+
+=== Custom Pattern Example
+
+This example shows detection of a custom AWS Access Key pattern in a request:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "method": "SendMessage",
+  "params": {
+    "message": {
+      "parts": [
+        {
+          "kind": "text",
+          "text": "Use this AWS key: AKIAIOSFODNN7EXAMPLE for deployment"
+        }
+      ]
+    }
+  }
+}
+----
+
+With a custom pattern configured (`name: AWS Access Key`, `pattern: AKIA[0-9A-Z]{16}`), the policy logs:
+
+[source,json]
+----
+[accessLog] Request: `Use this AWS key: AKIAIOSFODNN7EXAMPLE for deployment` has sensitive data: [
+  {
+    "pii_type": "AWS Access Key",
+    "value": "AKIAIOSFODNN7EXAMPLE",
+    "start": 18,
+    "end": 38
+  }
+]
+----
+
+== Edge Cases
+
+The policy passes through these requests without scanning:
+
+* Non-A2A traffic
+* A2A methods other than `SendMessage` and `SendStreamingMessage` (such as `GetTask`, `ListTasks`, agent card requests)
+* Requests with missing or malformed `params`
+* Message parts with types other than `Part::Text` (`Part::File` and `Part::Data` are not scanned)
+* Empty text parts
+
+If a regex engine error occurs while scanning a text part, the error is logged and that part is skipped, but remaining parts continue to be scanned.
+
+== Compliance and Data Flow
+
+This table shows where raw PII values appear based on the configured action.
+
+[%header,cols="1,2,2"]
+|===
+|Action
+|Request Body on Wire
+|Access Log
+
+|Reject
+|Blocked (error response; raw PII values may appear in error message)
+|No log emitted on reject
+
+|Log
+|Forwarded unchanged (raw PII flows upstream)
+|Raw
+
+|Log and mask
+|Forwarded unchanged (raw PII flows upstream)
+|Masked
+|===
+
+IMPORTANT: The *Log and mask* action only masks the access log, not the request body. Raw PII still flows to the upstream agent when using *Log* or *Log and mask* actions. Only *Reject* prevents PII from reaching the agent.
+
+NOTE: The A2A v1 PII Detector policy scans requests only. It does not scan responses. For pre-v1.0 A2A traffic that requires both request and response scanning, use the xref:policies-included-a2a-pii-detector.adoc[A2A PII Detector Policy].
+
+== See Also
+
+* xref:policies-included-a2a-pii-detector.adoc[A2A PII Detector Policy] (for pre-v1.0 A2A traffic)
+* xref:policies-included-mcp-pii-detector.adoc[MCP PII Detector Policy]
+* xref:policies-included-llm-pii-detection.adoc[LLM PII Detection Policy]
