@@ -67,13 +67,13 @@ When you configure the LLM PII Detection policy, choose which types of PII to de
 |Standard email addresses such as `User.Name+tag@example.com`.
 
 |US SSN
-|United States Social Security Numbers (SSNs), including formats such as `123-45-6789`, `123 45 6789`, or `123456789`.
+|United States Social Security Numbers (SSNs), including formats with various delimiters such as `123-45-6789`, `123 45 6789`, `123.45.6789`, `123,45,6789`, `123/45/6789`, `123\45\6789`, or `123456789`.
 
 |Credit Card
-|Credit card numbers such as Visa, MasterCard, American Express, and Discover, with or without separators.
+|Credit card numbers for Visa, MasterCard, American Express, and Discover, with or without separators. Examples: `4111-1111-1111-1111`, `4111 1111 1111 1111`, `4111111111111111`, `4111.1111.1111.1111`, `5500-0000-0000-0004`, `3782-822463-10005`, `6011-0000-0000-0004`.
 
 |Phone Number
-|Phone numbers in common domestic and international formats, for example `123-456-7890` or `+1 123 456 7890`.
+|Phone numbers in common domestic and international formats based on ITU E.164 country codes. Examples include US numbers like `(555) 123-4567`, `555-123-4567`, `+1-555-123-4567`, and international numbers like `+91 98765 43210`, `+44 20 7946 0958`, `+49 30 12345678`.
 |===
 
 == Response on Reject
@@ -171,6 +171,37 @@ When the action is set to *Log and mask*, the policy logs detected PII with mask
 ----
 --
 ====
+
+=== Custom Pattern Example
+
+This example shows detection of a custom AWS Access Key pattern:
+
+[source,http]
+----
+POST /v1/chat/completions HTTP/1.1
+Content-Type: application/json
+
+{
+  "model": "gemini/gemini-2.5-flash",
+  "messages": [
+    {"role": "user", "content": "Use this AWS key: AKIAIOSFODNN7EXAMPLE for deployment"}
+  ]
+}
+----
+
+With a custom pattern configured (`name: AWS Access Key`, `pattern: AKIA[0-9A-Z]{16}`), the policy logs:
+
+[source,json]
+----
+[accessLog] PII detected in LLM request (log only): [
+  {
+    "pii_type": "AWS Access Key",
+    "masked_value": "********************",
+    "start": 19,
+    "end": 39
+  }
+]
+----
 
 == See Also
 
