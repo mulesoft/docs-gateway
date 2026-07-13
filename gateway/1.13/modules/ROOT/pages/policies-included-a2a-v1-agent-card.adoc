@@ -16,7 +16,7 @@ endif::[]
 
 == Summary
 
-The A2A v1 Agent Card Policy rewrites the interface URLs inside an A2A v1.0 agent card so that clients reach the agent through Omni Gateway rather than connecting directly to backend services. This ensures that all client requests are routed through Omni Gateway, enabling it to enforce security and access controls.
+The Agent-to-Agent (A2A) v1 Agent Card Policy rewrites the interface URLs inside an A2A v1.0 agent card so that clients reach the agent through Omni Gateway rather than connecting directly to backend services. This ensures that all client requests are routed through Omni Gateway, enabling it to enforce security and access controls.
 
 The policy rewrites the `url` field for every supported interface (`JSONRPC`, `GRPC`, `HTTP+JSON`) in the `supportedInterfaces[]` array of the agent card response. Custom protocol bindings aren't edited.
 
@@ -87,7 +87,7 @@ When undefined, the binding uses the bare Consumer URL.
 
 === Basic Configuration
 
-Apply the policy with default settings (agent card at `/.well-known/agent-card.json`, consumer URL resolved from platform):
+This example applies the policy with default settings (agent card at `/.well-known/agent-card.json`, consumer URL resolved from platform).
 
 [source,yaml]
 ----
@@ -106,7 +106,7 @@ spec:
 
 === Override Consumer URL
 
-Override the consumer URL when running behind a CDN or reverse proxy that the Anypoint platform doesn't see:
+This example overrides the consumer URL when running behind a CDN or reverse proxy that the Anypoint platform doesn't see.
 
 [source,yaml]
 ----
@@ -127,7 +127,7 @@ spec:
 
 === Custom Card Path
 
-Match a custom card path when your agent is mounted under a tenant prefix:
+This example matches a custom card path when your agent is mounted under a tenant prefix.
 
 [source,yaml]
 ----
@@ -148,7 +148,7 @@ spec:
 
 === Per-Transport Paths
 
-Give each transport its own sub-path under the gateway. The final URL for each binding is the Consumer URL joined with its path:
+This example gives each transport its own sub-path under the gateway. The final URL for each binding is the Consumer URL joined with its path.
 
 [source,yaml]
 ----
