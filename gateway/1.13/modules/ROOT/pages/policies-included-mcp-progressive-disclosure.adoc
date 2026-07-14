@@ -30,7 +30,10 @@ With this policy, you can:
 * Support paginated search results for large tool catalogs
 * Preserve normal tool invocation semantics for upstream policies
 
+IMPORTANT: This policy must be positioned first in the MCP authorization policies, before any xref:policies-included-mcp-attribute-access-control.adoc[access control], xref:policies-included-mcp-tool-mapping.adoc[tool mapping], or xref:policies-included-mcp-schema-validation.adoc[schema validation] policies. To learn more about MCP authorization policies, see xref:policies-mcp-access-control-together.adoc[Configuring MCP Access Control Policies].
+
 The policy performs no tool caching. Every `tools/list`, `search_tools`, and `invoke_tool` request is resolved against the live upstream, so the client always sees the real, per-caller-filtered upstream state.
+
 
 == Configuring Policy Parameters
 
@@ -272,9 +275,9 @@ All upstream policies see `get_weather` (not `invoke_tool`), ensuring access con
 
 == Filter Chain Ordering
 
-The MCP Tools Progressive Disclosure policy *must be positioned first* in the MCP filter chain, before any policy that reads tool names (xref:policies-included-mcp-attribute-access-control.adoc[], xref:policies-included-mcp-tool-mapping.adoc[], xref:policies-included-mcp-schema-validation.adoc[]).
+The MCP Tools Progressive Disclosure policy *must be positioned first* in the MCP filter chain, before any policy that reads tool names (access control, tool mapping, schema validation).
 
-If positioned after an xref:policies-included-mcp-attribute-access-control.adoc[access control policy], that policy would see `invoke_tool` (the meta-tool) in the request, not the real tool name.
+If positioned after an access control policy, that policy would see `invoke_tool` (the meta-tool) in the request and gate the envelope—not the real tool inside—creating an authorization bypass.
 
 == Delegated Authorization
 

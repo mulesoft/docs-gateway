@@ -5,9 +5,8 @@ endif::[]
 :imagesdir: ../assets/images
 :keywords: api gateway, flex gateway, gateway, policy, mcp, access control, tool mapping, abac
 
-Omni Gateway provides four MCP policies that work together to control which tools and related MCP entities are exposed:
+Omni Gateway provides three MCP policies that work together to control which tools and related MCP entities are exposed:
 
-* xref:policies-included-mcp-progressive-disclosure.adoc[MCP Tools Progressive Disclosure]: Reduces context window token cost by exposing tools on-demand through search rather than listing all tools up front.
 * xref:policies-included-mcp-global-access.adoc[MCP Global Access]: Restricts which tools are exposed by using allow or block rules.
 * xref:policies-included-mcp-tool-mapping.adoc[MCP Tool Mapping]: Redefines tool names and descriptions to reduce prompt complexity and improve LLM comprehension.
 * xref:policies-included-mcp-attribute-access-control.adoc[MCP Attribute-Based Access Control]: Grants each client a subset of tools based on who they are, such as Tiers, IP, headers, or claims.
@@ -16,23 +15,21 @@ Omni Gateway provides four MCP policies that work together to control which tool
 
 You can use MCP policies individually or combine them to fit your use cases. When you use multiple policies together, stack them in this order from the gateway toward the client so that they work as intended:
 
-MCP Tools Progressive Disclosure::
-*Must be positioned first* in the MCP filter chain. Replaces the full tool catalog with two meta-tools (`search_tools` and `invoke_tool`) plus any configured `hotTools`. Rewrites `invoke_tool` calls into native `tools/call` requests so that all downstream policies see the real tool name. If positioned after access control policies, authorization bypasses can occur.
+NOTE: If you use xref:policies-included-mcp-progressive-disclosure.adoc[MCP Tools Progressive Disclosure], it must be positioned first, before any access control policies.
 
 MCP Global Access::
-Filters the overall tool list. Define rules to allow or block specific tools so that only the tools you want to expose enter your network. When used with Progressive Disclosure, these filters apply to the tools returned by `search_tools` queries.
+Filters the overall tool list. Define rules to allow or block specific tools so that only the tools you want to expose enter your network.
 
 MCP Tool Mapping::
-Redefines tool names and descriptions to reduce prompt complexity and improve LLM comprehension. Mapping doesn't filter tools. If you use multiple policies, MCP Global Access must allow a tool before mapping applies. When used with Progressive Disclosure, mapped names appear in `search_tools` results.
+Redefines tool names and descriptions to reduce prompt complexity and improve LLM comprehension. Mapping doesn't filter tools. If you use both policies, MCP Global Access must allow a tool before mapping applies.
 
 MCP Attribute-Based Access Control::
-Grants each connecting client a tailored subset of the available tools based on attributes, such as tiers, IP addresses, headers, or claims. When used with Progressive Disclosure, this policy filters the tools before `search_tools` queries are evaluated, ensuring per-caller authorization. 
+Grants each connecting client a tailored subset of the available tools based on attributes, such as tiers, IP addresses, headers, or claims. 
 
 To configure the policy order, see xref:policies-reorder.adoc[Ordering Policies].
 
 == See Also
 
-* xref:policies-included-mcp-progressive-disclosure.adoc[MCP Tools Progressive Disclosure]
 * xref:policies-included-mcp-global-access.adoc[MCP Global Access]
 * xref:policies-included-mcp-tool-mapping.adoc[MCP Tool Mapping]
 * xref:policies-included-mcp-attribute-access-control.adoc[MCP Attribute-Based Access Control]
