@@ -127,10 +127,9 @@ When enabled, TOON encoding runs last:
 Smart Response Trimming uses an LLM proxy to distill large tool responses to match the agent's declared intent. When enabled, the policy:
 
 . Applies the Token Sanitization transforms (HTML to Markdown, Strip Base64, Collapse Whitespace, Remove Nulls).
-. Checks if the sanitized content exceeds the *Threshold Bytes* parameter (default: 8000 bytes).
-. If the content is large enough and includes `expected_info` from the request, the policy sends the sanitized content to the configured LLM proxy.
-. The LLM proxy extracts only the information relevant to the agent's intent and returns a shorter response.
-. Replaces the original content with the extracted response if it's smaller than the sanitized version.
+. Checks if the sanitized content exceeds the *Threshold Bytes* parameter (default: 8000 bytes) and includes `expected_info`
+. Sends the sanitized content to the configured LLM proxy.
+. Replaces the original content with the LLM extracted response if it's smaller than the sanitized version.
 
 Smart Response Trimming:
 
@@ -152,7 +151,7 @@ TOON encoding:
 
 * Runs after all other transforms.
 * Applies to only the shapes that TOON can shrink, for example, uniform-scalar arrays of objects.
-* Never inflates payload size.
+* Preserves or reduces payload size (never inflates).
 * Is a global setting with no per-tool overrides.
 * Uses the *TOON Min Response Size (bytes)* threshold, independent of the *Min Response Size (bytes)* threshold used for other transforms.
 
