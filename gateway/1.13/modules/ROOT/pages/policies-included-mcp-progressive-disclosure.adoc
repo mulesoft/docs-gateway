@@ -8,7 +8,7 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | MCP Tools Progressive Disclosure
->s|Summary      | Reduces context window token cost by exposing tools on-demand through search rather than listing all tools up front
+>s|Summary      | Reduces context window token cost by exposing tools on-demand through search
 >s|Category | MCP
 >s|First Omni Gateway version available | v1.13.0
 >s| Returned Status Codes | No return codes exist for this policy.
@@ -27,11 +27,10 @@ With this policy, you can:
 
 * Reduce token consumption by exposing tools on-demand rather than listing all tools up front
 * Keep frequently-used tools immediately available through `hotTools` configuration
-* Maintain per-caller authorization by delegating access control to the policy chain
 * Support paginated search results for large tool catalogs
 * Preserve normal tool invocation semantics for upstream policies
 
-The policy holds *no resident catalog and performs no caching*. Every `tools/list`, `search_tools`, and `invoke_tool` request is resolved against a live upstream round-trip, so the client always sees the real, per-caller-filtered upstream state.
+The policy performs no tool caching. Every `tools/list`, `search_tools`, and `invoke_tool` request is resolved against the live upstream, so the client always sees the real, per-caller-filtered upstream state.
 
 == Configuring Policy Parameters
 
@@ -45,8 +44,8 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |===
 | Element | Description | Default
 | Search Result Limit | The maximum number of matches a `search_tools` query returns per page when the query omits its own `limit` parameter. | `20`
-| Hot Tools | Tool names or glob patterns that bypass disclosure. Matched tools appear in the client-facing `tools/list` alongside the two meta-tools, carrying their original upstream schemas. | `[]` (empty)
-| Meta Tool Prefix | A prefix prepended to the `search_tools` and `invoke_tool` meta-tool names to avoid namespace collisions with upstream tool names. | `""` (empty)
+| Hot Tools | Tool names or patterns that bypass disclosure. Matched tools appear in the client-facing `tools/list` with their original upstream schemas. | `[]` (empty)
+| Meta Tool Prefix | A prefix prepended to the `search_tools` and `invoke_tool` meta-tool names to avoid namespace collisions with upstream tool names. The prefix is concatenated directly with no separator added (such as `_`) in the prefix value itself. | `""` (empty)
 |===
 
 === Configuration Example
@@ -60,8 +59,10 @@ include::partial$policy-title-headers.adoc[tag=ui]
     hotTools:
       - "get_weather"
       - "list_*"
-    metaToolPrefix: ""
+    metaToolPrefix: "mcp_"
 ----
+
+NOTE: The `metaToolPrefix` value `"mcp_"` produces `mcp_search_tools` and `mcp_invoke_tool`. The underscore is part of the configured prefix, not added automatically.
 
 == How It Works
 
@@ -78,7 +79,7 @@ When a client requests `tools/list`, the policy:
 When a client calls `search_tools`:
 
 . The policy forwards a synthesized `tools/list` request upstream
-. The upstream access control policy filters the list per caller
+. The upstream xref:policies-included-mcp-attribute-access-control.adoc[access control policy] filters the list per caller
 . The policy runs the search query against the filtered list
 . Matching tools are returned with their full schemas, sufficient to construct an `invoke_tool` call
 
@@ -94,14 +95,14 @@ This normalization ensures that access control, tool mapping, and other policies
 
 == Hot Tools Configuration
 
-The `hotTools` configuration enables you to keep frequently-used tools immediately visible without requiring a search. Tools matching the patterns appear in `tools/list` alongside the two meta-tools.
+The `hotTools` configuration enables you to keep frequently-used tools immediately visible without requiring a search. Tools matching the patterns appear in `tools/list` alongside `search_tools` and `invoke_tool`.
 
 === Pattern Matching
 
-* Use exact names: `"get_weather"`
-* Use glob patterns: `"list_*"`, `"*_info"`
-* Matches are evaluated against the live upstream `tools/list` response on every request
-* Only tools the caller is authorized to see (per the chain's access control policy) will match
+* Use exact names: `"get_weather"`.
+* Use glob patterns: `"list_*"`, `"*_info"`.
+* Matches are evaluated against the live upstream `tools/list` response on every request.
+* Only tools the caller is authorized to see (per the chain's xref:policies-included-mcp-attribute-access-control.adoc[access control policy]) will match.
 
 === Use Cases
 
@@ -217,7 +218,7 @@ To fetch the next page, pass the cursor back in the `arguments`:
 }
 ----
 
-Each page resolves against a fresh upstream `tools/list`, ensuring current authorization state. The `query` parameter may be omitted when using a cursor (the cursor carries it).
+Each page resolves against a fresh upstream `tools/list`, ensuring the correct authorization. The `query` parameter may be omitted when using a cursor (the cursor carries it).
 
 == Invoke Tool Usage
 
@@ -271,48 +272,26 @@ All upstream policies see `get_weather` (not `invoke_tool`), ensuring access con
 
 == Filter Chain Ordering
 
-The MCP Tools Progressive Disclosure policy *must be positioned first* in the MCP filter chain, before any policy that reads tool names (access control, tool mapping, schema validation).
+The MCP Tools Progressive Disclosure policy *must be positioned first* in the MCP filter chain, before any policy that reads tool names (xref:policies-included-mcp-attribute-access-control.adoc[], xref:policies-included-mcp-tool-mapping.adoc[], xref:policies-included-mcp-schema-validation.adoc[]).
 
-If positioned after an access control policy, that policy would see `invoke_tool` (the meta-tool) in the request and gate the envelope—not the real tool inside—creating an authorization bypass.
-
-At configuration load, the policy emits:
-
-* A WARN-level log message
-* The metric counter `mulesoft_mcp_tools_progressive_disclosure_ordering_signal`
-
-These signals remind operators that correct ordering is required. The policy cannot detect or enforce its position at runtime.
-
-=== Recommended Chain Order
-
-[source,yaml]
-----
-policies:
-  - policyRef:
-      name: mcp-tools-progressive-disclosure-policy-flex  # FIRST
-  - policyRef:
-      name: mcp-attribute-access-control-policy-flex
-  - policyRef:
-      name: mcp-tool-mapping-policy-flex
-  - policyRef:
-      name: mcp-support-policy-flex                       # LAST
-----
+If positioned after an xref:policies-included-mcp-attribute-access-control.adoc[access control policy], that policy would see `invoke_tool` (the meta-tool) in the request, not the real tool name.
 
 == Delegated Authorization
 
 The policy maintains per-caller authorization parity by delegating to the chain:
 
 . A `search_tools` call triggers a synthesized `tools/list` request upstream
-. The upstream access control policy filters the list per caller
+. The upstream xref:policies-included-mcp-attribute-access-control.adoc[access control policy] filters the list per caller
 . The policy runs the query against the filtered list
 . Only tools the caller is authorized to see are included in results
 
-This delegation ensures:
+This ensures:
 
-* No caller sees tools they cannot invoke
+* Callers don't see tools they cannot invoke
 * Results reflect live authorization state
 * No caching of authorization decisions
 
-If no access control policy is present, `search_tools` returns the full unfiltered catalog—the same as a direct `tools/list` would in that chain.
+If no xref:policies-included-mcp-attribute-access-control.adoc[access control policy] is present, `search_tools` returns the full unfiltered catalog—the same as a direct `tools/list` would in that chain.
 
 == Error Responses
 
@@ -325,29 +304,12 @@ The policy returns JSON-RPC error objects with a stable `data.reason` field for 
 | Malformed `search_tools` | `-32602` | `invalid_params` | Empty/missing/non-string query, exceeds 256 characters, invalid regex, bad `limit`, missing `id`, malformed `cursor`, or `cursor`/`query` mismatch
 |===
 
-The policy originates only `invalid_params` errors. It holds no catalog, so it never rejects an `invoke_tool` call as `unknown_tool`—an unknown wrapped tool is normalized, forwarded, and surfaces as the upstream error.
-
 Errors produced upstream (access control denials, upstream tool errors) pass through unchanged.
 
-== Token Savings
 
-The policy reduces token consumption by replacing large `tools/list` catalogs with two concise meta-tool schemas.
+== Token Metrics
 
-=== Before (Full Catalog)
-
-A `tools/list` with 50 tools, each with a 200-token schema = ~10,000 tokens per list.
-
-=== After (Progressive Disclosure)
-
-* Two meta-tool schemas = ~400 tokens
-* `hotTools` (optional) = variable, typically < 1,000 tokens for a few tools
-* `search_tools` query + results = ~200–2,000 tokens depending on result count
-
-For a workflow with multiple `tools/list` calls, savings compound significantly.
-
-=== Token Metrics
-
-The policy tracks before/after token counts in the `_mcp_token_metrics` field on responses:
+The policy tracks before and after token counts in the `_mcp_token_metrics` field on responses:
 
 * `pre_transform`: Estimated tokens in the upstream catalog (before optimization)
 * `response`: Estimated tokens in the rewritten response (after optimization)
@@ -357,7 +319,7 @@ The downstream `mcp-support-policy` extracts these metrics and emits them as:
 * `mulesoft.mcp.pre_transform_tokens`
 * `mulesoft.mcp.response_tokens`
 
-These metrics are advisory estimates (~4 bytes per token heuristic) and do not influence routing or filtering behavior.
+NOTE: These metrics are estimates (~4 bytes per token).
 
 == See Also
 
