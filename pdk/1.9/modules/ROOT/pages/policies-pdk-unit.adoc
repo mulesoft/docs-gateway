@@ -1,0 +1,438 @@
+= Writing Unit Tests
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Use the `pdk-unit` testing framework for Omni Gateway Policy Development Kit (PDK) custom policies to test the full request and response lifecycle of a policy without a running Envoy proxy, a WebAssembly runtime, or external infrastructure.
+
+To see example `pdk-unit` tests, browse the https://github.com/mulesoft/pdk-custom-policy-examples[PDK Custom Policy Examples] on GitHub.
+
+Use `pdk-unit` when you need tests that are:
+
+* *Fast feedback*: Tests run as ordinary Rust unit tests completing in milliseconds.
+* *Deterministic*: No network, no containers, no race conditions.
+* *Full lifecycle coverage*: Exercises request headers, request body, response headers, and response body phases as the real `proxy-wasm` host does.
+* *Code coverage*: Policy code runs directly in the Rust environment, so it works with standard coverage tools such as `cargo-tarpaulin`.
+* *Debugging*: Tests run as native Rust code, so you can attach a debugger or profiler without extra setup.
+
+== Enable pdk-unit 
+
+Add `pdk-unit` as a dev-dependency in your policy's `Cargo.toml`:
+
+[source,toml]
+----
+[dev-dependencies]
+pdk-unit = { version = "1.9" }
+----
+
+[[enable-pdk-unit-for-non-pdk-policies]]
+=== Enable pdk-unit for Non-PDK Policies
+
+PDK-Unit supports testing any policy built with https://github.com/proxy-wasm/proxy-wasm-rust-sdk[proxy-wasm-rust-sdk]. You can write and run unit tests for existing proxy-wasm policies without migrating them to PDK first. Use this functionality to:
+
+* Validate behavior before migration: Test your legacy proxy-wasm policies to establish a behavioral baseline.
+* Identify regressions during migration: Establish tests before migrating your policy to PDK to make sure behavioral differences surface immediately.
+* Adopt PDK incrementally: Migrate your policies to PDK at your own pace while still performing unit testing.
+
+To test non-PDK policies with pdk-unit:
+
+. Make these edits to the custom policy's `Cargo.toml` file before compilation:
++
+* Replace the `pdk-proxy-wasm-stub` target instead of using `proxy-wasm`.
++
+NOTE: Don't make this edit for `wasm32` architecture.
+* Add the `pdk_unit` dependency.
++
+[source,toml]
+----
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+proxy-wasm = "0.2.5"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+pdk-proxy-wasm-stub = "1.9.0"
+
+[dev-dependencies]
+pdk_unit = { version = "1.9.0", default-features = false, features = ["proxy-wasm-rust-sdk"] }
+----
+
+. Conditionally import the appropriate crate in your policy code:
++
+[source,rust]
+----
+#[cfg(target_arch = "wasm32")]
+use proxy_wasm as pw;
+#[cfg(not(target_arch = "wasm32"))]
+use pdk_proxy_wasm_stub as pw;
+----
+
+. Write your tests as you would for a PDK policy. However, use the `with_context` method instead of the `with_entrypoint` method. The `with_context` method receives a function that creates a root context of the root filter:
++
+[source,rust]
+----
+let mut tester = UnitTestBuilder::default()
+    .with_backend(TraceBackend::new(UnitHttpResponse::upgrade()))
+    .with_http_upstream("name.namespace.svc", |req: UnitHttpRequest| {
+        UnitHttpResponse::new(200)
+    })
+    .with_context(|| Box::new(WebSocketRoot));
+----
+
+== Basic Request and Response Test
+
+To send a test request build a `UnitTest` with the `UnitTestBuilder`, send a `UnitHttpRequest`, and assert on the returned `UnitHttpResponse`.
+Headers and the body are available through the `UnitHttpMessage` trait:
+
+[source,rust]
+----
+use pdk_unit::{UnitTestBuilder, UnitHttpRequest, UnitHttpMessage};
+
+#[test]
+fn test_policy_allows_get() {
+    let mut tester = UnitTestBuilder::default()
+        .with_config(r#"{"allowed_methods": ["GET"]}"#)
+        .with_entrypoint(crate::configure);
+
+    let response = tester.request(
+        UnitHttpRequest::get().with_path("/api/resource"),
+    );
+
+    assert_eq!(response.status_code(), 200);
+}
+----
+
+The `request` method drives the request until execution finishes and returns a `UnitHttpResponse`.
+If the request doesn't resolve immediately, the test advances the internal clock and retries until the request completes.
+
+== View Backend Requests 
+
+Use `TraceBackend` to record requests that reach the upstream. Supply any `Backend` as the response generator:
+
+[source,rust]
+----
+use pdk_unit::{UnitTestBuilder, UnitHttpRequest, UnitHttpResponse, UnitHttpMessage, TraceBackend, Backend};
+use std::rc::Rc;
+
+#[test]
+fn test_policy_adds_header() {
+    let backend = Rc::new(TraceBackend::new(UnitHttpResponse::new(200)));
+
+    let mut tester = UnitTestBuilder::default()
+        .with_config(r#"{}"#)
+        .with_backend(Rc::clone(&backend))
+        .with_entrypoint(crate::configure);
+
+    tester.request(UnitHttpRequest::get().with_path("/api/resource"));
+
+    let upstream_req = backend.next().unwrap();
+    assert_eq!(upstream_req.header("x-added-by-policy"), Some("true"));
+}
+----
+
+NOTE: This example always returns `200`.
+
+== Return Custom Upstream Responses 
+
+Use `UnitHttpResponse` or a different closure that implements the `Backend` to mock upstream responses:
+
+[source,rust]
+----
+use pdk_unit::{UnitTestBuilder, UnitHttpRequest, UnitHttpResponse, UnitHttpMessage};
+
+#[test]
+fn test_policy_handles_upstream_error() {
+    let mut tester = UnitTestBuilder::default()
+        .with_config(r#"{}"#)
+        .with_backend(|_req| {
+            UnitHttpResponse::new(503)
+                .with_body(r#"{"error":"unavailable"}"#)
+        })
+        .with_entrypoint(crate::configure);
+
+    let response = tester.request(
+        UnitHttpRequest::get().with_path("/api/resource"),
+    );
+
+    assert_eq!(response.status_code(), 503);
+}
+----
+
+== Mock an HTTP Upstream
+
+When a policy issues an HTTP call to a specific authority, register a backend for that authority by using `with_http_upstream_from_authority`:
+
+[source,rust]
+----
+use pdk_unit::{UnitTestBuilder, UnitHttpRequest, UnitHttpResponse, UnitHttpMessage};
+
+#[test]
+fn test_policy_calls_external_service() {
+    let mut tester = UnitTestBuilder::default()
+        .with_config(r#"{"auth_url": "https://auth.example.com"}"#)
+        .with_http_upstream_from_authority("auth.example.com", |_req| {
+            UnitHttpResponse::new(200)
+                .with_body(r#"{"valid":true}"#)
+                .into()
+        })
+        .with_entrypoint(crate::configure);
+
+    let response = tester.request(
+        UnitHttpRequest::get().with_path("/secure"),
+    );
+
+    assert_eq!(response.status_code(), 200);
+}
+----
+
+== Mock a gRPC upstream
+
+Use the `protobuf_grpc_backend` macro to derive a `GrpcBackend` implementation from a Rust struct with annotated methods:
+
+[source,rust]
+----
+use pdk_unit::{UnitTestBuilder, UnitHttpRequest, UnitHttpMessage, protobuf_grpc_backend};
+
+#[derive(Default)]
+pub struct MockAuthService;
+
+#[protobuf_grpc_backend]
+impl MockAuthService {
+    #[grpc_method(service = "AuthService", method = "Verify")]
+    fn verify(&self, _req: VerifyRequest) -> VerifyResponse {
+        VerifyResponse { authorized: true, ..Default::default() }
+    }
+}
+
+#[test]
+fn test_grpc_policy() {
+    let mut tester = UnitTestBuilder::default()
+        .with_config(r#"{}"#)
+        .with_grpc_upstream_from_authority("grpc.backend.com", MockAuthService::default())
+        .with_entrypoint(crate::configure);
+
+    let response = tester.request(
+        UnitHttpRequest::post().with_path("/api/data"),
+    );
+
+    assert_eq!(response.status_code(), 200);
+}
+----
+
+[[test-websocket-policies]]
+== Test WebSocket Policies
+
+To test custom policies that support WebSocket APIs, use the WebSocket testing capabilities in `pdk-unit`. WebSocket tests differ from standard HTTP tests because they establish an upgrade connection and test bidirectional frame exchange.
+
+To test a WebSocket policy:
+
+. Configure the backend as `UnitHttpResponse::upgrade()` to simulate a successful WebSocket upgrade.
+. Call the `upgrade` method with `UnitHttpRequest::upgrade()` instead of `request`.
+. The result provides an `UpgradeConnection` with the upgrade response and handles to send frames in both directions.
+
+[source,rust]
+----
+use pdk_unit::{UnitTestBuilder, UnitHttpRequest, UnitHttpResponse, UnitFrame, UnitFrameType};
+
+#[test]
+fn websocket_non_text_frames_are_forwarded_unchanged() {
+    let mut tester = UnitTestBuilder::default()
+        .with_backend(UnitHttpResponse::upgrade())
+        .with_entrypoint(crate::configure);
+
+    let conn = tester.upgrade(UnitHttpRequest::upgrade()).unwrap();
+
+    assert_eq!(conn.response().header("custom"), Some("Some"));
+
+    // Test client to server frames
+    conn.client().send_to_server(UnitFrame::ping());
+    let frame = conn.server().next();
+    assert!(frame.is_some());
+    assert_eq!(frame.unwrap().frame_type(), UnitFrameType::Ping);
+
+    // Test server to client frames
+    conn.server().send_to_client(UnitFrame::pong());
+    let frame = conn.client().next();
+    assert!(frame.is_some());
+    assert_eq!(frame.unwrap().frame_type(), UnitFrameType::Pong);
+}
+----
+
+The `UpgradeConnection` provides:
+
+* `response()`: Returns the upgrade response for asserting headers or status.
+* `client()`: Handle to send frames from client to server and receive frames from server.
+* `server()`: Handle to send frames from server to client and receive frames from client.
+
+Use `UnitFrame` to construct WebSocket frames for testing:
+
+* `UnitFrame::text(payload)`: Creates a text frame.
+* `UnitFrame::binary(payload)`: Creates a binary frame.
+* `UnitFrame::ping()`: Creates a ping control frame.
+* `UnitFrame::pong()`: Creates a pong control frame.
+* `UnitFrame::close()`: Creates a close control frame.
+
+== Test Client ID Enforcement
+
+`add_contract_data` seeds the built-in Anypoint Platform stub with a registered API contract to test policies that validate client credentials.
+
+[source,rust]
+----
+use pdk_unit::{UnitTestBuilder, UnitHttpRequest, UnitHttpMessage};
+
+#[test]
+fn test_valid_client_id() {
+    let mut tester = UnitTestBuilder::default()
+        .with_config(r#"{}"#)
+        .with_entrypoint(crate::configure);
+
+    tester.add_contract_data(
+        "my-client-id",
+        "My App",
+        Some("my-client-secret"),
+        None::<String>,
+    );
+
+    tester.sleep(Duration::from_secs(20)); // advance the internal clock to execute the periodic task
+
+    let response = tester.request(
+        UnitHttpRequest::get()
+            .with_path("/api/resource")
+            .with_header("client_id", "my-client-id")
+            .with_header("client_secret", "my-client-secret"),
+    );
+
+    assert_eq!(response.status_code(), 200);
+}
+----
+
+
+
+== Test Time-Based Behavior
+
+Unit tests use an internal clock to test timed policy functions. Use the `tick()` and `sleep()` functions to drive policies that use timers or scheduled callbacks. These functions only move the internal testing clock forward and don't actually take the specified time. Use `Clock::now` or `Timer::now` for time in the policy:
+
+[source,rust]
+----
+use pdk_unit::{UnitTestBuilder, UnitHttpRequest, UnitHttpMessage};
+use std::time::Duration;
+
+#[test]
+fn test_rate_limit_resets_after_window() {
+    let mut tester = UnitTestBuilder::default()
+        .with_config(r#"{"requests_per_minute": 1}"#)
+        .with_entrypoint(crate::configure);
+
+    let req = || UnitHttpRequest::get().with_path("/api/resource");
+
+    let first = tester.request(req());
+    assert_eq!(first.status_code(), 200);
+
+    let second = tester.request(req());
+    assert_eq!(second.status_code(), 429);
+
+    // Advance time past the rate-limit window
+    tester.sleep(Duration::from_secs(60));
+
+    let third = tester.request(req());
+    assert_eq!(third.status_code(), 200);
+}
+----
+
+NOTE: Using `SystemTime::now` creates non-deterministic tests.
+
+== `UnitTestBuilder` Methods
+
+`UnitTestBuilder::default()` is the entry point. All methods return `self` for chaining, except `with_entrypoint` that consumes the builder and returns a `UnitTest`:
+
+[cols="1,2,2",options="header"]
+|===
+|Method |Signature |Description
+
+|`with_config`
+|`with_config(config: impl Into<String>) -> Self`
+|Sets the policy configuration as a JSON string.
+
+|`with_backend`
+|`with_backend(backend: impl Backend + 'static) -> Self`
+|Sets the default HTTP backend when no named upstream matches the request. Defaults to a `TraceBackend` returning `200`.
+
+|`with_http_upstream_from_authority`
+|`with_http_upstream_from_authority(authority: impl AsRef<str>, backend: impl Backend + 'static) -> Self`
+|Registers an HTTP upstream matched by host authority, for example, `api.example.com`. The authority is converted to the internal upstream service name. Call any `metadata()` calls that change `policy_name` or `policy_namespace` before calling `with_http_upstream_from_authority`.
+
+|`with_http_upstream`
+|`with_http_upstream(upstream: impl Into<String>, backend: impl Backend + 'static) -> Self`
+|Registers an HTTP upstream by its full internal service name. Use `with_http_upstream_from_authority` unless if you must pass the service name directly.
+
+|`with_grpc_upstream_from_authority`
+|`with_grpc_upstream_from_authority(authority: impl AsRef<str>, backend: impl GrpcBackend + 'static) -> Self`
+|Registers a gRPC upstream matched by host authority. The authority is converted to the internal upstream service name.
+
+|`with_grpc_upstream`
+|`with_grpc_upstream(upstream: impl Into<String>, backend: impl GrpcBackend + 'static) -> Self`
+|Registers a gRPC upstream by its full internal service name.
+
+|`with_identity_management`
+|`with_identity_management(url: impl Into<String>, backend: impl Backend + 'static) -> Self`
+|Configures the identity management service URL and its HTTP backend mock. Use when the policy performs OAuth token introspection or similar identity calls.
+
+|`metadata`
+|`metadata(f: impl FnOnce(&mut Metadata)) -> Self`
+|Mutates the `Metadata` injected into the policy context. Call the `metadata` method before any `with_*_upstream_from_authority` method as the upstream methods derive the upstream service name from metadata.
+
+|`with_entrypoint`
+|`with_entrypoint(entrypoint: impl Entrypoint<C, T> + Clone + 'static) -> UnitTest`
+|Consumes the builder and creates a `UnitTest`. Pass `crate::configure` as the entrypoint. Consumes the builder.
+|===
+
+== Core API Reference
+
+[cols="1,3",options="header"]
+|===
+|Type / function |Description
+
+|`UnitTestBuilder`
+|Fluent builder. Configure the policy, metadata, and backends, then call `with_entrypoint` to produce a `UnitTest`.
+
+|`UnitTest`
+|Main orchestrator. Use `request` for synchronous tests or `request_partial` plus `poll` for finer control.
+
+|`UnitTestRequest`
+|In-flight request handle. `poll()` returns `Poll::Pending` or `Poll::Ready(response)`.
+
+|`UnitHttpRequest`
+|HTTP request built with method helpers (`get()`, `post()`, and so on) or `custom()`. Use `with_path`, `with_header`, and `with_body` to populate it.
+
+|`UnitHttpResponse`
+|HTTP response from `new(status_code)`. Exposes `status_code()` and the `UnitHttpMessage` trait accessors.
+
+|`UnitHttpMessage`
+|Traits for both `UnitHttpRequest` and `UnitHttpResponse`: `header()`, `headers()`, `body()`, `property()`, `authentication()`, and `violation()`.
+
+|`UnitGrpcRequest` and `UnitGrpcResponse`
+|gRPC wrappers for `GrpcBackend` implementations.
+
+|`Backend`
+|Trait for HTTP upstream mocks. Implemented for closures and for structs whose values convert to `RequestResponse`.
+
+|`GrpcBackend`
+|Trait for gRPC upstream mocks. Implemented for closures via the `protobuf_grpc_backend`.
+
+|`TraceBackend`
+|Wraps any `Backend`, records each call, and lets you assert on upstream requests with `next()`.
+
+|`protobuf_grpc_backend`
+|Proc-macro that derives `GrpcBackend` from annotated `impl` methods and handles protobuf encode/decode.
+
+|`UpgradeConnection`
+|WebSocket connection handle returned by `upgrade()`. Provides `response()` for the upgrade response, `client()` for client-side frame operations, and `server()` for server-side frame operations.
+
+|`UnitFrame`
+|WebSocket frame for testing. Create with `text()`, `binary()`, `ping()`, `pong()`, or `close()`. Query the type with `frame_type()`.
+
+|`UnitFrameType`
+|Enum for WebSocket frame types: `Text`, `Binary`, `Ping`, `Pong`, `Close`.
+
+|`StopIterationMode`
+|Controls ordering when resuming paused requests. Enabled with the `enable_stop_iteration` feature (stable since 1.8).
+|===
