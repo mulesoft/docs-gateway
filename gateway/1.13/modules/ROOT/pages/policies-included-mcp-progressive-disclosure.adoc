@@ -20,15 +20,15 @@ include::partial$mcp-version-support.adoc[]
 
 The MCP Tools Progressive Disclosure policy reduces an MCP client's context-window token cost by hiding the `tools/list` catalog behind these tools:
 
-* *`search_tools`*: Finds relevant tools on demand by matching a query against tool names and descriptions
-* *`invoke_tool`*: Calls a tool discovered via `search_tools`
+* *`search_tools`*: Finds relevant tools on demand by matching a query against tool names and descriptions.
+* *`invoke_tool`*: Calls a tool discovered via `search_tools`.
 
 With this policy, you can:
 
-* Reduce token consumption by exposing tools on-demand rather than listing all tools up front
-* Keep frequently-used tools immediately available through `hotTools` configuration
-* Support paginated search results for large tool catalogs
-* Preserve normal tool invocation semantics for upstream policies
+* Reduce token consumption by exposing tools on-demand rather than listing all tools up front.
+* Keep frequently-used tools immediately available through `hotTools` configuration.
+* Support paginated search results for large tool catalogs.
+* Preserve normal tool invocation semantics for upstream policies.
 
 IMPORTANT: This policy must be positioned first in the MCP authorization policies, before any xref:policies-included-mcp-attribute-access-control.adoc[access control], xref:policies-included-mcp-tool-mapping.adoc[tool mapping], or xref:policies-included-mcp-schema-validation.adoc[schema validation] policies. To learn more about MCP authorization policies, see xref:policies-mcp-access-control-together.adoc[Configuring MCP Access Control Policies].
 
@@ -73,26 +73,26 @@ NOTE: The `metaToolPrefix` value `"mcp_"` produces `mcp_search_tools` and `mcp_i
 
 When a client requests `tools/list`, the policy:
 
-. Forwards the request upstream to get the live, per-caller-filtered tool catalog
-. Replaces the full catalog with the two meta-tools (`search_tools` and `invoke_tool`)
-. Includes any tools matching the configured `hotTools` patterns with their original schemas
+. Forwards the request upstream to get the live, per-caller-filtered tool catalog.
+. Replaces the full catalog with the two meta-tools (`search_tools` and `invoke_tool`).
+. Includes any tools matching the configured `hotTools` patterns with their original schemas.
 
 === Tool Discovery
 
 When a client calls `search_tools`:
 
-. The policy forwards a synthesized `tools/list` request upstream
-. The upstream xref:policies-included-mcp-attribute-access-control.adoc[access control policy] filters the list per caller
-. The policy runs the search query against the filtered list
-. Matching tools are returned with their full schemas, sufficient to construct an `invoke_tool` call
+. The policy forwards a synthesized `tools/list` request upstream.
+. The upstream xref:policies-included-mcp-attribute-access-control.adoc[access control policy] filters the list per caller.
+. The policy runs the search query against the filtered list.
+. Matching tools are returned with their full schemas, sufficient to construct an `invoke_tool` call.
 
 === Tool Invocation
 
 When a client calls `invoke_tool`:
 
-. The policy rewrites the request as a native `tools/call` with the wrapped tool name
-. All upstream policies see the real tool name (not `invoke_tool`)
-. The response is returned to the caller unchanged
+. The policy rewrites the request as a native `tools/call` with the wrapped tool name.
+. All upstream policies see the real tool name (not `invoke_tool`).
+. The response is returned to the caller unchanged.
 
 This normalization ensures that access control, tool mapping, and other policies operate on the real tool name without progressive-disclosure awareness.
 
@@ -283,16 +283,16 @@ If positioned after an access control policy, that policy would see `invoke_tool
 
 The policy maintains per-caller authorization parity by delegating to the chain:
 
-. A `search_tools` call triggers a synthesized `tools/list` request upstream
-. The upstream xref:policies-included-mcp-attribute-access-control.adoc[access control policy] filters the list per caller
-. The policy runs the query against the filtered list
-. Only tools the caller is authorized to see are included in results
+. A `search_tools` call triggers a synthesized `tools/list` request upstream.
+. The upstream xref:policies-included-mcp-attribute-access-control.adoc[access control policy] filters the list per caller.
+. The policy runs the query against the filtered list.
+. Only tools the caller is authorized to see are included in results.
 
 This ensures:
 
-* Callers don't see tools they cannot invoke
-* Results reflect live authorization state
-* No caching of authorization decisions
+* Callers don't see tools they cannot invoke.
+* Results reflect live authorization state.
+* No caching of authorization decisions.
 
 If no xref:policies-included-mcp-attribute-access-control.adoc[access control policy] is present, `search_tools` returns the full unfiltered catalog—the same as a direct `tools/list` would in that chain.
 
@@ -314,13 +314,13 @@ Errors produced upstream (access control denials, upstream tool errors) pass thr
 
 The policy tracks before and after token counts in the `_mcp_token_metrics` field on responses:
 
-* `pre_transform`: Estimated tokens in the upstream catalog (before optimization)
-* `response`: Estimated tokens in the rewritten response (after optimization)
+* `pre_transform`: Estimated tokens in the upstream catalog (before optimization).
+* `response`: Estimated tokens in the rewritten response (after optimization).
 
 The downstream `mcp-support-policy` extracts these metrics and emits them as:
 
-* `mulesoft.mcp.pre_transform_tokens`
-* `mulesoft.mcp.response_tokens`
+* `mulesoft.mcp.pre_transform_tokens`.
+* `mulesoft.mcp.response_tokens`.
 
 NOTE: These metrics are estimates (~4 bytes per token).
 
