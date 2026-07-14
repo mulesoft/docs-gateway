@@ -26,7 +26,7 @@ The MCP Payload Optimization policy reduces LLM token consumption by transformin
 * Remove JSON fields with null values
 * Remove excessive whitespace
 
-. *Smart Response Trimming* - Uses an LLM proxy to reduce large responses down to match the agent's intent, extracting only the information the agent requires.
+. *Smart Response Trimming* - Uses an LLM proxy to reduce large responses to match the agent's intent, extracting only the information the agent requires.
 
 . *Compress Repeated Structures* - Encodes uniform JSON structures into Token-Oriented Object Notation (TOON), a lossless format that reduces tokens.
 
@@ -137,7 +137,7 @@ Smart Response Trimming:
 * Requires an LLM proxy endpoint configured via *LLM Proxy URL*.
 * Requires `expected_info` to be present and non-empty in the request. The extractor only runs when the caller declares their intent.
 * Is fail-open. If there is any LLM failure (timeout, transport error, non-2xx status), the policy falls back to the result from *Clean payloads*.
-* Only processes `content[0]` when it is `type: "text"`. Other content entries are left untouched.
+* Processes `content[0]` only when it is `type: "text"`. Other content entries are left untouched.
 * Uses client credentials (*Client ID* and *Client Secret*) for LLM proxy authentication, sent as separate `client_id` and `client_secret` request headers (not HTTP Basic Auth).
 * Includes an output guard that rejects extractions larger than the sanitized input.
 * Makes exactly one LLM call per response.
@@ -151,7 +151,7 @@ TOON is a compact, lossless, JSON-equivalent text format that reduces LLM token 
 TOON encoding:
 
 * Runs after all other transforms.
-* Only applies to shapes that TOON can shrink, for example, uniform-scalar arrays of objects.
+* Applies to only the shapes that TOON can shrink, for example, uniform-scalar arrays of objects.
 * Never inflates payload size.
 * Is a global setting with no per-tool overrides.
 * Uses the *TOON Min Response Size (bytes)* threshold, independent of the *Min Response Size (bytes)* threshold used for other transforms.
