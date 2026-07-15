@@ -30,7 +30,7 @@ With this policy, you can:
 * Support paginated search results for large tool catalogs.
 * Preserve normal tool invocation semantics for upstream policies.
 
-IMPORTANT: This policy must be positioned first in the MCP authorization policies, before any xref:policies-included-mcp-attribute-access-control.adoc[access control], xref:policies-included-mcp-tool-mapping.adoc[tool mapping], or xref:policies-included-mcp-schema-validation.adoc[schema validation] policies. To learn more about MCP authorization policies, see xref:policies-mcp-access-control-together.adoc[Configuring MCP Access Control Policies].
+IMPORTANT: This policy must be positioned after the xref:policies-included-mcp-support.adoc[MCP Support Policy] but before any other MCP authorization policies, such as xref:policies-included-mcp-attribute-access-control.adoc[access control], xref:policies-included-mcp-tool-mapping.adoc[tool mapping], or xref:policies-included-mcp-schema-validation.adoc[schema validation] policies. To learn more about MCP authorization policies, see xref:policies-mcp-access-control-together.adoc[Configuring MCP Access Control Policies].
 
 The policy performs no tool caching. Every `tools/list`, `search_tools`, and `invoke_tool` request is resolved against the live upstream, so the client always sees the real, per-caller-filtered upstream state.
 
@@ -275,7 +275,7 @@ All upstream policies see `get_weather` (not `invoke_tool`), ensuring access con
 
 == Filter Chain Ordering
 
-The MCP Tools Progressive Disclosure policy *must be positioned first* in the MCP filter chain, before any policy that reads tool names (access control, tool mapping, schema validation).
+The MCP Tools Progressive Disclosure policy must be positioned after the xref:policies-included-mcp-support.adoc[MCP Support Policy] but before any other MCP policies in the filter chain, particularly before any policy that reads tool names (access control, tool mapping, schema validation).
 
 If positioned after an access control policy, that policy would see `invoke_tool` (the meta-tool) in the request and gate the envelope—not the real tool inside—creating an authorization bypass.
 
@@ -308,21 +308,6 @@ The policy returns JSON-RPC error objects with a stable `data.reason` field for 
 |===
 
 Errors produced upstream (access control denials, upstream tool errors) pass through unchanged.
-
-
-== Token Metrics
-
-The policy tracks before and after token counts in the `_mcp_token_metrics` field on responses:
-
-* `pre_transform`: Estimated tokens in the upstream catalog (before optimization).
-* `response`: Estimated tokens in the rewritten response (after optimization).
-
-The downstream `mcp-support-policy` extracts these metrics and emits them as:
-
-* `mulesoft.mcp.pre_transform_tokens`.
-* `mulesoft.mcp.response_tokens`.
-
-NOTE: These metrics are estimates (~4 bytes per token).
 
 == See Also
 
