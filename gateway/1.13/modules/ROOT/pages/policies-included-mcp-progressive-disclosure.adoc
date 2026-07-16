@@ -1,0 +1,318 @@
+= MCP Tools Progressive Disclosure Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, mcp, progressive disclosure, tool search
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | MCP Tools Progressive Disclosure
+>s|Summary      | Reduces context window token cost by exposing tools on-demand through search
+>s|Category | MCP
+>s|First Omni Gateway version available | v1.13.0
+>s| Returned Status Codes | No return codes exist for this policy.
+|===
+
+include::partial$mcp-version-support.adoc[]
+
+== Summary
+
+The MCP Tools Progressive Disclosure policy reduces an MCP client's context-window token cost by hiding the `tools/list` catalog behind these tools:
+
+* *`search_tools`*: Finds relevant tools on demand by matching a query against tool names and descriptions.
+* *`invoke_tool`*: Calls a tool discovered via `search_tools`.
+
+With this policy, you can:
+
+* Reduce token consumption by exposing tools on-demand rather than listing all tools up front.
+* Keep frequently-used tools immediately available through `hotTools` configuration.
+* Support paginated search results for large tool catalogs.
+* Preserve normal tool invocation semantics for upstream policies.
+
+IMPORTANT: This policy must be positioned after the xref:policies-included-mcp-support.adoc[MCP Support Policy] but before any other MCP authorization policies, such as xref:policies-included-mcp-attribute-access-control.adoc[access control], xref:policies-included-mcp-tool-mapping.adoc[tool mapping], or xref:policies-included-mcp-schema-validation.adoc[schema validation] policies. To learn more about MCP authorization policies, see xref:policies-mcp-access-control-together.adoc[Configuring MCP Access Control Policies].
+
+The policy performs no tool caching. Every `tools/list`, `search_tools`, and `invoke_tool` request is resolved against the live upstream, so the client always sees the real, per-caller-filtered upstream state.
+
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The MCP Tools Progressive Disclosure policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Description | Default
+| Search Result Limit | The maximum number of matches a `search_tools` query returns per page when the query omits its own `limit` parameter. | `20`
+| Hot Tools | Tool names or patterns that bypass disclosure. Matched tools appear in the client-facing `tools/list` with their original upstream schemas. | `[]` (empty)
+| Meta Tool Prefix | A prefix prepended to the `search_tools` and `invoke_tool` meta-tool names to avoid namespace collisions with upstream tool names. The prefix is concatenated directly with no separator added (such as `_`) in the prefix value itself. | `""` (empty)
+|===
+
+=== Configuration Example
+
+[source,yaml]
+----
+- policyRef:
+    name: mcp-tools-progressive-disclosure-policy-flex
+  config:
+    searchResultLimit: 20
+    hotTools:
+      - "get_weather"
+      - "list_*"
+    metaToolPrefix: "mcp_"
+----
+
+NOTE: The `metaToolPrefix` value `"mcp_"` produces `mcp_search_tools` and `mcp_invoke_tool`. The underscore is part of the configured prefix, not added automatically.
+
+== How It Works
+
+=== Meta-Tool Advertisement
+
+When a client requests `tools/list`, the policy:
+
+. Forwards the request upstream to get the live, per-caller-filtered tool catalog.
+. Replaces the full catalog with the two meta-tools (`search_tools` and `invoke_tool`).
+. Includes any tools matching the configured `hotTools` patterns with their original schemas.
+
+=== Tool Discovery
+
+When a client calls `search_tools`:
+
+. The policy forwards a synthesized `tools/list` request upstream.
+. The upstream xref:policies-included-mcp-attribute-access-control.adoc[access control policy] filters the list per caller.
+. The policy runs the search query against the filtered list.
+. Matching tools are returned with their full schemas, sufficient to construct an `invoke_tool` call.
+
+=== Tool Invocation
+
+When a client calls `invoke_tool`:
+
+. The policy rewrites the request as a native `tools/call` with the wrapped tool name.
+. All upstream policies see the real tool name (not `invoke_tool`).
+. The response is returned to the caller unchanged.
+
+This normalization ensures that access control, tool mapping, and other policies operate on the real tool name without progressive-disclosure awareness.
+
+== Hot Tools Configuration
+
+The `hotTools` configuration enables you to keep frequently-used tools immediately visible without requiring a search. Tools matching the patterns appear in `tools/list` alongside `search_tools` and `invoke_tool`.
+
+=== Pattern Matching
+
+* Use exact names: `"get_weather"`.
+* Use glob patterns: `"list_*"`, `"*_info"`.
+* Matches are evaluated against the live upstream `tools/list` response on every request.
+* Only tools the caller is authorized to see (per the chain's xref:policies-included-mcp-attribute-access-control.adoc[access control policy]) will match.
+
+=== Use Cases
+
+*Frequently-used tools*: Keep high-traffic tools immediately available to reduce search round-trips.
+
+[source,yaml]
+----
+hotTools:
+  - "get_weather"
+  - "get_user"
+----
+
+*Namespace patterns*: Expose all tools from a specific namespace.
+
+[source,yaml]
+----
+hotTools:
+  - "weather_*"
+  - "user_*"
+----
+
+== Search Tool Usage
+
+The `search_tools` meta-tool accepts a JSON object with the following parameters:
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Parameter | Type | Required | Description
+| `query` | string | Yes | A case-insensitive regular expression to match against tool names and descriptions. Separate alternative keywords with `\|` (spaces match literally).
+| `limit` | integer | No | Maximum number of results to return per page. If omitted, uses the configured `searchResultLimit`.
+| `cursor` | string | No | Opaque pagination cursor from a prior search's `nextCursor` field. Pass it back to fetch the next page.
+|===
+
+=== Example Request
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "search_tools",
+    "arguments": {
+      "query": "weather",
+      "limit": 3
+    }
+  }
+}
+----
+
+=== Example Response
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Found 1 matching tool(s)."
+      }
+    ],
+    "structuredContent": {
+      "matches": [
+        {
+          "name": "get_weather",
+          "description": "Return the current weather for a city",
+          "inputSchema": {
+            "type": "object",
+            "required": ["city"],
+            "properties": {
+              "city": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+----
+
+=== Pagination
+
+When more tools match than fit on a page, the response includes a `nextCursor` field under `structuredContent`:
+
+[source,json]
+----
+{
+  "structuredContent": {
+    "matches": [...],
+    "nextCursor": "eyJxIjoid2VhdGhlciIsIm8iOjIwfQ=="
+  }
+}
+----
+
+To fetch the next page, pass the cursor back in the `arguments`:
+
+[source,json]
+----
+{
+  "method": "tools/call",
+  "params": {
+    "name": "search_tools",
+    "arguments": {
+      "cursor": "eyJxIjoid2VhdGhlciIsIm8iOjIwfQ=="
+    }
+  }
+}
+----
+
+Each page resolves against a fresh upstream `tools/list`, ensuring the correct authorization. The `query` parameter may be omitted when using a cursor (the cursor carries it).
+
+== Invoke Tool Usage
+
+The `invoke_tool` meta-tool wraps a call to a discovered tool. It accepts:
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Parameter | Type | Required | Description
+| `name` | string | Yes | The tool name returned from `search_tools`
+| `arguments` | object | Yes | The tool's input parameters as returned in the `inputSchema` from `search_tools`
+|===
+
+=== Example Request
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "invoke_tool",
+    "arguments": {
+      "name": "get_weather",
+      "arguments": {
+        "city": "San Francisco"
+      }
+    }
+  }
+}
+----
+
+The policy rewrites this as a native `tools/call`:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "get_weather",
+    "arguments": {
+      "city": "San Francisco"
+    }
+  }
+}
+----
+
+All upstream policies see `get_weather` (not `invoke_tool`), ensuring access control, tool mapping, and other policies operate correctly.
+
+== Filter Chain Ordering
+
+The MCP Tools Progressive Disclosure policy must be positioned after the xref:policies-included-mcp-support.adoc[MCP Support Policy] but before any other MCP policies in the filter chain, particularly before any policy that reads tool names (access control, tool mapping, schema validation).
+
+If positioned after an access control policy, that policy would see `invoke_tool` (the meta-tool) in the request and gate the envelope—not the real tool inside—creating an authorization bypass.
+
+== Delegated Authorization
+
+The policy maintains per-caller authorization parity by delegating to the chain:
+
+. A `search_tools` call triggers a synthesized `tools/list` request upstream.
+. The upstream xref:policies-included-mcp-attribute-access-control.adoc[access control policy] filters the list per caller.
+. The policy runs the query against the filtered list.
+. Only tools the caller is authorized to see are included in results.
+
+This ensures:
+
+* Callers don't see tools they cannot invoke.
+* Results reflect live authorization state.
+* No caching of authorization decisions.
+
+If no xref:policies-included-mcp-attribute-access-control.adoc[access control policy] is present, `search_tools` returns the full unfiltered catalog—the same as a direct `tools/list` would in that chain.
+
+== Error Responses
+
+The policy returns JSON-RPC error objects with a stable `data.reason` field for machine-checkable error handling.
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Case | Code | `data.reason` | Description
+| Malformed `invoke_tool` | `-32602` | `invalid_params` | Missing or invalid `arguments.name` or `arguments.arguments`
+| Malformed `search_tools` | `-32602` | `invalid_params` | Empty/missing/non-string query, exceeds 256 characters, invalid regex, bad `limit`, missing `id`, malformed `cursor`, or `cursor`/`query` mismatch
+|===
+
+Errors produced upstream (access control denials, upstream tool errors) pass through unchanged.
+
+== See Also
+
+* xref:policies-mcp-access-control-together.adoc[MCP Access Control: How the Policies Work Together]
+* xref:policies-included-mcp-tool-mapping.adoc[MCP Tool Mapping]
+* xref:policies-included-mcp-global-access.adoc[MCP Global Access]
+* xref:policies-included-mcp-attribute-access-control.adoc[MCP Attribute-Based Access Control]
+* xref:policies-included-directory.adoc[Included Policies Directory]
