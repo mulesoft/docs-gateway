@@ -1,0 +1,178 @@
+= A2A v1 Schema Validation Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | A2A v1 Schema Validation
+>s|Summary      | Verifies that requests to the agent are compliant with the A2A v1.0 specification
+>s|Category | A2A
+>s|First Omni Gateway version available | v1.13.0
+>s| Returned Status Codes
+| 400 - Bad Request: Invalid request parameters or malformed JSON
+| 404 - Not Found: Unknown or invalid method name
+|===
+
+== Summary
+
+The A2A v1 Schema Validation policy validates incoming requests against the A2A v1.0 specification across all three supported transports: JSON-RPC, HTTP+JSON, and gRPC. The policy rejects requests that don't comply with the strict structural validation rules defined in the A2A v1.0 specification. Valid requests flow through unchanged.
+
+The policy performs the following validations:
+
+* *JSON-RPC*: Validates the JSON-RPC 2.0 envelope structure and that method names use the PascalCase format specified in A2A v1.0 (for example, `SendMessage`, `GetTask`). Request bodies are deserialized against the matching request schema.
+* *HTTP+JSON*: Validates that URLs match A2A v1.0 HTTP+JSON routes and that request bodies conform to the schema for the matched route.
+* *gRPC*: Validates that the protobuf payload decodes successfully against the A2A v1.0 gRPC service definition.
+
+When validation fails, the policy returns an error response with the appropriate HTTP status code in the same transport format as the request.
+
+NOTE: This policy is designed for A2A v1.0 traffic only. If you need to support pre-v1.0 agents, use the xref:policies-included-a2a-schema-validation.adoc[A2A Schema Validation] policy instead. Do not apply both policies to the same agent.
+
+=== When to Use This Policy
+
+Apply this policy when:
+
+* You want to enforce strict compliance with the A2A v1.0 specification at the gateway level.
+* You need to protect backend agents from malformed or invalid requests.
+* You want consistent validation across JSON-RPC, HTTP+JSON, and gRPC transports.
+* You need to return validation errors before requests reach backend services.
+
+
+== Transport-Specific Validation
+
+The policy handles each transport differently:
+
+[%header%autowidth.spread,cols="a,a,a"]
+
+|===
+| Transport | Detection Criteria | Validation Behavior
+
+| JSON-RPC
+| `POST` request with JSON-RPC 2.0 envelope (`{"jsonrpc":"2.0", ...}`)
+| Validates PascalCase method names (A2A v1.0 §9.1) when tagged with `a2a-version: 1.0`. +
+  +
+v0.3 path-style method names are rejected with error code `-32601` (Method not found). +
+  +
+Request body is deserialized against the matching request schema with strict validation.
+
+| HTTP+JSON
+| URL matches an A2A v1.0 HTTP+JSON route
+| Performs route lookup and validates the request body schema. +
+  +
+Path-bound parameters (like `id` in `:cancel` or `:subscribe` routes) are validated. +
+  +
+Requests tagged as v1 that don't match a known route are rejected with HTTP 404.
+
+| gRPC
+| `content-type: application/grpc` with path `/a2a.A2AService/<RPC>`
+| Decodes the protobuf payload against the A2A v1.0 gRPC service definition. +
+  +
+Successful decode confirms schema compliance.
+
+| Other traffic
+| Doesn't match any A2A transport pattern
+| Passes through without validation.
+
+|===
+
+== Error Responses
+
+When validation fails, the policy returns errors in the request's transport format:
+
+* *JSON-RPC InvalidParams* (HTTP 400): Returns error code `-32602` with `ErrorInfo` details
+* *JSON-RPC ParseError* (HTTP 400): Returns error code `-32700` when JSON decode fails
+* *JSON-RPC MethodNotFound* (HTTP 404): Returns error code `-32601` for unknown or invalid method names
+* *HTTP+JSON errors*: Returns the same error structure wrapped in a `google.rpc.Status` envelope (A2A v1.0 §11.5)
+* *gRPC errors*: Returns HTTP 200 with `grpc-status` header (`3` for INVALID_ARGUMENT, `12` for UNIMPLEMENTED) and `grpc-message` header with error details
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The A2A v1 Schema Validation policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=uiTitleOnly]
+
+This policy has no configurable parameters.
+
+== Example Validation Errors
+
+=== Invalid JSON-RPC Method Name
+
+Request with v0.3-style path method name:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": "123",
+  "method": "/send-message",
+  "params": {...}
+}
+----
+
+Response (HTTP 404):
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": "123",
+  "error": {
+    "code": -32601,
+    "message": "Method not found",
+    "data": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "domain": "a2a-protocol.org",
+        "reason": "METHOD_NOT_FOUND",
+        "metadata": {
+          "detail": "Invalid methods: `/send-message`. Valid Methods: SendMessage, GetTask, ..."
+        }
+      }
+    ]
+  }
+}
+----
+
+=== Invalid Request Parameters
+
+Request with missing required field:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": "456",
+  "method": "SendMessage",
+  "params": {
+    "message": {}
+  }
+}
+----
+
+Response (HTTP 400):
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": "456",
+  "error": {
+    "code": -32602,
+    "message": "Invalid params",
+    "data": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "domain": "a2a-protocol.org",
+        "reason": "INVALID_PARAMS",
+        "metadata": {
+          "detail": "missing field `text`"
+        }
+      }
+    ]
+  }
+}
+----

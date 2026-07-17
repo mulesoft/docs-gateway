@@ -119,7 +119,7 @@ NOTE: Leaving a required value blank configures the parameter as the default val
 [[configure-shared-storage-for-self-managed-gateway]]
 ==== Configure Shared Storage for Self-Managed Gateway
 
-Self-Managed Gateways require you to configure a shared storage for distributed caching. For more information about shared storage, refer to xref:flex-conn-shared-storage-config.adoc[Configuring Shared Storage for Omni Gateway in Connected Mode].
+Self-Managed Gateways require you to configure shared storage for distributed caching. Configure either xref:flex-conn-distributed-shared-storage-config.adoc[distributed shared storage] or xref:flex-conn-shared-storage-config.adoc[Redis shared storage].
 
 ----
 
@@ -127,14 +127,11 @@ Self-Managed Gateways require you to configure a shared storage for distributed 
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Configuration
 metadata:
-  name: shared-storage-redis
+  name: api-shared-storage
 spec:
   sharedStorage:
-    redis:
-      address: redis:6379
-      user: user
-      password: pass 
-      DB: 1
+    objectStore:
+      url: distributed://0.0.0.0:30001?join=flex.hostname.com:30001
 
 ---
 apiVersion: gateway.mulesoft.com/v1alpha1

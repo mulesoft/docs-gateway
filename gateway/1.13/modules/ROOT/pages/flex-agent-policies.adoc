@@ -36,6 +36,19 @@ Both A2A and MCP support the following policies for Server-Sent Events (SSE) str
 | xref:policies-included-a2a-schema-validation.adoc[A2A Schema Validation] | Validates agent requests to ensure they conform to the A2A specification
 |===
 
+== A2A v1 Policies
+
+[%header%autowidth.spread]
+|===
+|Policy |Summary
+| xref:policies-included-a2a-v1-agent-card.adoc[A2A v1 Agent Card] | Rewrites interface URLs in the A2A v1.0 agent card to match the gateway's public address
+| xref:policies-included-a2a-v1-pii-detector.adoc[A2A v1 PII Detector] | Detects personally identifiable information (PII) in A2A v1 requests across all transports
+| xref:policies-included-a2a-v1-prompt-decorator.adoc[A2A v1 Prompt Decorator] | Decorates A2A v1 prompts with additional context information
+| xref:policies-included-a2a-v1-schema-validation.adoc[A2A v1 Schema Validation] | Verifies that requests to the agent are compliant with the A2A v1.0 specification
+| xref:policies-included-a2a-v1-to-v03-transcoder.adoc[A2A v1 to v0.3 Transcoder] | Enables A2A v1.0 JSON-RPC clients to consume A2A v0.3 servers by transcoding protocol messages
+| xref:policies-included-a2a-v1-token-rate-limit.adoc[A2A v1 Token Based Rate Limit] | Rate limits v1 A2A agent usage of upstream resources
+|===
+
 
 == MCP Policies
 
@@ -45,10 +58,11 @@ Both A2A and MCP support the following policies for Server-Sent Events (SSE) str
 | xref:policies-included-mcp-attribute-access-control.adoc[MCP Attribute-Based Access Control] | Controls access to tools, resources, and prompts based on user information such as Tiers, IP, Headers, or Claims
 | xref:policies-included-mcp-global-access.adoc[MCP Global Access] | Restricts which MCP tools are exposed by defining Allow and Block rules
 | xref:policies-included-mcp-pii-detector.adoc[MCP PII Detector] | Blocks elicitation responses containing personally identifiable information (PII) from reaching MCP servers
-| xref:policies-included-mcp-payload-optimization.adoc[MCP Payload Optimization] | Optimizes MCP tool responses for token consumption by transforming HTML to Markdown and removing unnecessary data
+| xref:policies-included-mcp-payload-optimization.adoc[MCP Payload Optimization] | Reduces tool response token consumption using one or more configurable methods: remove structural noise, trim oversized responses to match agent intent, or compress repeated structures into TOON
 | xref:policies-included-mcp-schema-validation.adoc[MCP Schema Validation] | Validates MCP requests to ensure they conform to the MCP specification
 | xref:policies-included-mcp-support.adoc[MCP Support] | Adds MCP support to an Omni Gateway MCP server instance. This policy is required for your MCP server instance to function properly.
 | xref:policies-included-mcp-tool-mapping.adoc[MCP Tool Mapping] | Redefines tool names and descriptions to reduce prompt complexity and improve LLM comprehension
+| xref:policies-included-mcp-progressive-disclosure.adoc[MCP Tools Progressive Disclosure] | Reduces context window token cost by exposing tools on-demand through search
 |===
 
 == LLM Policies

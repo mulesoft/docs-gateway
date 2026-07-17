@@ -6,7 +6,7 @@ endif::[]
 
 [NOTE]
 ====
-To view an example policy project that uses Omni Gateway Policy Development Kit (PDK)'s XML Validator library, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/xml-validation/README.md[XML Validation Policy Example].
+To view an example policy project that uses Omni Gateway Policy Development Kit (PDK)’s XML Validator library, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/xml-validation/README.md[XML Validation Policy Example].
 ====
 
 Excessive element counts, nesting depth, and attribute sizes in XML payloads can cause parsers to consume excessive memory or CPU. The PDK XML Validator library streams the incoming XML body and enforces configurable limits on its structure and size. Use this library to build custom policies. The library mirrors the limits of the built-in xref:gateway::policies-included-xml-threat-protection.adoc[] for Omni Gateway.
@@ -16,6 +16,8 @@ Use the library when your custom policy must perform these tasks.
 * Accept XML request or response bodies and reject malformed or oversized documents before the gateway fully buffers them.
 * Apply limits that match your API’s threat model, such as maximum element depth, number of children per element, or text node length.
 * Process large bodies incrementally by using the xref:policies-pdk-configure-features-headers.adoc#streaming-bodies[streaming body state].
+
+NOTE: The XML Validator library is gated behind a Cargo feature and is enabled by default. To disable XML Validator features for your policy, see xref:policies-pdk-create-project.adoc#configure-pdk-features[Configure PDK Features in Cargo.toml].
 
 Import the builder from the `xml_validator` module of the PDK crate.
 
