@@ -5,8 +5,27 @@ endif::[]
 :imagesdir: ../assets/images
 :page-mode: conn
 
-include::partial$tracing-support.adoc[]
+include::partial$tracing-support.adoc[tags=short-desc]
 
-include::partial$tracing-export.adoc[tags=telemtery-exporter;telemtery-exporter-note;export-anypoint;export-grpc;export-http]
+Configure distributed tracing in Connected Mode using one of these methods:
 
+* xref:flex-conn-tracing-config.adoc#runtime-manager-config[Runtime Manager runtime configurations]: Applies to all API instances in the gateway.
+* xref:flex-conn-tracing-config.adoc#yaml-resource-config[Configuration YAML resource]: Applies to all API instances.
+* xref:flex-conn-tracing-config.adoc#policy-config[Policy]: Applies to one API instance and provides granular control.
+
+include::partial$tracing-support.adoc[tags=before-you-begin]
+
+include::partial$tracing-export.adoc[tags=tracing-runtime-manager]
+
+
+[[yaml-resource-config]]
+== Configure with a YAML Resource
+
+Edit and apply a YAML configuration resource to configure distributed tracing for all API instances in the gateway. Connected Mode supports exporting traces to Anypoint Monitoring, a gRPC OpenTelemetry endpoint, or an HTTP OpenTelemetry endpoint.
+
+include::partial$tracing-export.adoc[tags=export-anypoint;export-grpc;export-http]
+
+[[policy-config]]
 include::partial$tracing-configuration.adoc[]
+
+include::partial$tracing-export.adoc[tags=telemetry-exporter;telemetry-exporter-note]
