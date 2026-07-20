@@ -11,21 +11,15 @@ endif::[]
 >s|Summary      | Blocks elicitation responses containing personally identifiable information (PII) from reaching MCP servers
 >s|Category | MCP
 >s|First Omni Gateway version available | v1.9.3
+>s|Release Notes| xref:release-notes::flex-gateway/policies/mcp-pii-detector-release-notes.adoc[]
 >s| Returned Status Codes | No return codes exist for this policy. The policy reports a policy violation when PII is detected.
 |===
 
 == Summary
 
-The MCP PII Detector policy blocks elicitation responses containing personally identifiable information (PII) from reaching MCP servers. 
+The MCP PII Detector policy detects personally identifiable information (PII) in Model Context Protocol (MCP) JSON-RPC traffic on both the request and response sides.
 
-When PII is detected in the elicitation response `result` field, the policy:
-
-* Reports a policy violation.
-* Sends a modified response to the MCP server that the request was declined and includes the message `PII data requested or found in user response`.
-
-The policy doesn't send a response to the client when PII is detected.
-
-The policy only scans JSON-RPC responses that contain a `result` field. JSON-RPC requests with a `method` field are ignored.
+When PII is detected, you can configure the policy to reject the request or response, log findings, or log masked findings. The policy reports a policy violation when PII is detected.
 
 == Configuring Policy Parameters
 
@@ -35,23 +29,62 @@ The MCP PII Detector policy isn't supported in Local Mode.
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
-[%header%autowidth.spread,cols="a,a"]
+[%header%autowidth.spread,cols="a,a,a"]
 
 |===
-| Element | Description
-|  Entities| Array that defines the types of PII to detect. You can select multiple PII types. Supported values are `Email`, `US SSN`, `Credit Card`, `Phone Number`.
- + 
-For more information, see <<pii-types>>.
+| Element | Required | Description
+| PII Types | Yes | Array of built-in PII types to detect. Supported values are *Email*, *US SSN*, *Credit Card*, and *Phone Number*. For more information, see <<pii-types>>.
+| Custom PII Patterns | No | Array of custom regex patterns to detect additional sensitive values. Define a name and regex pattern for each array entry. For example, use `name: AWS Access Key` and `pattern: AKIA[0-9A-Z]{16}` to detect AWS access keys.
+| Action | No | Action to take when PII is detected. Supported values are *Reject*, *Log*, and *Log and mask*. Default is *Log*.
 |===
+
+== How This Policy Works
+
+The MCP PII Detector policy is symmetric: it scans both request and response sides of MCP JSON-RPC traffic for PII. It recursively inspects all string values in both `params.*` (for requests) and `result.*` (for responses).
+
+The policy scans:
+
+* *JSON-RPC requests*: All string values under `params.*` from client to server
+* *JSON-RPC responses*: All string values under `result.*` from server to client, including nested objects and arrays
+* *Elicitation responses*: JSON-RPC responses sent from client back to server (MCP elicitation pattern)
+* *SSE streams*: Each `data:` payload in Server-Sent Events (MCP Streamable HTTP transport)
+
+[%header,cols="1,2,2,2"]
+|===
+|Traffic Type
+|Reject
+|Log
+|Log and Mask
+
+|Request processing
+|Blocks the request with HTTP 403 error response. The upstream server never receives the request.
+|Forwards the request and logs findings with actual PII values.
+|Forwards the request and logs findings with masked values.
+
+|Response processing (application/json)
+|Blocks the response with HTTP 403 error response. The client doesn't receive the original response containing PII.
+|Forwards the response and logs findings with actual PII values.
+|Rewrites every string under `result` with masked values and forwards the sanitized response.
+
+|Elicitation responses (client → server)
+|Rewrites the result to indicate the response was declined and forwards the sanitized body to the server.
+|Forwards the response and logs findings.
+|Forwards the response and logs masked findings.
+
+|SSE streams (text/event-stream)
+|Entire stream is replaced with a single JSON-RPC error envelope and Content-Type changes to application/json.
+|Forwards the stream unchanged and logs findings.
+|Each event's result strings are rewritten with masked variants while preserving SSE framing.
+|===
+
+The policy detects overlapping PII patterns and keeps the longest (most specific) match. For example, a credit card number with delimiters that could also match an SSN pattern is detected as a credit card.
 
 [[pii-types]]
-=== PII Types
+== PII Types
 
 When you configure an MCP PII Detector policy, you can choose which types of PII to detect:
 
-
-
-[%header,cols='1a,5a'] 
+[%header,cols='1a,5a']
 |===
 |PII Type
 |Description
@@ -60,12 +93,299 @@ When you configure an MCP PII Detector policy, you can choose which types of PII
 |Standard email addresses such as `User.Name+tag@example.com`.
 
 |US SSN
-|United States Social Security Numbers (SSNs) in the standard format: `XXX-XX-XXXX` where each `X` is a digit. For example, `123-45-6789`.
+|United States Social Security Numbers (SSNs), including formats with various delimiters such as `123-45-6789`, `123 45 6789`, `123.45.6789`, `123,45,6789`, `123/45/6789`, `123\45\6789`, or `123456789`.
 
 |Credit Card
-|Credit card numbers in the form of four groups of four digits, separated by optional spaces or hyphens. For example,`1234-5678-9012-3456`, `1234 5678 9012 3456`, or `1234567890123456`.
+|Credit card numbers for Visa, MasterCard, American Express, and Discover, with or without separators. Examples: `4111-1111-1111-1111`, `4111 1111 1111 1111`, `4111111111111111`, `4111.1111.1111.1111`, `5500-0000-0000-0004`, `3782-822463-10005`, `6011-0000-0000-0004`.
 
 |Phone Number
-|United States phone numbers in various formats, with or without country code, parentheses, spaces, hyphens, or dots. For example, `123-456-7890`, `(123) 456-7890`, `123.456.7890`, `+1 123 456 7890`, or `1234567890`.
+|Phone numbers in common domestic and international formats based on ITU E.164 country codes. Examples include US numbers like `(555) 123-4567`, `555-123-4567`, `+1-555-123-4567`, and international numbers like `+91 98765 43210`, `+44 20 7946 0958`, `+49 30 12345678`.
 |===
+
+== Example Request and Logging
+
+This example shows a request containing PII and the corresponding log output for different action configurations:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "id": 1,
+  "params": {
+    "name": "send_email",
+    "arguments": {
+      "to": "john.doe@example.com",
+      "message": "Contact info: phone is (555) 123-4567, SSN is 123-45-6789"
+    }
+  }
+}
+----
+
+[tabs]
+====
+Log::
++
+--
+When the action is set to *Log*, the policy logs detect PII with the actual values:
+
+[source,text]
+----
+[accessLog] PII detected in request (log only): [{"pii_type": "Email", "value": "john.doe@example.com", "start": 0, "end": 20}, {"pii_type": "Phone", "value": "(555) 123-4567", "start": 0, "end": 14}, {"pii_type": "SSN", "value": "123-45-6789", "start": 0, "end": 11}]
+----
+--
+
+Log and Mask::
++
+--
+When the action is set to *Log and mask*, the policy logs detect PII with masked values:
+
+[source,text]
+----
+[accessLog] PII detected in request (log only): [{"pii_type": "Email", "masked_value": "****@example.com", "start": 0, "end": 20}, {"pii_type": "Phone", "masked_value": "+1******567", "start": 0, "end": 14}, {"pii_type": "SSN", "masked_value": "***-**-*789", "start": 0, "end": 11}]
+----
+--
+
+Reject::
++
+--
+When the action is set to *Reject*, the policy blocks the request, logs masked findings, and returns an HTTP 403 error response:
+
+Log output:
+[source,text]
+----
+[accessLog] PII detected in request and declined: [{"pii_type": "Email", "masked_value": "****@example.com", "start": 0, "end": 20}, {"pii_type": "Phone", "masked_value": "+1******567", "start": 0, "end": 14}, {"pii_type": "SSN", "masked_value": "***-**-*789", "start": 0, "end": 11}]
+----
+
+Error response:
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32602,
+    "message": "Request payload validation error",
+    "data": {
+      "reason": "policy_pii_detected",
+      "phase": "request",
+      "policy": "mcp-pii-detector",
+      "findings": [
+        { "pii_type": "Email", "masked_value": "****@example.com" },
+        { "pii_type": "Phone", "masked_value": "+1******567" },
+        { "pii_type": "SSN", "masked_value": "***-**-*789" }
+      ]
+    }
+  }
+}
+----
+
+The upstream server never receives the original request containing PII.
+
+NOTE: Request-side rejections use error code `-32602` (Invalid params) to indicate a client error, while response-side rejections use error code `-32603` (Internal error) to indicate the server response could not be safely returned.
+--
+====
+
+== Example Response and Logging
+
+This example shows a server response containing PII and the corresponding behavior for different action configurations:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "User contact: john.doe@example.com, SSN: 123-45-6789"
+      }
+    ]
+  }
+}
+----
+
+[tabs]
+====
+Log::
++
+--
+When the action is set to *Log*, the policy forwards the response and logs detected PII with actual values:
+
+[source,text]
+----
+[accessLog] PII detected in server response (log only): [{"pii_type": "Email", "value": "john.doe@example.com", "start": 14, "end": 34}, {"pii_type": "SSN", "value": "123-45-6789", "start": 41, "end": 52}]
+----
+--
+
+Log and Mask::
++
+--
+When the action is set to *Log and mask*, the policy rewrites the response with masked values and logs masked findings:
+
+Response sent to client:
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "User contact: ****@example.com, SSN: ***-**-*789"
+      }
+    ]
+  }
+}
+----
+
+Log output:
+[source,text]
+----
+[accessLog] PII detected in server response (masked in body): [{"pii_type": "Email", "masked_value": "****@example.com", "start": 14, "end": 34}, {"pii_type": "SSN", "masked_value": "***-**-*789", "start": 41, "end": 52}]
+----
+--
+
+Reject::
++
+--
+When the action is set to *Reject*, the policy blocks the response, logs masked findings, and returns an HTTP 403 error:
+
+Log output:
+[source,text]
+----
+[accessLog] PII detected in server response and declined: [{"pii_type": "Email", "masked_value": "****@example.com", "start": 14, "end": 34}, {"pii_type": "SSN", "masked_value": "***-**-*789", "start": 41, "end": 52}]
+----
+
+Error response:
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "error": {
+    "code": -32603,
+    "message": "Internal error",
+    "data": {
+      "reason": "policy_pii_detected",
+      "phase": "response",
+      "policy": "mcp-pii-detector",
+      "findings": [
+        { "pii_type": "Email", "masked_value": "****@example.com" },
+        { "pii_type": "SSN", "masked_value": "***-**-*789" }
+      ]
+    }
+  }
+}
+----
+
+The client does not receive the original response containing PII.
+--
+====
+
+=== Elicitation Response Example
+
+When a client sends a JSON-RPC response back to the server (MCP elicitation pattern) containing PII, and the action is set to *Reject*, the policy rewrites the result:
+
+Original elicitation response:
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "User SSN is 123-45-6789"
+      }
+    ]
+  }
+}
+----
+
+Sanitized response forwarded to server:
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "action": "decline",
+    "reason": "Elicitation response declined due to detected PII"
+  }
+}
+----
+
+=== Custom Pattern Example
+
+This example shows detection of a custom AWS Access Key pattern in a request:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "id": 1,
+  "params": {
+    "name": "deploy",
+    "arguments": {
+      "key": "AKIAIOSFODNN7EXAMPLE"
+    }
+  }
+}
+----
+
+With a custom pattern configured (`name: AWS Access Key`, `pattern: AKIA[0-9A-Z]{16}`), the policy logs:
+
+[source,text]
+----
+[accessLog] PII detected in request (log only): [{"pii_type": "AWS Access Key", "value": "AKIAIOSFODNN7EXAMPLE", "start": 0, "end": 20}]
+----
+
+== Server-Sent Events (SSE) Considerations
+
+When the MCP server uses Server-Sent Events (text/event-stream) for streaming responses, the policy buffers and processes the entire stream:
+
+* *Log*: The stream is forwarded unchanged with raw PII values logged.
+* *Log and mask*: Each event's result strings are rewritten with masked values while preserving SSE framing (event names, IDs, comments).
+* *Reject*: The entire stream is replaced with a single JSON-RPC error envelope, and the Content-Type changes to application/json with HTTP 403 status.
+
+IMPORTANT: SSE buffering is suitable for short-lived tool-call responses but might not be appropriate for long-lived server-pushed streams. For notification streams or progress updates, use the *Log* action to avoid buffering.
+
+NOTE: When *Reject* is applied to an SSE stream, the response Content-Type changes from text/event-stream to application/json. Clients that strictly require SSE formatting might need to handle this change.
+
+== Compliance and Data Flow
+
+This table shows where raw PII values appear based on the configured action:
+
+[%header,cols="1,2,2"]
+|===
+|Action
+|Request/Response Body on Wire
+|Access Log
+
+|Reject
+|Masked (findings in error.data.findings[].masked_value)
+|Masked
+
+|Log and mask
+|Masked (rewrites response body) or unchanged (forwards request unchanged)
+|Masked
+
+|Log
+|Forwarded unchanged (raw PII flows through)
+|Raw
+|===
+
+IMPORTANT: *Reject* is the strict mode that never writes raw PII values anywhere (wire or log). If you need raw values in logs for diagnostics, use the *Log* action instead.
+
+NOTE: For the A2A PII Detector policy, the *Log and mask* action only masks the access log, not the request body. The MCP PII Detector's *Log and mask* action rewrites response bodies but forwards request bodies unchanged.
+
+== See Also
+
+* xref:policies-included-a2a-pii-detector.adoc[A2A PII Detector Policy]
+* xref:policies-included-llm-pii-detection.adoc[LLM PII Detection Policy]
 

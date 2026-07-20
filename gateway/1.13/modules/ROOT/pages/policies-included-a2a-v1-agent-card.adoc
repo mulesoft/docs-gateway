@@ -1,0 +1,173 @@
+= A2A v1 Agent Card Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | A2A v1 Agent Card
+>s|Summary      | Rewrites interface URLs in the A2A v1.0 agent card to match the gateway's public address
+>s|Category | A2A
+>s|First Omni Gateway version available | v1.13.0
+>s|Release Notes| xref:release-notes::flex-gateway/policies/a2a-v1-agent-card-release-notes.adoc[]
+>s| Returned Status Codes | No return codes exist for this policy.
+|===
+
+== Summary
+
+The Agent-to-Agent (A2A) v1 Agent Card Policy rewrites the interface URLs inside an A2A v1.0 agent card so that clients reach the agent through Omni Gateway rather than connecting directly to backend services. This ensures that all client requests are routed through Omni Gateway, enabling it to enforce security and access controls.
+
+The policy rewrites the `url` field for every supported interface (`JSONRPC`, `GRPC`, `HTTP+JSON`) in the `supportedInterfaces[]` array of the agent card response. Custom protocol bindings aren't edited.
+
+The policy handles the following response formats:
+
+* Bare card response (`GET /.well-known/agent-card.json` or `GET /extendedAgentCard`)
+* JSON-RPC envelope responses (`GetExtendedAgentCard`)
+* Server-Sent Events (SSE) streams (`SendStreamingMessage`, `SubscribeToTask`)
+
+The A2A v1 Agent Card policy also enables the *Total Agent Calls* metric that tracks the total successful and unsuccessful calls made to the agent. To view *Total Agent Calls*, see xref:flex-managed-view-api-metrics.adoc[].
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The A2A v1 Agent Card policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a,a,a"]
+
+|===
+| Parameter | Description | Required | Default Value | Example
+
+| Consumer URL
+| The base gateway URL injected into the agent card's `supportedInterfaces[]` entries. Each binding's final URL is the Consumer URL joined with its Interface Paths value (or the bare Consumer URL when no path is set).
+
+When undefined, the gateway resolves its public consumer URL from the Anypoint platform.
+| No
+| Resolved from platform
+| `\https://gateway.public.example.com/agent/`
+
+| Agent Card Path
+| The suffix path where the well-known agent card is published. The match is case-insensitive and suffix-based, so the configured path resolves under any tenant prefix.
+
+Configure this when the gateway publishes the card under a custom sub-path.
+| No
+| `/.well-known/agent-card.json`
+| `/agents/finance/.well-known/agent-card.json`
+
+| Interface Paths - JSON-RPC Path
+| Path appended to Consumer URL for interfaces with `protocolBinding` of `JSONRPC`.
+
+When undefined, the binding uses the bare Consumer URL.
+| No
+| (bare Consumer URL)
+| `/jsonrpc`
+
+| Interface Paths - gRPC Path
+| Path appended to Consumer URL for interfaces with `protocolBinding` of `GRPC`.
+
+When undefined, the binding uses the bare Consumer URL.
+| No
+| (bare Consumer URL)
+| `/grpc`
+
+| Interface Paths - HTTP+JSON Path
+| Path appended to Consumer URL for interfaces with `protocolBinding` of `HTTP+JSON`.
+
+When undefined, the binding uses the bare Consumer URL.
+| No
+| (bare Consumer URL)
+| `/rest`
+
+|===
+
+== Examples
+
+=== Basic Configuration
+
+This example applies the policy with default settings (agent card at `/.well-known/agent-card.json`, consumer URL resolved from platform).
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-agent-card
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-agent
+  policyRef:
+    name: a-two-a-v1-agent-card-flex
+    namespace: default
+----
+
+=== Override Consumer URL
+
+This example overrides the consumer URL when running behind a CDN or reverse proxy that the Anypoint platform doesn't see.
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-agent-card
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-agent
+  policyRef:
+    name: a-two-a-v1-agent-card-flex
+    namespace: default
+  config:
+    consumerUrl: "https://gateway.public.example.com/agent/"
+----
+
+=== Custom Card Path
+
+This example matches a custom card path when your agent is mounted under a tenant prefix.
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-agent-card
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-agent
+  policyRef:
+    name: a-two-a-v1-agent-card-flex
+    namespace: default
+  config:
+    cardPath: "/agents/finance/.well-known/agent-card.json"
+----
+
+=== Per-Transport Paths
+
+This example gives each transport its own sub-path under the gateway. The final URL for each binding is the Consumer URL joined with its path.
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-agent-card
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-agent
+  policyRef:
+    name: a-two-a-v1-agent-card-flex
+    namespace: default
+  config:
+    consumerUrl: "https://gateway.public.example.com/agent/"
+    interfacePaths:
+      jsonRpc: "/jsonrpc"
+      grpc: "/grpc"
+      httpJson: "/rest"
+----

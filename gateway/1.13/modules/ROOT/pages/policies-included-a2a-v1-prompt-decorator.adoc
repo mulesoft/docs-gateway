@@ -1,0 +1,243 @@
+= A2A v1 Prompt Decorator Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | A2A v1 Prompt Decorator
+>s|Summary      | Decorates A2A v1 prompts with additional context information
+>s|Category | A2A
+>s|First Omni Gateway version available | v1.13.0
+>s|Release Notes| xref:release-notes::flex-gateway/policies/a2a-v1-prompt-decorator-release-notes.adoc[]
+>s| Returned Status Codes | No return codes exist for this policy.
+|===
+
+include::partial$a2a-version-support.adoc[]
+
+== Summary
+
+The A2A v1 Prompt Decorator policy injects additional content into agent prompts before they're sent to the upstream agent. This policy supports A2A v1.0 `SendMessage` and `SendStreamingMessage` requests across all transport protocols: JSON-RPC, HTTP+JSON, and gRPC.
+
+You can decorate prompts with either text content or file references. Text decorators add plain text to the beginning of the message, while file decorators add external resources via URL or inline base64-encoded content. All decorators support conditional evaluation using DataWeave expressions, enabling you to control when specific decorations are applied based on request attributes, authentication context, or message parameters.
+
+The policy injects content to the beginning of the user message's `parts[]` array before the request reaches the upstream agent, ensuring the additional context appears before the user's original message.
+The A2A v1 Prompt Decorator policy decorates A2A v1 prompts with additional context information. You can add text instructions or file references (via URL or base64-encoded content) to the beginning of messages before they reach the upstream agent. This policy supports A2A v1.0 traffic across all transport protocols: JSON-RPC, HTTP+JSON, and gRPC.
+
+NOTE: This policy supports A2A v1.0 traffic only. For pre-v1.0 A2A traffic, use the xref:policies-included-a2a-prompt-decorator.adoc[A2A Prompt Decorator Policy].
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The A2A v1 Prompt Decorator policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+
+|===
+| Element | Description | Required | Default
+
+| Text Decorators | Array of text decorations to add to prompts. Each decorator can include a text expression and an optional condition.
+
+For more information, see <<text-decorators>>. | No | Empty array
+
+| File Decorators | Array of file-type decorations to add to prompts. Each decorator specifies file content (URL or base64), file type, and optional metadata like filename and MIME type.
+
+For more information, see <<file-decorators>>. | No | Empty array
+|===
+
+[[text-decorators]]
+=== Text Decorators
+
+Text decorators add plain text content to the beginning of the message. Each text decorator has the following properties:
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Property | Description | Required | Default
+
+| Prompt Text | DataWeave expression that generates the prompt text injected into the request. The result is added as a text part with media type `text/plain`.
+
+The expression can access:
+
+* `attributes`: Request attributes (headers, query parameters, etc.)
+* `authentication`: Authentication context from upstream authentication policies
+* `vars.params`: The `SendMessageParams` object containing the message and conversation ID
+
+For example: `#['Use imperial metric units']`
+| Yes | None
+
+| Condition | Optional DataWeave expression that filters which prompts to decorate. If the expression evaluates to `true`, the decorator is applied; otherwise, it is skipped.
+
+For example: `#[attributes.headers['x-environment']=='production']`
+| No | Always applied
+|===
+
+[[file-decorators]]
+=== File Decorators
+
+File decorators add file references or inline file content to the beginning of the message. Each file decorator has the following properties:
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Property | Description | Required | Default
+
+| Content | DataWeave expression containing either a URL to an external file (when **File Source** is `Uri`) or base64-encoded file content (when **File Source** is `Base64`).
+
+The expression can access `attributes`, `authentication`, and `vars.params`.
+
+Base64 content is validated against the pattern `^[A-Za-z0-9+/]*={0,2}$`. Invalid content causes the decorator to be skipped with a warning logged.
+
+For example, URI: `#['https://example.com/schema.json']`
+
+For example, Base64: `#['QmFzZTY0IGVuY29kZWQgZmlsZSBjb250ZW50']`
+| Yes | None
+
+| File Source | Specifies whether the Content field contains a URL or base64-encoded data. Supported values:
+
+* `Uri`: Content is a URL to an external file
+* `Base64`: Content is base64-encoded file data
+| Yes | `Base64`
+
+| File Name | Optional DataWeave expression that generates the filename for the injected file part.
+
+For example: `#['api-schema.json']`
+| No | None
+
+| File Mime Type | Optional DataWeave expression that generates the MIME type for the injected file part.
+
+If not specified, defaults to `application/octet-stream`.
+
+For example: `#['application/json']`
+| No | `application/octet-stream`
+
+| Condition | Optional DataWeave expression that filters which prompts to decorate. If the expression evaluates to `true`, the decorator is applied; otherwise, it is skipped.
+
+For example: `#[attributes.headers['x-include-schema']=='true']`
+| No | Always applied
+|===
+
+== Examples
+
+=== Text Decoration
+
+This example adds a text instruction to all prompts, directing the agent to use Imperial units:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-prompt-decorator-text
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-v1-agent
+  policyRef:
+    name: a-two-a-v1-prompt-decorator-flex
+  config:
+    textDecorators:
+      - text: "#['Use Imperial metric units for all measurements.']"
+----
+
+=== Conditional Text Decoration
+
+This example adds different text decorations based on the request environment header:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-prompt-decorator-conditional
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-v1-agent
+  policyRef:
+    name: a-two-a-v1-prompt-decorator-flex
+  config:
+    textDecorators:
+      - text: "#['You are operating in PRODUCTION mode. Be extra careful.']"
+        condition: "#[attributes.headers['x-environment']=='production']"
+      - text: "#['You are operating in TEST mode. Feel free to experiment.']"
+        condition: "#[attributes.headers['x-environment']=='test']"
+----
+
+=== File Decoration with URI
+
+This example adds an external schema file to all prompts:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-prompt-decorator-file-uri
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-v1-agent
+  policyRef:
+    name: a-two-a-v1-prompt-decorator-flex
+  config:
+    fileDecorators:
+      - file: "#['https://example.com/api-schema.json']"
+        fileType: Uri
+        fileName: "#['api-schema.json']"
+        fileMimeType: "#['application/json']"
+----
+
+=== File Decoration with Base64 Content
+
+This example adds inline base64-encoded content as a file:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-prompt-decorator-file-base64
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-v1-agent
+  policyRef:
+    name: a-two-a-v1-prompt-decorator-flex
+  config:
+    fileDecorators:
+      - file: "#['SGVsbG8sIFdvcmxkIQ==']"
+        fileType: Base64
+        fileName: "#['greeting.txt']"
+        fileMimeType: "#['text/plain']"
+----
+
+=== Combined Text and File Decorations
+
+The following example combines both text and file decorations:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-prompt-decorator-combined
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-v1-agent
+  policyRef:
+    name: a-two-a-v1-prompt-decorator-flex
+  config:
+    textDecorators:
+      - text: "#['Use Imperial metric units.']"
+      - text: "#['Follow the API schema provided in the attached file.']"
+    fileDecorators:
+      - file: "#['https://example.com/schema.json']"
+        fileType: Uri
+        fileName: "#['api-schema.json']"
+        fileMimeType: "#['application/json']"
+----
