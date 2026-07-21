@@ -23,7 +23,7 @@ The HTTP Caching policy enables you to cache HTTP responses for reuse. Caching t
 
 Policies applied after the HTTP Caching policy in the policy order are not applied to responses served from the cache. For example, a rate limiting policy applied after the HTTP Caching policy only limits the responses served by the upstream service but not the responses served by the cache. Apply all policies needed for the cached response before the HTTP Caching policy.
 
-For Self-Managed Gateways, HTTP caching requires that you <<configure-shared-storage-for-self-managed-gateway, configure shared storage>>. For Managed Gateways, Omni Replica shares the cache with each other directly. To learn more about the Managed Gateway architecture, see xref:flex-architecture-managed-dr-ha.adoc[].
+For Self-Managed Gateways, HTTP caching requires that you <<configure-shared-storage-for-self-managed-gateway, configure shared storage>>. For Managed Gateways, Omni Replica shares the cache with each other directly. To learn more about the Managed Gateway architecture, see xref:gateway-architecture-managed-dr-ha.adoc[].
 
 NOTE: The HTTP Caching policy does not support MCP and A2A server instances.
 
@@ -119,7 +119,7 @@ NOTE: Leaving a required value blank configures the parameter as the default val
 [[configure-shared-storage-for-self-managed-gateway]]
 ==== Configure Shared Storage for Self-Managed Gateway
 
-Self-Managed Gateways require you to configure shared storage for distributed caching. Configure either xref:flex-conn-distributed-shared-storage-config.adoc[distributed shared storage] or xref:flex-conn-shared-storage-config.adoc[Redis shared storage].
+Self-Managed Gateways require you to configure shared storage for distributed caching. Configure either xref:conn-distributed-shared-storage-config.adoc[distributed shared storage] or xref:conn-shared-storage-config.adoc[Redis shared storage].
 
 ----
 
@@ -223,7 +223,7 @@ _Stored entries_ are the cached HTTP responses. The cache can store any serializ
 [[key]]
 === HTTP Caching Key
 
-The cache works as a dictionary, where each response stored in the cache is associated with a string called _key_. For example, the expression #[attributes.headers['key']] uses the header called `key` as the entry key. You can use any DataWeave expression that returns a string, including xref:policies-flex-dataweave-support.adoc#available-predefined-variables[predefined DataWeave variables].
+The cache works as a dictionary, where each response stored in the cache is associated with a string called _key_. For example, the expression #[attributes.headers['key']] uses the header called `key` as the entry key. You can use any DataWeave expression that returns a string, including xref:policies-dataweave-support.adoc#available-predefined-variables[predefined DataWeave variables].
 
 === Cache Size and Entry Expiration
 

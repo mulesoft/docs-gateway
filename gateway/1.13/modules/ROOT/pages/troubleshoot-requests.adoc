@@ -1,0 +1,90 @@
+= Troubleshooting Request Connection
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:page-aliases: flex-troubleshoot-requests.adoc
+
+When configuring and running Omni Gateway, you might encounter connection issues. 
+
+To troubleshoot these issues, use the `flexctl check http` command. This command makes direct requests to both the outbound connection between the upstream service and Omni Gateway and the inbound connection between Omni Gateway and the client. Making direct requests isolates Omni Gateway connections, which allows you to localize the issue. 
+
+The following diagram demonstrates the difference between inbound and outbound requests. 
+
+image:inbound-outbound-requests.png[Inbound connections are between the client and Omni Gateway and outbound connections are between Omni Gateway and the upstream service, align=center]
+
+== Outbound Requests Between Omni Gateway and the Upstream Service
+Isolating the connection between the upstream service and Omni Gateway enables you to test for connection between the two.
+
+To make a direct outbound request to the upstream service:
+
+. Log into the Omni Gateway container or VM:
+
+* Linux:
++
+[source,ssh]
+----
+ssh [-i sshkey.pem] <user>@<domain>
+----
+
+
+* Docker:
++
+[source,ssh]
+----
+docker exec -it <container-id> bash
+----
+
+
+* Kubernetes:
++
+[source,ssh]
+----
+kubectl -n <namespace> exec -it <pod-name> -- bash
+----
+
+. Make a request to the upstream service:
++
+[source,ssh]
+----
+flexctl check http -X=POST -d='{\"key\": \"value\"}' -H='Authorization:token' <http://upstream.domain>
+----
+
+== Inbound Requests Between the Client and Omni Gateway
+
+Isolating the connection between Omni Gateway and the client enables you to test if the connection issue is due to a load balancer or another system added between Omni Gateway and the client.
+
+To make a direct inbound request to the client:
+
+. Log into the Omni Gateway container or VM:
+
+* Linux:
++
+[source,ssh]
+----
+ssh [-i sshkey.pem] <user>@<domain>
+----
+
+
+* Docker:
++
+[source,ssh]
+----
+docker exec -it <container-id> bash
+----
+
+
+* Kubernetes:
++
+[source,ssh]
+----
+kubectl -n <namespace> exec -it <pod-name> -- bash
+----
+
+
+. Make a request to Omni Gateway:
++
+[source,ssh]
+----
+flexctl check http -X=POST -d='{\"key\": \"value\"}' -H='Authorization:token' http://localhost:<api-instance-port>/<path>
+----
