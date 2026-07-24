@@ -6,7 +6,9 @@ endif::[]
 
 Use the Omni Gateway Policy Development Kit (PDK) `enable_stop_iteration` feature to simultaneously read and modify headers and body content.
 
-Without stop iteration, a policy sends headers to the upstream before sending the body. Use stop iteration if you must process the body before the headers are sent.
+Without stop iteration, a policy forwards the headers before the body. In the request flow, the request headers are sent to the upstream service before the request body; in the response flow, the response headers are sent to the downstream client before the response body.
+
+Use stop iteration if you must process the body before the headers are sent.
 
 Stop iteration is supported for Omni Gateway v1.11.14 and later.
 
@@ -14,7 +16,7 @@ NOTE: The HTTP status code cannot be changed in the response filter when using s
 
 == Body Buffering and Size Limitations
 
-When a PDK policy transitions to the headers-body state with into_headers_body_state(), Flex Gateway buffers the entire body for both the request or the response before you policy runs. The policy doesn't receive the headers-body state until the full body has been buffered.
+When a PDK policy transitions to the headers-body state with into_headers_body_state(), Flex Gateway buffers the entire body for both the request and the response before your policy runs. The policy doesn't receive the headers-body state until the full body has been buffered.
 
 The maximum body size that stop iteration can buffer is set by the `FLEX_DOWNSTREAM_CONNECTION_BUFFER_LIMIT_BYTES` environment variable (default 1MB). To configure the value, see xref:conn-env-variables.adoc[] or xref:local-env-variables.adoc[].
 
