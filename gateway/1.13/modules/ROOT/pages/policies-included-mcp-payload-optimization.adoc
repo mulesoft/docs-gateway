@@ -8,31 +8,35 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | MCP Payload Optimization Policy
->s|Summary      | Optimizes MCP tool responses for token consumption by transforming HTML to Markdown and removing unnecessary data
+>s|Summary      | Reduces tool response token consumption using one or more configurable methods: remove structural noise, trim oversized responses to match agent intent, or compress repeated structures into TOON
 >s|Category | MCP
 >s|First Omni Gateway version available | v1.12.0
->s| Returned Status Codes | No return codes exist for this policy. The policy modifies response bodies and doesn't block traffic based on content.
+>s|Release Notes| xref:release-notes::gateway/policies/mcp-payload-optimization-release-notes.adoc[]
+>s| Returned Status Codes | No return codes exist for this policy.
 |===
 
 include::partial$mcp-version-support.adoc[]
 
 == Summary
 
-The MCP Payload Optimization policy reduces LLM token consumption by transforming MCP `tools/call` responses before they're returned to the client.
+The MCP Payload Optimization policy reduces LLM token consumption by transforming MCP `tools/call` responses before they're returned to the client. The policy operates in three configurable stages:
 
-Configure the transformations to:
+. *Clean Payloads* - Removes structural noise and unnecessary data:
+* Convert HTML to Markdown
+* Remove base64-encoded data
+* Remove JSON fields with null values
+* Remove excessive whitespace
 
-* Convert HTML to Markdown.
-* Remove base64-encoded data.
-* Remove JSON fields with null values.
-* Remove excessive whitespace.
+. *Smart Response Trimming* - Uses an LLM proxy to reduce large responses to match the agent's intent, extracting only the information the agent requires.
+
+. *Compress Repeated Structures* - Encodes uniform JSON structures into Token-Oriented Object Notation (TOON), a lossless format that reduces tokens.
 
 The policy processes responses when:
 
-* The upstream response has `Content-Type` `application/json` or `text/event-stream` (SSE).
+* The upstream response has a `Content-Type` of `application/json` or `text/event-stream` (SSE).
 * The body is a JSON-RPC MCP `tools/call` result (including streamed SSE events that carry those results).
 
-Configure the minimum response size to skip transformation for small payloads.
+Configure the minimum response size to skip transformation for small payloads. Each stage has independent size thresholds.
 
 The policy uses the `pre_transform_tokens` and `response_tokens` for tool metrics to estimate token reduction.
 
@@ -52,18 +56,107 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Strip Base64 | Detects and removes base64-encoded data from tool results. | Enabled
 | Remove Nulls | Removes JSON fields whose value is null. | Disabled
 | Collapse Whitespace | Removes excess whitespace in text content. | Enabled
-| Min Response Size (bytes) | Minimum response size in bytes to transform. Smaller responses pass through unchanged. Minimum value is `0`. | `500`
+| Min Response Size (bytes) | Minimum response size in bytes to transform. Smaller responses pass through unchanged for the four Token Sanitization transforms (`HTML to Markdown`, `Strip Base64`, `Remove Nulls`, `Collapse Whitespace`). Doesn't limit TOON encoding or smart response trimming, which have their own thresholds. Minimum value is `0`. | `500`
+| Enable Compress Repeated Structures | Translates JSON-shaped `result.content[].text` items to TOON to reduce downstream LLM tokens. For more information, see <<compress-repeated-structures>>. | Disabled
+| TOON Min Response Size (bytes) | Minimum response size in bytes for TOON encoding. Responses smaller than this skip TOON encoding. Minimum value is `0`. | `500`
+| Enable Smart Response Trimming | When enabled, an LLM proxy distills large tool responses down to match the caller's declared intent (the `expected_info` of the request), reducing tokens returned to the model.For more information, see <<smart-response-trimming>>. | Disabled
+| LLM Proxy URL | The endpoint of the LLM proxy service used for Smart Response Trimming (for example, `http://llmproxy.svc.cluster.local/v1/chat/completions`). Must be an OpenAI-compatible `/chat/completions` endpoint. Required when Smart Response Trimming is enabled. | N/A
+| LLM Proxy ID | Identifier of the selected LLM Proxy asset, stored for reference. This value is parsed and retained but not used at runtime by the policy. | N/A
+| Model-Based Routing | Determines how the LLM proxy selects the target model. When disabled (default), the proxy owns model selection (Semantic Routing). When enabled, the caller selects the model via the `LLM Model` parameter (Model-Based Routing). | Disabled
+| LLM Model | Model name sent in the `/chat/completions` request body (for example, `gpt-4o-mini`). Required when *Model-Based Routing* is enabled. | N/A
+| Client ID | Client ID for LLM proxy authentication. Sent as a `client_id` request header. | N/A
+| Client Secret | Client secret for LLM proxy authentication. Sent as a `client_secret` request header. | N/A
+| Threshold Bytes | Smart Response Trimming runs only when the post-sanitize content length exceeds this threshold (in bytes). Payloads below this threshold pass through with sanitize-only results. | `8000`
+| LLM Timeout (ms) | Timeout in milliseconds for each LLM proxy request. If the proxy exceeds this timeout, the call fails and only completes the *Clean Payloads* step. | `10000`
 | Per-Tool Overrides | Overrides the policy configuration values for specific tool names. Tools without an override use the global policy configuration. To learn more, see <<tool-overrides>>. | N/A
 |===
 
 [[tool-overrides]]
 === Per-tool overrides
 
-Use *Per-Tool Overrides* to overide the the response optimization of specific tools. For example, if whitespace is necessary for a specific tool response but not for others, override *Collapse Whitespace* for that tool.
+Use *Per-Tool Overrides* to override the response optimization of specific tools. For example, if whitespace is necessary for a specific tool response but not for others, override *Collapse Whitespace* for that tool.
 
-You can override the global policy configuration for the *HTML to Markdown*, *Strip Base64*, *Remove Nulls*, and *Collapse Whitespace* parameters but for not *Min Response Size*.
+You can override the global policy configuration for the *HTML to Markdown*, *Strip Base64*, *Remove Nulls*, and *Collapse Whitespace* parameters. You cannot override *Min Response Size*, *TOON Min Response Size*, *Enable Compress Repeated Structures*, or *Smart Response Trimming* on a per-tool basis. Both TOON encoding and Smart Response Trimming are global settings that apply to all eligible tool responses.
 
-If you omit a parameter in an override configration, the tool uses the corresponding value from the global policy configuration.
+If you omit a parameter in an override configuration, the tool uses the corresponding value from the global policy configuration.
+
+==== Example per-tool override
+
+For a tool that legitimately returns base64-encoded images, you can disable *Strip Base64* for that specific tool:
+
+[source,yaml]
+----
+tool_overrides:
+  - tool_name: generate_image
+    strip_base64: false
+----
+
+== Transformation Order
+
+The policy applies optimizations in three stages:
+
+=== Stage 1: Clean Payloads
+
+String transforms are applied to each eligible string value in this order:
+
+. *HTML to Markdown* — Converts HTML documents or fragments to Markdown.
+. *Strip Base64* — Replaces detected base64 blobs with a short `<stripped: N bytes>` placeholder.
+. *Collapse Whitespace* — Normalizes runs of whitespace.
+
+Then the structural transform is applied:
+
+[start=4]
+. *Remove Nulls* — Removes JSON fields with null values (applied once after string transforms).
+
+=== Stage 2: Smart Response Trimming
+
+When enabled, Smart Response Trimming runs after Token Sanitization:
+
+[start=5]
+. *Intent Extraction* — An LLM proxy distills the sanitized content to match the agent's declared intent, reducing token count further.
+
+=== Stage 3: Compress Repeated Structures
+
+When enabled, TOON encoding runs last:
+
+[start=6]
+. *TOON Encoding* — Encodes eligible JSON content items into TOON format (runs on already-cleaned and optionally-extracted content).
+
+[[smart-response-trimming]]
+== Smart Response Trimming
+
+Smart Response Trimming uses an LLM proxy to distill large tool responses to match the agent's declared intent. When enabled, the policy:
+
+. Applies the Token Sanitization transforms (HTML to Markdown, Strip Base64, Collapse Whitespace, Remove Nulls).
+. Checks if the sanitized content exceeds the *Threshold Bytes* parameter (default: 8000 bytes) and includes `expected_info`
+. Sends the sanitized content to the configured LLM proxy.
+. Replaces the original content with the LLM extracted response if it's smaller than the sanitized version.
+
+Smart Response Trimming:
+
+* Requires an LLM proxy endpoint configured via *LLM Proxy URL*.
+* Requires `expected_info` to be present and non-empty in the request. The extractor only runs when the caller declares their intent.
+* Is fail-open. If there is any LLM failure (timeout, transport error, non-2xx status), the policy falls back to the result from *Clean payloads*.
+* Processes `content[0]` only when it is `type: "text"`. Other content entries are left untouched.
+* Uses client credentials (*Client ID* and *Client Secret*) for LLM proxy authentication, sent as separate `client_id` and `client_secret` request headers (not HTTP Basic Auth).
+* Includes an output guard that rejects extractions larger than the sanitized input.
+* Makes exactly one LLM call per response.
+* Works with both JSON (`application/json`) and Server-Sent Event (`text/event-stream`) responses. When enabled, SSE responses are buffered to allow complete content extraction.
+
+[[compress-repeated-structures]]
+== Compress Repeated Structures
+
+TOON is a compact, lossless, JSON-equivalent text format that reduces LLM token consumption for structured data. When *Enable Compress Repeated Structures* is enabled, the policy translates eligible JSON-shaped content items into TOON format.
+
+TOON encoding:
+
+* Runs after all other transforms.
+* Applies to only the shapes that TOON can shrink, for example, uniform-scalar arrays of objects.
+* Preserves or reduces payload size (never inflates).
+* Is a global setting with no per-tool overrides.
+* Uses the *TOON Min Response Size (bytes)* threshold, independent of the *Min Response Size (bytes)* threshold used for other transforms.
+
+A payload can be large enough for TOON encoding but too small for Token Sanitization transforms, or vice versa, because they use independent thresholds.
 
 == See Also
 

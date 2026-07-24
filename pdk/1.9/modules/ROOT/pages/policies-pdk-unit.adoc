@@ -23,7 +23,59 @@ Add `pdk-unit` as a dev-dependency in your policy's `Cargo.toml`:
 [source,toml]
 ----
 [dev-dependencies]
-pdk-unit = { version = "1.8" }
+pdk-unit = { version = "1.9" }
+----
+
+[[enable-pdk-unit-for-non-pdk-policies]]
+=== Enable pdk-unit for Non-PDK Policies
+
+PDK-Unit supports testing any policy built with https://github.com/proxy-wasm/proxy-wasm-rust-sdk[proxy-wasm-rust-sdk]. You can write and run unit tests for existing proxy-wasm policies without migrating them to PDK first. Use this functionality to:
+
+* Validate behavior before migration: Test your legacy proxy-wasm policies to establish a behavioral baseline.
+* Identify regressions during migration: Establish tests before migrating your policy to PDK to make sure behavioral differences surface immediately.
+* Adopt PDK incrementally: Migrate your policies to PDK at your own pace while still performing unit testing.
+
+To test non-PDK policies with pdk-unit:
+
+. Make these edits to the custom policy's `Cargo.toml` file before compilation:
++
+* Replace the `pdk-proxy-wasm-stub` target instead of using `proxy-wasm`.
++
+NOTE: Don't make this edit for `wasm32` architecture.
+* Add the `pdk_unit` dependency.
++
+[source,toml]
+----
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+proxy-wasm = "0.2.5"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+pdk-proxy-wasm-stub = "1.9.0"
+
+[dev-dependencies]
+pdk_unit = { version = "1.9.0", default-features = false, features = ["proxy-wasm-rust-sdk"] }
+----
+
+. Conditionally import the appropriate crate in your policy code:
++
+[source,rust]
+----
+#[cfg(target_arch = "wasm32")]
+use proxy_wasm as pw;
+#[cfg(not(target_arch = "wasm32"))]
+use pdk_proxy_wasm_stub as pw;
+----
+
+. Write your tests as you would for a PDK policy. However, use the `with_context` method instead of the `with_entrypoint` method. The `with_context` method receives a function that creates a root context of the root filter:
++
+[source,rust]
+----
+let mut tester = UnitTestBuilder::default()
+    .with_backend(TraceBackend::new(UnitHttpResponse::upgrade()))
+    .with_http_upstream("name.namespace.svc", |req: UnitHttpRequest| {
+        UnitHttpResponse::new(200)
+    })
+    .with_context(|| Box::new(WebSocketRoot));
 ----
 
 == Basic Request and Response Test
@@ -165,6 +217,59 @@ fn test_grpc_policy() {
     assert_eq!(response.status_code(), 200);
 }
 ----
+
+[[test-websocket-policies]]
+== Test WebSocket Policies
+
+To test custom policies that support WebSocket APIs, use the WebSocket testing capabilities in `pdk-unit`. WebSocket tests differ from standard HTTP tests because they establish an upgrade connection and test bidirectional frame exchange.
+
+To test a WebSocket policy:
+
+. Configure the backend as `UnitHttpResponse::upgrade()` to simulate a successful WebSocket upgrade.
+. Call the `upgrade` method with `UnitHttpRequest::upgrade()` instead of `request`.
+. The result provides an `UpgradeConnection` with the upgrade response and handles to send frames in both directions.
+
+[source,rust]
+----
+use pdk_unit::{UnitTestBuilder, UnitHttpRequest, UnitHttpResponse, UnitFrame, UnitFrameType};
+
+#[test]
+fn websocket_non_text_frames_are_forwarded_unchanged() {
+    let mut tester = UnitTestBuilder::default()
+        .with_backend(UnitHttpResponse::upgrade())
+        .with_entrypoint(crate::configure);
+
+    let conn = tester.upgrade(UnitHttpRequest::upgrade()).unwrap();
+
+    assert_eq!(conn.response().header("custom"), Some("Some"));
+
+    // Test client to server frames
+    conn.client().send_to_server(UnitFrame::ping());
+    let frame = conn.server().next();
+    assert!(frame.is_some());
+    assert_eq!(frame.unwrap().frame_type(), UnitFrameType::Ping);
+
+    // Test server to client frames
+    conn.server().send_to_client(UnitFrame::pong());
+    let frame = conn.client().next();
+    assert!(frame.is_some());
+    assert_eq!(frame.unwrap().frame_type(), UnitFrameType::Pong);
+}
+----
+
+The `UpgradeConnection` provides:
+
+* `response()`: Returns the upgrade response for asserting headers or status.
+* `client()`: Handle to send frames from client to server and receive frames from server.
+* `server()`: Handle to send frames from server to client and receive frames from client.
+
+Use `UnitFrame` to construct WebSocket frames for testing:
+
+* `UnitFrame::text(payload)`: Creates a text frame.
+* `UnitFrame::binary(payload)`: Creates a binary frame.
+* `UnitFrame::ping()`: Creates a ping control frame.
+* `UnitFrame::pong()`: Creates a pong control frame.
+* `UnitFrame::close()`: Creates a close control frame.
 
 == Test Client ID Enforcement
 
@@ -318,6 +423,15 @@ NOTE: Using `SystemTime::now` creates non-deterministic tests.
 
 |`protobuf_grpc_backend`
 |Proc-macro that derives `GrpcBackend` from annotated `impl` methods and handles protobuf encode/decode.
+
+|`UpgradeConnection`
+|WebSocket connection handle returned by `upgrade()`. Provides `response()` for the upgrade response, `client()` for client-side frame operations, and `server()` for server-side frame operations.
+
+|`UnitFrame`
+|WebSocket frame for testing. Create with `text()`, `binary()`, `ping()`, `pong()`, or `close()`. Query the type with `frame_type()`.
+
+|`UnitFrameType`
+|Enum for WebSocket frame types: `Text`, `Binary`, `Ping`, `Pong`, `Close`.
 
 |`StopIterationMode`
 |Controls ordering when resuming paused requests. Enabled with the `enable_stop_iteration` feature (stable since 1.8).
