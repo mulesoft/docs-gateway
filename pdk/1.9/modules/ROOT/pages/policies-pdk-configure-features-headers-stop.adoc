@@ -6,9 +6,19 @@ endif::[]
 
 Use the Omni Gateway Policy Development Kit (PDK) `enable_stop_iteration` feature to simultaneously read and modify headers and body content.
 
-PDK Policies using stop iteration only supports payload bodies of up to 1MB.
+Use stop iteration if you must process the body before the headers are sent. Without stop iteration, a policy forwards the headers before the body. In the request flow, the policy sends request headers to the upstream service before the request body, In the response flow, the policy sends response headers to the client before the response body.
 
-NOTE: Only Omni Gateway version 1.12.0 or later support stop interation.
+Stop iteration is supported for Omni Gateway v1.11.4 and later.
+
+NOTE: If the buffered body exceeds the `FLEX_DOWNSTREAM_CONNECTION_BUFFER_LIMIT_BYTES`, the request is terminated with a `500` error code.
+
+== Body Buffering and Size Limitations
+
+When a PDK policy transitions to the headers-body state with into_headers_body_state(), Flex Gateway buffers the entire body for both the request and the response before your policy runs. The policy doesn't receive the headers-body state until the full body has been buffered.
+
+The maximum body size that stop iteration can buffer is set by the `FLEX_DOWNSTREAM_CONNECTION_BUFFER_LIMIT_BYTES` environment variable (default 1MB). To configure the value, see xref:conn-env-variables.adoc[] or xref:local-env-variables.adoc[].
+
+If a body exceeds `FLEX_DOWNSTREAM_CONNECTION_BUFFER_LIMIT_BYTES`, Envoy aborts the request before any policy code runs. Size the limit to your largest expected payload.
 
 == Enable Stop Iteration in your Cargo.toml
 
