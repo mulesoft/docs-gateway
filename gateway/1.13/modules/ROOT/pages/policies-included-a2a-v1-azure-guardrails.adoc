@@ -377,7 +377,9 @@ No further frames are emitted.
 
 == Error Handling
 
-=== Fail Closed (Default)
+The policy provides two error handling modes to control behavior when Azure API calls fail or timeout.
+
+Fail Closed (Default)::
 
 When *Fail Open* is disabled (the default), any Azure API error or timeout results in rejection:
 
@@ -385,11 +387,13 @@ When *Fail Open* is disabled (the default), any Azure API error or timeout resul
 * Response phase: The response is rewritten to HTTP `503` with the same body
 * The `x-flex-azure-guardrails-reason` header is set to `service_unavailable`
 
-=== Fail Open
+Fail Open::
 
 When *Fail Open* is enabled, Azure API errors are logged but traffic continues unmoderated. The `x-flex-azure-guardrails-reason` header is still set to `service_unavailable` for observability, allowing you to detect partial-coverage moderation in monitoring systems.
 
 == Example Configurations
+
+The following examples demonstrate common configuration patterns for the A2A v1 Azure Content Guardrails policy.
 
 === Minimal Configuration — Request and Response Moderation
 
