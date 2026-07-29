@@ -160,7 +160,7 @@ To enable Groundedness Detection, override this to a supported preview version, 
 
 | Sampling Rate Percent
 | No
-| Percentage of sessions to sample for moderation. `100` (default) moderates every request; `50` moderates half of sessions; `0` disables moderation. Sampling is deterministic per session. See <<sampling>>.
+| Percentage of sessions to sample for moderation. `100` (default) moderates every request; `50` moderates half of sessions; `0` disables moderation. Sampling is deterministic per session.
 
 | Session Key Selector
 | No
@@ -226,25 +226,7 @@ The policy sends the *raw JSON body* (as bytes) to Azure as the `text` value, no
 * *Simplicity* — No per-schema drift when A2A adds new part kinds
 * *Consistency* — Works uniformly across JSON-RPC and HTTP+JSON
 
-*Trade-offs*:
-
-* Azure's severity classifier is trained on natural prose. A JSON envelope may score marginally differently (typically ≤ 1 severity level).
-* Azure caps inputs at ~10,000 characters. Larger payloads trigger the `payload_too_large` rule.
-* Groundedness detection works best on prose completions. JSON envelopes may produce noisy scores.
-
-[[sampling]]
-=== Sampling
-
-Every request passes through a deterministic per-session sampler to control Azure costs and latency contribution. The sampler ensures the same client is always sampled or always skipped — no coverage flapping.
-
-Algorithm:
-
-1. Skip sampling if `samplingRatePercent == 100` (default fast path).
-2. Evaluate `sessionKeySelector` against the canonical request body. If the result is `null`, empty, or the selector errors → sample the request anyway (fail-safe).
-3. Compute `bucket = sha256(sessionKey || policy_name)[0..4] as u32 % 100`.
-4. If `bucket < samplingRatePercent`, the request is sampled — moderation proceeds. Otherwise short-circuit with a `skip` decision.
-
-Sampling is a session-wide decision carried into the response phase. Skipped requests never emit a `PolicyViolation` and receive the `sampled_out` observability header.
+NOTE: Azure limits inputs at ~10,000 characters. Larger payloads trigger the `payload_too_large` rule.
 
 [[groundedness-detection]]
 === Groundedness Detection
