@@ -8,7 +8,7 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | A2A v1 Quality Evaluation
->s|Summary      | Evaluates completed A2A agent task responses using an LLM to score quality and completeness
+>s|Summary      | Evaluates A2A agent task responses with an LLM to score quality and completeness
 >s|Category | A2A
 >s|First Omni Gateway version available | v1.13.0
 >s|Release Notes| xref:release-notes::gateway/policies/a2a-v1-quality-evaluation-release-notes.adoc[]
@@ -19,16 +19,15 @@ include::partial$a2a-version-support.adoc[]
 
 == Summary
 
-The A2A v1 Quality Evaluation policy evaluates completed A2A agent task responses using an LLM to score completeness against the original user intent. When a task finishes — either synchronously on a `200` response or asynchronously after a later `tasks/get` returns a `completed` state — the policy invokes a quality LLM, attaches the verdict as response headers, and emits counter metrics for observability.
+The A2A v1 Quality Evaluation policy evaluates completed A2A agent task responses using an LLM to score completeness against the original user intent. The policy only adds its verdict as response headers and emits metrics for observability. The policy doesn't block or modify the agent's response.
 
-This policy supports A2A v1.0 `message/send` and `tasks/get` requests across all transport protocols: JSON-RPC, HTTP+JSON, and gRPC. The quality evaluation does not block or modify the agent's response; instead, it adds metadata that downstream systems can use for monitoring, analytics, or quality improvement workflows.
-
-The policy evaluates quality at exactly the points where a final agent response is available:
+The policy evaluates quality when the final agent response is available:
 
 * *Synchronous responses* - When `message/send` returns a `200` status with the final response, the quality LLM is invoked inline before the response is returned.
 * *Asynchronous responses* - When `message/send` returns a `202` status with a task ID, the policy stores the task metadata. Later, when `tasks/get` returns a `completed` state, the policy invokes the quality LLM and caches the verdict for subsequent polls.
 
-NOTE: This policy supports A2A v1.0 traffic only. For pre-v1.0 A2A traffic, quality evaluation is not available.
+NOTE: This policy supports A2A v1.0 `message/send` and `tasks/get` requests across all transport protocols: JSON-RPC, HTTP+JSON, and gRPC. 
+
 
 == Configuring Policy Parameters
 
