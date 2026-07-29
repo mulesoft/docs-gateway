@@ -1,0 +1,464 @@
+= A2A v1 Quality Evaluation Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | A2A v1 Quality Evaluation
+>s|Summary      | Evaluates completed A2A agent task responses using an LLM to score quality and completeness
+>s|Category | A2A
+>s|First Omni Gateway version available | v1.13.0
+>s|Release Notes| xref:release-notes::gateway/policies/a2a-v1-quality-evaluation-release-notes.adoc[]
+>s| Returned Status Codes | No return codes exist for this policy.
+|===
+
+include::partial$a2a-version-support.adoc[]
+
+== Summary
+
+The A2A v1 Quality Evaluation policy evaluates completed A2A agent task responses using an LLM to score completeness against the original user intent. When a task finishes — either synchronously on a `200` response or asynchronously after a later `tasks/get` returns a `completed` state — the policy invokes a quality LLM, attaches the verdict as response headers, and emits counter metrics for observability.
+
+This policy supports A2A v1.0 `message/send` and `tasks/get` requests across all transport protocols: JSON-RPC, HTTP+JSON, and gRPC. The quality evaluation does not block or modify the agent's response; instead, it adds metadata that downstream systems can use for monitoring, analytics, or quality improvement workflows.
+
+The policy evaluates quality at exactly the points where a final agent response is available:
+
+* *Synchronous responses* - When `message/send` returns a `200` status with the final response, the quality LLM is invoked inline before the response is returned.
+* *Asynchronous responses* - When `message/send` returns a `202` status with a task ID, the policy stores the task metadata. Later, when `tasks/get` returns a `completed` state, the policy invokes the quality LLM and caches the verdict for subsequent polls.
+
+NOTE: This policy supports A2A v1.0 traffic only. For pre-v1.0 A2A traffic, quality evaluation is not available.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The A2A v1 Quality Evaluation policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+
+|===
+| Element | Description | Required | Default
+
+| Quality LLM URL | OpenAI-compatible chat completions endpoint for quality evaluation. The policy POSTs to `<qualityLlmUrl>/v1/chat/completions`.
+
+For example: `https://api.openai.com`
+| Yes | None
+
+| Quality LLM API Key | Bearer token for authenticating to the quality LLM endpoint. This value is treated as sensitive and encrypted at rest.
+| Yes | None
+
+| Quality LLM Model | Model name to use for quality evaluation. Must be a valid model name supported by the configured endpoint.
+
+For example: `gpt-4o`, `gpt-4o-mini`
+| No | `gpt-4o`
+
+| Request Timeout (ms) | Timeout in milliseconds for the quality LLM call. If the call exceeds this timeout, the verdict is not attached and the policy logs a warning.
+| No | `10000`
+|===
+
+== How This Policy Works
+
+The A2A v1 Quality Evaluation policy intercepts A2A v1.0 requests and evaluates completed agent responses using a separate quality LLM. The policy works differently for synchronous and asynchronous agent responses.
+
+=== Request Filtering
+
+The policy only processes requests that meet all of the following criteria:
+
+* HTTP method is `POST`
+* `Content-Type` header matches a JSON MIME type
+* Request body parses as a valid JSON-RPC request
+* JSON-RPC `method` is either `message/send` or `tasks/get`
+
+All other requests pass through unchanged without quality evaluation.
+
+=== Synchronous Quality Flow (`message/send` with `200`)
+
+When an agent returns a synchronous `200` response to `message/send`:
+
+. The policy captures the original user message and the agent's final response.
+. The policy invokes the quality LLM with a prompt containing both the user message and agent response.
+. The quality LLM returns a verdict with three fields:
+* `evaluation`: `"yes"` or `"no"` (whether the agent fully addressed the user's request)
+* `value`: `"1"`, `"2"`, or `"3"` (quality score: 1=poor, 2=adequate, 3=excellent)
+* `explanation`: Free-text explanation of the verdict
+. The policy adds quality verdict headers to the response (see <<quality-verdict-headers>>).
+. The policy emits a `mulesoft_agent_calls` counter metric with the verdict tags (see <<observability-metrics>>).
+. The response is returned to the client with the original agent response body and added quality headers.
+
+The quality LLM call happens inline, so it adds latency (up to the configured timeout) to the synchronous response path.
+
+=== Asynchronous Quality Flow (`message/send` with `202`, then `tasks/get`)
+
+When an agent returns an asynchronous `202` response to `message/send`:
+
+. The policy captures the original user message and the returned task ID.
+. The policy stores the task metadata in a local cache with the key `quality_check:<task_id>` and value `"PENDING"`.
+. The response is returned immediately to the client with no quality headers and no LLM call.
+
+Later, when a client polls with `tasks/get` and the upstream returns `state: "completed"`:
+
+. The policy reads the cache entry for the task:
+* If the entry is `"PENDING"`, the policy atomically rewrites it to `"EVALUATING"` to prevent concurrent polls from double-calling the LLM. The policy then invokes the quality LLM, stores the verdict as `"COMPLETED:<evaluation>:<score>:<explanation>"`, adds quality verdict headers, and emits the observability metric.
+* If the entry is `"EVALUATING"`, the policy adds only `x-quality-status: evaluating` to indicate another replica is evaluating this task.
+* If the entry is `"COMPLETED:..."`, the policy parses the cached verdict and adds quality verdict headers. No LLM call or metric emission occurs.
+* If the entry is missing or in an unexpected state, the policy adds only `x-quality-status: pending`.
+. The response is returned with the cached or freshly evaluated quality headers.
+
+This design ensures that each task is evaluated by the quality LLM exactly once, even if multiple clients poll the task status concurrently or repeatedly.
+
+[[quality-verdict-headers]]
+=== Quality Verdict Headers
+
+When a quality verdict is available (either fresh from the LLM or read from cache), the policy adds these headers to the response:
+
+[%header,cols='1a,5a']
+|===
+|Header
+|Description
+
+|`x-quality-evaluation`
+|`"yes"` or `"no"` indicating whether the agent fully addressed the user's request.
+
+|`x-quality-score`
+|Quality score: `"1"` (poor), `"2"` (adequate), or `"3"` (excellent).
+
+|`x-quality-explanation`
+|Free-text explanation of the verdict provided by the quality LLM.
+
+|`x-quality-status`
+|`"completed"` when a verdict is available. Set to `"pending"` when no verdict is available yet, or `"evaluating"` when another replica is currently evaluating the task.
+|===
+
+When no verdict is available (for example, on a `tasks/get` request before the task is completed, or when the LLM call fails), only `x-quality-status: pending` is added.
+
+[[observability-metrics]]
+=== Observability Metrics
+
+Every time the quality LLM is invoked (synchronous `200` responses and `tasks/get` requests that transition from `PENDING` to `EVALUATING`), the policy emits a single increment of the `mulesoft_agent_calls` counter metric.
+
+The metric includes these tags:
+
+[%header,cols='1a,5a']
+|===
+|Tag
+|Values
+
+|`mulesoft.a2a.task_resolution`
+|`"yes"`, `"no"` (verdict from the quality LLM), or `"unknown"` if the LLM call failed or the response could not be parsed.
+
+|`mulesoft.a2a.quality_score`
+|`"1"`, `"2"`, or `"3"` (score from the quality LLM), or `"unknown"` if the LLM call failed.
+
+|`mulesoft.a2a.method`
+|`"message/send"` or `"tasks/get"` (the A2A method that triggered the evaluation).
+
+|`mulesoft.a2a.latency_bucket`
+|One of 20 bounded log-scale labels representing the quality LLM call latency in milliseconds: `"le_10"`, `"le_15"`, `"le_25"`, `"le_40"`, `"le_60"`, `"le_90"`, `"le_130"`, `"le_200"`, `"le_300"`, `"le_450"`, `"le_700"`, `"le_1000"`, `"le_1500"`, `"le_2200"`, `"le_3300"`, `"le_5000"`, `"le_7500"`, `"le_11000"`, `"le_16000"`, or `"gt_16000"`. Only emitted on successful LLM calls.
+
+|`mulesoft.a2a.failure_reason`
+|Only emitted when `task_resolution="unknown"`. Possible values: `"transport_error"`, `"http_<code>"`, `"parse_error"`, `"no_choices"`, or `"invalid_evaluation"`.
+|===
+
+IMPORTANT: The metric counts distinct quality LLM calls, not distinct tasks. A task answered synchronously via `200` produces one metric increment. A task accepted as `202` and later polled to `completed` also produces one metric increment (on the first `tasks/get` poll that transitions `PENDING` to `EVALUATING`). Subsequent polls against an already-evaluated task do not emit additional metrics.
+
+A sustained non-zero rate of `task_resolution="unknown"` indicates that the quality LLM is unreachable or returning errors. Operators should alert on this condition.
+
+== Failure Modes
+
+The policy is designed to fail open — quality evaluation failures do not block agent responses. Instead, failures are logged and reflected in observability metrics.
+
+[%header,cols='2a,5a']
+|===
+|Failure
+|Impact
+
+|Quality LLM unreachable, non-200 response, or parse error
+|No quality verdict headers are attached. The metric is emitted with `task_resolution="unknown"`, `quality_score="unknown"`, and an appropriate `failure_reason` tag. A warning is logged.
+
+|Cache save operation fails
+|The cache error is ignored. The policy may re-invoke the quality LLM on a subsequent `tasks/get` request. Both LLM calls are counted in the metric.
+
+|Request body is not valid JSON-RPC
+|The request passes through unchanged. No quality evaluation is performed.
+
+|Quality LLM call exceeds the configured timeout
+|Treated as a transport error. No quality verdict headers are attached. The metric is emitted with `task_resolution="unknown"` and `failure_reason="transport_error"`.
+|===
+
+== Constraints and Limitations
+
+* *Per-replica cache* - Each Envoy replica maintains its own cache with a maximum of 10,000 entries. Quality verdicts are not shared across replicas. If a `tasks/get` poll is handled by a different replica than the original `message/send`, the verdict will not be found and the task will be treated as unevaluated.
+* *Synchronous latency* - For synchronous `200` responses, the quality LLM call happens inline and can add up to the configured timeout in latency.
+* *Asynchronous poll latency* - For asynchronous tasks, the first `tasks/get` poll that transitions a task to `completed` incurs the quality LLM call latency.
+* *Cache size* - The cache holds a maximum of 10,000 task entries. When the cache is full, the oldest entries are evicted. Tasks whose cache entries are evicted before they are polled will not be evaluated.
+
+== Examples
+
+=== Basic Configuration
+
+This example configures the policy to evaluate agent responses using the `gpt-4o` model with a 10-second timeout:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-quality-evaluation
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-v1-agent
+  policyRef:
+    name: a-two-a-v1-quality-evaluation-flex
+  config:
+    qualityLlmUrl: "https://api.openai.com"
+    qualityLlmApiKey: "sk-proj-..."
+    qualityLlmModel: "gpt-4o"
+    timeout: 10000
+----
+
+=== Custom Model and Timeout
+
+This example uses a faster model (`gpt-4o-mini`) with a shorter timeout for lower latency:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-quality-evaluation-fast
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-v1-agent
+  policyRef:
+    name: a-two-a-v1-quality-evaluation-flex
+  config:
+    qualityLlmUrl: "https://api.openai.com"
+    qualityLlmApiKey: "sk-proj-..."
+    qualityLlmModel: "gpt-4o-mini"
+    timeout: 5000
+----
+
+=== Using a Custom OpenAI-Compatible Endpoint
+
+This example uses a self-hosted or alternative OpenAI-compatible endpoint:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: a2a-v1-quality-evaluation-custom
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: my-a2a-v1-agent
+  policyRef:
+    name: a-two-a-v1-quality-evaluation-flex
+  config:
+    qualityLlmUrl: "https://custom-llm.example.com"
+    qualityLlmApiKey: "custom-api-key"
+    qualityLlmModel: "custom-model-v1"
+    timeout: 15000
+----
+
+== Sample Response Headers
+
+=== Synchronous Quality Flow
+
+When an agent returns a synchronous `200` response, the policy evaluates the response inline and adds quality headers.
+
+Request:
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "message/send",
+  "params": {
+    "message": {
+      "parts": [
+        {
+          "kind": "text",
+          "text": "Cancel my order #12345"
+        }
+      ]
+    }
+  }
+}
+----
+
+Upstream agent returns `200` with the agent's reply. The policy invokes the quality LLM, which returns:
+[source,json]
+----
+{
+  "evaluation": "yes",
+  "value": "3",
+  "explanation": "Order cancellation confirmed. The agent successfully canceled order #12345."
+}
+----
+
+Response headers:
+----
+x-quality-evaluation: yes
+x-quality-score: 3
+x-quality-explanation: Order cancellation confirmed. The agent successfully canceled order #12345.
+x-quality-status: completed
+----
+
+Metric emitted:
+----
+mulesoft_agent_calls{
+  task_resolution="yes",
+  quality_score="3",
+  method="message/send",
+  latency_bucket="le_300"
+} 1
+----
+
+=== Asynchronous Quality Flow
+
+When an agent returns a `202` response, the policy stores the task metadata and defers evaluation until the task is polled.
+
+Initial request:
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "message/send",
+  "params": {
+    "message": {
+      "parts": [
+        {
+          "kind": "text",
+          "text": "Cancel my order #12345"
+        }
+      ]
+    }
+  }
+}
+----
+
+Upstream agent returns `202` with:
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "id": "task-abc-123"
+  }
+}
+----
+
+The policy stores `quality_check:task-abc-123 → "PENDING"`. No quality headers are added. No metric is emitted.
+
+Later, a client polls the task:
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tasks/get",
+  "params": {
+    "id": "task-abc-123"
+  }
+}
+----
+
+Upstream agent returns `200` with:
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "status": "completed",
+    "message": {
+      "parts": [
+        {
+          "kind": "text",
+          "text": "Your order #12345 has been canceled."
+        }
+      ]
+    }
+  }
+}
+----
+
+The policy finds the `PENDING` cache entry, transitions it to `EVALUATING`, invokes the quality LLM, stores the verdict as `COMPLETED:yes:3:Order cancellation confirmed.`, and adds these headers:
+
+Response headers:
+----
+x-quality-evaluation: yes
+x-quality-score: 3
+x-quality-explanation: Order cancellation confirmed.
+x-quality-status: completed
+----
+
+Metric emitted:
+----
+mulesoft_agent_calls{
+  task_resolution="yes",
+  quality_score="3",
+  method="tasks/get",
+  latency_bucket="le_450"
+} 1
+----
+
+Subsequent polls of the same task return the cached verdict and do not invoke the LLM or emit additional metrics.
+
+=== Quality LLM Failure
+
+When the quality LLM is unreachable or returns an error, the policy fails open and adds only a `pending` status header.
+
+Request:
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "message/send",
+  "params": {
+    "message": {
+      "parts": [
+        {
+          "kind": "text",
+          "text": "Cancel my order #12345"
+        }
+      ]
+    }
+  }
+}
+----
+
+Upstream agent returns `200`. The policy calls the quality LLM, but the call times out.
+
+Response headers:
+----
+x-quality-status: pending
+----
+
+Metric emitted:
+----
+mulesoft_agent_calls{
+  task_resolution="unknown",
+  quality_score="unknown",
+  method="message/send",
+  failure_reason="transport_error"
+} 1
+----
+
+The agent response is returned to the client unchanged. A warning is logged.
+
+== See Also
+
+* xref:policies-included-a2a-v1-prompt-decorator.adoc[A2A v1 Prompt Decorator Policy]
+* xref:policies-included-a2a-v1-pii-detector.adoc[A2A v1 PII Detector Policy]
+* xref:policies-included-a2a-v1-token-rate-limit.adoc[A2A v1 Token Based Rate Limit Policy]
