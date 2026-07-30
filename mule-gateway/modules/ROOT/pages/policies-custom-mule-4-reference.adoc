@@ -556,16 +556,17 @@ used by API Manager to render the UI for user input.
 id: openam-access-token-enforcement  // <1>
 name: OpenAM access token enforcement  // <2>
 supportedPoliciesVersions: '>=v4'  // <3>
-description: Enforces access tokens by OpenAM.  // <4>
-category: Security  // <5>
-violationCategory: authentication  // <6>
-type: system  // <7>
-resourceLevelSupported: true  // <8>
-standalone: true  // <9>
-identityManagement:  // <10>
+supportedJavaVersions: ["8", "11", "17"]  // <4>
+description: Enforces access tokens by OpenAM.  // <5>
+category: Security  // <6>
+violationCategory: authentication  // <7>
+type: system  // <8>
+resourceLevelSupported: true  // <9>
+standalone: true  // <10>
+identityManagement:  // <11>
 type: OpenAM
 - OAuth 2.0 protected
-configuration:  // <11>
+configuration:  // <12>
 - propertyName: scopes
   name: Scopes
   description: A space-separated list of supported scopes
@@ -586,14 +587,15 @@ configuration:  // <11>
 <1> Unique ID within your organization of the policy. Mandatory
 <2> User friendly name that is used for displaying the policy name in API Manager’s UI. Mandatory
 <3> Deprecated property. Value should be set to ‘>=v1’ for now. Mandatory
-<4> Description of what the policy does. Also used in API Manager’s UI. Mandatory
-<5> Category to which the policy belongs. Used to group and filter policies in API Manager’s UI, any String value is valid. Mandatory
-<6> Value used by the Edge to show metrics about different types of policy violations. Mandatory
-<7> Deprecated property. Value should be set to ‘system’. Mandatory
-<8> Whether resource level pointcuts should be enabled when applying the policy. Mandatory
-<9> Deprecated property. Value should be set to ‘true’. Mandatory
-<10> Whether policy requires information about an identity management that is configured to the API’s Organization. Optional
-<11> Where the policy parameters are defined. Every parameter listed here will be rendered as an expected user input in API Manager’s UI. It expects an array of values. Mandatory
+<4> Java versions supported by the policy. Required for Java 17 runtime support. Without this field, the policy won’t appear in API Manager for Java 17 runtimes. Optional
+<5> Description of what the policy does. Also used in API Manager’s UI. Mandatory
+<6> Category to which the policy belongs. Used to group and filter policies in API Manager’s UI, any String value is valid. Mandatory
+<7> Value used by the Edge to show metrics about different types of policy violations. Mandatory
+<8> Deprecated property. Value should be set to ‘system’. Mandatory
+<9> Whether resource level pointcuts should be enabled when applying the policy. Mandatory
+<10> Deprecated property. Value should be set to ‘true’. Mandatory
+<11> Whether policy requires information about an identity management that is configured to the API’s Organization. Optional
+<12> Where the policy parameters are defined. Every parameter listed here will be rendered as an expected user input in API Manager’s UI. It expects an array of values. Mandatory
 
 Below is the syntax for defining the above policy’s parameters:
 
