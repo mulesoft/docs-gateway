@@ -88,6 +88,21 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 
 |===
 
+To use single quotes directly in a String value (for example `"default-src 'none'; frame-ancestors 'none';"`), either:
+
+* Use a DataWeave expression:
++
+----
+#["default-src 'none'; frame-ancestors 'none';"]
+----
+
+* Use character escaping:
++
+----
+"default-src \'none\'; frame-ancestors \'none\';"
+----
+
+
 [NOTE]
 ====
 `inboundHeaders` and `outboundHeaders` can not both be empty.
