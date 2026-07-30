@@ -1,12 +1,10 @@
 
 Applying a Message Logging policy to your API instance in API Manager allows you to view basic logs, such as inbound and outbound calls and headers, for APIs managed by Omni Gateway within API Manager. Logging for an API instance only happens if you configure and apply a Message Logging policy.
 
-[NOTE]
-====
-To log messages at multiple levels or with different conditions, add multiple configurations within a single Message Logging policy using the *Add* button in the Logging Configuration section. Do not apply two separate Message Logging policies to the same API instance—this is not a supported configuration and may cause unexpected behavior in the Message Log UI.
-====
-
 To view metrics in API Manager, such as total requests, total policy violations, total errors, and average response time, see xref:{page-mode}-view-api-metrics.adoc[].
+
+
+NOTE: To use multiple log levels for different configurations, add multiple configurations within a single Message Logging policy. To learn more, see <<multiple-log-levels>>.
 
 == Message Logging Limits and Features
 
@@ -58,6 +56,7 @@ Afterward, you should see a *Message Log* option for the API instance.
 +
 Use the search field to search for specific logs based on the time and log severity (INFO, ERROR, WARN, DEBUG). You can download these logs for further analysis.
 
+[[multiple-log-levels]]
 === Configuring Multiple Log Levels
 
 To log messages at multiple levels or with different conditions within a single Message Logging policy:
@@ -69,9 +68,7 @@ To log messages at multiple levels or with different conditions within a single 
 . Repeat steps 3-4 to add additional configurations as needed.
 . Click *Save*.
 
-*Result*: A single Message Logging policy is applied with multiple configurations, each with its own log level and conditions. All configured levels are active simultaneously.
-
-For example, you might configure:
+For example, if you configure the parameter:
 
 * *First configuration*:
 ** *Message*: `#[payload]`
@@ -82,6 +79,6 @@ For example, you might configure:
 ** *Level*: ERROR
 ** *After Calling API*: Selected
 
-This configuration logs the request payload at INFO level before calling the API and logs response headers at ERROR level after calling the API—all within a single policy instance.
+This configuration logs the request payload at INFO level before calling the API and logs response headers at ERROR level after calling the API.
 
 include::partial$logging-severity-level.adoc[]
