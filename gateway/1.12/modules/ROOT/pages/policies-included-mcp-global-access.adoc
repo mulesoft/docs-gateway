@@ -86,7 +86,19 @@ rules:
     value: ^file://public/.*
 ----
 
-Only resources matching the `file://public/` URI pattern can be read. All others are blocked and omitted from `resources/list` responses. Because rules are evaluated against the identifier regardless of capability type, an allow-list like this also blocks all tools and prompts, since their names don't match the pattern. To scope by type, combine allow rules that cover each capability you want exposed.
+In the previous example, only resources matching the `file://public/` URI pattern are exposed and blocks all tools and prompts, since their names don't match the pattern. To scope by type, combine allow rules that cover each capability you want to expose:
+
+[source,yaml]
+----
+rules:
+  - rule: Allow
+    match_type: pattern
+    value: ^file://public/.*
+  - rule: Allow
+    match_type: literal
+    value: get_user
+----
+
 
 === Example: Block List Only
 
