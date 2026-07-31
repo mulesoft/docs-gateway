@@ -170,7 +170,7 @@ See <<contextual-grounding>> for more information.
 * Default: `25000`
 * Range: `1024` - `25000`
 
-ApplyGuardrail caps synchronous calls at approximately 25,000 characters. Larger payloads are rejected (when fail-open is disabled) or passed through unmoderated (when fail-open is enabled).
+ApplyGuardrail caps synchronous calls at approximately 25,000 characters. Larger payloads are rejected (when fail-open is disabled) or passed through without moderation (when fail-open is enabled).
 
 | Sampling Rate Percent
 | No
@@ -180,13 +180,13 @@ ApplyGuardrail caps synchronous calls at approximately 25,000 characters. Larger
 * `50`: Moderate half of sessions
 * `0`: Disable moderation
 
-Sampling is deterministic per session — the same session is always or never sampled. This helps control Bedrock API costs.
+Sampling is deterministic per session. The same session is always or never sampled.
 
 | Session Key Selector
 | No
 | DataWeave expression that extracts the session identifier used for sampling.
 
-Default resolves to A2A v1.0 `contextId` (conversation-scoped identifier) falling back to `messageId` for one-shot sends, supporting both JSON-RPC and HTTP+JSON transports.
+By default, the key selector resolves to A2A v1.0 `contextId` (conversation-scoped identifier). For single messages that aren't part of an ongoing A2A conversation (one-shot sends), the key selector resolves to `messageId`.
 
 Only used when Sampling Rate Percent is less than 100.
 
@@ -202,7 +202,7 @@ Only used when Sampling Rate Percent is less than 100.
 | Determines behavior when the Bedrock API call fails or times out:
 
 * Disabled (default): Rejects the request with HTTP `503`
-* Enabled: Allows traffic to proceed unmoderated (fail-open mode)
+* Enabled: Allows traffic to proceed without moderation (fail-open mode)
 
 When enabled, failures are logged and the `service_unavailable` reason is emitted in response headers for observability.
 
@@ -229,16 +229,16 @@ The policy supports independent evaluation for requests and responses. The two p
 .. If the response violates any guardrail policies, the policy returns a `403` error code to the client.
 .. If the response passes, the policy forwards the original response to the client.
 +
-NOTE: Streaming responses (`text/event-stream`) are skipped and pass through without moderation. Only unary (`application/json`) responses are moderated.
+NOTE: Streaming responses (`text/event-stream`) are skipped and pass through without moderation. Only non-streaming (`application/json`) responses are moderated.
 
 === Supported Transports
 
 The policy works with these A2A v1.0 transports:
 
-* *JSON-RPC* (A2A v1.0 §9)
-* *HTTP+JSON* (A2A v1.0 §11)
+* *JSON-RPC*
+* *HTTP+JSON*
 
-*gRPC pass-through:* gRPC traffic (`application/grpc` or `application/grpc+proto`) is *not moderated* in v1 and passes through unchanged. This is by design — the binary protobuf format requires decoding that is out of scope for v1. When gRPC traffic is detected, the policy emits observability headers (`x-flex-bedrock-guardrails-action: skip` and `x-flex-bedrock-guardrails-reason: unsupported_transport_v1`) so operators can monitor the coverage gap.
+*gRPC pass-through:* gRPC traffic (`application/grpc` or `application/grpc+proto`) is *not moderated* in v1 and passes through unchanged. When gRPC traffic is detected, the policy emits observability headers (`x-flex-bedrock-guardrails-action: skip` and `x-flex-bedrock-guardrails-reason: unsupported_transport_v1`) to monitor the coverage gap.
 
 === Method Scope
 
@@ -262,9 +262,9 @@ The selectors are DataWeave expressions that extract:
 * *Grounding source*: The reference text the answer should be based on (often from message metadata or context)
 * *Query*: The user's actual question (often from message parts)
 
-Both must be configured together. Configuring only one causes the Bedrock API to return a `400` error code.
+Both parameters must be configured together. Configuring only one causes the Bedrock API to return a `400` error code.
 
-IMPORTANT: DataWeave selectors bind to the raw request body as received on the wire. For JSON-RPC, A2A parameters are under `payload.params.*`. For HTTP+JSON, they are at the top level (`payload.*`). Design your selectors to handle the transports you support.
+IMPORTANT: DataWeave selectors bind to the raw request body as received on the wire. For JSON-RPC, A2A parameters are under `payload.params.*`. For HTTP+JSON, they're at the top level (`payload.*`). Design your selectors to handle the transports you support.
 
 .Example Configuration for JSON-RPC
 [source,yaml]
