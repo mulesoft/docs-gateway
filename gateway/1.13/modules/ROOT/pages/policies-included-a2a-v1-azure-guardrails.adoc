@@ -384,8 +384,8 @@ Fail Closed (Default)::
 
 When *Fail Open* is disabled (the default), any Azure API error or timeout results in rejection with HTTP `503` and a transport-appropriate error response.
 
-*JSON-RPC Transport:*
-
+* JSON-RPC Transport:
++
 [source,json]
 ----
 {
@@ -407,11 +407,11 @@ When *Fail Open* is disabled (the default), any Azure API error or timeout resul
   }
 }
 ----
-
++
 The error code `-32603` maps to the A2A v1.0 `UNAVAILABLE` reason code.
 
-*HTTP+JSON Transport:*
-
+* HTTP+JSON Transport:
++
 [source,json]
 ----
 {
@@ -432,12 +432,12 @@ The error code `-32603` maps to the A2A v1.0 `UNAVAILABLE` reason code.
   }
 }
 ----
-
++
 The `x-flex-azure-guardrails-reason` header is set to `service_unavailable` for both transports.
 
 Fail Open::
 
-When *Fail Open* is enabled, Azure API errors are logged but traffic continues unmoderated. The `x-flex-azure-guardrails-reason` header is still set to `service_unavailable` for observability, allowing you to detect partial-coverage moderation in monitoring systems.
+When *Fail Open* is enabled, Azure API errors are logged but traffic continues without moderation. The `x-flex-azure-guardrails-reason` header is still set to `service_unavailable` for observability, allowing you to detect partial-coverage moderation in monitoring systems.
 
 == Example Configurations
 
