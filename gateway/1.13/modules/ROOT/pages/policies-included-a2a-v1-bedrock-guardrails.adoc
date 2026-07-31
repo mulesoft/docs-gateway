@@ -70,7 +70,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 * Base host: `\https://bedrock-runtime.us-east-1.amazonaws.com`
 * Full ApplyGuardrail URL: `\https://bedrock-runtime.us-east-2.amazonaws.com/guardrail/<id>/version/<version>/apply`
 
-When the full URL is provided, the region, guardrail identifier, and guardrail version are automatically derived from it unless explicitly configured.
+When the full URL is provided, the policy automaticall derives the region, and guardrail identifier unless explicitly configured.
 
 | AWS Credentials
 | Yes
@@ -78,7 +78,7 @@ When the full URL is provided, the region, guardrail identifier, and guardrail v
 
 | Guardrail Identifier
 | Conditional
-| The unique ID of the Bedrock guardrail to apply (for example, `paccgfhgnj1dc`). Find this in AWS Console → Bedrock → Guardrails.
+| The unique ID of the Bedrock guardrail to apply (for example, `paccgfhgnj1dc`).
 
 Required unless provided in the Bedrock Runtime Endpoint URL.
 
@@ -89,7 +89,7 @@ Required unless provided in the Bedrock Runtime Endpoint URL.
 * `DRAFT` (default): Use the working draft version for development and testing
 * Numeric version (for example, `"1"`, `"2"`): Use a published version for production deployments
 
-Can be derived from the Bedrock Runtime Endpoint URL if present.
+Required unless provided in the Bedrock Runtime Endpoint URL.
 
 | Moderate Request
 | No
@@ -97,9 +97,7 @@ Can be derived from the Bedrock Runtime Endpoint URL if present.
 
 | Moderate Response
 | No
-| When enabled (default: `true`), evaluates the entire unary response body against the guardrail before returning to the client. Rejected responses return `403` error code.
-
-*Note:* Streaming responses (`text/event-stream`) aren't moderated and pass through unchanged.
+| When enabled (default: `true`), evaluates the entire unary response body against the guardrail before returning to the client. Rejected responses return `403` error code. Streaming responses (`text/event-stream`) aren't moderated and pass through unchanged.
 
 |===
 
