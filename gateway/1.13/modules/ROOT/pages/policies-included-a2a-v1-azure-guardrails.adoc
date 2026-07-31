@@ -348,7 +348,8 @@ HTTP 403 with a Google RPC Status error response:
 {
   "error": {
     "code": 403,
-    "message": "Content blocked by Azure Content Safety: severity_violence",
+    "status": "PERMISSION_DENIED",
+    "message": "Request blocked by Azure Content Safety: severity_violence",
     "details": [
       {
         "@type": "type.googleapis.com/google.rpc.ErrorInfo",
@@ -381,11 +382,58 @@ The policy provides two error handling modes to control behavior when Azure API 
 
 Fail Closed (Default)::
 
-When *Fail Open* is disabled (the default), any Azure API error or timeout results in rejection:
+When *Fail Open* is disabled (the default), any Azure API error or timeout results in rejection with HTTP `503` and a transport-appropriate error response.
 
-* Request phase: HTTP `503` with body `{"error":"Azure Content Safety service unavailable"}`
-* Response phase: The response is rewritten to HTTP `503` with the same body
-* The `x-flex-azure-guardrails-reason` header is set to `service_unavailable`
+*JSON-RPC Transport:*
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": null,
+  "error": {
+    "code": -32603,
+    "message": "Azure Content Safety service unavailable",
+    "data": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "domain": "a2a-protocol.org",
+        "reason": "UNAVAILABLE",
+        "metadata": {
+          "detail": "service_unavailable"
+        }
+      }
+    ]
+  }
+}
+----
+
+The error code `-32603` maps to the A2A v1.0 `UNAVAILABLE` reason code.
+
+*HTTP+JSON Transport:*
+
+[source,json]
+----
+{
+  "error": {
+    "code": 503,
+    "status": "UNAVAILABLE",
+    "message": "Azure Content Safety service unavailable",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "domain": "a2a-protocol.org",
+        "reason": "UNAVAILABLE",
+        "metadata": {
+          "detail": "service_unavailable"
+        }
+      }
+    ]
+  }
+}
+----
+
+The `x-flex-azure-guardrails-reason` header is set to `service_unavailable` for both transports.
 
 Fail Open::
 
