@@ -38,14 +38,6 @@ The policy operates in two independent phases:
 
 When content violates guardrail policies, the request is rejected with a `403` error code and never reaches the upstream agent (request phase) or the client receives a `403` instead of the agent response (response phase).
 
-=== Key Differences from LLM Gateway Bedrock Guardrails Policy
-
-Unlike the LLM Gateway version which extracts specific prompt and completion text, the A2A v1 Bedrock Guardrails policy sends the *entire JSON request and response payload* to Bedrock for evaluation. This whole-payload approach provides:
-
-* *Complete coverage*: All content the agent sees is evaluated, not just extracted fields
-* *Simplified maintenance*: No field extraction logic that could drift as the A2A specification evolves
-* *Transport independence*: Works identically across JSON-RPC and HTTP+JSON
-
 == Before You Begin
 
 Before configuring this policy, you need:
