@@ -10,6 +10,23 @@ JSON Web Token (JWT) is a URL-secure method of representing claims to be transfe
 
 PDK's JWT library provides a set of tools to validate the JWT signatures and to extract and validate the claims of all incoming requests.
 
+NOTE: The JWT library is gated behind a Cargo feature and is enabled by default. To disable JWT features for your policy, see xref:policies-pdk-create-project.adoc#configure-pdk-features[Configure PDK Features in Cargo.toml].
+
+== FIPS-Compliant JWT
+
+PDK provides the `jwt-fips` feature for FIPS-compliant JWT support. This feature delegates cryptography to the proxy-wasm host instead of bundling native RustCrypto. Because it's mutually exclusive with the default `jwt` backend, you must disable `default-features` when using it.
+
+To enable FIPS-compliant JWT in your `Cargo.toml`:
+
+[source,toml]
+----
+# FIPS-compliant JWT only:
+pdk = { version = "1.9.1", default-features = false, features = ["jwt-fips"] }
+
+# FIPS-compliant JWT with XML Validator:
+pdk = { version = "1.9.1", default-features = false, features = ["jwt-fips", "xml_validator"] }
+----
+
 [[extract-a-jwt-token]]
 == Extract a JWT Token
 
@@ -369,4 +386,3 @@ spec:
 == See Also
 
 * xref:policies-pdk-configure-features.adoc[]
-

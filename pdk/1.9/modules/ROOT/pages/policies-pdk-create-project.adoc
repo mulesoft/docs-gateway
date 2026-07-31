@@ -49,6 +49,8 @@ If the directory does not exist, it is created. If no directory is specified, th
 The version format is `<major-release>.<minor-release>.<patch-release>`.
 | `--group-id=<value>` | N/A | No | Organization ID of the organization that owns the policy. +
 For additional information about this flag, see xref:policies-pdk-troubleshooting.adoc#group-id-error[Troubleshooting Group ID].
+| `--fips` | N/A | No | Creates the policy project with FIPS compliance enabled. +
+Configures the PDK to use FIPS-compliant modules. To maintain FIPS compliance, make sure any additional dependencies you add are compliant.
 |===
 
 [[setup-the-pdk-build-environment]]
@@ -97,9 +99,28 @@ To configure the `gcl.yaml` file, see xref:policies-pdk-create-schema-definition
 
 === Cargo.toml
 
-Custom policies for Omni Gateway are developed in the Rust programming language and compiled to a WebAssembly binary. 
+Custom policies for Omni Gateway are developed in the Rust programming language and compiled to a WebAssembly binary.
 
 The `Cargo.toml` is the Rust project manifest. Its `[package]` section contains the basic information about the policy implementation. The version specified in `Cargo.toml` matches the policy asset version. You can manage the policy version by editing the version number in `Cargo.toml`. The version follows the format `<major-version>.<minor-version>.<patch-version>`.
+
+[[configure-pdk-features]]
+==== Configure PDK Features in Cargo.toml
+
+The JWT and XML Validator libraries are gated behind Cargo features to reduce compiled WASM size. Both features are enabled by default (`default = ["jwt", "xml_validator"]`).
+
+If you don't require JWT or XML validation functionality in your custom policy, you can disable these features by editing the PDK dependency in your `Cargo.toml`:
+
+[source,toml]
+----
+# Disable both JWT and XML Validator:
+pdk = { version = "1.9.1", default-features = false }
+
+# Keep only JWT:
+pdk = { version = "1.9.1", default-features = false, features = ["jwt"] }
+
+# Keep only XML Validator:
+pdk = { version = "1.9.1", default-features = false, features = ["xml_validator"] }
+----
 
 === src/
 

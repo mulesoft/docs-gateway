@@ -12,6 +12,7 @@ endif::[]
 >s| Summary      | Monitors access to an API by defining the maximum number of requests processed within a period of time
 >s| Category | Quality of Service
 >s| First Omni Gateway version available | v1.2.0
+>s|Release Notes| xref:release-notes::gateway/policies/rate-limiting-release-notes.adoc[]
 .4+>.^s| Returned Status Codes
 |429 - Quota exceeded, requests are blocked until the current window finishes
 |===
@@ -110,7 +111,7 @@ The `#[attributes.method]` DataWeave expression creates one group for each avail
 
 ==== Distributed Rate Limit Resource Configuration Example
 
-Distributed Rate Limit requires shared storage to be enabled. Configure either xref:flex-conn-distributed-shared-storage-config.adoc[distributed shared storage] or xref:flex-conn-shared-storage-config.adoc[Redis shared storage].
+Distributed Rate Limit requires shared storage to be enabled. Configure either xref:conn-distributed-shared-storage-config.adoc[distributed shared storage] or xref:conn-shared-storage-config.adoc[Redis shared storage].
 
 ----
 
@@ -150,7 +151,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |Time Unit | The time in milliseconds, seconds, minutes, or hours | Minutes
 |Distributed | When using interconnected runtimes with this flag enabled, quota will be shared among all nodes. | checked or unchecked
 | Expose Headers| The option that defines whether to expose the  <<response-header,x-ratelimit headers>> as part of the response | checked or unchecked
-|Block on unknown quota  | For policies using distributed rate limiting, block requests if the policy cannot retrieve the quota from shared storage. If not enabled and the quota can't be retrieved, no rate limiting is applied.  
+|Block on unknown quota  | For policies using distributed rate limiting, block requests if the policy cannot retrieve the quota from shared storage. If not enabled and the quota can't be retrieved, no rate limiting is applied. | checked or unchecked
 |===
 
 NOTE: If you enable the distributed rate limiting, the policy resizes time windows under 10 seconds linearly. For example, if you configure a maximum of 10 requests per 5 seconds, the policy resizes that window to a maximum of 20 requests per 10 seconds.

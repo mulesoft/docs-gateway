@@ -14,10 +14,17 @@ endif::[]
 | xref:policies-included-a2a-prompt-decorator.adoc[A2A Prompt Decorator] | A2A | Decorates prompts with context information
 | xref:policies-included-a2a-schema-validation.adoc[A2A Schema Validation] | A2A | Validates Agent requests to ensure they conform to the A2A specification
 | xref:policies-included-a2a-token-rate-limit.adoc[A2A Token Based Rate Limit] | A2A | Limits API usage based on the number of GPT-4o-mini tokens consumed by the agents
+| xref:policies-included-a2a-v1-agent-card.adoc[A2A v1 Agent Card] | A2A | Rewrites interface URLs in the A2A v1.0 agent card to match the gateway's public address
+| xref:policies-included-a2a-v1-pii-detector.adoc[A2A v1 PII Detector] | A2A | Detects personally identifiable information (PII) in A2A v1 requests across all transports
+| xref:policies-included-a2a-v1-prompt-decorator.adoc[A2A v1 Prompt Decorator] | A2A | Decorates A2A v1 prompts with additional context information
+| xref:policies-included-a2a-v1-schema-validation.adoc[A2A v1 Schema Validation] | A2A | Verifies that requests to the agent are compliant with the A2A v1.0 specification
+| xref:policies-included-a2a-v1-to-v03-transcoder.adoc[A2A v1 to v0.3 Transcoder] | A2A | Transcodes protocol messages bidirectionally between A2A v1.0 JSON-RPC clients and A2A v0.3 backend servers
+| xref:policies-included-a2a-v1-token-rate-limit.adoc[A2A v1 Token Based Rate Limit] | A2A | Controls API usage by enforcing token-based rate limits
 | xref:policies-included-agent-connection-telemetry.adoc[Agent Connection Telemetry] | A2A and MCP | Tracks the number of requests made to agent or MCP server instances
-| xref:policies-included-api-security-identification-header.adoc[API Security-Identification Header] | Security | Adds API instance identifiers as response headers for external security platform correlation
 | xref:policies-included-bedrock-guardrails.adoc[Amazon Bedrock Guardrails] | LLM | Evaluates LLM prompts and responses against Amazon Bedrock guardrails for content safety, PII detection, and contextual grounding
+| xref:policies-included-api-security-identification-header.adoc[API Security-Identification Header] | Security | Adds API instance identifiers as response headers for external security platform correlation
 | xref:policies-included-azure-content-safety.adoc[Azure Content Safety] | LLM | Evaluates LLM prompts and responses against Azure AI Content Safety for harmful content, jailbreak attempts, hallucinations, and copyrighted material
+| xref:policies-included-bedrock-guardrails.adoc[Amazon Bedrock Guardrails] | LLM | Evaluates LLM prompts and responses against Amazon Bedrock guardrails for content safety, PII detection, and contextual grounding
 | xref:policies-included-basic-auth-ldap.adoc[Basic Authentication: LDAP] | Security | Allows access based on the basic authorization mechanism, with user-password defined on LDAP
 | xref:policies-included-basic-auth-simple.adoc[Basic Authentication: Simple] | Security | Allows access based on the basic authorization mechanism, with a single user-password
 | xref:policies-included-client-id-enforcement.adoc[Client ID Enforcement] | Compliance | Allows access only to authorized client applications
@@ -45,7 +52,8 @@ endif::[]
 | xref:policies-included-mcp-attribute-access-control.adoc[MCP Attribute-Based Access Control] | MCP | Controls access to tools, resources, and prompts based on user information such as Tiers, IP, Headers, or Claims
 | xref:policies-included-mcp-global-access.adoc[MCP Global Access] | MCP | Restricts which MCP tools are exposed by defining Allow and Block rules
 | xref:policies-included-mcp-pii-detector.adoc[MCP PII Detector] | MCP | Blocks elicitation responses containing personally identifiable information (PII) from reaching MCP servers
-| xref:policies-included-mcp-payload-optimization.adoc[MCP Payload Optimization] | MCP | Optimizes MCP tool responses for token consumption by transforming HTML to Markdown and removing unnecessary data
+| xref:policies-included-mcp-payload-optimization.adoc[MCP Payload Optimization] | MCP | Reduces tool response token consumption using one or more configurable methods: remove structural noise, trim oversized responses to match agent intent, or compress repeated structures into TOON
+| xref:policies-included-mcp-progressive-disclosure.adoc[MCP Tools Progressive Disclosure] | MCP | Reduces context window token cost by exposing tools on-demand through search
 | xref:policies-included-mcp-schema-validation.adoc[MCP Schema Validation] | MCP | Validates MCP requests to ensure they conform to the MCP specification
 | xref:policies-included-mcp-support.adoc[MCP Support] | MCP | Adds MCP support to an Omni Gateway MCP server instance. This policy is required for your MCP server instance to function properly.
 | xref:policies-included-mcp-tool-mapping.adoc[MCP Tool Mapping] | MCP | Redefines tool names and descriptions to reduce prompt complexity and improve LLM comprehension

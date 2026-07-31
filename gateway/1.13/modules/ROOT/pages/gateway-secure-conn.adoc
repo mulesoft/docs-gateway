@@ -1,0 +1,91 @@
+= Applying Policies for Managed Omni Gateways and Connected Mode
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:page-notice-banner-message: Use the enhanced MuleSoft experience to secure and monitor services across providers, apply governance policies, and manage LLM usage, costs, and routing with consistent governance across models. <a href="https://docs.mulesoft.com/general/exp-instances-add" target="_blank" rel="noopener">Learn more.</a>
+:page-aliases: flex-gateway-secure-conn.adoc, policies-included-apply.adoc, api-manager::using-policies.adoc, policies::policies-included-apply.adoc
+
+For Managed Omni Gateway and Omni Gateway running in Connected Mode, you apply inbound and outbound policies using *API Manager*. To find the policies provided by Omni Gateway, see xref:policies-included-directory.adoc[] and xref:policies-outbound-directory.adoc[].
+
+[[apply-inbound-policy]]
+== Apply Inbound Policies
+
+. Go to *Anypoint Platform > API Manager*.
+. From *API Instances* or *Agent and Tool Instances*, click the name of the instance to which you want to apply a policy.
+. From the side navigation panel, click *Policies*.
+. Click *+ Add policy*.
+. Select the policy to apply.
+. Configure the required parameters.
++
+For policy configuration parameters, see xref:policies-included-directory.adoc[].
+. Click *Advanced options* to configure these optional parameters:
+** *Policy label*: A label to identify the policy, specifically for use cases with multiples of the same policy.
+** *Policy version*: The version of the policy definition to use.
+** Application conditions: Apply the policy to all incoming requests or requests that match specified conditions:
+*** *Methods*: The HTTP methods to apply the policy to.
+*** *URI template regex*: A URI template regex of which request paths to apply the policy to.
+*** *Host*: The host to apply the policy to.
+*** *Headers*: A map of headers names and regex values to apply the policy to.
++ 
+NOTE: If necessary, use multiples of the same policy to meet all required conditions.
+. Click *Apply*.
+
+[[apply-outbound-policy]]
+== Apply Outbound Policies
+
+. Go to *Anypoint Platform > API Manager*.
+. From *API Instances* or *Agent and Tool Instances*, click the name of the instance to which you want to apply a policy.
+. From the side navigation panel, click *Policies*.
+. Click the *Outbound policies* tab.
+. Click *+ Add outbound policy*.
+. Select the *Upstream* to which you want to apply a policy.
+. If you want to apply the policy to an additional upstream, click *Add upstream* and select the additional upstream. Repeat this step for all upstreams to which you want to apply the policy.
+. Click *Next*.
+. Select the policy to apply.
+. Configure the required parameters.
++
+For policy configuration parameters, see xref:policies-outbound-directory.adoc[].
+. Click *Advanced options* to configure these optional parameters:
+** Policy label: A label to identify the policy, specifically for use cases with multiples of the same policy.
+** *Policy version*: The version of the policy definition to use.
+** Application conditions: Apply the policy to all incoming requests or requests that match specified conditions:
+*** *Methods*: The HTTP methods to apply the policy to.
+*** *Headers*: A map of headers names and regex values to apply the policy to.
++ 
+NOTE: If necessary, use multiples of the same policy to meet all required conditions.
+. Click *Apply*.
+
+[[upgrade-policy-definition]]
+== Upgrade a Policy Definition
+
+To upgrade a policy in API Manager:
+
+. Go to *Anypoint Platform > API Manager*.
+. From *API Instances* or *Agent and Tool Instances*, click the name of the instance with the policy to upgrade.
+. From the side navigation panel, click *Policies*.
+. Click the more options menu (image:more-options-menu.png[1%,1%]) of the policy to upgrade, and then click *Edit configuration*.
+. Select the *latest* version for *Policy version*.
+. Click *Save*.
++
+[NOTE]
+====
+You must manually check for implementation version updates only when upgrading the *patch* version of a definition (for example, 1.0.0 to 1.0.1). For *minor* and *major* version upgrades (for example, 1.0.0  to 1.1.0 or 1.0.0 t0 2.0.0), the implementation updates automatically. To upgrade a policy implementation, see <<upgrade-policy-implementation>>.
+====
+
+[[upgrade-policy-implementation]]
+== Upgrade a Policy Implementation
+
+To upgrade a policy implementation in API Manager:
+
+. Go to *Anypoint Platform > API Manager*.
+. From *API Instances* or *Agent and Tool Instances*, click the name of the instance with the policy to upgrade.
+. From the side navigation panel, click *Policies*.
+. Click the more options menu (image:more-options-menu.png[1%,1%]) of the policy to upgrade, and then click *Check for implementation updates*.
+. If implementation updates are available, click *Update all*.
+. Click *Ok*.
+
+== See Also
+
+* xref:index.adoc[]
+* xref:gateway-getting-started.adoc[]
