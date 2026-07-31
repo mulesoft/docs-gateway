@@ -8,25 +8,32 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | MCP Global Access
->s|Summary      | Restricts which MCP tools are exposed by defining Allow and Block rules
+>s|Summary      | Restricts which MCP tools, resources, and prompts are exposed by defining Allow and Block rules
 >s|Category | MCP
 >s|First Omni Gateway version available | v1.9.3
 >s|Release Notes| xref:release-notes::gateway/policies/mcp-global-access-release-notes.adoc[]
->s| Returned Status Codes | 403 — Returned when a call targets a blocked tool
+>s| Returned Status Codes | 200 with JSON-RPC error code -32008 — Returned when a call targets a blocked tool, resource, or prompt
 |===
 
 include::partial$mcp-version-support.adoc[]
 
 == Summary
 
-The MCP Global Access policy controls which MCP tools are available. Use it to filter the overall list of tools that enter your network.
+The MCP Global Access policy controls which MCP tools, resources, and prompts are available. Use it to filter the overall list of MCP capabilities that enter your network.
 
-You define rules to allow or block specific tools. When both Allow and Block rules exist, Block rules always take precedence. The policy applies to:
+You define rules to allow or block specific items based on their names (for tools and prompts) or URIs (for resources). When both Allow and Block rules exist, Block rules always take precedence. The policy applies to:
 
-* `tools/list` responses: The list returned to the client includes only permitted tools.
-* `tools/call` requests: The gateway rejects calls to blocked tools with HTTP 403 and a JSON-RPC error stating `Access denied to: <tool name>`.
+* Request authorization: The gateway rejects calls to blocked items with a JSON-RPC error stating `Access denied to: <name-or-uri>`:
+** `tools/call` requests
+** `resources/read` requests
+** `prompts/get` requests
 
-When the backend returns a `tools/list` response, the policy filters the list and sends the client only permitted tools. Filtering applies to both JSON-RPC and SSE response formats.
+* Response filtering: The list returned to the client includes only permitted items:
+** `tools/list` responses
+** `resources/list` responses
+** `prompts/list` responses
+
+Filtering applies to both JSON-RPC and SSE response formats.
 
 == Configuring Policy Parameters
 
@@ -39,19 +46,19 @@ include::partial$policy-title-headers.adoc[tag=ui]
 [%header%autowidth.spread,cols="a,a"]
 |===
 | Element | Description
-| Rules | Defines the access control rules. At least one rule is required. Each rule allows or blocks access to matching tools.
+| Rules | Defines the access control rules. At least one rule is required. Each rule allows or blocks access to matching tools, resources, or prompts.
 | Rule | Defines whether to *Allow* or *Block* access.
 | Match type | Determines how to match the value. Use *literal* for an exact name match or *pattern* for a regular expression.
-| Value | The tool name for literal match type, or the regex pattern for pattern match type.
+| Value | The tool name, resource URI, or prompt name for literal match type, or the regex pattern for pattern match type.
 |===
 
 == Rule behavior
 
 Rule order doesn't matter. The policy evaluates all rules and applies this logic depending on the combination of rule types are applied:
 
-Only Allow rules:: Only tools that match at least one Allow rule are permitted. All others are blocked.
-Only Block rules:: All tools are permitted except those that match a Block rule.
-Both Allow and Block rules:: Only tools that match at least one Allow rule and do not match any Block rule are permitted. If a tool matches both an Allow and a Block rule, it is blocked. Tools that match no Allow rule are also blocked.
+Only Allow rules:: Only items that match at least one Allow rule are permitted. All others are blocked.
+Only Block rules:: All items are permitted except those that match a Block rule.
+Both Allow and Block rules:: Only items that match at least one Allow rule and do not match any Block rule are permitted. If an item matches both an Allow and a Block rule, it is blocked. Items that match no Allow rule are also blocked.
 
 === Example: Allow list only
 
@@ -69,6 +76,29 @@ rules:
 ----
 
 Only `get_weather` and `get_user` can be called. All other tools are blocked and omitted from `tools/list` responses.
+
+To expose only specific resources by URI pattern:
+
+[source,yaml]
+----
+rules:
+  - rule: Allow
+    match_type: pattern
+    value: ^file://public/.*
+----
+
+In the previous example, only resources matching the `file://public/` URI pattern are exposed and blocks all tools and prompts, since their names don't match the pattern. To scope by type, combine allow rules that cover each capability you want to expose:
+
+[source,yaml]
+----
+rules:
+  - rule: Allow
+    match_type: pattern
+    value: ^file://public/.*
+  - rule: Allow
+    match_type: literal
+    value: get_user
+----
 
 === Example: Block List Only
 
