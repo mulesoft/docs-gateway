@@ -1,4 +1,4 @@
-= A2A v1 Quality Evaluation Policy
+= A2A Quality Evaluation Policy
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -7,7 +7,7 @@ endif::[]
 
 [width="100%", cols="5,15"]
 |===
->s| Policy Name | A2A v1 Quality Evaluation
+>s| Policy Name | A2A Quality Evaluation
 >s|Summary      | Evaluates A2A agent task responses with an LLM to score quality and completeness
 >s|Category | A2A
 >s|First Omni Gateway version available | v1.13.0
@@ -19,21 +19,21 @@ include::partial$a2a-version-support.adoc[]
 
 == Summary
 
-The A2A v1 Quality Evaluation policy evaluates completed A2A agent task responses using an LLM to score completeness against the original user intent. The policy only adds its verdict as response headers and emits metrics for observability. The policy doesn't block or modify the agent's response.
+The A2A Quality Evaluation policy evaluates completed A2A agent task responses using an LLM to score completeness against the original user intent. The policy only adds its verdict as response headers and emits metrics for observability. The policy doesn't block or modify the agent's response.
 
 The policy evaluates quality when the final agent response is available:
 
 * *Synchronous responses* - When `message/send` returns a `200` status with the final response, the quality LLM is invoked inline before the response is returned.
 * *Asynchronous responses* - When `message/send` returns a `202` status with a task ID, the policy stores the task metadata. Later, when `tasks/get` returns a `completed` state, the policy invokes the quality LLM and caches the verdict for subsequent polls.
 
-NOTE: This policy supports A2A v1.0 `message/send` and `tasks/get` requests across all transport protocols: JSON-RPC, HTTP+JSON, and gRPC. 
+NOTE: This policy supports A2A `message/send` and `tasks/get` requests across all transport protocols. 
 
 
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
-The A2A v1 Quality Evaluation policy isn't supported in Local Mode.
+The A2A Quality Evaluation policy isn't supported in Local Mode.
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
@@ -61,7 +61,7 @@ For example: `gpt-4o` or `gpt-4o-mini`
 
 == How This Policy Works
 
-The A2A v1 Quality Evaluation policy intercepts A2A v1.0 requests and evaluates completed agent responses using a separate LLM. The policy works differently for synchronous and asynchronous agent responses.
+The A2A Quality Evaluation policy intercepts A2A requests and evaluates completed agent responses using a separate LLM. The policy works differently for synchronous and asynchronous agent responses.
 
 === Request Filtering
 
@@ -199,7 +199,7 @@ The policy is designed to fail open — quality evaluation failures do not block
 
 == Configuration Examples
 
-The following examples demonstrate common configurations for the A2A v1 Quality Evaluation policy using different LLM models, timeouts, and endpoint configurations.
+The following examples demonstrate common configurations for the A2A Quality Evaluation policy using different LLM models, timeouts, and endpoint configurations.
 
 === Basic Configuration
 
@@ -210,13 +210,13 @@ This example configures the policy to evaluate agent responses using the `gpt-4o
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: PolicyBinding
 metadata:
-  name: a2a-v1-quality-evaluation
+  name: a2a-quality-evaluation
 spec:
   targetRef:
     kind: ApiInstance
-    name: my-a2a-v1-agent
+    name: my-a2a-agent
   policyRef:
-    name: a-two-a-v1-quality-evaluation-flex
+    name: a-two-a-quality-evaluation-flex
   config:
     qualityLlmUrl: "https://api.openai.com"
     qualityLlmApiKey: "sk-proj-..."
@@ -233,13 +233,13 @@ This example uses a faster model (`gpt-4o-mini`) with a shorter timeout for lowe
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: PolicyBinding
 metadata:
-  name: a2a-v1-quality-evaluation-fast
+  name: a2a-quality-evaluation-fast
 spec:
   targetRef:
     kind: ApiInstance
-    name: my-a2a-v1-agent
+    name: my-a2a-agent
   policyRef:
-    name: a-two-a-v1-quality-evaluation-flex
+    name: a-two-a-quality-evaluation-flex
   config:
     qualityLlmUrl: "https://api.openai.com"
     qualityLlmApiKey: "sk-proj-..."
@@ -256,13 +256,13 @@ This example uses a self-hosted or alternative OpenAI-compatible endpoint:
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: PolicyBinding
 metadata:
-  name: a2a-v1-quality-evaluation-custom
+  name: a2a-quality-evaluation-custom
 spec:
   targetRef:
     kind: ApiInstance
-    name: my-a2a-v1-agent
+    name: my-a2a-agent
   policyRef:
-    name: a-two-a-v1-quality-evaluation-flex
+    name: a-two-a-quality-evaluation-flex
   config:
     qualityLlmUrl: "https://custom-llm.example.com"
     qualityLlmApiKey: "custom-api-key"
@@ -433,6 +433,6 @@ Subsequent polls of the same task return the cached verdict and do not invoke th
 
 == See Also
 
-* xref:policies-included-a2a-v1-prompt-decorator.adoc[A2A v1 Prompt Decorator Policy]
-* xref:policies-included-a2a-v1-pii-detector.adoc[A2A v1 PII Detector Policy]
-* xref:policies-included-a2a-v1-token-rate-limit.adoc[A2A v1 Token Based Rate Limit Policy]
+* xref:policies-included-a2a-v1-prompt-decorator.adoc[A2A Prompt Decorator Policy]
+* xref:policies-included-a2a-v1-pii-detector.adoc[A2A PII Detector Policy]
+* xref:policies-included-a2a-v1-token-rate-limit.adoc[A2A Token Based Rate Limit Policy]
