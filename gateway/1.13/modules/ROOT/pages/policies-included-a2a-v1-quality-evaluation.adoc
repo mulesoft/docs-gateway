@@ -47,15 +47,15 @@ include::partial$policy-title-headers.adoc[tag=ui]
 For example: `https://api.openai.com`
 | Yes | None
 
-| Quality LLM API Key | Bearer token for authenticating to the quality LLM endpoint. This value issdfasdfas treated as sensitive and encrypted at rest.
+| Quality LLM API Key | Bearer token for authenticating to the quality LLM endpoint. This value is encrypted at rest.
 | Yes | None
 
-| Quality LLM Model | Model name to use for quality evaluation. Must be a valid model name supported by the configured endpoint.
+| Quality LLM Model | Model name to use for quality evaluation. The name must be a valid model name supported by the configured endpoint.
 
 For example: `gpt-4o` or `gpt-4o-mini`
 | No | `gpt-4o`
 
-| Request Timeout (ms) | Timeout in milliseconds for the quality LLM call. If the call exceeds this timeout, the verdict is not attached and the policy logs a warning.
+| Request Timeout (ms) | Timeout in milliseconds for the quality LLM call. If the call exceeds this timeout, the verdict isn't attached and the policy logs a warning.
 | No | `10000`
 |===
 
@@ -84,7 +84,9 @@ When an agent returns a synchronous `200` response to `message/send`:
 * `evaluation`: `"yes"` or `"no"` (whether the agent fully addressed the user's request)
 * `value`: `"1"`, `"2"`, or `"3"` (quality score: 1=poor, 2=adequate, 3=excellent)
 * `explanation`: Free-text explanation of the verdict
-. The policy adds quality verdict headers to the response (see <<quality-verdict-headers>>).
+. The policy adds quality verdict headers to the response.
++
+For header details, see <<quality-verdict-headers>>.
 . The policy emits a `mulesoft_agent_calls` counter metric with the verdict tags (see <<observability-metrics>>).
 . The response is returned to the client with the original agent response body and added quality headers.
 
@@ -147,7 +149,7 @@ The metric includes these tags:
 |Values
 
 |`mulesoft.a2a.task_resolution`
-|`"yes"`, `"no"` (verdict from the quality LLM), or `"unknown"` if the LLM call failed or the response could not be parsed.
+|`"yes"`, `"no"` (verdict from the quality LLM), or `"unknown"` if the LLM call failed or the response couldn't be parsed.
 
 |`mulesoft.a2a.quality_score`
 |`"1"`, `"2"`, or `"3"` (score from the quality LLM), or `"unknown"` if the LLM call failed.
@@ -162,7 +164,7 @@ The metric includes these tags:
 |Only emitted when `task_resolution="unknown"`. Possible values: `"transport_error"`, `"http_<code>"`, `"parse_error"`, `"no_choices"`, or `"invalid_evaluation"`.
 |===
 
-IMPORTANT: The metric counts distinct quality LLM calls, not distinct tasks. A task answered synchronously via `200` produces one metric increment. A task accepted as `202` and later polled to `completed` also produces one metric increment (on the first `tasks/get` poll that transitions `PENDING` to `EVALUATING`). Subsequent polls against an already-evaluated task do not emit additional metrics.
+IMPORTANT: The metric counts distinct quality LLM calls, not distinct tasks. A task answered synchronously via `200` produces one metric increment. A task accepted as `202` and later polled to `completed` also produces one metric increment (on the first `tasks/get` poll that transitions `PENDING` to `EVALUATING`). Subsequent polls against an already-evaluated task don't emit additional metrics.
 
 A sustained non-zero rate of `task_resolution="unknown"` indicates that the quality LLM is unreachable or returning errors. Operators should alert on this condition.
 
@@ -190,12 +192,14 @@ The policy is designed to fail open — quality evaluation failures do not block
 
 == Constraints and Limitations
 
-* *Per-replica cache* - Each Envoy replica maintains its own cache with a maximum of 10,000 entries. Quality verdicts are not shared across replicas. If a `tasks/get` poll is handled by a different replica than the original `message/send`, the verdict will not be found and the task will be treated as unevaluated.
+* *Per-replica cache* - Each Envoy replica maintains its own cache with a maximum of 10,000 entries. Quality verdicts are not shared across replicas. If a `tasks/get` poll is handled by a different replica than the original `message/send`, the verdict isn't found and the task is treated as unevaluated.
 * *Synchronous latency* - For synchronous `200` responses, the quality LLM call happens inline and can add up to the configured timeout in latency.
 * *Asynchronous poll latency* - For asynchronous tasks, the first `tasks/get` poll that transitions a task to `completed` incurs the quality LLM call latency.
-* *Cache size* - The cache holds a maximum of 10,000 task entries. When the cache is full, the oldest entries are evicted. Tasks whose cache entries are evicted before they are polled will not be evaluated.
+* *Cache size* - The cache holds a maximum of 10,000 task entries. When the cache is full, the oldest entries are evicted. Tasks whose cache entries are evicted before they are polled isn't evaluated.
 
-== Examples
+== Configuration Examples
+
+The following examples demonstrate common configurations for the A2A v1 Quality Evaluation policy using different LLM models, timeouts, and endpoint configurations.
 
 === Basic Configuration
 
@@ -293,6 +297,9 @@ Request:
 ----
 
 Upstream agent returns `200` with the agent's reply. The policy invokes the quality LLM, which returns:
+
+* Quality LLM response:
++
 [source,json]
 ----
 {
@@ -302,7 +309,8 @@ Upstream agent returns `200` with the agent's reply. The policy invokes the qual
 }
 ----
 
-Response headers:
+* Response headers:
++
 ----
 x-quality-evaluation: yes
 x-quality-score: 3
@@ -310,7 +318,8 @@ x-quality-explanation: Order cancellation confirmed. The agent successfully canc
 x-quality-status: completed
 ----
 
-Metric emitted:
+* Metric emitted:
++
 ----
 mulesoft_agent_calls{
   task_resolution="yes",
@@ -324,7 +333,8 @@ mulesoft_agent_calls{
 
 When an agent returns a `202` response, the policy stores the task metadata and defers evaluation until the task is polled.
 
-Initial request:
+. Initial request:
++
 [source,json]
 ----
 {
@@ -344,7 +354,8 @@ Initial request:
 }
 ----
 
-Upstream agent returns `202` with:
+. Upstream agent returns `202`:
++
 [source,json]
 ----
 {
@@ -355,10 +366,11 @@ Upstream agent returns `202` with:
   }
 }
 ----
-
++
 The policy stores `quality_check:task-abc-123 → "PENDING"`. No quality headers are added. No metric is emitted.
 
-Later, a client polls the task:
+. Client polls the task:
++
 [source,json]
 ----
 {
@@ -371,7 +383,8 @@ Later, a client polls the task:
 }
 ----
 
-Upstream agent returns `200` with:
+. Upstream agent returns `200` with completed status:
++
 [source,json]
 ----
 {
@@ -390,10 +403,11 @@ Upstream agent returns `200` with:
   }
 }
 ----
-
++
 The policy finds the `PENDING` cache entry, transitions it to `EVALUATING`, invokes the quality LLM, stores the verdict as `COMPLETED:yes:3:Order cancellation confirmed.`, and adds these headers:
 
-Response headers:
+. Response headers:
++
 ----
 x-quality-evaluation: yes
 x-quality-score: 3
@@ -401,7 +415,8 @@ x-quality-explanation: Order cancellation confirmed.
 x-quality-status: completed
 ----
 
-Metric emitted:
+. Metric emitted:
++
 ----
 mulesoft_agent_calls{
   task_resolution="yes",
@@ -412,49 +427,6 @@ mulesoft_agent_calls{
 ----
 
 Subsequent polls of the same task return the cached verdict and do not invoke the LLM or emit additional metrics.
-
-=== Quality LLM Failure
-
-When the quality LLM is unreachable or returns an error, the policy fails open and adds only a `pending` status header.
-
-Request:
-[source,json]
-----
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "message/send",
-  "params": {
-    "message": {
-      "parts": [
-        {
-          "kind": "text",
-          "text": "Cancel my order #12345"
-        }
-      ]
-    }
-  }
-}
-----
-
-Upstream agent returns `200`. The policy calls the quality LLM, but the call times out.
-
-Response headers:
-----
-x-quality-status: pending
-----
-
-Metric emitted:
-----
-mulesoft_agent_calls{
-  task_resolution="unknown",
-  quality_score="unknown",
-  method="message/send",
-  failure_reason="transport_error"
-} 1
-----
-
-The agent response is returned to the client unchanged. A warning is logged.
 
 == See Also
 
