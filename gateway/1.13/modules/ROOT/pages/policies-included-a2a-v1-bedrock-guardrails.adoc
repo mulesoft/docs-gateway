@@ -29,7 +29,7 @@ The policy integrates with AWS Bedrock's https://aws.amazon.com/bedrock/guardrai
 * *PII detection*: Detects and optionally redacts personally identifiable information, for example, names, addresses, SSNs, credit cards
 * *Contextual grounding*: Evaluates whether agent responses are grounded in provided reference text and relevant to the user query (hallucination detection)
 
-The guardrail's configuration is managed entirely in AWS. The policy enforces whatever rules you've configured in the specified guardrail.
+The policy enforces the rules you configure for the specific guardrail in AWS.
 
 The policy operates in two independent phases:
 
@@ -46,8 +46,6 @@ Before configuring this policy, you need:
 . **Bedrock Guardrail** created and configured in AWS Console
 . **IAM Credentials** with permissions to call `bedrock:ApplyGuardrail`
 . **Guardrail ID** from the AWS Console
-
-NOTE: This policy is designed for A2A v1.0 traffic only. For pre-v1 A2A traffic, use the `a2a-pii-detector-policy`.
 
 == Configuring Policy Parameters
 
@@ -70,11 +68,11 @@ include::partial$policy-title-headers.adoc[tag=ui]
 * Base host: `\https://bedrock-runtime.us-east-1.amazonaws.com`
 * Full ApplyGuardrail URL: `\https://bedrock-runtime.us-east-2.amazonaws.com/guardrail/<id>/version/<version>/apply`
 
-When the full URL is provided, the policy automaticall derives the region, and guardrail identifier unless explicitly configured.
+When the full URL is provided, the policy derives the region, guardrail identifier, and guardrail version, unless if you explicitly configure those values.
 
 | AWS Credentials
 | Yes
-| AWS credentials and region used for signing requests to the Bedrock API. See <<aws-credentials>>.
+| AWS credentials and region for signing requests to the Bedrock API. See <<aws-credentials>>.
 
 | Guardrail Identifier
 | Conditional
@@ -86,25 +84,25 @@ Required unless provided in the Bedrock Runtime Endpoint URL.
 | No
 | Version of the guardrail to apply.
 
-* `DRAFT` (default): Use the working draft version for development and testing
-* Numeric version (for example, `"1"`, `"2"`): Use a published version for production deployments
+* `DRAFT` (default): Use the working draft version for development and testing.
+* Numeric version (for example, `"1"`, `"2"`): Use a published version for production deployments.
 
 Required unless provided in the Bedrock Runtime Endpoint URL.
 
 | Moderate Request
 | No
-| When enabled (default: `true`), evaluates the entire request body against the guardrail before forwarding to the upstream agent. Rejected requests never reach the agent.
+| When enabled (default: `true`), the policy evaluates the entire request body against the guardrail before forwarding to the upstream agent. Rejected requests never reach the agent.
 
 | Moderate Response
 | No
-| When enabled (default: `true`), evaluates the entire unary response body against the guardrail before returning to the client. Rejected responses return `403` error code. Streaming responses (`text/event-stream`) aren't moderated and pass through unchanged.
+| When enabled (default: `true`), the policy evaluates the entire unary response body against the guardrail before returning to the client. Rejected responses return a `403` error code. Streaming responses (`text/event-stream`) aren't moderated and pass through unchanged.
 
 |===
 
 [[aws-credentials]]
 === AWS Credentials
 
-The policy uses AWS Signature V4 to authenticate with the Bedrock API. Both long-lived IAM credentials and temporary STS credentials are supported.
+The policy uses AWS Signature V4 to authenticate with the Bedrock API and supports both long-lived IAM credentials and temporary STS credentials.
 
 [%header%autowidth.spread,cols="a,a,a"]
 |===
@@ -112,7 +110,7 @@ The policy uses AWS Signature V4 to authenticate with the Bedrock API. Both long
 
 | Access Key ID
 | Yes
-| AWS access key ID. Supports both:
+| AWS access key ID, either:
 
 * Long-lived IAM user credentials (starting with `AKIA`)
 * Temporary credentials from STS or SSO (starting with `ASIA`)
@@ -129,7 +127,7 @@ The policy uses AWS Signature V4 to authenticate with the Bedrock API. Both long
 | Conditional
 | AWS region of the Bedrock Runtime endpoint (for example, `us-east-1`).
 
-Optional when the region can be derived from the Bedrock Runtime Endpoint host. Set explicitly for custom domains or VPC endpoints.
+Set explicitly for custom domains or VPC endpoints. Optional when the region is provided in the Bedrock Runtime Endpoint host. 
 
 |===
 
@@ -143,7 +141,7 @@ Optional when the region can be derived from the Bedrock Runtime Endpoint host. 
 | No
 | DataWeave expression that extracts the reference text for contextual grounding from the request body.
 
-Required only when contextual grounding is enabled on the AWS guardrail. Must be configured together with Grounding Query Selector.
+Required only when the AWS guardrail has contextual grounding enabled. Must be configured together with *Grounding Query Selector*.
 
 Example for JSON-RPC: `#[payload.params.message.metadata.context]`
 
@@ -155,7 +153,7 @@ See <<contextual-grounding>> for more information.
 | No
 | DataWeave expression that extracts the user query for contextual grounding from the request body.
 
-Required only when contextual grounding is enabled on the AWS guardrail. Must be configured together with Grounding Source Selector.
+Required only when the AWS guardrail has contextual grounding enabled. Must be configured together with *Grounding Source Selector*.
 
 Example for JSON-RPC: `#[payload.params.message.parts[0].text]`
 
@@ -170,7 +168,7 @@ See <<contextual-grounding>> for more information.
 * Default: `25000`
 * Range: `1024` - `25000`
 
-ApplyGuardrail caps synchronous calls at approximately 25,000 characters. Larger payloads are rejected (when fail-open is disabled) or passed through without moderation (when fail-open is enabled).
+The `ApplyGuardrail` API caps synchronous calls at approximately 25,000 characters. Larger payloads are rejected (when fail-open is disabled) or passed through without moderation (when fail-open is enabled).
 
 | Sampling Rate Percent
 | No
@@ -233,16 +231,19 @@ NOTE: Streaming responses (`text/event-stream`) are skipped and pass through wit
 
 === Supported Transports
 
-The policy works with these A2A v1.0 transports:
+The policy supports these A2A v1.0 transports:
 
 * *JSON-RPC*
 * *HTTP+JSON*
 
-*gRPC pass-through:* gRPC traffic (`application/grpc` or `application/grpc+proto`) is *not moderated* in v1 and passes through unchanged. When gRPC traffic is detected, the policy emits observability headers (`x-flex-bedrock-guardrails-action: skip` and `x-flex-bedrock-guardrails-reason: unsupported_transport_v1`) to monitor the coverage gap.
+The policy doesn't support gRPC traffic (`application/grpc` or `application/grpc+proto`) and it passes through without moderation. When gRPC traffic is detected, the policy emits these observability headers:
+
+* `x-flex-bedrock-guardrails-action: skip` 
+* `x-flex-bedrock-guardrails-reason: unsupported_transport_v1`
 
 === Method Scope
 
-The policy only evaluates `SendMessage` and `SendStreamingMessage` methods — the A2A v1.0 methods that carry user-supplied content. Other methods (`GetTask`, `ListTasks`, `SubscribeToTask`, agent card requests) pass through without moderation.
+The policy only evaluates `SendMessage` and `SendStreamingMessage` methods. Other methods (for example, `GetTask`, `ListTasks`, `SubscribeToTask`, agent card requests) pass through without moderation.
 
 [[contextual-grounding]]
 === Contextual Grounding
@@ -254,7 +255,7 @@ Contextual grounding helps detect hallucinations by scoring agent responses on t
 
 To enable contextual grounding:
 
-. Enable the contextual grounding feature on your AWS Bedrock guardrail.
+. Enable the contextual grounding feature for your AWS Bedrock guardrail.
 . Configure both *Grounding Source Selector* and *Grounding Query Selector* in the policy.
 
 The selectors are DataWeave expressions that extract:
@@ -264,9 +265,12 @@ The selectors are DataWeave expressions that extract:
 
 Both parameters must be configured together. Configuring only one causes the Bedrock API to return a `400` error code.
 
-IMPORTANT: DataWeave selectors bind to the raw request body as received on the wire. For JSON-RPC, A2A parameters are under `payload.params.*`. For HTTP+JSON, they're at the top level (`payload.*`). Design your selectors to handle the transports you support.
+DataWeave selectors bind to the raw request body differently for different transports:
 
-.Example Configuration for JSON-RPC
+* JSON-RPC
++ 
+For JSON-RPC, A2A parameters are under `payload.params.*`. For example:
++
 [source,yaml]
 ----
 advancedConfiguration:
@@ -274,7 +278,10 @@ advancedConfiguration:
   groundingQuerySelector: "#[payload.params.message.parts[0].text]"
 ----
 
-.Example Configuration for HTTP+JSON
+* HTTP+JSON
++
+For HTTP+JSON, A2A parameters are at the top level (`payload.*`). For example:
++
 [source,yaml]
 ----
 advancedConfiguration:
@@ -282,15 +289,6 @@ advancedConfiguration:
   groundingQuerySelector: "#[payload.message.parts[0].text]"
 ----
 
-=== Sampling for Cost Control
-
-The policy includes a deterministic per-session sampler to control Bedrock API costs and latency impact:
-
-* When `samplingRatePercent` is less than 100, only a percentage of sessions are moderated
-* The same session (identified by `contextId` or custom Session Key Selector) is consistently sampled or skipped
-* Sampling is deterministic based on a hash of the session key, ensuring stable behavior
-
-Sampled-out sessions pass through unmoderated and include observability headers (`x-flex-bedrock-guardrails-action: skip`, `x-flex-bedrock-guardrails-reason: sampled_out`).
 
 [[response-headers]]
 === Response Headers
@@ -303,7 +301,7 @@ Every moderated response includes observability headers:
 
 | `x-flex-bedrock-guardrails-action`
 | `allow`, `reject`, `skip`
-| Final moderation decision. `reject` indicates content violated one or more policies. `skip` indicates the request was not moderated (sampling, gRPC, or streaming).
+| Final moderation decision. `reject` indicates content violated one or more policies. `skip` indicates the request wasn't moderated (sampling, gRPC, or streaming).
 
 | `x-flex-bedrock-guardrails-phase`
 | `request`, `response`
@@ -452,10 +450,10 @@ Every moderated response includes observability headers:
 
 == Limitations
 
-* *Streaming responses*: Streaming responses (`text/event-stream`) are not moderated and pass through unchanged.
-* *gRPC traffic*: gRPC traffic is not moderated in v1 and passes through with observability headers.
-* *Payload size*: Payloads exceeding `maxPayloadBytes` (default 25,000 bytes) cannot be evaluated synchronously by Bedrock.
-* *JSON envelope*: Bedrock evaluates the complete JSON payload, including A2A protocol fields, not just the natural language content. This may slightly affect classifier confidence scores compared to evaluating bare text.
+* *Streaming responses*: Streaming responses (`text/event-stream`) aren't moderated and pass through unchanged.
+* *gRPC traffic*: gRPC traffic isn't moderated and passes through with observability headers.
+* *Payload size*: Payloads exceeding `maxPayloadBytes` (default 25,000 bytes) can't be evaluated synchronously by Bedrock.
+* *JSON envelope*: Bedrock evaluates the complete JSON payload, including A2A protocol fields, not just the natural language content. This may affect classifier confidence scores compared to evaluating bare text.
 
 == Best Practices
 
