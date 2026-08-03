@@ -126,16 +126,12 @@ When a quality verdict is available, the policy adds these headers to the respon
 |`x-quality-explanation`
 |Free-text explanation of the verdict provided by the quality LLM.
 
-|`x-quality-status`
-|`"completed"` when a verdict is available. Set to `"pending"` when no verdict is available yet, or `"evaluating"` when another replica is currently evaluating the task.
 |===
-
-When no verdict is available (for example, on a `tasks/get` request before the task is completed, or when the LLM call fails), only `x-quality-status: pending` is added.
 
 [[observability-metrics]]
 === Observability Metrics
 
-Every time the quality LLM is invoked (synchronous `200` responses and `tasks/get` requests that transition from `PENDING` to `EVALUATING`), the policy emits a single increment of the `mulesoft_agent_calls` counter metric.
+Every time the quality LLM is invoked (synchronous `200` responses and the first `tasks/get` request that evaluates a completed task), the policy emits a single increment of the `mulesoft_agent_calls` counter metric.
 
 The metric includes these tags:
 
@@ -160,7 +156,7 @@ The metric includes these tags:
 |Only emitted when `task_resolution="unknown"`. Possible values: `"transport_error"`, `"http_<code>"`, `"parse_error"`, `"no_choices"`, or `"invalid_evaluation"`.
 |===
 
-IMPORTANT: The metric counts distinct quality LLM calls, not distinct tasks. A task answered synchronously via `200` produces one metric increment. A task accepted as `202` and later polled to `completed` also produces one metric increment (on the first `tasks/get` poll that transitions `PENDING` to `EVALUATING`). Subsequent polls against an already-evaluated task don't emit additional metrics.
+IMPORTANT: The metric counts distinct quality LLM calls, not distinct tasks. A task answered synchronously via `200` produces one metric increment. A task accepted as `202` and later polled to `completed` also produces one metric increment (on the first `tasks/get` poll that evaluates the completed task). Subsequent polls against an already-evaluated task don't emit additional metrics.
 
 A sustained non-zero rate of `task_resolution="unknown"` indicates that the quality LLM is unreachable or returning errors. Operators should alert on this condition.
 
@@ -312,7 +308,6 @@ When an agent returns a synchronous `200` response, the policy evaluates the res
 x-quality-evaluation: yes
 x-quality-score: 3
 x-quality-explanation: Order cancellation confirmed. The agent successfully canceled order #12345.
-x-quality-status: completed
 ----
 
 ** Metric emitted:
@@ -409,7 +404,6 @@ The policy stores the task metadata. No quality headers are added. No metric is 
 x-quality-evaluation: yes
 x-quality-score: 3
 x-quality-explanation: Order cancellation confirmed.
-x-quality-status: completed
 ----
 +
 ** Metric emitted:
