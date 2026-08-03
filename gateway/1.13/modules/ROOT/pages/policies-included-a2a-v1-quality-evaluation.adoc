@@ -272,11 +272,14 @@ spec:
 
 == Sample Response Headers
 
+The following examples demonstrate the quality evaluation headers and metrics added by the policy for different response scenarios.
+
 === Synchronous Quality Flow
 
 When an agent returns a synchronous `200` response, the policy evaluates the response inline and adds quality headers.
 
-Request:
+. The initial request is sent:
++
 [source,json]
 ----
 {
@@ -296,9 +299,7 @@ Request:
 }
 ----
 
-Upstream agent returns `200` with the agent's reply. The policy invokes the quality LLM, which returns:
-
-* Quality LLM response:
+. The upstream agent returns `200` with the agent's reply. The policy invokes the quality LLM, which returns:
 +
 [source,json]
 ----
@@ -309,7 +310,9 @@ Upstream agent returns `200` with the agent's reply. The policy invokes the qual
 }
 ----
 
-* Response headers:
+. The policy adds these headers and emits these metrics:
+
+** Response headers:
 +
 ----
 x-quality-evaluation: yes
@@ -318,7 +321,7 @@ x-quality-explanation: Order cancellation confirmed. The agent successfully canc
 x-quality-status: completed
 ----
 
-* Metric emitted:
+** Metric emitted:
 +
 ----
 mulesoft_agent_calls{
@@ -333,7 +336,7 @@ mulesoft_agent_calls{
 
 When an agent returns a `202` response, the policy stores the task metadata and defers evaluation until the task is polled.
 
-. Initial request:
+. Initial request is sent:
 +
 [source,json]
 ----
@@ -354,7 +357,7 @@ When an agent returns a `202` response, the policy stores the task metadata and 
 }
 ----
 
-. Upstream agent returns `202`:
+. The upstream agent returns `202`:
 +
 [source,json]
 ----
@@ -369,7 +372,7 @@ When an agent returns a `202` response, the policy stores the task metadata and 
 +
 The policy stores `quality_check:task-abc-123 → "PENDING"`. No quality headers are added. No metric is emitted.
 
-. Client polls the task:
+. The client polls the task:
 +
 [source,json]
 ----
@@ -383,7 +386,7 @@ The policy stores `quality_check:task-abc-123 → "PENDING"`. No quality headers
 }
 ----
 
-. Upstream agent returns `200` with completed status:
+. The upstream agent returns `200` with completed status:
 +
 [source,json]
 ----
@@ -403,10 +406,10 @@ The policy stores `quality_check:task-abc-123 → "PENDING"`. No quality headers
   }
 }
 ----
-+
-The policy finds the `PENDING` cache entry, transitions it to `EVALUATING`, invokes the quality LLM, stores the verdict as `COMPLETED:yes:3:Order cancellation confirmed.`, and adds these headers:
 
-. Response headers:
+. The policy finds the `PENDING` cache entry, transitions it to `EVALUATING`, invokes the quality LLM, stores the verdict as `COMPLETED:yes:3:Order cancellation confirmed.`, and adds these headers and emits these metrics:
++
+** Response headers:
 +
 ----
 x-quality-evaluation: yes
@@ -414,8 +417,8 @@ x-quality-score: 3
 x-quality-explanation: Order cancellation confirmed.
 x-quality-status: completed
 ----
-
-. Metric emitted:
++
+** Metric emitted:
 +
 ----
 mulesoft_agent_calls{
