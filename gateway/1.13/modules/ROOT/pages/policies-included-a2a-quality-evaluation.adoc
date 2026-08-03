@@ -97,24 +97,20 @@ The quality LLM call happens inline, so it adds latency (up to the configured ti
 When an agent returns an asynchronous `202` response to `message/send`:
 
 . The policy captures the original user message and the returned task ID.
-. The policy stores the task metadata in a local cache with the key `quality_check:<task_id>` and value `"PENDING"`.
+. The policy stores the task metadata.
 . The response is returned immediately to the client with no quality headers and no LLM call.
 
 Later, when a client polls with `tasks/get` and the upstream returns `state: "completed"`:
 
-. The policy reads the cache entry for the task:
-* If the entry is `"PENDING"`, the policy atomically rewrites it to `"EVALUATING"` to prevent concurrent polls from double-calling the LLM. The policy then invokes the quality LLM, stores the verdict as `"COMPLETED:<evaluation>:<score>:<explanation>"`, adds quality verdict headers, and emits the observability metric.
-* If the entry is `"EVALUATING"`, the policy adds only `x-quality-status: evaluating` to indicate another replica is evaluating this task.
-* If the entry is `"COMPLETED:..."`, the policy parses the cached verdict and adds quality verdict headers. No LLM call or metric emission occurs.
-* If the entry is missing or in an unexpected state, the policy adds only `x-quality-status: pending`.
-. The response is returned with the cached or freshly evaluated quality headers.
+. The policy invokes the quality LLM, stores the verdict, adds quality verdict headers, and emits the observability metric.
+. The response is returned with the quality headers.
 
-This design ensures that each task is evaluated by the quality LLM exactly once, even if multiple clients poll the task status concurrently or repeatedly.
+Subsequent polls of the same completed task return the stored verdict without re-invoking the LLM.
 
 [[quality-verdict-headers]]
 === Quality Verdict Headers
 
-When a quality verdict is available (either fresh from the LLM or read from cache), the policy adds these headers to the response:
+When a quality verdict is available, the policy adds these headers to the response:
 
 [%header,cols='1a,5a']
 |===
@@ -180,8 +176,8 @@ The policy is designed to fail open — quality evaluation failures do not block
 |Quality LLM unreachable, non-200 response, or parse error
 |No quality verdict headers are attached. The metric is emitted with `task_resolution="unknown"`, `quality_score="unknown"`, and an appropriate `failure_reason` tag. A warning is logged.
 
-|Cache save operation fails
-|The cache error is ignored. The policy may re-invoke the quality LLM on a subsequent `tasks/get` request. Both LLM calls are counted in the metric.
+|Verdict storage fails
+|The storage error is ignored. The policy may re-invoke the quality LLM on a subsequent `tasks/get` request. Both LLM calls are counted in the metric.
 
 |Request body is not valid JSON-RPC
 |The request passes through unchanged. No quality evaluation is performed.
@@ -192,10 +188,8 @@ The policy is designed to fail open — quality evaluation failures do not block
 
 == Constraints and Limitations
 
-* *Per-replica cache* - Each Envoy replica maintains its own cache with a maximum of 10,000 entries. Quality verdicts are not shared across replicas. If a `tasks/get` poll is handled by a different replica than the original `message/send`, the verdict isn't found and the task is treated as unevaluated.
 * *Synchronous latency* - For synchronous `200` responses, the quality LLM call happens inline and can add up to the configured timeout in latency.
-* *Asynchronous poll latency* - For asynchronous tasks, the first `tasks/get` poll that transitions a task to `completed` incurs the quality LLM call latency.
-* *Cache size* - The cache holds a maximum of 10,000 task entries. When the cache is full, the oldest entries are evicted. Tasks whose cache entries are evicted before they are polled isn't evaluated.
+* *Asynchronous poll latency* - For asynchronous tasks, the first `tasks/get` poll that returns a `completed` state incurs the quality LLM call latency.
 
 == Configuration Examples
 
@@ -370,7 +364,7 @@ When an agent returns a `202` response, the policy stores the task metadata and 
 }
 ----
 +
-The policy stores `quality_check:task-abc-123 → "PENDING"`. No quality headers are added. No metric is emitted.
+The policy stores the task metadata. No quality headers are added. No metric is emitted.
 
 . The client polls the task:
 +
@@ -407,7 +401,7 @@ The policy stores `quality_check:task-abc-123 → "PENDING"`. No quality headers
 }
 ----
 
-. The policy finds the `PENDING` cache entry, transitions it to `EVALUATING`, invokes the quality LLM, stores the verdict as `COMPLETED:yes:3:Order cancellation confirmed.`, and adds these headers and emits these metrics:
+. The policy invokes the quality LLM, stores the verdict, and adds these headers and emits these metrics:
 +
 ** Response headers:
 +
@@ -429,7 +423,7 @@ mulesoft_agent_calls{
 } 1
 ----
 
-Subsequent polls of the same task return the cached verdict and do not invoke the LLM or emit additional metrics.
+Subsequent polls of the same task return the stored verdict and do not invoke the LLM or emit additional metrics.
 
 == See Also
 
