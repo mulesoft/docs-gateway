@@ -91,6 +91,20 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 `inboundHeaders` and `outboundHeaders` can not both be empty.
 ====
 
+To use single quotes directly in a String value (for example `"default-src 'none'; frame-ancestors 'none';"`), either:
+
+* Use a DataWeave expression:
++
+----
+#["default-src 'none'; frame-ancestors 'none';"]
+----
+
+* Use character escaping:
++
+----
+"default-src \'none\'; frame-ancestors \'none\';"
+----
+
 ==== Resource Configuration Example
 
 In the following example, all the headers matching the configured `#[attributes.requestPath]` expression are injected into the message.
@@ -125,3 +139,17 @@ include::partial$policy-title-headers.adoc[tag=ui]
 ====
 Header keys should be compliance with https://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html#sec2.2[HTTP 1.1^] standard.
 ====
+
+To use single quotes directly in a String value (for example `"default-src 'none'; frame-ancestors 'none';"`), either:
+
+* Use a DataWeave expression:
++
+----
+#["default-src 'none'; frame-ancestors 'none';"]
+----
+
+* Use character escaping:
++
+----
+"default-src \'none\'; frame-ancestors \'none\';"
+----
