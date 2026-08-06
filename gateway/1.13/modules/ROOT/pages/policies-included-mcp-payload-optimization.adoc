@@ -27,7 +27,7 @@ The MCP Payload Optimization policy reduces LLM token consumption by transformin
 * Remove JSON fields with null values
 * Remove excessive whitespace
 
-. *Smart Response Trimming* - Uses an LLM proxy to reduce large responses to match the agent's intent, extracting only the information the agent requires.
+. *Smart Response Trimming* - Uses a model proxy to reduce large responses to match the agent's intent, extracting only the information the agent requires.
 
 . *Compress Repeated Structures* - Encodes uniform JSON structures into Token-Oriented Object Notation (TOON), a lossless format that reduces tokens.
 
@@ -59,15 +59,15 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Min Response Size (bytes) | Minimum response size in bytes to transform. Smaller responses pass through unchanged for the four Token Sanitization transforms (`HTML to Markdown`, `Strip Base64`, `Remove Nulls`, `Collapse Whitespace`). Doesn't limit TOON encoding or smart response trimming, which have their own thresholds. Minimum value is `0`. | `500`
 | Enable Compress Repeated Structures | Translates JSON-shaped `result.content[].text` items to TOON to reduce downstream LLM tokens. For more information, see <<compress-repeated-structures>>. | Disabled
 | TOON Min Response Size (bytes) | Minimum response size in bytes for TOON encoding. Responses smaller than this skip TOON encoding. Minimum value is `0`. | `500`
-| Enable Smart Response Trimming | When enabled, an LLM proxy distills large tool responses down to match the caller's declared intent (the `expected_info` of the request), reducing tokens returned to the model.For more information, see <<smart-response-trimming>>. | Disabled
-| LLM Proxy URL | The endpoint of the LLM proxy service used for Smart Response Trimming (for example, `http://llmproxy.svc.cluster.local/v1/chat/completions`). Must be an OpenAI-compatible `/chat/completions` endpoint. Required when Smart Response Trimming is enabled. | N/A
-| LLM Proxy ID | Identifier of the selected LLM Proxy asset, stored for reference. This value is parsed and retained but not used at runtime by the policy. | N/A
-| Model-Based Routing | Determines how the LLM proxy selects the target model. When disabled (default), the proxy owns model selection (Semantic Routing). When enabled, the caller selects the model via the `LLM Model` parameter (Model-Based Routing). | Disabled
+| Enable Smart Response Trimming | When enabled, a model proxy distills large tool responses down to match the caller's declared intent (the `expected_info` of the request), reducing tokens returned to the model.For more information, see <<smart-response-trimming>>. | Disabled
+| Model Proxy URL | The endpoint of the model proxy service used for Smart Response Trimming (for example, `http://llmproxy.svc.cluster.local/v1/chat/completions`). Must be an OpenAI-compatible `/chat/completions` endpoint. Required when Smart Response Trimming is enabled. | N/A
+| Model Proxy ID | Identifier of the selected Model Proxy asset, stored for reference. This value is parsed and retained but not used at runtime by the policy. | N/A
+| Model-Based Routing | Determines how the model proxy selects the target model. When disabled (default), the proxy owns model selection (Semantic Routing). When enabled, the caller selects the model via the `LLM Model` parameter (Model-Based Routing). | Disabled
 | LLM Model | Model name sent in the `/chat/completions` request body (for example, `gpt-4o-mini`). Required when *Model-Based Routing* is enabled. | N/A
-| Client ID | Client ID for LLM proxy authentication. Sent as a `client_id` request header. | N/A
-| Client Secret | Client secret for LLM proxy authentication. Sent as a `client_secret` request header. | N/A
+| Client ID | Client ID for model proxy authentication. Sent as a `client_id` request header. | N/A
+| Client Secret | Client secret for model proxy authentication. Sent as a `client_secret` request header. | N/A
 | Threshold Bytes | Smart Response Trimming runs only when the post-sanitize content length exceeds this threshold (in bytes). Payloads below this threshold pass through with sanitize-only results. | `8000`
-| LLM Timeout (ms) | Timeout in milliseconds for each LLM proxy request. If the proxy exceeds this timeout, the call fails and only completes the *Clean Payloads* step. | `10000`
+| LLM Timeout (ms) | Timeout in milliseconds for each model proxy request. If the proxy exceeds this timeout, the call fails and only completes the *Clean Payloads* step. | `10000`
 | Per-Tool Overrides | Overrides the policy configuration values for specific tool names. Tools without an override use the global policy configuration. To learn more, see <<tool-overrides>>. | N/A
 |===
 
@@ -113,7 +113,7 @@ Then the structural transform is applied:
 When enabled, Smart Response Trimming runs after Token Sanitization:
 
 [start=5]
-. *Intent Extraction* — An LLM proxy distills the sanitized content to match the agent's declared intent, reducing token count further.
+. *Intent Extraction* — A model proxy distills the sanitized content to match the agent's declared intent, reducing token count further.
 
 === Stage 3: Compress Repeated Structures
 
@@ -125,20 +125,20 @@ When enabled, TOON encoding runs last:
 [[smart-response-trimming]]
 == Smart Response Trimming
 
-Smart Response Trimming uses an LLM proxy to distill large tool responses to match the agent's declared intent. When enabled, the policy:
+Smart Response Trimming uses a model proxy to distill large tool responses to match the agent's declared intent. When enabled, the policy:
 
 . Applies the Token Sanitization transforms (HTML to Markdown, Strip Base64, Collapse Whitespace, Remove Nulls).
 . Checks if the sanitized content exceeds the *Threshold Bytes* parameter (default: 8000 bytes) and includes `expected_info`
-. Sends the sanitized content to the configured LLM proxy.
+. Sends the sanitized content to the configured model proxy.
 . Replaces the original content with the LLM extracted response if it's smaller than the sanitized version.
 
 Smart Response Trimming:
 
-* Requires an LLM proxy endpoint configured via *LLM Proxy URL*.
+* Requires a model proxy endpoint configured via *Model Proxy URL*.
 * Requires `expected_info` to be present and non-empty in the request. The extractor only runs when the caller declares their intent.
 * Is fail-open. If there is any LLM failure (timeout, transport error, non-2xx status), the policy falls back to the result from *Clean payloads*.
 * Processes `content[0]` only when it is `type: "text"`. Other content entries are left untouched.
-* Uses client credentials (*Client ID* and *Client Secret*) for LLM proxy authentication, sent as separate `client_id` and `client_secret` request headers (not HTTP Basic Auth).
+* Uses client credentials (*Client ID* and *Client Secret*) for model proxy authentication, sent as separate `client_id` and `client_secret` request headers (not HTTP Basic Auth).
 * Includes an output guard that rejects extractions larger than the sanitized input.
 * Makes exactly one LLM call per response.
 * Works with both JSON (`application/json`) and Server-Sent Event (`text/event-stream`) responses. When enabled, SSE responses are buffered to allow complete content extraction.
