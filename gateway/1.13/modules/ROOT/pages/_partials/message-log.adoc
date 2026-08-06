@@ -1,7 +1,10 @@
 
-Applying a Message Logging policy to your API instance in API Manager allows you to view basic logs, such as inbound and outbound calls and headers, for APIs managed by Omni Gateway within API Manager. Logging for an API instance only happens if you configure and apply a Message Logging policy. 
+Applying a Message Logging policy to your API instance in API Manager allows you to view basic logs, such as inbound and outbound calls and headers, for APIs managed by Omni Gateway within API Manager. Logging for an API instance only happens if you configure and apply a Message Logging policy.
 
 To view metrics in API Manager, such as total requests, total policy violations, total errors, and average response time, see xref:{page-mode}-view-api-metrics.adoc[].
+
+
+NOTE: To use multiple log levels for different configurations, add multiple configurations within a single Message Logging policy. To learn more, see <<multiple-log-levels>>.
 
 == Message Logging Limits and Features
 
@@ -20,7 +23,8 @@ To view message logs in API Manager, you need one of the following permissions:
 
 Refer to xref:access-management::permissions-by-product.adoc[].
 
-== Configure Message Logging in Connected Mode
+[[configure-message-logging]]
+== Configure Message Logging
 
 . From *API Instances* in API Manager, select the name of the API Instance.
 . Click *Policies*.
@@ -46,11 +50,36 @@ You can only enter one level. See <<severity-levels, Message Logging Severity Le
 for a description of each severity level and the hierarchy for the levels.
 
 . If you want messages after the API is called, select *After Calling API*.
-. If you want to add additional configurations, click *+ Add*.
+. If you want to add additional configurations, click *+ Add*. For more information about configuring multiples levels, see <<multiple-log-levels>>.
 . Click *Save*.
 +
 Afterward, you should see a *Message Log* option for the API instance.
 +
 Use the search field to search for specific logs based on the time and log severity (INFO, ERROR, WARN, DEBUG). You can download these logs for further analysis.
+
+[[multiple-log-levels]]
+=== Configuring Multiple Log Levels
+
+To log messages at multiple levels or with different conditions within a single Message Logging policy:
+
+. Apply one Message Logging policy to your API instance following the steps at <<configure-message-logging>>.
+. Configure the first logging entry with your desired settings (for example, *Level*: INFO).
+. Click *+ Add* to add another configuration.
+. Configure the second logging entry with different settings (for example, *Level*: ERROR).
+. Repeat steps 3-4 to add additional configurations as needed.
+. Click *Save*.
+
+For example, if you configure the parameter:
+
+* *First configuration*:
+** *Message*: `#[payload]`
+** *Level*: INFO
+** *Before Calling API*: Selected
+* *Second configuration*:
+** *Message*: `#[attributes.headers]`
+** *Level*: ERROR
+** *After Calling API*: Selected
+
+This configuration logs the request payload at INFO level before calling the API and logs response headers at ERROR level after calling the API.
 
 include::partial$logging-severity-level.adoc[]
