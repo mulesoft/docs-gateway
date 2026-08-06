@@ -1,0 +1,59 @@
+= API Security-Identification Header Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api security, identification, correlation, api gateway, mule gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | API Security-Identification Header
+>s|Summary      | Adds API instance identifiers as response headers for external security platform correlation
+>s|Category | Security
+>s| First Mule version available | v4.12.0
+^s| Returned Status Codes | No return codes exist for this policy.
+|===
+
+== Summary
+
+The API Security-Identification Header policy injects organization and API instance identifiers as response headers to enable integration with external security platforms such as Akamai.
+
+The policy adds these headers in the response phase:
+
+* `x-ms-correlation-id-1`: Contains the business group ID
+* `x-ms-correlation-id-2`: Contains the API instance ID
+
+The policy has no configuration parameters and operates transparently without blocking traffic. If the required metadata is unavailable, the response continues without the headers and a warning is logged for each missing identifier.
+
+If the backend already returns `x-ms-correlation-id-1` or `x-ms-correlation-id-2` headers, the policy overwrites these values with the platform metadata values.
+
+== Configuring Policy Parameters
+
+This policy has no user-configurable parameters, but the policy requires the following system properties to be configured for the Mule runtime:
+
+* `anypoint.platform.client_id`: The client ID for authenticating with Anypoint Platform
+* `anypoint.platform.client_secret`: The client secret for authenticating with Anypoint Platform
+* `anypoint.platform.base_uri`: The base URI for the Anypoint Platform API (for example, `https://anypoint.mulesoft.com`)
+
+NOTE: These properties are typically configured automatically when running Mule runtime with Anypoint Platform.
+
+== Logging
+
+The policy logs the following information:
+
+* *INFO level*: Organization ID retrieval status during policy initialization (for example: `OrgIdRetriever.initialise() complete — organizationId=<value>`)
+* *WARN level*: When system properties are not configured or when organization ID retrieval fails during initialization
+
+== Example Response
+
+Given the following metadata:
+
+* Organization ID: `a1b2c3d4-e5f6-7890-abcd-ef1234567890`
+* API instance ID: `19203842`
+
+The policy adds the following response headers:
+
+----
+x-ms-correlation-id-1: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+x-ms-correlation-id-2: 19203842
+----
