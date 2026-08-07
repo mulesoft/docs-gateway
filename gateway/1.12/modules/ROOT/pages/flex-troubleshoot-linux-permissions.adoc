@@ -46,35 +46,7 @@ When the `sudo flexctl dump` command is executed, the root user is the owner of 
 sudo chown $USER *.json
 ----
 
-[[minimum-file-system-permissions]]
-== Minimum File System Permissions
-
-Flex Gateway requires specific file system permissions for proper operation. The following directories and files must have the appropriate permissions:
-
-=== Configuration Files
-
-Files in the `conf.d` directory must have `644` permissions, allowing the owner to read and write, and the group and others to read:
-
-[source,ssh]
-----
-chmod 644 /etc/mulesoft/flex-gateway/conf.d/*
-----
-
-=== Runtime Directory
-
-The `/var/tmp/mulesoft/flex-gateway/` directory must be owned by the Flex user and group with a minimum of `770` permissions, allowing the owner and group to read, write, and execute:
-
-[source,ssh]
-----
-sudo chown -R flex:flex /var/tmp/mulesoft/flex-gateway/
-sudo chmod -R 770 /var/tmp/mulesoft/flex-gateway/
-----
-
-These permissions ensure that:
-
-* Configuration files can be read by the gateway but are protected from unauthorized modification
-* The runtime directory is accessible only to the Flex user and group members
-* Support can properly troubleshoot permission-related issues
+Files in the `conf.d` directory must have `644` permissions, allowing the owner to read and write, and the group and others to read.
 
 == See Also
 
