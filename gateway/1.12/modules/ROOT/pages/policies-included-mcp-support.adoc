@@ -22,10 +22,20 @@ The MCP Support Policy configures Flex Gateway to support MCP server instances. 
 
 The MCP Support policy enables the *Total MCP Calls* metric that tracks the total successful and unsuccessful calls made to the MCP server. To view the total MCP calls, see xref:flex-managed-view-api-metrics.adoc[].
 
-There are no configuration parameters for this policy.
+Configure the policy to inject the MCP primitive as a request header toward the upstream backend so that downstream policies can use it. To learn more, see <<Configuring Policy Parameters>>.
 
 NOTE: This policy must come first in policy order. If this policy doesn't come first, Flex Gateway might throw a runtime error.
+
+== Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
 The MCP Support policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Description | Default
+| Inject MCP Name Headers | Injects the MCP primitive as a request header for downstream policy use. The policy injects `tools/call` as `x-ms-mcp-tool-name`, `prompts/get` as `x-ms-mcp-prompt-name`, and `resources/read` as `x-ms-mcp-resource-uri`. The policy only injects one header per request. | Disabled
+|===
