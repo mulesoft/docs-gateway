@@ -40,4 +40,25 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 * Validates tool invocation request parameters against the JSON schema of the tool.
 * Returns the tools/list MCP request without having to send the request to the upstream MCP Server.
+| Tool Poisoning Detection | Detects tool-poisoning attacks against MCP `tools/list` responses by pinning the trusted tool set from the API's Anypoint Exchange asset and comparing every backend `tools/list` response against it. Detection runs against the backend response only when *Validate Tool Schema* is disabled. When *Validate Tool Schema* is enabled, `tools/list` is served from the trusted asset and detection is inactive. To learn more, see <<tool-poisoning-detection>>.
+|===
+
+[[tool-poisoning-detection]]
+=== Configure Tool Poisoning Detection
+
+Configure *Tool Poisoning Detection* to detect three types of tool-poisoning findings. Each detection type is disabled by default.
+
+For each detection type, configure an *Action* that determines how the policy handles the response when it finds a poisoning attempt:
+
+* `LogOnly`: Records the finding and leaves the response unchanged.
+* `RemoveTool`: Removes only the affected tool from the response.
+* `BlockResponse`: Replaces the entire `tools/list` response with a JSON-RPC error.
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Parameter | Description | Default
+| Descriptor Drift Detection | Detects when a pinned tool's name, description, input schema, output schema, or annotations no longer match the pinned Exchange descriptor (a "rug pull"). This is the highest-confidence finding type. Configure *Enabled* to activate detection and *Action* to set the response handling. | Disabled
+| Shadow Tool Name Detection | Detects tools that are present at runtime but absent from the pin, and flags those whose name is a near-twin of a pinned tool's name as shadowing. Configure *Enabled* to activate detection and *Action* to set the response handling. Configure *Max Edit Distance* to set the maximum Levenshtein distance from a pinned tool name for an unpinned tool to be flagged as shadowing rather than merely unpinned. A value of `0` disables the shadowing annotation. The minimum value is `0` and the maximum value is `10`. | Disabled, *Max Edit Distance* `2`
+| Prompt Injection Detection | Scans tool descriptor text fields for prompt-injection heuristics. Disabled by default because it is the lowest-confidence, highest-false-positive-risk finding type. Configure *Enabled* to activate detection and *Action* to set the response handling. | Disabled
+| Max Tools Per Response | Sets the upper bound on how many tools in a single `tools/list` response the policy evaluates. Tools beyond this bound pass through unexamined, and the policy logs the truncation. The minimum value is `1`. | `200`
 |===
