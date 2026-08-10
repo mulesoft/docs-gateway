@@ -1,0 +1,57 @@
+= Flex Gateway Agent Policies
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+
+Policies enforce rules when Flex Gateway processes requests, enabling you to secure and govern your server instances. Flex Gateway includes A2A and MCP specific policies that provide enhanced security and control over agent interactions. 
+
+To apply a policy, see xref:flex-gateway-secure-conn.adoc[].
+
+Flex Gateway MCP and A2A server instances also support other Flex Gateway policies to protect server instances through rate limiting, authentication, authorization, threat protection, monitoring, and logging. For more information about MuleSoft-provided policies, see the xref:policies-included-directory.adoc[] and xref:policies-outbound-directory.adoc[].
+
+To extend existing functionality or define new functionality, create custom policies based on your specific business requirements. For information about creating custom policies, see xref:pdk::policies-pdk-overview.adoc[].
+
+NOTE: All agent policies are inbound policies and are not supported as automated policies.
+
+== SSE Policies 
+
+Both A2A and MCP support the following policies for Server-Sent Events (SSE) streaming:
+
+[%header%autowidth.spread]
+|===
+|Policy |Summary
+| xref:policies-included-sse-logging.adoc[SSE Logging] | Logs every SSE event while streaming 
+|===
+
+== A2A Policies
+
+[%header%autowidth.spread]
+|===
+|Policy |Summary
+| xref:policies-included-a2a-agent-card.adoc[A2A Agent Card] | Rewrites the Agent Card URL to match the server instance public URL
+| xref:policies-outbound-a2a-intask-authorization-code.adoc[A2A In-Task Authorization Code] | Ensures secondary credentials are present for in-task authentication using OAuth 2.0 Authorization Code flow (outbound)
+| xref:policies-included-a2a-pii-detector.adoc[A2A PII Detector] | Detects personally identifiable information (PII) in requests sent to the agent
+| xref:policies-included-a2a-prompt-decorator.adoc[A2A Prompt Decorator] | Decorates prompts with context information
+| xref:policies-included-a2a-schema-validation.adoc[A2A Schema Validation] | Validates agent requests to ensure they conform to the A2A specification
+|===
+
+
+== MCP Policies
+
+[%header%autowidth.spread]
+|===
+|Policy |Summary
+| xref:policies-included-mcp-attribute-access-control.adoc[MCP Attribute-Based Access Control] | Controls access to tools, resources, and prompts based on user information such as Tiers, IP, Headers, or Claims
+| xref:policies-included-mcp-pii-detector.adoc[MCP PII Detector] | Blocks elicitation responses containing personally identifiable information (PII) from reaching MCP servers
+| xref:policies-included-mcp-schema-validation.adoc[MCP Schema Validation] | Validates MCP requests to ensure they conform to the MCP specification
+| xref:policies-included-mcp-support.adoc[MCP Support] | Adds MCP support to a Flex Gateway MCP server instance. This policy is required for your MCP server instance to function properly.
+| xref:policies-included-mcp-tool-mapping.adoc[MCP Tool Mapping] | Redefines tool names and descriptions to reduce prompt complexity and improve LLM comprehension
+|===
+
+
+== See Also
+
+* xref:policies-reorder.adoc[]
+* xref:policies-flex-dataweave-support.adoc[]
