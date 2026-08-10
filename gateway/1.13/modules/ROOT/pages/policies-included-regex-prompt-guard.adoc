@@ -20,9 +20,9 @@ endif::[]
 
 NOTE: This policy supports OpenAI and Anthropic input formats.
 
-The Regex Prompt Guard policy scans LLM prompts and blocks requests when prompt content matches Perl Compatible Regular Expressions (PCRE) deny-list patterns.
+The Regex Prompt Guard policy scans LLM prompts and blocks requests when prompt content matches regex deny-list patterns.
 
-To learn more about PCRE, see https://www.pcre.org/[PCRE - Perl Compatible Regular Expressions].
+The policy uses the Rust https://crates.io/crates/regex[regex crate] which supports RE2-style expressions to guarantee linear-time matching and eliminate the backtracking risk.
 
 For example, you can use the policy to block attacks such as:
 
@@ -43,7 +43,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |===
 | Element | Required | Description
 | Pattern Name | Yes | Human-readable pattern name. The policy includes this value in the blocked-response details.
-| Regex Pattern | Yes | PCRE-compatible regex expression used to match prompt content. Use `(?i)` for case-insensitive matching. To learn more about PCRE, see https://www.pcre.org/[PCRE - Perl Compatible Regular Expressions].
+| Regex Pattern | Yes | RE2-style regex expression used to match prompt content. Use `(?i)` for case-insensitive matching. See the Summary section for supported and unsupported regex features.
 |===
 
 == Response on Block
@@ -59,6 +59,27 @@ When a request is blocked, the policy returns a response body containing the mat
   ]
 }
 ----
+
+== Regex Support
+
+The Regex Prompt Guard Policy uses the Rust https://crates.io/crates/regex[regex crate] which supports RE2-style expressions to guarantee linear-time matching and eliminate the backtracking risk. This ensures that customer-supplied regex patterns can't negatively impact gateway performance or availability.
+
+The Regex Prompt Guard policy doesn't support Perl Compatible Regular Expressions (PCRE), but supports these PCRE features:
+
+* Standard character classes
+* Alternation
+* Grouping
+* Greedy or lazy quantifiers
+* Anchors
+* Inline flags, such as `(?i)`, for case-insensitivity.
+
+These PCRE-specific features aren't supported:
+
+* Lookaround assertions: `(?=...)`, `(?!...)`, `(?<=...)`, `(?<!...)`
+* Backreferences: `\1`, `\2`, `(?P=name)`
+* Recursive or subroutine calls: `(?R)`, `(?1)`
+* Possessive quantifiers: `a*+`, `a++`
+* Special constructs: `\G`, `\K`, and conditional patterns `(?(1)yes|no)`
 
 == See Also
 
