@@ -23,7 +23,7 @@ The MCP Support Policy configures Omni Gateway to support MCP server instances. 
 
 The MCP Support policy enables the *Total MCP Calls* metric that tracks the total successful and unsuccessful calls made to the MCP server. To view the total MCP calls, see xref:managed-view-api-metrics.adoc[].
 
-Configure the policy to inject the MCP primitive as a request header toward the upstream backend so that downstream policies can use it. To learn more, see <<Configuring Policy Parameters>>.
+Configure the policy to inject the MCP primitive as request headers toward the upstream backend so that downstream policies can use it. To learn more, see <<Configuring Policy Parameters>>.
 
 NOTE: This policy must come first in policy order. If this policy doesn't come first, Omni Gateway might throw a runtime error.
 
@@ -38,5 +38,5 @@ include::partial$policy-title-headers.adoc[tag=ui]
 [%header%autowidth.spread,cols="a,a,a"]
 |===
 | Element | Description | Default
-| Inject MCP Name Headers | Injects the MCP primitive as a request header for downstream policy use. The policy injects `tools/call` as `x-ms-mcp-tool-name`, `prompts/get` as `x-ms-mcp-prompt-name`, and `resources/read` as `x-ms-mcp-resource-uri`. The policy only injects one header per request. | Disabled
+| Inject MCP Element Headers | Injects the MCP primitive as request headers for downstream policy use. On a keyed request, the policy sets `x-ms-mcp-element-id` to the identifier (`tools/call` name, `prompts/get` name, or `resources/read` URI) and `x-ms-mcp-element-type` to the kind (`tool`, `prompt`, or `resource`). Splitting the value from the kind lets downstream policies bucket by type, by element, or by both. | Disabled
 |===
