@@ -1,0 +1,366 @@
+= F5 Guardrails Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, llm, content safety, f5, calypsoai, guardrails, redaction
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | F5 Guardrails Policy
+>s|Summary      | Evaluates LLM prompts and responses against F5 AI Guardrails (powered by CalypsoAI), blocking, flagging, or redacting flagged content
+>s|Category | LLM
+>s|First Omni Gateway version available | v1.13.0
+>s|Release Notes| xref:release-notes::gateway/policies/f5-guardrails-release-notes.adoc[]
+.3+>.^s| Returned Status Codes
+|403 - Forbidden: Content blocked by F5 AI Guardrails
+|503 - Service Unavailable: F5 scan call failed or returned no verdict (only when fail-open is disabled)
+|200 - OK: Content cleared, flagged, or redacted
+|===
+
+== Summary
+
+The F5 Guardrails policy provides content moderation for LLM-based APIs by evaluating prompts and responses against https://docs.aisecurity.f5.com/[F5 AI Guardrails^] (powered by CalypsoAI). The policy calls the F5 `POST /backend/v1/scans` API and enforces the returned verdict at the gateway before the request reaches the upstream LLM (request phase) or before the response is returned to the client (response phase).
+
+Which scanners run and how they behave (harmful content, prompt injection, PII and other sensitive data, data leakage, and so on) is owned by your F5 project configuration, not the policy. The policy is the enforcement point that turns an F5 verdict into a gateway action:
+
+* *Allow*: Cleared content is forwarded unchanged.
+* *Flag*: Flagged content is allowed but a policy violation is recorded (audit).
+* *Redact*: Sensitive content is masked in place using F5's redaction, then forwarded.
+* *Reject*: Blocked content is rejected with a `403` error code.
+
+The policy operates in two independent phases:
+
+* *Request phase*: Extracts the user prompt and scans it with `scanDirection: request`. Rejected prompts never reach the LLM.
+* *Response phase*: Scans the LLM completion with `scanDirection: response` before returning it to the client. Streaming responses (`text/event-stream`) aren't scanned and pass through unchanged.
+
+Every scan also emits observability headers, a scan ID for correlation with the F5 console, a per-call metric, and (for any non-cleared outcome) a recorded policy violation.
+
+== Before You Begin
+
+Before configuring this policy, you need:
+
+1. *F5 AI Guardrails access* (SaaS tenant or a self-hosted deployment).
+2. *An F5 AI Guardrails endpoint URL*, for example, `\https://us1.calypsoai.app`.
+3. *An F5 API token* issued from the F5 console.
+4. *(Optional) An F5 project ID or friendly ID* whose scanner configuration the scan should use.
+
+If you connect to F5 SaaS, ensure the Flex Gateway data plane is allowed to reach the F5 host outbound (egress firewall / NAT allowlist). For a self-hosted F5 Moderator that presents a certificate signed by a private CA, configure that CA in the gateway's outbound TLS trust for the F5 service, the same as for any other internal upstream.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+Unlike the Amazon Bedrock Guardrails and Azure Content Safety policies, the F5 Guardrails policy is driven entirely by its static configuration and doesn't read control-plane context, so it also functions in Local Mode when the configured endpoint is reachable and the token is valid.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+=== Basic Configuration
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+| F5 AI Guardrails Endpoint
+| Yes
+| F5 AI Guardrails base URL, for example, `\https://us1.calypsoai.app`. The policy appends `/backend/v1/scans` at call time.
+
+| F5 API Token
+| Yes
+| F5 AI Guardrails API token, sent verbatim as the `Authorization` header on every scan call. Include a `Bearer ` prefix only if your token requires one. This value is sensitive and is never logged.
+
+| F5 Project
+| No
+| F5 project ID or friendly ID. When set, it's sent as the `project` field so the scan uses that project's scanner configuration. When omitted, the token's globally available scanners are used.
+
+| Moderate Request
+| No
+| When enabled (default), evaluates the user prompt against F5 AI Guardrails (`scanDirection: request`) before forwarding to the upstream LLM. Rejected prompts never reach the LLM.
+
+| Moderate Response
+| No
+| When enabled (default), evaluates the LLM response (`scanDirection: response`) before returning it to the client. Streaming responses (`text/event-stream`) aren't scanned and pass through unchanged.
+|===
+
+=== Advanced Configuration
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+| Apply Redaction
+| No
+| When enabled (default), a `redacted` outcome rewrites the request or response body with the F5-supplied masked text and lets traffic continue. When disabled, a `redacted` outcome is rejected with HTTP `403`, like a `blocked` outcome. See <<outcomes-and-actions>>.
+
+| Flag Only (Audit Mode)
+| No
+| When enabled, the scan carries `flagOnly: true` so blockable scanners return `flagged` instead of `blocked`, and the policy never returns `403` for a scanner hit. A policy violation is still recorded. Use this to observe what F5 would block without enforcing. Default: disabled.
+
+| Disabled Scanners
+| No
+| Scanner IDs to disable, sent as the `disabled` array. Applies to both phases unless overridden per phase by Request-Phase or Response-Phase Scanner Overrides. Overrides the project or token defaults for the named scanners.
+
+| Force-Enabled Scanners
+| No
+| Scanner IDs to force-enable, sent as the `forceEnabled` array, even if disabled in the project. Applies to both phases unless overridden per phase.
+
+| Request-Phase Scanner Overrides
+| No
+| Per-phase scanner selection for the request (prompt) scan, with optional `disabledScanners` and `forceEnabledScanners` arrays. See <<per-phase-scanner-selection>>.
+
+| Response-Phase Scanner Overrides
+| No
+| Per-phase scanner selection for the response (completion) scan. Same shape as Request-Phase Scanner Overrides. See <<per-phase-scanner-selection>>.
+
+| Verbose
+| No
+| When enabled, requests fuller scanner detail from F5, used to enrich the reason header and debug logs. Default: disabled.
+
+| API Timeout (ms)
+| No
+| Per-request timeout for each F5 scan call in milliseconds. Must be between `1000` and `30000`. Default: `5000`.
+
+| Fail Open
+| No
+| Determines behavior when the F5 scan call fails, times out, or returns no verdict:
+
+* Disabled (default): Rejects with HTTP `503`.
+* Enabled: Allows traffic to proceed unscanned (fail-open mode).
+|===
+
+== How This Policy Works
+
+The F5 Guardrails policy integrates with F5 AI Guardrails to evaluate LLM prompts and responses. The policy delegates _what_ is unsafe to F5's scanners and enforces the global scan `outcome`.
+
+[[request-and-response-moderation]]
+=== Request and Response Moderation
+
+The policy supports independent evaluation for request and response:
+
+. *Request Phase* (when Moderate Request is enabled):
+.. The policy extracts the user prompt from the request body. Non-`POST`, non-OpenAI, or non-JSON traffic passes through unscanned.
+.. The policy sends the prompt to `POST {endpoint}/backend/v1/scans` with `scanDirection: request`.
+.. The policy enforces the returned outcome. See <<outcomes-and-actions>>.
+.. If the prompt passes (cleared or flagged), the policy forwards the request to the upstream LLM. On `redacted`, it forwards a masked version. On `blocked`, it returns `403`.
+
+. *Response Phase* (when Moderate Response is enabled):
+.. The policy intercepts the LLM response.
+.. The policy sends the completion to F5 with `scanDirection: response`.
+.. The policy enforces the returned outcome. See <<outcomes-and-actions>>.
+.. If the response passes, the policy forwards it unchanged. On `redacted`, the body is rewritten with the masked completion. On `blocked`, the response is rewritten to `403`.
++
+NOTE: Streaming responses (`text/event-stream`) are skipped and pass through without scanning.
+
+When both phases scan, the client-visible response headers reflect the response-phase decision. They reflect the request-phase decision only when the response isn't scanned.
+
+[[outcomes-and-actions]]
+=== Outcomes and Actions
+
+The policy enforces the global `result.outcome` returned by F5:
+
+[%header,cols='1a,1a,4a']
+|===
+| F5 Outcome | Action | Effect
+
+| `cleared`
+| Allow
+| Content is forwarded unchanged. No policy violation recorded.
+
+| `flagged`
+| Flag
+| Traffic continues, a policy violation is recorded, and the failed scanner names populate the reason header. This is the outcome for audit (non-blocking) scanners and for every blockable scanner when Flag Only is enabled.
+
+| `redacted`
+| Redact
+| When Apply Redaction is enabled (default), the extracted prompt or completion text is replaced with F5's masked text, the body is rewritten, traffic continues, and a policy violation is recorded. When Apply Redaction is disabled, the outcome is treated as `blocked`. See <<redaction>>.
+
+| `blocked`
+| Reject
+| The request phase returns HTTP `403`; the response phase rewrites the response to HTTP `403`. A policy violation is recorded. Any unrecognized outcome is also treated as `blocked` so an unexpected verdict never silently passes.
+
+| `none` (no verdict)
+| Indeterminate
+| An empty or `none` outcome isn't treated as a block. It's resolved by the Fail Open setting: fail-closed returns HTTP `503`, fail-open passes traffic through unscanned. See <<error-handling>>.
+|===
+
+Every non-`cleared` outcome records a policy violation and adds the failed scanner names to the reason header.
+
+[[per-phase-scanner-selection]]
+=== Per-Phase Scanner Selection
+
+The `disabled` and `forceEnabled` scanner lists sent on each scan are resolved per phase, so the request (prompt) and response (completion) phases can target different scanner sets:
+
+* The *request phase* uses Request-Phase Scanner Overrides when set, otherwise the global Disabled Scanners and Force-Enabled Scanners lists.
+* The *response phase* uses Response-Phase Scanner Overrides with the same global fallback.
+* Each list falls back independently. An explicitly empty per-phase array (`[]`) replaces (clears) the global list for that phase; an unset array falls back to the global list.
+
+When neither per-phase override is set, the global lists apply to both phases. If a per-phase override is set for a phase whose moderation is disabled, the override can never take effect, and the policy logs a startup warning.
+
+[[redaction]]
+=== Redaction
+
+On a `redacted` outcome with Apply Redaction enabled, F5 returns a masked version of the exact text the policy sent, and the policy writes it back where extraction is unambiguous:
+
+* *Request, chat completions*: The content of the last user message is replaced.
+* *Response, chat completions*: `choices[0].message.content` is replaced.
+* *Response, responses API* (`/v1/responses`): `output[0].content[0].text` is replaced.
+
+The following redaction cases fail closed (HTTP `403`, reason `redaction_failed`, policy violation recorded) rather than forward known-sensitive content unmasked:
+
+* The F5 response has `outcome: redacted` but the masked text is missing or empty.
+* The body can't be navigated to the expected location (unexpected JSON shape).
+* The responses-API request path, which isn't re-injected in this version.
+
+NOTE: Multimodal content is dropped on redaction. When the redaction target is a multi-part message, only text parts are scanned; on redaction the array is collapsed to a single text part holding the masked text, discarding non-text parts such as images.
+
+[[response-headers]]
+=== Response Headers
+
+Every scanned request and response includes observability headers:
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Header | Values | Description
+
+| `x-llm-proxy-f5-calypsoai-guardrail-action`
+| `allow`, `flag`, `redact`, `reject`
+| Final moderation decision.
+
+| `x-llm-proxy-f5-calypsoai-guardrail-phase`
+| `request`, `response`
+| Which phase produced the decision surfaced in the action header.
+
+| `x-llm-proxy-f5-calypsoai-guardrail-reason`
+| comma-separated scanner names, `redaction_failed`, `service_unavailable`, `none_response`
+| Why the content was flagged, redacted, or rejected. Present only on `flag`, `redact`, `reject`, or an error or no-verdict result.
+
+| `x-llm-proxy-f5-calypsoai-guardrail-scan-id`
+| F5 scan ID
+| The F5 scan `id`, so a gateway decision correlates to the exact scan in the F5 console. Emitted only when F5 returns a non-empty `id`.
+|===
+
+[[metrics]]
+=== Metrics
+
+The policy emits one counter metric, `mulesoft_f5_guardrails_scan`, per F5 scan call, tagged by:
+
+* `phase`: `request` or `response`
+* `status`: `success` or `error`
+* `latency_bucket`: a bounded log-scale label for the F5 call's latency
+* `error_kind` (errors only): `http` (transport, non-2xx, or timeout) or `parse` (a 2xx body that failed to deserialize)
+
+From this counter, operators derive call volume, error rate, timeout counts, and the latency distribution, segmented by phase.
+
+[[error-handling]]
+== Error Handling
+
+The Fail Open setting determines behavior when an F5 scan call fails, times out, or returns no verdict.
+
+=== Fail Closed (Default)
+
+When Fail Open is disabled (the default), any F5 error, timeout, or no-verdict result rejects the traffic:
+
+* On an F5 error or timeout: HTTP `503` with body `{"error":"F5 AI Guardrails service unavailable"}` and reason `service_unavailable`.
+* On a no-verdict (`none` or empty outcome): HTTP `503` with body `{"error":"F5 AI Guardrails returned no verdict"}` and reason `none_response`.
+
+In the response phase, the response is rewritten to `503`. A policy violation is recorded.
+
+=== Fail Open
+
+When Fail Open is enabled, F5 errors, timeouts, and no-verdict results are logged but traffic continues unscanned. The corresponding reason header (`service_unavailable` or `none_response`) is still emitted for observability, so monitoring can detect partial-coverage scanning.
+
+== Response on Reject
+
+When the policy blocks content, it returns a `403` response with this structure:
+
+[source,json]
+----
+{
+  "error": "Content blocked by F5 AI Guardrails",
+  "scanners": ["PII Scanner", "Prompt Injection"]
+}
+----
+
+== Example Configurations
+
+=== Minimal Configuration — Both Phases, Enforce and Redact
+
+`moderateRequest`, `moderateResponse`, and `applyRedaction` all default to `true`, so both the prompt and completion are scanned, sensitive data is masked in place on a `redacted` verdict, and blocked content returns `403`.
+
+[source,yaml]
+----
+- policyRef:
+    name: f5-guardrails-policy-v1-0-impl
+    namespace: default
+  config:
+    f5Endpoint: https://us1.calypsoai.app
+    f5ApiToken: "${F5_GUARDRAILS_TOKEN}"
+    f5Project: "<your-f5-project-id>"
+----
+
+=== Audit Mode — Observe Without Enforcing
+
+No request is ever blocked; every scanner hit surfaces as `flag` with a policy violation and reason header. Use this to measure impact before switching to enforcement.
+
+[source,yaml]
+----
+- policyRef:
+    name: f5-guardrails-policy-v1-0-impl
+    namespace: default
+  config:
+    f5Endpoint: https://us1.calypsoai.app
+    f5ApiToken: "${F5_GUARDRAILS_TOKEN}"
+    f5Project: "<your-f5-project-id>"
+    advancedConfiguration:
+      flagOnly: true
+      applyRedaction: false
+----
+
+=== Request-Only, Fail-Open, Custom Scanners
+
+Only the prompt is scanned, one scanner is disabled for this route, and if F5 is unreachable the request proceeds unscanned (with the `service_unavailable` header emitted).
+
+[source,yaml]
+----
+- policyRef:
+    name: f5-guardrails-policy-v1-0-impl
+    namespace: default
+  config:
+    f5Endpoint: https://eu1.calypsoai.app
+    f5ApiToken: "${F5_GUARDRAILS_TOKEN}"
+    f5Project: "prod-chat"
+    moderateRequest: true
+    moderateResponse: false
+    advancedConfiguration:
+      disabledScanners: ["01983d0c-f1cc-700a-ab56-6600efc7dfb9"]
+      apiTimeoutMs: 8000
+      failOpen: true
+----
+
+=== Per-Phase Scanner Selection
+
+The request scan and response scan target independent scanner sets. The request phase clears the global disable list and force-enables a scanner; the response phase keeps the global disable and adds another scanner.
+
+[source,yaml]
+----
+- policyRef:
+    name: f5-guardrails-policy-v1-0-impl
+    namespace: default
+  config:
+    f5Endpoint: https://us1.calypsoai.app
+    f5ApiToken: "${F5_GUARDRAILS_TOKEN}"
+    f5Project: "prod-chat"
+    advancedConfiguration:
+      disabledScanners: ["01983d0c-f1cc-700a-ab56-6600efc7dfb9"]
+      requestScanners:
+        disabledScanners: []
+        forceEnabledScanners: ["019f3a1b-2c3d-4e5f-6071-8293a4b5c6d7"]
+      responseScanners:
+        forceEnabledScanners: ["01a2b3c4-d5e6-7089-abcd-ef0123456789"]
+----
+
+== See Also
+
+* https://docs.aisecurity.f5.com/[F5 AI Guardrails documentation^]
+* xref:policies-included-azure-content-safety.adoc[]
+* xref:policies-included-bedrock-guardrails.adoc[]
+* xref:general::model-proxy.adoc[]
+* xref:general::model-proxy-policies.adoc[]
