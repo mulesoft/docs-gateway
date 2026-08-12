@@ -23,10 +23,20 @@ The MCP Support Policy configures Omni Gateway to support MCP server instances. 
 
 The MCP Support policy enables the *Total MCP Calls* metric that tracks the total successful and unsuccessful calls made to the MCP server. To view the total MCP calls, see xref:managed-view-api-metrics.adoc[].
 
-There are no configuration parameters for this policy.
+Configure the policy to inject the MCP primitive as request headers toward the upstream backend so that downstream policies can use it. To learn more, see <<Configuring Policy Parameters>>.
 
 NOTE: This policy must come first in policy order. If this policy doesn't come first, Omni Gateway might throw a runtime error.
+
+== Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
 The MCP Support policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Description | Default
+| Inject MCP Element Headers | Injects the MCP primitive as request headers for downstream policy use. The policy sets `x-ms-mcp-element-id` to the identifier (`tools/call` name, `prompts/get` name, or `resources/read` URI) and `x-ms-mcp-element-type` to the kind (`tool`, `prompt`, or `resource`). These headers lets a downstream policy match on type, an individual element or both | Disabled
+|===
