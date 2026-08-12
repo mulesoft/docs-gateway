@@ -65,7 +65,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 | F5 API Token
 | Yes
-| F5 AI Guardrails API token, sent verbatim as the `Authorization` header on every scan call. Include a `Bearer ` prefix only if your token requires one. This value is sensitive and is never logged.
+| F5 AI Guardrails API token, sent verbatim as the `Authorization` header on every scan call. Include a `Bearer` prefix only if your token requires one. This value is sensitive and is never logged.
 
 | F5 Project
 | No
@@ -169,7 +169,7 @@ The policy enforces the global `result.outcome` returned by F5:
 
 | `redacted`
 | Redact
-| When Apply Redaction is enabled (default), the extracted prompt or completion text is replaced with F5's masked text, the body is rewritten, traffic continues, and a policy violation is recorded. When Apply Redaction is disabled, the outcome is treated as `blocked`. See <<redaction>>.
+| When Apply Redaction is enabled (default), the extracted prompt or completion text is replaced with F5's masked text, the body is rewritten, traffic continues, and a policy violation is recorded. When Apply Redaction is disabled, the outcome is treated as `blocked`.
 
 | `blocked`
 | Reject
@@ -177,7 +177,7 @@ The policy enforces the global `result.outcome` returned by F5:
 
 | `none` (no verdict)
 | Indeterminate
-| An empty or `none` outcome isn't treated as a block. It's resolved by the Fail Open setting: fail-closed returns HTTP `503`, fail-open passes traffic through unscanned. See <<error-handling>>.
+| An empty or `none` outcome isn't treated as a block. It's resolved by the Fail Open setting: fail-closed returns HTTP `503`, fail-open passes traffic through unscanned.
 |===
 
 Every non-`cleared` outcome records a policy violation and adds the failed scanner names to the reason header.
@@ -192,23 +192,6 @@ The `disabled` and `forceEnabled` scanner lists sent on each scan are resolved p
 * Each list falls back independently. An explicitly empty per-phase array (`[]`) replaces (clears) the global list for that phase; an unset array falls back to the global list.
 
 When neither per-phase override is set, the global lists apply to both phases. If a per-phase override is set for a phase whose moderation is disabled, the override can never take effect, and the policy logs a startup warning.
-
-[[redaction]]
-=== Redaction
-
-On a `redacted` outcome with Apply Redaction enabled, F5 returns a masked version of the exact text the policy sent, and the policy writes it back where extraction is unambiguous:
-
-* *Request, chat completions*: The content of the last user message is replaced.
-* *Response, chat completions*: `choices[0].message.content` is replaced.
-* *Response, responses API* (`/v1/responses`): `output[0].content[0].text` is replaced.
-
-The following redaction cases fail closed (HTTP `403`, reason `redaction_failed`, policy violation recorded) rather than forward known-sensitive content unmasked:
-
-* The F5 response has `outcome: redacted` but the masked text is missing or empty.
-* The body can't be navigated to the expected location (unexpected JSON shape).
-* The responses-API request path, which isn't re-injected in this version.
-
-NOTE: Multimodal content is dropped on redaction. When the redaction target is a multi-part message, only text parts are scanned; on redaction the array is collapsed to a single text part holding the masked text, discarding non-text parts such as images.
 
 [[response-headers]]
 === Response Headers
@@ -247,24 +230,6 @@ The policy emits one counter metric, `mulesoft_f5_guardrails_scan`, per F5 scan 
 * `error_kind` (errors only): `http` (transport, non-2xx, or timeout) or `parse` (a 2xx body that failed to deserialize)
 
 From this counter, operators derive call volume, error rate, timeout counts, and the latency distribution, segmented by phase.
-
-[[error-handling]]
-== Error Handling
-
-The Fail Open setting determines behavior when an F5 scan call fails, times out, or returns no verdict.
-
-=== Fail Closed (Default)
-
-When Fail Open is disabled (the default), any F5 error, timeout, or no-verdict result rejects the traffic:
-
-* On an F5 error or timeout: HTTP `503` with body `{"error":"F5 AI Guardrails service unavailable"}` and reason `service_unavailable`.
-* On a no-verdict (`none` or empty outcome): HTTP `503` with body `{"error":"F5 AI Guardrails returned no verdict"}` and reason `none_response`.
-
-In the response phase, the response is rewritten to `503`. A policy violation is recorded.
-
-=== Fail Open
-
-When Fail Open is enabled, F5 errors, timeouts, and no-verdict results are logged but traffic continues unscanned. The corresponding reason header (`service_unavailable` or `none_response`) is still emitted for observability, so monitoring can detect partial-coverage scanning.
 
 == Response on Reject
 
