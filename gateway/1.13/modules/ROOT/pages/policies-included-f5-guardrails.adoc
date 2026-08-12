@@ -219,18 +219,6 @@ Every scanned request and response includes observability headers:
 | The F5 scan `id`, so a gateway decision correlates to the exact scan in the F5 console. Emitted only when F5 returns a non-empty `id`.
 |===
 
-[[metrics]]
-=== Metrics
-
-The policy emits one counter metric, `mulesoft_f5_guardrails_scan`, per F5 scan call, tagged by:
-
-* `phase`: `request` or `response`
-* `status`: `success` or `error`
-* `latency_bucket`: a bounded log-scale label for the F5 call's latency
-* `error_kind` (errors only): `http` (transport, non-2xx, or timeout) or `parse` (a 2xx body that failed to deserialize)
-
-From this counter, operators derive call volume, error rate, timeout counts, and the latency distribution, segmented by phase.
-
 == Response on Reject
 
 When the policy blocks content, it returns a `403` response with this structure:
