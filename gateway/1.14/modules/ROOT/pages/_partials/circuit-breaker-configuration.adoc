@@ -1,0 +1,67 @@
+//tag::circuit-breaker-types[]
+Omni Gateway offers these circuit breaker thresholds:
+
+* *Maximum Connections* +
+The maximum number of connections per API to an upstream service.
+
+* *Maximum Pending Requests* +
+The maximum number of queued requests that can wait for a connection.
+
+* *Maximum Requests* +
+The maximum number of outstanding requests to an upstream service.
+
+* *Maximum Retries* +
+The maximum number of outstanding retries.
+
+* *Maximum Connection Pools* +
+The maximum number of connection pools concurrently initiated to an upstream service.
+
+NOTE: When requests or connections exceed a threshold, Omni Gateway returns a `503 - Service Unavailable` error.
+
+All thresholds are optional. For Managed Omni Gateways and Connected Mode, each API instance has its own independent limit per upstream, so each can use the full threshold value. In Local Mode, different API instances share limits for the same upstream. For all modes, each gateway replica can use the full threshold value and limits aren't distributed across replicas.
+//end::circuit-breaker-types[]
+
+//tag::circuit-breaker-runtime-manager[]
+== Configure Circuit Breaker in Runtime Manager
+
+. In Anypoint Platform, select *Runtime Manager*.
+. Select *Omni Gateways*.
+. Select your Omni Gateway.
+. Open *Runtime Configurations*.
+. Open *Circuit Breaker*.
+. Set values for *Maximum Connections*, *Maximum Pending Requests*, *Maximum Requests*, *Maximum Retries*, and *Maximum Connection Pools*.
+. Apply the changes.
+
+//end::circuit-breaker-runtime-manager[]
+
+//tag::circuit-breaker-yaml[]
+== Configure Circuit Breaker via YAML Configuration Resources
+
+To update your circuit breaker thresholds, edit and then apply this configuration resource:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: Configuration
+metadata:
+  name: circuit-breaker
+spec:
+  circuitBreaker:
+    thresholds:
+      maxConnections: <number>
+      maxPendingRequests: <number>
+      maxRequests: <number>
+      maxRetries: <number>
+      maxConnectionPools: <number>
+----
+
+//end::circuit-breaker-yaml[]
+
+//tag::circuit-breaker-policies[]
+== Configure Circuit Breaker via Policies
+
+Apply the Circuit Breaker policy to your API instance or upstream service:
+
+* xref:policies-outbound-circuit-breaker.adoc[]
+
+//end::circuit-breaker-policies[]

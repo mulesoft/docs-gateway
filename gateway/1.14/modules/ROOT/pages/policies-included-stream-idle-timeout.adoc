@@ -1,0 +1,62 @@
+= Stream Idle Timeout Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: basic authentication, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Stream Idle Timeout
+>s|Summary  | Sets the maximum duration a stream can remain idle without receiving a request or response
+>s|Category | Quality of Service
+>s|First Omni Gateway version available | v1.9.0
+>s|Release Notes| xref:release-notes::gateway/policies/stream-idle-timeout-release-notes.adoc[]
+^s| Returned Status Codes | 504 - Stream timeout
+|===
+
+== Summary
+
+The Stream Idle Timeout policy sets a maximum duration for which a stream can remain idle without receiving any data, either inbound from the client to Omni Gateway or outbound from Omni Gateway to the upstream service. The policy prevents idle connections from consuming resources unnecessarily. The timeout period starts at the last activity on the stream, whether the activity is a request or a response. 
+
+By default, all Omni Gateway API instances have a stream timeout of 300 seconds. Apply the policy to override the default timeout.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: stream-idle-timeout-flex
+  config:
+    timeout: number // REQUIRED
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `timeout`
+| Required
+| 300
+| Time in seconds before Omni Gateway closes the connection.
+
+|===
+
+==== Resource Configuration Example
+
+----
+- policyRef:
+    name: stream-idle-timeout-flex
+  config:
+    timeout: 3
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Description | Required
+| Stream idle timeout | Time in seconds before Omni Gateway closes the connection. | Yes
+|===
+

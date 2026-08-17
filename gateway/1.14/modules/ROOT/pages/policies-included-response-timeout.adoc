@@ -1,0 +1,62 @@
+= Response Timeout Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: basic authentication, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Response Timeout
+>s|Summary | Sets the maximum duration that Omni Gateway waits for a response from an upstream service
+>s|Category | Quality of Service
+>s|First Omni Gateway version available | v1.9.0
+>s|Release Notes| xref:release-notes::gateway/policies/response-timeout-release-notes.adoc[]
+^s| Returned Status Codes | 504 - Upstream request timeout
+|===
+
+== Summary
+
+The Response Timeout policy enables you to set the maximum duration that Omni Gateway waits for a response from an upstream service. The timeout time starts at the last request sent by Omni Gateway. 
+
+By default, all Omni Gateway API instances have a response timeout of 15 seconds. Apply the policy to override the default timeout.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: response-timeout-flex
+  config:
+    timeout: number // REQUIRED
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `timeout`
+| Required
+| 15
+| Time in seconds Omni Gateway waits for the response.
+
+|===
+
+==== Resource Configuration Example
+
+----
+- policyRef:
+    name: response-timeout-flex
+  config:
+    timeout: 3
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Description | Required
+| Response timeout | Time in seconds Omni Gateway waits for the response. | Yes
+|===
+

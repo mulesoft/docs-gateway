@@ -1,0 +1,62 @@
+= API Security-Identification Header Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api security, identification, correlation, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | API Security-Identification Header
+>s|Summary      | Adds API instance identifiers as response headers for external security platform correlation
+>s|Category | Security
+>s|First Omni Gateway version available | v1.13.0
+>s|Release Notes| xref:release-notes::gateway/policies/api-security-identification-header-release-notes.adoc[]
+^s| Returned Status Codes | No return codes exist for this policy.
+|===
+
+== Summary
+
+The API Security-Identification Header policy injects organization and API instance identifiers as response headers to enable integration with external security platforms such as Akamai.
+
+The policy adds these headers in the response phase:
+
+* `x-ms-correlation-id-1`: Contains the business group ID
+* `x-ms-correlation-id-2`: Contains the API instance ID
+
+The policy has no configuration parameters and operates transparently without blocking traffic. If the required metadata is unavailable, the response continues without the headers but logs a warning is logged for each missing identifier.
+
+If the backend already returns `x-ms-correlation-id-1` or `x-ms-correlation-id-2` headers, the policy overwrites these values with the platform metadata values.
+
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The API Security-Identification Header policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=uiTitleOnly]
+
+The API Security-Identification Header policy doesn't have configuration parameters.
+
+
+== Logging
+
+The policy logs the following information:
+
+* *DEBUG level*: The actual organization ID and API instance ID values injected into the headers (for example: `api-security-identification-header: org.id=a1b2c3d4-e5f6-7890-abcd-ef1234567890, apiId=19203842`)
+* *WARN level*: When an organization ID or API instance ID is missing or empty from platform metadata
+
+== Example Response
+
+Given the following platform metadata:
+
+* Organization ID: `a1b2c3d4-e5f6-7890-abcd-ef1234567890`
+* API instance ID: `19203842`
+
+The policy adds the following response headers:
+
+----
+x-ms-correlation-id-1: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+x-ms-correlation-id-2: 19203842
+----

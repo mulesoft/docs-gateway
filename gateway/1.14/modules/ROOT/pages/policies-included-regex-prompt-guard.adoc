@@ -1,0 +1,87 @@
+= Regex Prompt Guard Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, llm, prompt guard, regex, prompt injection
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Regex Prompt Guard
+>s|Summary      | Blocks LLM requests that match deny-list regex patterns
+>s|Category | LLM
+>s|First Omni Gateway version available | v1.11.4
+>s|Release Notes| xref:release-notes::gateway/policies/regex-prompt-guard-policy-release-notes.adoc[]
+.>s| Returned Status Codes
+|403 - Forbidden: Request blocked because prompt content matched one or more denied patterns
+|===
+
+== Summary
+
+NOTE: This policy supports OpenAI and Anthropic input formats.
+
+The Regex Prompt Guard policy scans LLM prompts and blocks requests when prompt content matches regex deny-list patterns.
+
+The policy uses the Rust https://crates.io/crates/regex[regex crate] which supports RE2-style expressions to guarantee linear-time matching and eliminate the backtracking risk.
+
+For example, you can use the policy to block attacks such as:
+
+* Prompt injection
+* Jailbreak attempts
+* SQL injection patterns
+* HTML script injection
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The Regex Prompt Guard policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+| Pattern Name | Yes | Human-readable pattern name. The policy includes this value in the blocked-response details.
+| Regex Pattern | Yes | RE2-style regex expression used to match prompt content. Use `(?i)` for case-insensitive matching. See the Summary section for supported and unsupported regex features.
+|===
+
+== Response on Block
+
+When a request is blocked, the policy returns a response body containing the matched deny patterns:
+
+[source,json]
+----
+{
+  "error": "Request blocked - content matches denied pattern",
+  "matched_patterns": [
+    "prompt-injection"
+  ]
+}
+----
+
+== Regex Support
+
+The Regex Prompt Guard Policy uses the Rust https://crates.io/crates/regex[regex crate] which supports RE2-style expressions to guarantee linear-time matching and eliminate the backtracking risk. This ensures that customer-supplied regex patterns can't negatively impact gateway performance or availability.
+
+The Regex Prompt Guard policy doesn't support Perl Compatible Regular Expressions (PCRE), but supports these PCRE features:
+
+* Standard character classes
+* Alternation
+* Grouping
+* Greedy or lazy quantifiers
+* Anchors
+* Inline flags, such as `(?i)`, for case-insensitivity.
+
+These PCRE-specific features aren't supported:
+
+* Lookaround assertions: `(?=...)`, `(?!...)`, `(?<=...)`, `(?<!...)`
+* Backreferences: `\1`, `\2`, `(?P=name)`
+* Recursive or subroutine calls: `(?R)`, `(?1)`
+* Possessive quantifiers: `a*+`, `a++`
+* Special constructs: `\G`, `\K`, and conditional patterns `(?(1)yes|no)`
+
+== See Also
+
+* xref:general::model-proxy.adoc[] - Overview of model proxies and routing
+* xref:policies-included-llm-token-rate-limit.adoc[] - Token-based rate limiting for model proxies

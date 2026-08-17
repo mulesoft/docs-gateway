@@ -1,0 +1,31 @@
+= Configuring Omni Gateway Configuration Caching in Connected Mode
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:page-aliases: flex-conn-replica-caching.adoc
+
+To reduce scale-up time and increase resiliency, Omni Gateway can cache its gateway configuration in shared storage. Omni replicas use the cached gateway configuration instead of each replica directly downloading the configuration from Anypoint Platform. By default, configuration caching is not enabled.
+
+Omni Gateway configuration caching works by:
+
+. After the first Omni replica starts, the replica downloads the configuration from Anypoint Platform, encrypts the configuration, and stores it in shared storage.
+. After subsequent replicas start, they use the locally cached configuration rather than downloading from Anypoint Platform.
+. If the Omni Gateway configuration changes on Anypoint Platform, the replicas download the configuration from Anypoint Platform and store it in shared storage for immediate use by the other replicas.
++
+Anytime a configuration is updated, the gateway reloads all local configuration resources. Reloading resources doesn't create any network downtime and only changes the updated configuration. However, the gateway logs a runtime `info` message for each resource. To reduce logs, adjust your runtime log level.
+
+If caching is configured and shared storage errors occur, each replica downloads configurations directly from Anypoint Platform. If Omni Gateway disconnects from Anypoint Platform, Omni Gateway uses the cached configuration until connections are restored.
+
+NOTE: When using distributed shared storage, cached configurations are lost when all replicas go down (Managed Gateway is stopped or self-managed is scaled to zero replicas). For persistent caching, use xref:conn-shared-storage-config.adoc[Redis shared storage].
+
+== Enable Omni Gateway Configuration Caching
+
+. Make sure shared storage is configured.
++
+Configure either:
++
+* xref:conn-distributed-shared-storage-config.adoc[Distributed shared storage]: Cached configurations are lost when all replicas go down
+* xref:conn-shared-storage-config.adoc[Redis shared storage]: Cached configurations persist when all replicas go down
+
+. Enable the `FLEX_DATASOURCE_CONTROL_NODE_ENABLED=true` environment variable.

@@ -1,0 +1,85 @@
+= Inbound Policies Directory
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+== Inbound Policies Included in Omni Gateway
+
+[%header%autowidth.spread]
+|===
+|Policy |Category |Summary
+| xref:policies-included-a2a-agent-card.adoc[A2A Agent Card] | A2A | Rewrites the Agent Card URL to match the server instance public URL
+| xref:policies-included-a2a-pii-detector.adoc[A2A PII Detector] | A2A | Detects personally identifiable information (PII) in requests sent to the agent
+| xref:policies-included-a2a-prompt-decorator.adoc[A2A Prompt Decorator] | A2A | Decorates prompts with context information
+| xref:policies-included-a2a-quality-evaluation.adoc[A2A Quality Evaluation] | A2A | Evaluates completed A2A agent task responses using an LLM to score quality and completeness
+| xref:policies-included-a2a-schema-validation.adoc[A2A Schema Validation] | A2A | Validates Agent requests to ensure they conform to the A2A specification
+| xref:policies-included-a2a-token-rate-limit.adoc[A2A Token Based Rate Limit] | A2A | Limits API usage based on the number of GPT-4o-mini tokens consumed by the agents
+| xref:policies-included-a2a-v1-agent-card.adoc[A2A v1 Agent Card] | A2A | Rewrites interface URLs in the A2A v1.0 agent card to match the gateway's public address
+| xref:policies-included-a2a-v1-azure-guardrails.adoc[A2A v1 Azure Content Guardrails] | A2A | Evaluates A2A v1 agent messages against Azure AI Content Safety for harmful content, jailbreak attempts, hallucinations, and copyrighted material
+| xref:policies-included-a2a-v1-bedrock-guardrails.adoc[A2A v1 Bedrock Guardrails] | A2A | Evaluates A2A v1.0 agent requests and responses against Amazon Bedrock guardrails for content safety, PII detection, and contextual grounding
+| xref:policies-included-a2a-v1-pii-detector.adoc[A2A v1 PII Detector] | A2A | Detects personally identifiable information (PII) in A2A v1 requests across all transports
+| xref:policies-included-a2a-v1-prompt-decorator.adoc[A2A v1 Prompt Decorator] | A2A | Decorates A2A v1 prompts with additional context information
+| xref:policies-included-a2a-v1-schema-validation.adoc[A2A v1 Schema Validation] | A2A | Verifies that requests to the agent are compliant with the A2A v1.0 specification
+| xref:policies-included-a2a-v1-to-v03-transcoder.adoc[A2A v1 to v0.3 Transcoder] | A2A | Transcodes protocol messages bidirectionally between A2A v1.0 JSON-RPC clients and A2A v0.3 backend servers
+| xref:policies-included-a2a-v1-token-rate-limit.adoc[A2A v1 Token Based Rate Limit] | A2A | Controls API usage by enforcing token-based rate limits
+| xref:policies-included-agent-connection-telemetry.adoc[Agent Connection Telemetry] | A2A and MCP | Tracks the number of requests made to agent or MCP server instances
+| xref:policies-included-bedrock-guardrails.adoc[Amazon Bedrock Guardrails] | LLM | Evaluates LLM prompts and responses against Amazon Bedrock guardrails for content safety, PII detection, and contextual grounding
+| xref:policies-included-api-security-identification-header.adoc[API Security-Identification Header] | Security | Adds API instance identifiers as response headers for external security platform correlation
+| xref:policies-included-azure-content-safety.adoc[Azure Content Safety] | LLM | Evaluates LLM prompts and responses against Azure AI Content Safety for harmful content, jailbreak attempts, hallucinations, and copyrighted material
+| xref:policies-included-basic-auth-ldap.adoc[Basic Authentication: LDAP] | Security | Allows access based on the basic authorization mechanism, with user-password defined on LDAP
+| xref:policies-included-basic-auth-simple.adoc[Basic Authentication: Simple] | Security | Allows access based on the basic authorization mechanism, with a single user-password
+| xref:policies-included-client-id-enforcement.adoc[Client ID Enforcement] | Compliance | Allows access only to authorized client applications
+| xref:policies-included-cors.adoc[Cross-Origin Resource Sharing (CORS)] | Compliance | Enables access to resources residing in external domains
+| xref:policies-included-dataweave-body-transformation.adoc[DataWeave Body Transformation] | Transformation | Transforms request or response body content with a DataWeave script
+| xref:policies-included-dataweave-headers-transformation.adoc[DataWeave Headers Transformation] | Transformation | Transforms request or response headers with a DataWeave script
+| xref:policies-included-dataweave-request-filter.adoc[DataWeave Request Filter] | Transformation | Filters requests by using a DataWeave script
+| xref:policies-included-external-authorization.adoc[External Authorization] | Security | Authenticates requests with an external gRPC or HTTP authorization service
+| xref:policies-included-external-processing.adoc[External Processing] | Transformation | Sends the incoming HTTP requests or outgoing HTTP responses to an external gRPC service for additional processing
+| xref:policies-included-graphql-introspection-control.adoc[GraphQL Introspection Control] | GraphQL | Blocks or allows requests that  access the `__schema`, `__type`, and `__typename` GraphQL meta fields
+| xref:policies-included-graphql-operation-limits.adoc[GraphQL Operation Limits] | GraphQL | Limits GraphQL operation depth, aliases, root fields, and directives
+| xref:policies-included-graphql-schema-validation.adoc[GraphQL Schema Validation] | GraphQL | Validates incoming GraphQL operations against a GraphQL schema definition
+| xref:policies-included-graphql-static-query-complexity.adoc[GraphQL Static Query Complexity] | GraphQL | Calculates query complexity and blocks requests that exceed the defined budget
+| xref:policies-included-header-injection.adoc[Header Injection] | Transformation | Adds headers to a request or a response
+| xref:policies-included-header-removal.adoc[Header Removal] | Transformation | Removes headers from a request or a response
+| xref:policies-included-health-check.adoc[Health Check] | Quality of Service | Monitors API upstream health at specific intervals
+| xref:policies-included-http-caching.adoc[HTTP Caching] | Quality of Service | Caches HTTP responses from an API implementation
+| xref:policies-included-injection-protection.adoc[Injection Protection] | Security | Scans request headers, path, query, and body to protect against SQL, XSS, and custom injection attacks in incoming requests
+| xref:policies-included-ip-allowlist.adoc[IP Allowlist] | Security | Allows a list or range of specified IP addresses to request access
+| xref:policies-included-ip-blocklist.adoc[IP Blocklist] | Security | Blocks a single IP address or a range of IP addresses from accessing an API endpoint
+| xref:policies-included-json-threat-protection.adoc[JSON Threat Protection] | Security | Protects against malicious JSON in API requests
+| xref:policies-included-jwt-validation.adoc[JWT Validation] | Security | Validates a JWT
+| xref:policies-included-llm-pii-detection.adoc[LLM PII Detection] | LLM | Detects personally identifiable information (PII) in OpenAI and Anthropic format LLM requests and responses
+| xref:policies-included-llm-token-rate-limit.adoc[LLM Token Based Rate Limit] | LLM | Limits Model Proxy usage based on the number of tokens consumed (OpenAI-format APIs)
+| xref:policies-included-mcp-attribute-access-control.adoc[MCP Attribute-Based Access Control] | MCP | Controls access to tools, resources, and prompts based on user information such as Tiers, IP, Headers, or Claims
+| xref:policies-included-mcp-global-access.adoc[MCP Global Access] | MCP | Restricts which MCP tools are exposed by defining Allow and Block rules
+| xref:policies-included-mcp-pii-detector.adoc[MCP PII Detector] | MCP | Blocks elicitation responses containing personally identifiable information (PII) from reaching MCP servers
+| xref:policies-included-mcp-payload-optimization.adoc[MCP Payload Optimization] | MCP | Reduces tool response token consumption using one or more configurable methods: remove structural noise, trim oversized responses to match agent intent, or compress repeated structures into TOON
+| xref:policies-included-mcp-progressive-disclosure.adoc[MCP Tools Progressive Disclosure] | MCP | Reduces context window token cost by exposing tools on-demand through search
+| xref:policies-included-mcp-schema-validation.adoc[MCP Schema Validation] | MCP | Validates MCP requests to ensure they conform to the MCP specification
+| xref:policies-included-mcp-support.adoc[MCP Support] | MCP | Adds MCP support to an Omni Gateway MCP server instance. This policy is required for your MCP server instance to function properly.
+| xref:policies-included-mcp-tool-mapping.adoc[MCP Tool Mapping] | MCP | Redefines tool names and descriptions to reduce prompt complexity and improve LLM comprehension
+| xref:policies-included-message-logging.adoc[Message Logging] | Troubleshooting | Logs custom messages using information from incoming requests, responses from the backend, or information from other policies applied to the same API endpoint
+| xref:policies-included-oauth-protected-resource-metadata.adoc[OAuth 2.0 Protected Resource Metadata] | Security | Serves OAuth 2.0 Protected Resource Metadata at the well-known endpoint
+| xref:policies-included-oauth-token-introspection.adoc[OAuth 2.0 Token Introspection] | Security | Allows access only to authorized client applications
+| xref:policies-included-openid-token-enforcement.adoc[OpenID Connect OAuth 2.0 Access Token Enforcement] | Security | Allows access only to authorized client applications
+| xref:policies-included-rate-limiting.adoc[Rate Limiting] | Quality of Service | Monitors access to an API by defining the maximum number of requests processed within a period of time
+| xref:policies-included-rate-limiting-sla.adoc[Rate Limiting: SLA-based] | Quality of Service | Monitors access to an API by defining the maximum number of requests processed within a timespan, based on SLAs
+| xref:policies-included-regex-prompt-guard.adoc[Regex Prompt Guard] | LLM | Blocks LLM requests that match deny-list regex patterns
+| xref:policies-included-response-timeout.adoc[Response Idle Timeout] | Quality of Service | Set a maximum duration Omni Gateway waits for a response from an upstream service
+| xref:policies-included-schema-validation.adoc[Schema Validation] | Security | Validates incoming traffic against a supplied OAS3 schema
+| xref:policies-included-soap-schema-validation.adoc[SOAP Schema Validation] | Security | Validates incoming traffic against a specified WSDL schema
+| xref:policies-included-spike-control.adoc[Spike Control] | Quality of Service | Regulates API traffic
+| xref:policies-included-sse-logging.adoc[SSE Logging] | SSE | Logs every SSE event while streaming 
+| xref:policies-included-stream-idle-timeout.adoc[Stream Idle Timeout] | Quality of Service | Set a maximum duration a stream can remain idle without receiving a request or response
+| xref:policies-included-tracing.adoc[Tracing] | Troubleshooting | Configure OpenTelemetry distributed tracing for an API
+| xref:policies-included-traffic-management-route.adoc[Traffic Management for Multiple Upstream Services] | Quality of Service | Manages API instance traffic to multiple upstream services from a single consumer endpoint
+| xref:policies-included-traffic-management.adoc[Traffic Management for Multiple Upstream Services (Weighted)] | Quality of Service | Manages API instance traffic to multiple upstream services from a single consumer endpoint, using weighted percentages
+| xref:policies-included-tls.adoc[Transport Layer Security (TLS) - Inbound] | Security | Enables authentication between a client and the API proxy
+| xref:policies-included-websocket-connection-limit.adoc[WebSocket Connection Limit] | Quality of Service | Limits the number of simultaneous WebSocket connections that each API instance allows
+| xref:policies-included-xml-threat-protection.adoc[XML Threat Protection] | Security | Protects against malicious XML in API requests
+|===
+
+== See Also
+
+* xref:gateway-home::index.adoc#policy-availability-by-gateway[Policy Availability by Gateway]
