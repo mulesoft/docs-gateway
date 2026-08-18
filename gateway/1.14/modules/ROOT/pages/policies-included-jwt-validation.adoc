@@ -147,7 +147,7 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `protectedResourceMetadataAuthorizationServerUrl`
 | Optional
 | Empty string
-| The authorization server base URL to advertise in the protected resource metadata, for example, `https://auth.example.com/realms/myrealm`.
+| The authorization server base URL to advertise in the protected resource metadata, for example, `https://auth.example.com/realms/myrealm`. This parameter is required when `enableProtectedResourceMetadata` is `true`, and it must be a valid URL. Unlike the OpenID Connect Access Token Enforcement and OAuth 2.0 Access Token Enforcement policies, the JWT Validation policy has no issuer from which to derive this URL, so you must always set it explicitly.
 
 |===
 
@@ -244,7 +244,7 @@ Note that all DataWeave expressions must return a boolean value or they will alw
 |
 
 | Protected Resource Metadata Authorization Server URL
-| The authorization server base URL to advertise in the protected resource metadata. Configure this field when *Enable Protected Resource Metadata* is checked.
+| The authorization server base URL to advertise in the protected resource metadata. This field is required when *Enable Protected Resource Metadata* is checked, and it must be a valid URL.
 | `https://auth.example.com/realms/myrealm`
 |===
 
@@ -306,10 +306,13 @@ When you enable *Enable Protected Resource Metadata*, the policy implements the 
 
 With this feature enabled, the policy:
 
-* Serves the protected resource metadata document at `{API_Path}/.well-known/oauth-protected-resource`.
-* Includes a `resource_metadata` hint in the `WWW-Authenticate` header of `401` responses, pointing clients to the metadata document.
+* Serves the protected resource metadata document at `{API_Path}/.well-known/oauth-protected-resource`. The document advertises the authorization server configured in *Protected Resource Metadata Authorization Server URL*.
+* Includes a `resource_metadata` hint in the `WWW-Authenticate` header of `401` responses, pointing clients to the metadata document. The header uses the `JWT Validation Realm` realm.
+* Returns a `401` status code instead of `400` when a request omits the `Authorization` header, so that an unauthenticated client is directed to the discovery endpoint to locate the authorization server.
 
-Use *Protected Resource Metadata Authorization Server URL* to specify the authorization server base URL that the policy advertises in the metadata document, for example, `https://auth.example.com/realms/myrealm`.
+Because the JWT Validation policy has no issuer from which to derive the authorization server, you must set *Protected Resource Metadata Authorization Server URL* to a valid URL whenever the feature is enabled, for example, `https://auth.example.com/realms/myrealm`. If the URL is missing or invalid, the policy configuration is rejected.
+
+To build the metadata document, the policy derives the resource origin from the incoming request, preferring the consumer-facing URL when available, then the `x-forwarded-proto` and `x-forwarded-host` headers, and finally the request scheme and authority.
 
 === Retry Mechanism
 
