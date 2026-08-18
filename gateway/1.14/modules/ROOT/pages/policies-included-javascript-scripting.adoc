@@ -62,7 +62,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 == Script API
 
-The gateway calls the exported functions and passes objects that represent the request or response. These objects cannot be constructed from JavaScript.
+The gateway calls the exported functions and passes objects that represent the request or response. These objects can't be constructed from JavaScript.
 
 === Filter Functions
 
@@ -235,19 +235,4 @@ This example replaces the response body with a new string:
           response.setHeader("content-type", "application/json");
         }
       }
-----
-
-=== Resource Configuration Example
-
-You can apply the policy at the API level or the resource level:
-
-----
-  policies:
-    - policyRef:
-        name: javascript-scripting-flex
-      config:
-        script: |
-          export function requestFilter(request) {
-            request.setHeader("x-scripting-request", "true");
-          }
 ----
