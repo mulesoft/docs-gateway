@@ -350,13 +350,20 @@ To stream the ZIP file to standard output instead of writing it to a file, pass 
 flexctl dump -o - > dump.zip
 ----
 
-All `flexctl` logs are written to standard error, so the standard output stream stays a clean binary ZIP that you can pipe or redirect without corrupting the file.
-
-Streaming to standard output lets you capture a dump from a container without entering it, which is useful in environments where direct container access is unavailable, such as CloudHub:
+Streaming to standard output also lets you capture a dump from a container without entering it:
 
 [source,ssh]
 ----
-docker exec -ti flex-gateway flexctl dump -o - > dump.zip
+docker exec -t flex-gateway flexctl dump -o - > dump.zip
+----
+
+== Change Verbosity Level
+
+You can change the amount of information output by the `flexctl dump` CLI. For example, to increase verbosity to a value of `10`, run `flexctl dump` with the following:
+
+[source,ssh]
+----
+flexctl dump -v 10
 ----
 
 == See Also
