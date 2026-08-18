@@ -5,7 +5,9 @@ endif::[]
 :imagesdir: ../assets/images
 :page-aliases: flex-troubleshoot-admin-api.adoc
 
-Omni Gateway includes a `flexctl dump` CLI that enables you to query for information related to a gateway's API instances, services, configuration, and available extensions (policies).
+Omni Gateway includes a `flexctl dump` CLI that collects a full snapshot of the gateway's runtime state and writes it to a single ZIP file. The snapshot includes information related to a gateway's API instances, services, configuration, and available extensions (policies), along with logs, Envoy statistics, and other diagnostic data.
+
+The dump is assembled by the gateway and streamed directly to the CLI. Each source is collected on a best-effort basis: if a particular source is unavailable, that entry is omitted and the rest of the ZIP is still produced.
 
 As an example, the following inline configuration snippet defines a single API instance named `jsonplaceholder-api` in the default namespace (it remains `default` because namespace is not explicitly defined.) Additionally, the snippet defines one included policy: `http-basic-authentication-flex`.
 
@@ -37,26 +39,54 @@ spec:
 
 == Run the CLI
 
-. To see JSON representations of your API instances, services, configurations, and extensions, run the following command:
+. To collect a snapshot of the gateway's runtime state, run the following command:
 +
 [source,ssh]
 ----
 flexctl dump
 ----
 +
+By default, the command writes the snapshot to a file named `dump.zip` in the current directory.
++
 [NOTE]
 ====
-When running in a Docker or Podman container, run the command in the container itself.
+When running in a Docker or Podman container, either run the command in the container itself or stream the ZIP out of the container without entering it. To learn more, see <<change-output-location>>.
 ====
+
+. Extract the ZIP file to view its contents. The ZIP includes the following entries, among others:
 +
-The command outputs four files:
+[cols="1,3"]
+|===
+|Entry |Description
 
-* `api-instances.json`
-* `services.json`
-* `configuration.json`
-* `extensions.json`
+|`resources/ApiInstance.json`
+|All API instances known to the gateway.
 
-. View any of the JSON file contents by running `cat` followed by the file name:
+|`resources/Service.json`
+|All services known to the gateway.
+
+|`resources/Configuration.json`
+|The gateway's effective configuration.
+
+|`resources/Extension.json`
+|All extensions (policies) available in the gateway.
+
+|`resources/PolicyBinding.json`
+|All policy bindings.
+
+|`logs/current`
+|The current log file.
+
+|`envoy/stats.json`, `envoy/config_dump.json`, `envoy/memory.json`
+|Envoy statistics, configuration, and memory usage.
+
+|`env/vars.json`
+|The gateway process environment variables, with sensitive values redacted.
+|===
++
+NOTE: Some entries appear only when the corresponding data is available in your deployment.
+
+. View the contents of any extracted JSON file by running `cat` followed by the file name. For example, the extracted files resemble the following:
 +
 [tabs]
 ====
@@ -64,10 +94,10 @@ Api Instances::
 +
 [source,ssh]
 ----
-cat api-instances.json
+cat resources/ApiInstance.json
 ----
 +
-The `api-instances.json` file contents resemble the following:
+The `resources/ApiInstance.json` file contents resemble the following:
 +
 ----
 [
@@ -137,10 +167,10 @@ Services::
 +
 [source,ssh]
 ----
-cat services.json
+cat resources/Service.json
 ----
 +
-The `services.json` file contents resemble the following:
+The `resources/Service.json` file contents resemble the following:
 +
 ----
 [
@@ -158,10 +188,10 @@ Configuration::
 +
 [source,ssh]
 ----
-cat configuration.json
+cat resources/Configuration.json
 ----
 +
-The `configuration.json` file contents resemble the following:
+The `resources/Configuration.json` file contents resemble the following:
 +
 ----
 {
@@ -221,10 +251,10 @@ Extensions::
 +
 [source,ssh]
 ----
-cat extensions.json
+cat resources/Extension.json
 ----
 +
-The `extensions.json` file contains all the policies available in Omni Gateway. The file contents resemble the following:
+The `resources/Extension.json` file contains all the policies available in Omni Gateway. The file contents resemble the following:
 +
 ----
 {
@@ -303,6 +333,30 @@ The `extensions.json` file contains all the policies available in Omni Gateway. 
 ----
 ====
 
+[[change-output-location]]
+== Change the Output Location
+
+Use the `-o` (or `--output`) flag to write the ZIP file to a specific path, including the file name. For example, to write the dump to `/tmp/my-dump.zip`, run the following command:
+
+[source,ssh]
+----
+flexctl dump -o /tmp/my-dump.zip
+----
+
+To stream the ZIP file to standard output instead of writing it to a file, pass either `-` or `/dev/stdout` to the `-o` flag, and redirect the output:
+
+[source,ssh]
+----
+flexctl dump -o - > dump.zip
+----
+
+Streaming to standard output also lets you capture a dump from a container without entering it:
+
+[source,ssh]
+----
+docker exec flex-gateway flexctl dump -o - > dump.zip
+----
+
 == Change Verbosity Level
 
 You can change the amount of information output by the `flexctl dump` CLI. For example, to increase verbosity to a value of `10`, run `flexctl dump` with the following:
@@ -310,15 +364,6 @@ You can change the amount of information output by the `flexctl dump` CLI. For e
 [source,ssh]
 ----
 flexctl dump -v 10
-----
-
-== Change Output Directory
-
-Additionally, you can change the directory where `flexctl dump` outputs the four files. For example, to output to `/tmp`, run `flexctl dump` with the following:
-
-[source,ssh]
-----
-flexctl dump --output-directory /tmp
 ----
 
 == See Also
