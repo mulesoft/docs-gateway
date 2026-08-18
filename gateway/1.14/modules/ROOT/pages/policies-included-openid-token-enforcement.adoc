@@ -46,6 +46,10 @@ For *Contains all scopes*, the policy only accepts tokens with both the `READ` a
 | Skip Client Id Validation | Skips the client application's API contract validation. | If selected, Step 4 of the diagram in the <<how-this-policy-works,How This Policy Works>> section is skipped.
 | Authentication request timeout | Sets the maximum time, in milliseconds, to wait for a response when authenticating with the Access Token validation endpoint. | `10000`
 
+| Validated Token TTL | Sets the maximum time, in seconds, a valid token stays in cache before requiring re-introspection. Use `0` to disable caching. Use `-1` to skip this cap and rely solely on the token's own expiration. The default value is `600`. | `600`
+
+| Maximum Cache Entries | Specifies the maximum number of tokens to be stored in the cache. The default value is `10000`. | `10000`
+
 | Enable Protected Resource Metadata | Enables https://www.rfc-editor.org/rfc/rfc9728[RFC 9728] OAuth 2.0 Protected Resource Metadata. When enabled, all `401` responses include a `WWW-Authenticate` header with the resource metadata URL `{api_path}/.well-known/oauth-protected-resource`. +
 When a client makes a GET request to this path, Omni Gateway responds with a JSON document containing the authorization server metadata. By default, Omni Gateway derives the authorization server URL supplied in the metadata from the introspection endpoint URL. For example, `https://auth.example.com/introspect` becomes `https://auth.example.com`. |
 
