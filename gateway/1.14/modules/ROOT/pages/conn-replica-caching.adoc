@@ -5,7 +5,7 @@ endif::[]
 :imagesdir: ../assets/images
 :page-aliases: flex-conn-replica-caching.adoc
 
-To reduce scale-up time and increase resiliency, Omni Gateway can cache its gateway configuration in shared storage. Omni replicas use the cached gateway configuration instead of each replica directly downloading the configuration from Anypoint Platform. By default, configuration caching is not enabled.
+To reduce scale-up time and increase resiliency, Omni Gateway can cache its gateway configuration in shared storage. Omni replicas use the cached gateway configuration instead of each replica directly downloading the configuration from Anypoint Platform. Configuration caching is enabled by default and takes effect when shared storage is configured.
 
 Omni Gateway configuration caching works by:
 
@@ -21,11 +21,13 @@ NOTE: When using distributed shared storage, cached configurations are lost when
 
 == Enable Omni Gateway Configuration Caching
 
-. Make sure shared storage is configured.
-+
+Configuration caching is enabled by default via the `FLEX_DATASOURCE_CONTROL_NODE_ENABLED` environment variable, which is set to `true`. To use configuration caching, make sure shared storage is configured.
+
 Configure either:
-+
+
 * xref:conn-distributed-shared-storage-config.adoc[Distributed shared storage]: Cached configurations are lost when all replicas go down
 * xref:conn-shared-storage-config.adoc[Redis shared storage]: Cached configurations persist when all replicas go down
 
-. Enable the `FLEX_DATASOURCE_CONTROL_NODE_ENABLED=true` environment variable.
+== Disable Omni Gateway Configuration Caching
+
+To disable configuration caching, set the `FLEX_DATASOURCE_CONTROL_NODE_ENABLED` environment variable to `false`.
