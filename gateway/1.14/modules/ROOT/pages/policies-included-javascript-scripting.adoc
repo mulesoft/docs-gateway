@@ -11,7 +11,7 @@ endif::[]
 >s| Policy name | JavaScript Scripting
 >s|Summary      | Runs a user-supplied JavaScript module to inspect and modify requests and responses
 >s|Category | Transformation
->s| First Omni Gateway version available | 1.14
+>s| First Omni Gateway version available | 1.14.0
 >s|Release Notes| xref:release-notes::gateway/policies/javascript-scripting-release-notes.adoc[]
 .1+>.^s| Returned Status Codes
 | `500` - The script threw an error while processing the request or response
@@ -19,16 +19,16 @@ endif::[]
 
 == Summary
 
-The JavaScript Scripting policy runs a JavaScript module that you supply to inspect and modify HTTP traffic as it passes through the gateway. Use it to add or change headers, transform request or response bodies, or block a request with an early response.
+The JavaScript Scripting policy runs a JavaScript module that you supply to inspect and modify HTTP traffic as it passes through the gateway. Use the policy to add or change headers, transform request or response bodies, and block a request with an early response.
 
-The module runs as a standard JavaScript ES module and can export either or both of the following functions:
+The module runs as a standard JavaScript ES module and can export either or both of these functions:
 
-* `requestFilter(request)` runs for every incoming request. It can read and modify the request, allow the request to continue to the upstream service, or short-circuit the request with an immediate response.
+* `requestFilter(request)` runs for every incoming request. It can read and modify the request, allow the request to continue to the upstream service, or terminate the request with an immediate response.
 * `responseFilter(response, requestData)` runs for every upstream response. It can read and modify the response before the gateway returns it to the client.
 
-The module must export at least one of these functions. If it exports neither, the policy fails to load.
+The module must export at least one of these functions to properly load.
 
-Module-level variables persist across invocations, so you can share state between requests, for example, to maintain a counter. The runtime provides the standard `console`, `TextEncoder`, and `TextDecoder` globals. The script runs synchronously; `async` functions and promises returned from a filter are not awaited.
+Module-level variables persist across invocations to share state between requests (for example, to maintain a counter). The runtime provides the standard `console`, `TextEncoder`, and `TextDecoder` globals. The script runs synchronously; `async` functions and promises returned from a filter aren't awaited.
 
 == Configure Policy Parameters
 
@@ -49,6 +49,15 @@ include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 | Required
 | —
 | The full source text of a JavaScript ES module. The module must export at least one of `requestFilter` or `responseFilter`.
+|===
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Parameter | Description
+| Policy type | JavaScript Scripting
+| Script | The JavaScript ES module that exports `requestFilter` and/or `responseFilter`
 |===
 
 == Script API
@@ -242,12 +251,3 @@ You can apply the policy at the API level or the resource level:
             request.setHeader("x-scripting-request", "true");
           }
 ----
-
-include::partial$policy-title-headers.adoc[tag=ui]
-
-[%header%autowidth.spread,cols="a,a"]
-|===
-| Parameter | Description
-| Policy type | JavaScript Scripting
-| Script | The JavaScript ES module that exports `requestFilter` and/or `responseFilter`
-|===
