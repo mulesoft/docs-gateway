@@ -1,0 +1,333 @@
+= Upgrading PDK
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+To update a custom policy project, you must update each of these separately versioned Omni Gateway Policy Development Kit (PDK) components:
+
+* Anypoint CLI PDK plugin
+* PDK Rust libraries
+* Anypoint Cargo plugin
+* Policy Rust Version
+* WASI Crate
+
+When you upgrade your Anypoint CLI PDK plugin, you must manually upgrade the PDK Rust libraries and Anypoint Cargo plugin to be compatible with the new plugin version. All the PDK custom policies on your device use the same Anypoint CLI PDK plugin. When you create a new custom policy project, the PDK Rust libraries and Anypoint Cargo plugin versions are the same as the Anypoint CLI PDK plugin used to create the project and are independent from other policy projects.
+
+To upgrade a custom policy project created with an earlier version of the Anypoint CLI PDK plugin:
+
+. <<anypoint-cli-pdk-plugin>>
+. <<pdk-rust-libraries>>
+. <<anypoint-cargo-plugin>>
+. <<anypoint-rust-version>>
+. <<anypoint-wasi-crate>>
+
+[[anypoint-cli-pdk-plugin]]
+== Upgrade the Anypoint CLI PDK Plugin
+
+When editing a custom policy created with an earlier plugin version, ensure your <<pdk-rust-libraries, PDK Rust libraries>> and <<anypoint-cargo-plugin, Anypoint Cargo plugin>> match your Anypoint CLI PDK plugin version.
+
+To upgrade your Anypoint CLI PDK plugin to the latest version, execute the following command:
+
+[source,ssh]
+----
+anypoint-cli-v4 plugins:install anypoint-pdk-plugin
+----
++
+NOTE: In PDK 1.7.0, the name of the Anypoint CLI PDK plugin changes from `anypoint-cli-pdk-plugin` to `anypoint-pdk-plugin`. To install the new plugin, see <<upgrade-anypoint-cli-pdk-plugin-earlier-1.7.0>>.
+
+To verify your current plugin version, execute the following command:
+
+[source,ssh]
+----
+anypoint-cli-v4 plugins
+----
+
+For example, the following PDK plugin version is `1.7.0`:
+
+[source,ssh]
+----
+anypoint-pdk-plugin 1.7.0
+├─ anypoint-cli-command 1.5.2
+│  └─ @oclif/plugin-help 5.1.12
+└─ @oclif/plugin-version 1.0.4
+----
+
+[[pdk-rust-libraries]]
+== Upgrade the PDK Rust Libraries
+
+The PDK Rust library is the Rust code library used by a specific custom policy. Different custom policies might use different PDK library versions.
+
+To upgrade the PDK Rust code libraries, modify the `pdk` `dependency` and `pdk-test` `dev-dependency` versions in the `cargo.toml` file of the custom policy. The `pdk` and `pdk-test` versions must match and your Anypoint CLI PDK plugin must support the specified version.
+
+In the following example, both dependency versions are `1.6.0`. Modify it to your required version:
+
+[source,toml]
+----
+[dependencies]
+pdk = { version = "1.6.0" }
+
+[dev-dependencies]
+pdk-test = { version = "1.6.0" }
+----
+
+[[anypoint-cargo-plugin]]
+== Upgrade the Anypoint Cargo Plugin
+
+The Anypoint Cargo plugin extends the functionality of Cargo for use with the PDK Rust Libraries.
+
+To upgrade your Anypoint Cargo plugin:
+
+. Open the `Makefile` of your custom policy.
+. Find the `install-cargo-anypoint` target, for example:
++
+----
+install-cargo-anypoint:
+	cargo install cargo-anypoint@1.6.0
+----
+
+. Change the version after the `@` character to the required version.
+. Save the `Makefile`.
+. Execute the `make setup` command:
++
+[source,ssh]
+----
+make setup
+----
++
+NOTE: Executing the `make setup` command for a certain policy installs that policy's Anypoint Cargo plugin version.
++
+. Execute the following command to verify the correct version is installed:
++
+[source,ssh]
+----
+cargo anypoint --version
+----
+
+[[anypoint-rust-version]]
+== Upgrade a Policy's Rust Version
+
+To upgrade your Policy's Rust version:
+
+. Ensure the Rust version is downloaded on your device.
++
+To update Rust, see xref:policies-pdk-prerequisites.adoc#rust-requirements[Rust Requirements for Using PDK].
+. Open the `cargo.toml` of your custom policy.
+. Find your Rust version. For example:
++
+----
+rust-version = "1.87.0"
+----
+. Update your Rust version. For example:
++
+----
+rust-version = "1.88.0"
+----
+. Save the `cargo.toml` file.
+
+[[anypoint-wasi-crate]]
+== Upgrade a Policy's WASI Crate
+
+To upgrade your Rust WebAssembly System Interface (WASI) Crate from `wasm32-wasi` to `wasm32-wasip1`:
+
+. Open the `Makefile` of your custom policy.
+. Find this line:
++
+----
+TARGET                	:= wasm32-wasi
+----
+. Replace `wasm32-wasi` with `wasm32-wasip1`:
++
+----
+TARGET                	:= wasm32-wasip1
+----
+. Save the `Makefile`.
+. Open the `tests/common/mod.rs` of your custom policy.
+. Find the this line:
++
+----
+pub const POLICY_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/target/wasm32-wasi/release");
+----
+. Replace `wasm32-wasi` with `wasm32-wasip1`:
++
+----
+pub const POLICY_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/target/wasm32-wasip1/release");
+----
+. Save the `mod.rs` file.
+
+[[upgrade-anypoint-cli-pdk-plugin-earlier-1.8.0]]
+== Upgrade the Anypoint CLI PDK Plugin for Policies with Versions Earlier Than 1.8.0
+
+Depending on you configuration, when upgrading to 1.8.0 you might experience these issues:
+
+* <<feature-compatibility-issue-on-tokio>>
+* <<compilation-error-structs>>
+
+[[feature-compatibility-issue-on-tokio]]
+=== Tokio Runtime Feature Compatibility Error
+
+When using a Tokio runtime for testing, sometimes a compilation occurs similar to this error when building for WebAssembly:
+
+[source,text]
+----
+error: Only features sync,macros,io-util,rt,time are supported on wasm.
+   --> /Users/test-user/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.51.1/src/lib.rs:478:1
+    |
+478 | compile_error!("Only features sync,macros,io-util,rt,time are supported on wasm.");
+----
+
+To solve this error, under the `[package]` section of your policy's `Cargo.toml`, add `resolver = "2"`. This enables your compiler resolve dependencies separately for production code and for test dependencies.
+
+[source,toml]
+----
+[package]
+name = "my_policy"
+version = "1.0.0"
+rust-version = "1.88.0"
+edition = "2018"
+resolver = "2"
+----
+
+[[compilation-error-structs]]
+=== Compilation Error When Constructing Metadata-Related Structs
+
+When constructing Metadata-related structs, sometimes an error similar to this one occurs:
+
+[source,text]
+----
+error[E0639]: cannot create non-exhaustive struct using struct expression
+  --> test-policy/src/lib.rs:90:32
+   |
+90 |                   flex_metadata: FlexMetadata {
+   |  ________________________________^
+91 | |                     flex_name: "test_flex_name".to_string(),
+92 | |                     flex_version: "1.0.0".to_string(),
+93 | |                 },
+   | |_________________^
+----
+
+PDK 1.8.0 marks metadata-related structs as `#[non_exhaustive]` so that you can add new metadata fields without breaking changes.
+
+When constructing these structs manually in tests, use one of these approaches:
+
+* Use the new default constructor and set each field to the value you need. For example:
++
+[source,rust]
+----
+let mut metadata = FlexMetadata::default();
+metadata.flex_name = "test_flex_name".to_string();
+metadata.flex_version = "1.0.0".to_string();
+----
+
+* Add the `non_exhaustive!` macro from the https://crates.io/crates/non-exhaustive[`non-exhaustive`] crate to the `[dev-dependencies]` in your `cargo.toml` files:
++
+[source,toml]
+----
+[dev-dependencies]
+non-exhaustive = "0.1.1"
+----
++
+This enables you to use the default construct as shown in this example:
++
+[source,rust]
+----
+use non_exhaustive::non_exhaustive;
+// ...
+
+let metadata = non_exhaustive!(FlexMetadata {
+    flex_name: "test_flex_name".to_string(),
+    flex_version: "1.0.0".to_string(),
+});
+----
+
+[[upgrade-anypoint-cli-pdk-plugin-earlier-1.7.0]]
+== Upgrade the Anypoint CLI PDK Plugin for Policies with Versions Earlier Than 1.7.0
+
+In PDK 1.7.0, the name of the Anypoint CLI PDK plugin changes from `anypoint-cli-pdk-plugin` to `anypoint-pdk-plugin`. To upgrade your earlier versions, uninstall the old plugin before installing the new one:
+
+. Uninstall the old plugin:
++
+[source,ssh]
+----
+anypoint-cli-v4 plugins:uninstall anypoint-cli-pdk-plugin
+----
+
+. Install the new plugin:
++
+[source,ssh]
+----
+anypoint-cli-v4 plugins:install anypoint-pdk-plugin
+----
+
+[[upgrade-versions-earlier-1.6.0]]
+== Upgrade Policies with Versions Earlier Than 1.6.0
+
+In PDK 1.6.0, the PDK libraries moved from the Anypoint platform to https://crates.io/crates/pdk[crates.io]. When upgrading from versions earlier than 1.6.0, you must update the dependencies to point to the new location. To upgrade policies with versions earlier than 1.6.0:
+
+. <<anypoint-cli-pdk-plugin, Upgrade the Anypoint CLI PDK plugin>>.
+. <<anypoint-rust-version, Upgrade the PDK Rust libraries>>.
+. Upgrade the PDK Rust libraries:
+.. Locate the `dependencies` and `dev-dependencies` in your policy's `cargo.toml`:
++
+[source,toml]
+----
+[dependencies]
+pdk = { version = "1.5.0", registry = "anypoint" }
+
+[dev-dependencies]
+pdk-test = { version = "1.5.0", registry = "anypoint" }
+----
+.. Update the version and remove the `registry = "anypoint"`:
++
+[source,toml]
+----
+[dependencies]
+pdk = { version = "1.6.0" }
+
+[dev-dependencies]
+pdk-test = { version = "1.6.0" }
+----
+.. Save the `cargo.toml` file.
+
+. Upgrade the Anypoint Cargo Plugin:
+.. Open the `Makefile` of your custom policy.
+.. Find the `install-cargo-anypoint` target, for example:
++
+----
+install-cargo-anypoint:
+	cargo install cargo-anypoint@1.5.0 --registry anypoint --config .cargo/config.toml
+----
+.. Update the version and remove the `--registry` and `--config` flags:
++
+----
+install-cargo-anypoint:
+	cargo install cargo-anypoint@1.6.0
+----
+.. Save the `Makefile` file.
+
+. Remove the Anypoint Platform registry references from your `setup` command:
+.. Open the `Makefile` of your custom policy.
+.. Find the `setup` target, for example:
++
+----
+.PHONY: setup
+setup: registry-creds login install-cargo-anypoint ## Setup all required tools to build
+	cargo fetch
+----
+.. Remove the Anypoint Platform registry references:
++
+----
+.PHONY: setup
+setup: install-cargo-anypoint ## Setup all required tools to build
+	cargo fetch
+----
+.. Delete the `login` and `registry-creds` targets. For example:
++
+To find an example of the targets, see the https://github.com/mulesoft/pdk-custom-policy-examples/blob/1.5.0/certs/Makefile#L68-L85[`login` and `registry-creds` targets in the Certification Policy].
+
+.. Save the `Makefile` file.
+. Execute `make setup` to install the updated versions.
+
+== See Also
+
+* xref:policies-pdk-prerequisites.adoc[]
