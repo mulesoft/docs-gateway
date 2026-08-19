@@ -139,6 +139,16 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `#[vars.claimSet.client_id]`
 |
 
+| `enableProtectedResourceMetadata`
+| Optional
+| `false`
+| Serves the OAuth 2.0 Protected Resource Metadata document at `{API_Path}/.well-known/oauth-protected-resource` and includes a `resource_metadata` hint in `401` responses, per https://datatracker.ietf.org/doc/html/rfc9728[RFC 9728^].
+
+| `protectedResourceMetadataAuthorizationServerUrl`
+| Optional
+| Empty string
+| The authorization server base URL to advertise in the protected resource metadata, for example, `https://auth.example.com/realms/myrealm`. This parameter is required when `enableProtectedResourceMetadata` is `true` and must be a valid URL. The JWT Validation policy has no issuer to derive this URL from, so you must set it explicitly.
+
 |===
 
 // ==== Resource Configuration Example
@@ -228,6 +238,14 @@ The default value is 10 seconds.
 `foo : #[vars.claimSet.foo == 'fooValue']`
 
 Note that all DataWeave expressions must return a boolean value or they will always fail.
+
+| Enable Protected Resource Metadata
+| If you check this field, the policy serves the OAuth 2.0 Protected Resource Metadata document at `{API_Path}/.well-known/oauth-protected-resource` and includes a `resource_metadata` hint in `401` responses, per https://datatracker.ietf.org/doc/html/rfc9728[RFC 9728^].
+|
+
+| Protected Resource Metadata Authorization Server URL
+| The authorization server base URL to advertise in the protected resource metadata. This field is required when *Enable Protected Resource Metadata* is checked and must be a valid URL.
+| `https://auth.example.com/realms/myrealm`
 |===
 
 == How This Policy Works
@@ -281,6 +299,16 @@ The JWT is also propagated downstream, and you can access it by using the follow
 If Client ID validation is enabled, the Client ID is propagated as a claim and as a reserved authentication property. Access the property by using the following DataWeave expression:
 
 `#[authentication.clientId]`
+
+=== Serving Protected Resource Metadata
+
+When you enable *Enable Protected Resource Metadata*, the policy implements https://datatracker.ietf.org/doc/html/rfc9728[RFC 9728^] so that clients can discover the authorization server that protects the API. The policy then:
+
+* Serves the metadata document at `{API_Path}/.well-known/oauth-protected-resource`, advertising the authorization server set in *Protected Resource Metadata Authorization Server URL*.
+* Adds a `resource_metadata` hint (realm `JWT Validation Realm`) to the `WWW-Authenticate` header of `401` responses.
+* Returns `401` instead of `400` when a request omits the `Authorization` header, directing unauthenticated clients to the discovery endpoint.
+
+Because the JWT Validation policy has no issuer to derive the authorization server from, you must set *Protected Resource Metadata Authorization Server URL* to a valid URL when the feature is enabled, for example, `https://auth.example.com/realms/myrealm`. Otherwise, the policy configuration is rejected.
 
 === Retry Mechanism
 
