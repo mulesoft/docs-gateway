@@ -55,6 +55,8 @@ To begin using the `make test` command to debug your custom policy, register an 
 
 For the `make test` command to work, an Omni Gateway `registration.yaml` file must exist in the `<root-directory>/tests/config` directory. Create this file by running the registration command in the directory, or move a `registration.yaml` file of a previously registered Omni Gateway to the directory.
 
+NOTE: A registration file is generated automatically when you run integration tests if no `registration.yaml` file is provided.
+
 To register Omni Gateway, see:
 
 * xref:gateway::flex-local-reg-run-up.adoc#docker[Register and Run with a Username and Password in a Docker Container]
@@ -126,6 +128,13 @@ make test
 Run this test as you add additional features to your integration test to ensure proper configuration.
 
 NOTE: The `make test` command compiles the policy before running the integration tests.
+
+To run a single test, pass the test name to the `TEST` parameter:
+
+[source,ssh]
+----
+make test TEST=<test_name>
+----
 
 [[configure-services-for-integration-testing]]
 == Configure Services for Integration Testing

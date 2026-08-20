@@ -41,6 +41,39 @@ pub trait Cache {
 
 IMPORTANT: Because different workers write to the cache concurrently, there is no guarantee that the value overwritten when saving the cache is the same as when it was retrieved.
 
+[[configure-a-cache-eviction-strategy]]
+== Configure a Cache Eviction Strategy
+
+The cache builder supports selecting between the first-in first-out (FIFO) and Least Recently Used (LRU) eviction strategies. By default, the cache uses the FIFO strategy.
+
+To select the LRU strategy, use the `eviction_strategy` method on the cache builder and provide the strategy configuration:
+
+[source,Rust]
+----
+// The LRU cache shards its state, and eviction happens per-shard, so LRU
+// ordering is only approximate across shards. This code snippet uses
+// a single shard for true global LRU ordering deterministically.
+let single_shard_lru = LruStrategy::default().with_shards(1);
+let demo_lru = cache_builder
+    .new("lru-cache".to_string())
+    .eviction_strategy(EvictionStrategy::Lru(single_shard_lru))
+    .ttl(Duration::from_millis(10000))
+    .max_entries(2);
+----
+
+[[configure-a-cache-ttl]]
+== Configure a Cache TTL
+
+To configure a time-to-live (TTL) for cache entries, use the cache builder `ttl` to set a global TTL for all cache entries:
+
+[source,Rust]
+----
+let cache = cache_builder
+    .new("caching".to_string())
+    .ttl(Duration::from_millis(10000))
+    .max_entries(10);
+----
+
 == See Also
 
 * xref:policies-pdk-configure-features.adoc[]

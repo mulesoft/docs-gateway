@@ -50,6 +50,26 @@ When publishing a policy, a timestamp appears appended to the *version*.
 
 Rerunning the publish command creates a new version of the policy asset with an updated timestamp. Previously published policy versions are still available.
 
+[[skip-republishing-an-unchanged-definition]]
+== Skip Republishing an Unchanged Definition
+
+Running `make publish` or `make release` uploads a new policy definition and policy implementation to Exchange. If the policy definition is unchanged from the published version, PDK skips republishing the definition and reuses the existing one. The publication step reports this message if the definition is skipped:
+
+[source,text]
+----
+Definition unchanged from published version x.y.z. Skipping definition publish and reusing it.
+----
+
+NOTE: This feature is only applicable to policies created with PDK 1.10.0 or later, not policies created with an earlier version that were updated.
+
+When the definition is reused, you only need to update the policy implementation. See xref:gateway::gateway-secure-conn.adoc#upgrade-policy-implementation[Upgrade a Policy Implementation].
+
+To always publish a new definition, set the `SKIP_UNCHANGED_DEFINITION` flag to `false` in the Makefile:
+
+[source,makefile]
+----
+SKIP_UNCHANGED_DEFINITION ?= false
+----
 
 [[release]]
 == Release a Custom Policy
