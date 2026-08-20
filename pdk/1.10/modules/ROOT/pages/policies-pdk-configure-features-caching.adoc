@@ -44,14 +44,14 @@ IMPORTANT: Because different workers write to the cache concurrently, there is n
 [[configure-a-cache-eviction-strategy]]
 == Configure a Cache Eviction Strategy
 
-From PDK v1.10.0 onward, the cache builder supports selecting between the first-in, first-out (FIFO) and Least Recently Used (LRU) eviction strategies. By default, the cache uses the FIFO strategy.
+The cache builder supports selecting between the first-in first-out (FIFO) and Least Recently Used (LRU) eviction strategies. By default, the cache uses the FIFO strategy.
 
 To select the LRU strategy, use the `eviction_strategy` method on the cache builder and provide the strategy configuration:
 
 [source,Rust]
 ----
 // The LRU cache shards its state, and eviction happens per-shard, so LRU
-// ordering is only approximate across shards. A single shard is used here so
+// ordering is only approximate across shards. This code snippet uses
 // the demo exercises true global LRU ordering deterministically.
 let single_shard_lru = LruStrategy::default().with_shards(1);
 let demo_lru = cache_builder
@@ -64,7 +64,7 @@ let demo_lru = cache_builder
 [[configure-a-cache-ttl]]
 == Configure a Cache TTL
 
-From PDK v1.10.0 onward, you can configure a time-to-live (TTL) for cache entries. Use the `ttl` method on the cache builder to set a global TTL for all entries of the cache:
+To configure a time-to-live (TTL) for cache entries, use the cache builder `ttl` to set a global TTL for all cache entries:
 
 [source,Rust]
 ----
