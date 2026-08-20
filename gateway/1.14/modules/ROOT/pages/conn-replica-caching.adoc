@@ -5,7 +5,7 @@ endif::[]
 :imagesdir: ../assets/images
 :page-aliases: flex-conn-replica-caching.adoc
 
-To reduce scale-up time and increase resiliency, Omni Gateway can cache its gateway configuration in shared storage. Omni replicas use the cached gateway configuration instead of each replica directly downloading the configuration from Anypoint Platform. Configuration caching is enabled by default and takes effect when shared storage is configured.
+To reduce scale-up time and increase resiliency, Omni Gateway can cache its gateway configuration instead of each replica directly downloading the configuration from Anypoint Platform. Configuration caching is enabled by default. To share cached configurations across replicas, you must configure distributed or Redis shared storage.
 
 Omni Gateway configuration caching works by:
 
@@ -19,9 +19,19 @@ If caching is configured and shared storage errors occur, each replica downloads
 
 NOTE: When using distributed shared storage, cached configurations are lost when all replicas go down (Managed Gateway is stopped or self-managed is scaled to zero replicas). For persistent caching, use xref:conn-shared-storage-config.adoc[Redis shared storage].
 
+=== Configuration Caching with Local Filesystem Storage
+
+When no shared storage is configured, Omni Gateway uses local filesystem storage by default. Because local filesystem storage is not shared between replicas, each replica caches its own configuration to disk rather than sharing a cache with other replicas:
+
+. When a replica starts, it downloads the configuration from Anypoint Platform, encrypts it, and stores it in its local filesystem.
+. If the replica restarts, it reads the cached configuration from its local filesystem instead of downloading it from Anypoint Platform again. Because the cache is persisted to disk, it is retained across restarts.
+. If the Omni Gateway configuration changes on Anypoint Platform, the replica downloads the updated configuration and stores it in its local filesystem.
+
+To share cached configurations across replicas, configure distributed or Redis shared storage.
+
 == Enable Omni Gateway Configuration Caching
 
-Configuration caching is enabled by default via the `FLEX_DATASOURCE_CONTROL_NODE_ENABLED` environment variable, which is set to `true`. To use configuration caching, make sure shared storage is configured.
+Configuration caching is enabled by default via the `FLEX_DATASOURCE_CONTROL_NODE_ENABLED` environment variable, which is set to `true`. By default, each replica caches its configuration to local filesystem storage. To share cached configurations across replicas, configure distributed or Redis shared storage.
 
 Configure either:
 
