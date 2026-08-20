@@ -484,7 +484,7 @@ The `sharedStorage` object configures the gateway for shared storage. Omni Gatew
 
 * *Distributed shared storage*: Enables multiple gateway replicas to share state across a distributed deployment. Data is lost when all replicas go down (scaled to zero replicas).
 * *Redis shared storage*: Provides persistent storage when all replicas go down (scaled to zero replicas). Requires https://redis.io/[Redis^] (minimum version 4.0.0).
-* *Local shared storage*: In-memory implementation. All data is lost when Omni Gateway is stopped or restarted.
+* *Local shared storage*: File-based implementation. Data is persisted to disk, so it is retained when Omni Gateway is stopped or restarted. This is the default when no `sharedStorage` configuration is provided.
 
 Optionally, you can use Redis with Transport Layer Security (TLS) to protect sensitive data, prevent unauthorized access, and maintain the reliability of your services.
 
@@ -683,7 +683,7 @@ NOTE: You can specify multiple host names in the `join` parameter by separating 
 .*Local Shared Storage Example*
 [%collapsible]
 ====
-The local storage service is an implementation of a REST API object store that saves data in memory. All data is lost when Omni Gateway is stopped or restarted.
+The local storage service is an implementation of a REST API object store that saves data to disk. Data is persisted, so it is retained when Omni Gateway is stopped or restarted. Local shared storage is the default when no `sharedStorage` configuration is provided.
 
 [source, yaml]
 ----
