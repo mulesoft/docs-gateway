@@ -31,7 +31,7 @@ In this implementation:
 * API configurations, including upstream services and policies are the same for all regions. Upstream services must be region-agnostic, meaning either the DNS is local or it lacks any reference to the region.
 * If using Redis shared storage: The Redis cluster must be replicated across regions or Redis shared storage can't be used. Redis replication is required when traffic isn't region-specific.
 * If using Redis shared storage: The only cross-regional traffic is Redis synchronization.
-* If using distributed shared storage: No cross-region synchronization is needed, but cached data is lost after gateway restarts.
+* If using distributed shared storage: No cross-region synchronization is needed.
 
 In the following diagram, Omni Replicas in different regions and availability zones have distinct Kubernetes deployments:
 
@@ -63,7 +63,7 @@ image:high-availability-1b.png["A detailed view of implementation 1B, which cont
 
 This implementation is similar to <<implementation-1a>>. However, the DNS service is active-passive, so the standby region only receives traffic if the primary region becomes unhealthy. This implementation is less complex to configure than implementation 1A.
 
-If using Redis shared storage: Redis synchronization is not required if a cache loss during failover is acceptable. If using distributed shared storage: No synchronization is needed, but cached data is lost after gateway restarts.
+If using Redis shared storage, Redis synchronization isn't required if a cache loss during failover is acceptable. If using distributed shared storage, no synchronization is needed.
 
 In the following diagram, Omni Replicas in different availability zones have distinct Kubernetes deployments. Region B provides high availability but receives traffic only if region A is unhealthy:
 
