@@ -23,7 +23,7 @@ The HTTP Caching policy enables you to cache HTTP responses for reuse. Caching t
 
 Policies applied after the HTTP Caching policy in the policy order are not applied to responses served from the cache. For example, a rate limiting policy applied after the HTTP Caching policy only limits the responses served by the upstream service but not the responses served by the cache. Apply all policies needed for the cached response before the HTTP Caching policy.
 
-For Self-Managed Gateways, HTTP caching requires that you <<configure-shared-storage-for-self-managed-gateway, configure shared storage>>. For Managed Gateways, Omni Replica shares the cache with each other directly. To learn more about the Managed Gateway architecture, see xref:gateway-architecture-managed-dr-ha.adoc[].
+For Self-Managed Gateways, HTTP caching works out of the box using the default local (filesystem) storage, which persists the cache across restarts. To share the cache across replicas, <<configure-shared-storage-for-self-managed-gateway, configure distributed or Redis shared storage>>. For Managed Gateways, Omni Replica shares the cache with each other directly. To learn more about the Managed Gateway architecture, see xref:gateway-architecture-managed-dr-ha.adoc[].
 
 NOTE: The HTTP Caching policy does not support MCP and A2A server instances.
 
@@ -119,7 +119,7 @@ NOTE: Leaving a required value blank configures the parameter as the default val
 [[configure-shared-storage-for-self-managed-gateway]]
 ==== Configure Shared Storage for Self-Managed Gateway
 
-Self-Managed Gateways require you to configure shared storage for distributed caching. Configure either xref:conn-distributed-shared-storage-config.adoc[distributed shared storage] or xref:conn-shared-storage-config.adoc[Redis shared storage].
+Distributed caching across replicas requires distributed or Redis shared storage, because the default local (filesystem) storage is not shared between replicas. Configure either xref:conn-distributed-shared-storage-config.adoc[distributed shared storage] or xref:conn-shared-storage-config.adoc[Redis shared storage].
 
 ----
 
