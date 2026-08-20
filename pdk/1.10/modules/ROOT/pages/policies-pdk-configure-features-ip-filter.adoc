@@ -1,0 +1,54 @@
+= Filter IP Addresses
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Use the Omni Gateway Policy Development Kit (PDK) IP Filter to filter requests based on IP addresses. Create allowlists or blocklists using IPv4/IPv6 addresses and CIDR ranges to evaluate incoming requests IPs.
+
+Import `IpFilter` from the `pdk` crate, then create an IP filter to either allow or block specific IPs:
+
+[source,Rust]
+----
+use pdk::ip_filter::IpFilter;
+
+// Create an allowlist filter (only specified IPs are permitted)
+let ip_filter = IpFilter::allow(&["192.168.1.0/24", "10.0.0.1"])?;
+
+// Create a blocklist filter (specified IPs are denied)
+let ip_filter = IpFilter::block(&["192.168.1.0/24", "10.0.0.1"])?;
+----
+
+The `IpFilter` accepts an array of strings and supports:
+
+* Both IPv4 and IPv6 addresses.
+* Individual IPs, for example: `10.0.0.1`.
+* Classless Inter-Domain Routing (CIDR) notation for IP ranges. For example: `192.168.1.0/24`, `10.0.0.0/8`.
+
+After creating the filter, use the `is_allowed` method to check if an IP is permitted:
+
+[source,Rust]
+----
+// Check if an IP is allowed
+if ip_filter.is_allowed("192.168.1.100") {
+    // IP is permitted, continue processing
+    Flow::Continue(())
+} else {
+    // IP is blocked, return forbidden response
+    Flow::Break(Response::new(403).with_body("Forbidden"))
+}
+----
+
+== IP Filter Configuration Examples
+
+PDK provides the https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/ip-filter[IP Filter Example policy] to demonstrate how to implement IP-based access control in Rust code.
+
+Within the example policy, see these code sections for additional configuration details:
+
+* https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/ip-filter/src/lib.rs#L41-L65[Configure an IP filter]
+* https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/ip-filter/src/lib.rs#L18-L22[Extract client IP from request headers]
+* https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/ip-filter/src/lib.rs#L24-L34[Validate if an IP is permitted]
+
+== See Also
+
+* xref:policies-pdk-policy-templates.adoc[]

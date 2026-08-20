@@ -1,0 +1,108 @@
+= Reading and Writing Request Headers and Bodies with Stop Iteration
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Use the Omni Gateway Policy Development Kit (PDK) `enable_stop_iteration` feature to simultaneously read and modify headers and body content.
+
+Use stop iteration to process the body before the headers are sent. Stop iteration doesn't support streaming.
+
+Without stop iteration, a policy forwards the headers before the body. To learn more about the non-stop iteration event flow, see xref:policies-pdk-configure-features-headers-event.adoc#event-flow[Event Flow].
+
+Stop iteration is supported for Omni Gateway v1.11.4 and later.
+
+NOTE: If the buffered body exceeds the `FLEX_DOWNSTREAM_CONNECTION_BUFFER_LIMIT_BYTES`, the request is terminated with a `500` error code.
+
+== Body Buffering and Size Limitations
+
+When a PDK policy transitions to the headers-body state with into_headers_body_state(), Flex Gateway buffers the entire body for both the request and the response before your policy runs. The policy doesn't receive the headers-body state until the full body has been buffered.
+
+The maximum body size that stop iteration can buffer is set by the `FLEX_DOWNSTREAM_CONNECTION_BUFFER_LIMIT_BYTES` environment variable (default 1MB). To configure the value, see xref:conn-env-variables.adoc[] or xref:local-env-variables.adoc[].
+
+If a body exceeds `FLEX_DOWNSTREAM_CONNECTION_BUFFER_LIMIT_BYTES`, Envoy aborts the request before any policy code runs. Size the limit to your largest expected payload.
+
+== Enable Stop Iteration in your Cargo.toml
+
+To enable this feature, add `enable_stop_iteration` to your `Cargo.toml` file dependencies:
+
+[source,toml]
+----
+[dependencies]
+pdk = { version = "1.8.0", features = ["enable_stop_iteration"] }
+----
+
+== Read and Write Request Headers
+
+After enabling the feature, use `into_headers_body_state()` to transition from the initial request or response state to the combined headers-body state:
+
+[source,Rust]
+----
+use pdk::hl::*;
+
+async fn request_filter(request_state: RequestState) -> Flow<()> {
+   // Transition to headers-body state
+   let state = request_state.into_headers_body_state().await;
+
+   // Access both headers and body through the unified handler
+   state.handler().set_header("x-custom-header", "value");
+
+   if state.contains_body() {
+       let _ = state.handler().set_body("modified body".as_bytes());
+   }
+
+   Flow::Continue(())
+}
+----
+
+The `into_headers_body_state()` method returns a `RequestHeadersBodyState` for request flows or `ResponseHeadersBodyState` for response flows. Both states provide a unified `handler()` that implements both `HeadersHandler` and `BodyHandler` traits:
+
+[source,Rust]
+----
+pub trait Handler {
+    fn headers(&self) -> Vec<(String, String)>;
+    fn header(&self, name: &str) -> Option<String>;
+    fn add_header(&self, name: &str, value: &str);
+    fn set_header(&self, name: &str, value: &str);
+    fn set_headers(&self, headers: Vec<(&str, &str)>);
+    fn remove_header(&self, name: &str);
+    fn body(&self) -> Vec<u8>;
+    fn set_body(&self, body: &[u8]) -> Result<(), BodyError>;
+    fr contains_body(&self) -> Bool;
+}
+----
+
+== Handle Requests Without Body
+
+When a request or response doesn't contain a body, the headers-body state handler gracefully handles the absence:
+
+[source,Rust]
+----
+async fn request_filter(request_state: RequestState) -> Flow<()> {
+   let state = request_state.into_headers_body_state().await;
+
+   // Check if body exists
+   if state.contains_body() {
+       let body = state.handler().body();
+       // Process body
+   }
+
+   // Attempting to set body on a request without body returns an error
+   if let Err(BodyError::BodyNotSent) = state.handler().set_body("data".as_bytes()) {
+       // Handle case where body cannot be set (e.g., GET request)
+       state.handler().set_header("x-data", "data");
+   }
+
+   Flow::Continue(())
+}
+----
+
+== Stop Iteration Configuration Examples
+
+PDK provides the https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/stop-iteration[Stop Iteration Example policy] to demonstrate how to use the headers-body unified state in Rust code.
+
+Within the example policy, see these code sections for additional configuration details:
+
+* https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/stop-iteration/src/lib.rs#L10-L40[Transition to headers-body state and modify both headers and body in request filter]
+* https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/stop-iteration/src/lib.rs#L42-L61[Use headers-body state in response filters]
+* https://github.com/mulesoft/pdk-custom-policy-examples/tree/{template-policies-url-ver-var}/stop-iteration/src/lib.rs#L25-L37[Handle body modification with error handling]
