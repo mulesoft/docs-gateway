@@ -185,12 +185,6 @@ The policy detects overlapping PII patterns and keeps the longest (most specific
 *Log and mask* is a permanent architectural boundary in the request direction: the request direction never masks. Masking a request argument in place would corrupt the value the MCP server executes against. For example, a masked email address is a different, likely invalid argument to a `send_email` tool. A rule combining `direction: request` (or `both`) with `action: Log and mask` is accepted but does nothing in the request direction. The policy logs a warning at startup and again at the first matching finding.
 ====
 
-=== Access Log Format
-
-Every access-log line for a PII finding, in any direction and under any action, carries only an entity-type and count summary, such as `EMAIL_ADDRESS:1,US_SSN:2`. The log never contains the matched value, masked or raw, and there is no configuration option to include values. The access log is a lower-trust surface than the proxied traffic itself (different retention, often shipped to a SIEM), so a PII-detection policy must not become a second place that PII leaks out of. If you need raw values for diagnostics, they are only ever available in the proxied traffic under the *Log* action.
-
-Entity types in log output use the Presidio-style name regardless of which engine produced the finding: `EMAIL_ADDRESS`, `US_SSN`, `CREDIT_CARD`, and `PHONE_NUMBER` for the built-in types, and the recognizer or custom-pattern name for other types.
-
 === Evidence Headers
 
 Whenever any PII is found in either direction, the policy emits the following headers on the response, regardless of which engine produced the findings:
