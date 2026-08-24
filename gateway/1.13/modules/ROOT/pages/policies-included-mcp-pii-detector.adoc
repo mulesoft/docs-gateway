@@ -67,7 +67,7 @@ Each entry in *Per-Entity Rules* overrides the top-level action for a specific e
 | Field | Required | Description
 | `entity` | Yes | Entity type this rule applies to. Accepts either spelling, for example `Email` or `EMAIL_ADDRESS`, or `PERSON`. Built-in types are matched regardless of spelling, so a rule written as `Email` also matches a Presidio-origin `EMAIL_ADDRESS` finding.
 | `action` | Yes | Action to take for this entity. Supported values are *Reject*, *Log*, and *Log and mask*.
-| `direction` | No | Which direction this rule applies to: `request`, `response`, or `both`. Default is `both`. Combining `direction: request` (or `both`) with `action: Log and mask` is a no-op in the request direction. For more information, see <<action-enforcement>>.
+| `direction` | No | Which direction this rule applies to: `request`, `response`, or `both`. Default is `both`. Combining `direction: request` (or `both`) with `action: Log and mask` has no effect in the request direction. For more information, see <<action-enforcement>>.
 |===
 
 [[presidio]]
@@ -169,7 +169,7 @@ The policy detects overlapping PII patterns and keeps the longest (most specific
 |Forwards the response and logs the finding.
 |Rewrites every detected PII span under `result` with a masked value and forwards the sanitized response.
 
-|Elicitation responses (client → server)
+|Elicitation responses (client to server)
 |Rewrites the result to indicate the response was declined and forwards the sanitized body to the server.
 |Forwards the response and logs the finding.
 |No-op. Forwards the response unmodified and logs the finding.
@@ -252,7 +252,7 @@ When the action is set to *Log*, the policy forwards the request and logs the de
 Log and Mask::
 +
 --
-In the request direction, *Log and mask* behaves the same as *Log*: request-direction masking is a no-op. The policy forwards the request unmodified and logs the detected entity types and counts:
+In the request direction, *Log and mask* behaves the same as *Log*: masking has no effect in the request direction. The policy forwards the request unmodified and logs the detected entity types and counts:
 
 [source,text]
 ----
@@ -532,7 +532,7 @@ This table shows where raw PII values can appear based on the configured action:
 |Never. Only entity types and counts are logged.
 
 |Log and mask
-|Masked in the response direction (body rewritten), and unchanged in the request direction (no-op, forwarded as-is).
+|Masked in the response direction (body rewritten), and unchanged in the request direction (has no effect, forwarded as-is).
 |Never. Only entity types and counts are logged.
 
 |Log
