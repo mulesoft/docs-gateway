@@ -180,11 +180,6 @@ The policy detects overlapping PII patterns and keeps the longest (most specific
 |Rewrites each event's result strings with masked values while preserving SSE framing.
 |===
 
-[IMPORTANT]
-====
-*Log and mask* is a permanent architectural boundary in the request direction: the request direction never masks. Masking a request argument in place would corrupt the value the MCP server executes against. For example, a masked email address is a different, likely invalid argument to a `send_email` tool. A rule combining `direction: request` (or `both`) with `action: Log and mask` is accepted but does nothing in the request direction. The policy logs a warning at startup and again at the first matching finding.
-====
-
 === Evidence Headers
 
 Whenever any PII is found in either direction, the policy emits the following headers on the response, regardless of which engine produced the findings:
