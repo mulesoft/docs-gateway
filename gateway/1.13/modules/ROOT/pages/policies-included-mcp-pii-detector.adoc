@@ -79,12 +79,12 @@ Configuring the *Presidio Integration* block enables the Presidio engine alongsi
 |===
 | Field | Required | Description
 | `analyzerUrl` | Yes | Base URL of the Presidio Analyzer service, for example `http://presidio-analyzer:3000`. The policy calls `POST {analyzerUrl}/analyze`.
-| `apiKey` | No | Presidio ships with no built-in authentication. This key authenticates against whatever gateway or reverse proxy fronts the Analyzer. When set, it is sent as an `Authorization: Bearer` header on every Analyzer call. Omit if the Analyzer isn't fronted by an authenticating layer.
+| `apiKey` | No | Presidio has no built-in authentication. This key authenticates against the authentication service deployed in front of the Analyzer. When set, the key is sent as an `Authorization: Bearer` header on every Analyzer call. Omit if no authentication is required.
 | `language` | No | ISO 639-1 language code for detection, for example `en`, `es`, or `de`. Passed to the Analyzer's `language` parameter. Default is `en`.
 | `scoreThreshold` | No | Minimum confidence score (`0.0`–`1.0`) for a detection to count as PII. Findings below this threshold are ignored. Default is `0.5`.
-| `contextWords` | No | Array of context words that boost detection confidence, passed to the Analyzer's `context` parameter. For example, `["employee", "patient", "customer"]` increases the likelihood of detecting names or IDs in those contexts.
+| `contextWords` | No | Array of context words that boost detection confidence, passed to the Analyzer's `context` parameter. For example, `["employee", "patient", "customer"]` increases the likelihood of detecting names and IDs.
 | `onServerError` | No | Behavior when the Analyzer is unreachable or times out. *Ignore* logs a warning, emits `X-PII-Scan: fallback-regex`, and proceeds using only the regex engine's findings for that direction. *Reject* rejects traffic with HTTP 503. Default is *Ignore*.
-| `timeout` | No | HTTP timeout in milliseconds for Analyzer calls. If exceeded, the call is treated as unreachable and subject to `onServerError`. Default is `1500`.
+| `timeout` | No | HTTP timeout in milliseconds for Analyzer calls. If exceeded, the call is treated as unreachable and subject to `onServerError`. Adjust appropriately for remote and co-located-off-cluster Presidio deployments with higher round-trip latency. Default is `1500`.
 |===
 
 === Configuration Example
