@@ -35,7 +35,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |===
 | Element | Required | Description
 | PII Types | Yes | Array of PII types to detect. The regex engine recognizes only the built-in types (*Email*, *US SSN*, *Credit Card*, and *Phone Number*). When Presidio is configured, the full list is also sent to the Analyzer, so you can also use Presidio recognizer names, such as `EMAIL_ADDRESS`, `PERSON`, `LOCATION`, or `IBAN_CODE`. For more information, see <<pii-types>>.
-| Custom PII Patterns | No | Array of custom patterns to detect additional sensitive values. The regex engine always uses these custom patterns. When Presidio is configured, each pattern is also sent to the Analyzer. For more information, see <<custom-patterns>>.
+| Custom PII Patterns | No | Array of custom patterns to detect additional sensitive values. The regex engine always uses these custom patterns. When Presidio is configured, each pattern is also sent to the Analyzer as an ad-hoc recognizer. For more information, see <<custom-patterns>>.
 | Action | No | Default action to take when PII is detected, applied to both directions unless overridden by a rule. Supported values are *Reject*, *Log*, and *Log and mask*. Default is *Log*. For more information, see <<action-enforcement>>.
 | Per-Entity Rules | No | Array of per-entity action overrides. When present, the first matching rule for an entity determines its action, and unmatched entities fall back to the top-level action. For more information, see <<per-entity-rules>>.
 | Allow List | No | Array of literal strings to exclude from detection (case-sensitive exact match). Useful for known non-PII values that match a pattern, such as `test@example.com` or `000-00-0000`.
@@ -45,7 +45,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 [[custom-patterns]]
 === Custom PII Patterns
 
-Each entry in *Custom PII Patterns* defines a pattern to detect values beyond the built-in types:
+Each entry in *Custom PII Patterns* defines a pattern to detect values beyond the built-in types. When Presidio is configured, the policy sends each pattern to the Analyzer as an ad-hoc recognizer, which is a custom detection rule that Presidio applies only for that request. This means both engines detect the pattern.
 
 [%header%autowidth.spread,cols="a,a,a"]
 |===
