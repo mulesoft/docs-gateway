@@ -3,12 +3,12 @@ ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
-:keywords: api gateway, flex gateway, gateway, policy
+:keywords: api gateway, flex gateway, gateway, policy, mcp, pii, presidio
 
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | MCP PII Detector Policy
->s|Summary      | Blocks elicitation responses containing personally identifiable information (PII) from reaching MCP servers
+>s|Summary      | Detects, masks, or blocks personally identifiable information (PII) in MCP traffic
 >s|Category | MCP
 >s|First Omni Gateway version available | v1.9.3
 >s|Release Notes| xref:release-notes::gateway/policies/mcp-pii-detector-release-notes.adoc[]
@@ -19,7 +19,9 @@ endif::[]
 
 The MCP PII Detector policy detects personally identifiable information (PII) in Model Context Protocol (MCP) JSON-RPC traffic on both the request and response sides.
 
-When PII is detected, you can configure the policy to reject the request or response, log findings, or log masked findings. The policy reports a policy violation when PII is detected.
+The policy always runs a built-in regex engine. You can additionally configure an external https://microsoft.github.io/presidio/[Microsoft Presidio^] Analyzer service to run alongside the regex engine, which extends detection to entity types that have no local regex equivalent, such as person names and locations. When both engines are configured, their findings are merged into a single deduplicated set, and every finding is handled the same way regardless of which engine detected it.
+
+When PII is detected, you can configure the policy to reject the traffic, log findings, or log findings and mask them in the response. You can set a single default action, or set per-entity actions through the `rules` configuration. The policy reports a policy violation when PII is detected.
 
 == Configuring Policy Parameters
 
@@ -30,24 +32,125 @@ The MCP PII Detector policy isn't supported in Local Mode.
 include::partial$policy-title-headers.adoc[tag=ui]
 
 [%header%autowidth.spread,cols="a,a,a"]
-
 |===
 | Element | Required | Description
-| PII Types | Yes | Array of built-in PII types to detect. Supported values are *Email*, *US SSN*, *Credit Card*, and *Phone Number*. For more information, see <<pii-types>>.
-| Custom PII Patterns | No | Array of custom regex patterns to detect additional sensitive values. Define a name and regex pattern for each array entry. For example, use `name: AWS Access Key` and `pattern: AKIA[0-9A-Z]{16}` to detect AWS access keys.
-| Action | No | Action to take when PII is detected. Supported values are *Reject*, *Log*, and *Log and mask*. Default is *Log*.
+| PII Types | Yes | Array of PII types to detect. The regex engine recognizes only the built-in types (*Email*, *US SSN*, *Credit Card*, and *Phone Number*). When Presidio is configured, the full list is also sent to the Analyzer, so you can also use Presidio recognizer names, such as `EMAIL_ADDRESS`, `PERSON`, `LOCATION`, or `IBAN_CODE`. For more information, see <<pii-types>>.
+| Custom PII Patterns | No | Array of custom patterns to detect additional sensitive values. The regex engine always uses these; when Presidio is configured, each pattern is also sent to the Analyzer as an ad-hoc recognizer. For more information, see <<custom-patterns>>.
+| Action | No | Default action to take when PII is detected, applied to both legs unless overridden by a rule. Supported values are *Reject*, *Log*, and *Log and mask*. Default is *Log*. For more information, see <<action-enforcement>>.
+| Per-Entity Rules | No | Array of per-entity action overrides. When present, the first matching rule for an entity determines its action; unmatched entities fall back to the top-level action. For more information, see <<per-entity-rules>>.
+| Allow List | No | Array of literal strings to exclude from detection (case-sensitive exact match). Useful for known non-PII values that match a pattern, such as `test@example.com` or `000-00-0000`.
+| Presidio Integration | No | Presidio Analyzer connection settings. Configuring this block enables Presidio detection alongside the regex engine. For more information, see <<presidio>>.
 |===
+
+[[custom-patterns]]
+=== Custom PII Patterns
+
+Each entry in *Custom PII Patterns* defines a pattern to detect values beyond the built-in types:
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Field | Required | Description
+| `name` | Yes | A descriptive name that identifies this pattern in detection results. Used as the entity type for regex-engine matches and as the recognizer name sent to the Analyzer.
+| `pattern` | Yes | A regular expression pattern to match sensitive data. For example, use `AKIA[0-9A-Z]{16}` to detect AWS access keys.
+| `supportedLanguage` | No | ISO 639-1 language code (for example, `en`) that this pattern's Presidio ad-hoc recognizer applies to. Ignored by the regex engine. Defaults to `presidio.language`.
+| `context` | No | Array of context words that boost this pattern's Presidio ad-hoc recognizer score. Ignored by the regex engine.
+| `score` | No | Base confidence score (`0.0`–`1.0`) for matches from this pattern's Presidio ad-hoc recognizer. Ignored by the regex engine. Default is `0.5`.
+|===
+
+[[per-entity-rules]]
+=== Per-Entity Rules
+
+Each entry in *Per-Entity Rules* overrides the top-level action for a specific entity type. Rules apply to findings from both the regex engine and Presidio. When rules are present, the first matching rule for an entity determines its action; entities that no rule matches fall back to the top-level `action`.
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Field | Required | Description
+| `entity` | Yes | Entity type this rule applies to. Accepts either spelling, for example `Email` or `EMAIL_ADDRESS`, or `PERSON`. Built-in types are matched regardless of spelling, so a rule written as `Email` also matches a Presidio-origin `EMAIL_ADDRESS` finding.
+| `action` | Yes | Action to take for this entity. Supported values are *Reject*, *Log*, and *Log and mask*.
+| `direction` | No | Which leg this rule applies to: `request`, `response`, or `both`. Default is `both`. Combining `direction: request` (or `both`) with `action: Log and mask` is a no-op on the request leg; see <<action-enforcement>>.
+|===
+
+[[presidio]]
+=== Presidio Integration
+
+Configuring the *Presidio Integration* block enables the Presidio engine alongside the always-on regex engine. Omit the block to keep the policy in regex-only mode.
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Field | Required | Description
+| `analyzerUrl` | Yes | Base URL of the Presidio Analyzer service, for example `http://presidio-analyzer:3000`. The policy calls `POST {analyzerUrl}/analyze`.
+| `apiKey` | No | Presidio ships with no built-in authentication. This key authenticates against whatever gateway or reverse proxy fronts the Analyzer. When set, it is sent as an `Authorization: Bearer` header on every Analyzer call. Omit if the Analyzer isn't fronted by an authenticating layer.
+| `language` | No | ISO 639-1 language code for detection, for example `en`, `es`, or `de`. Passed to the Analyzer's `language` parameter. Default is `en`.
+| `scoreThreshold` | No | Minimum confidence score (`0.0`–`1.0`) for a detection to count as PII. Findings below this threshold are ignored. Default is `0.5`.
+| `contextWords` | No | Array of context words that boost detection confidence, passed to the Analyzer's `context` parameter. For example, `["employee", "patient", "customer"]` increases the likelihood of detecting names or IDs in those contexts.
+| `onServerError` | No | Behavior when the Analyzer is unreachable or times out. *Ignore* logs a warning, emits `X-PII-Scan: fallback-regex`, and proceeds using only the regex engine's findings for that leg. *Reject* rejects traffic with HTTP 503. Default is *Ignore*.
+| `timeout` | No | HTTP timeout in milliseconds for Analyzer calls. If exceeded, the call is treated as unreachable and subject to `onServerError`. Raise this for remote or off-cluster Analyzer deployments with higher round-trip latency. Default is `1500`.
+|===
+
+=== Configuration Example
+
+This example detects built-in and Presidio entity types, masks emails on the response leg, always rejects credit cards, and falls back to the regex engine if the Analyzer is unreachable:
+
+[source,yaml]
+----
+- policyRef:
+    name: mcp-pii-detector-policy-flex
+  config:
+    entities:
+      - EMAIL_ADDRESS
+      - PERSON
+      - CREDIT_CARD
+    action: Log
+    customPatterns:
+      - name: "Employee ID"
+        pattern: "EMP-[0-9]{6}"
+    rules:
+      - entity: EMAIL_ADDRESS
+        action: Log and mask
+        direction: response
+      - entity: CREDIT_CARD
+        action: Reject
+        direction: both
+    allowList:
+      - "test@example.com"
+    presidio:
+      analyzerUrl: "http://presidio-analyzer:3000"
+      language: en
+      scoreThreshold: 0.7
+      onServerError: Ignore
+      timeout: 1500
+----
 
 == How This Policy Works
 
-The MCP PII Detector policy is symmetric: it scans both request and response sides of MCP JSON-RPC traffic for PII. It recursively inspects all string values in both `params.*` (for requests) and `result.*` (for responses).
+The MCP PII Detector policy is symmetric: it scans both the request and response sides of MCP JSON-RPC traffic for PII. It recursively inspects all string values in both `params.*` (for requests) and `result.*` (for responses).
 
 The policy scans:
 
-* *JSON-RPC requests*: All string values under `params.*` from client to server
-* *JSON-RPC responses*: All string values under `result.*` from server to client, including nested objects and arrays
-* *Elicitation responses*: JSON-RPC responses sent from client back to server (MCP elicitation pattern)
-* *SSE streams*: Each `data:` payload in Server-Sent Events (MCP Streamable HTTP transport)
+* *JSON-RPC requests*: All string values under `params.*` from client to server.
+* *JSON-RPC responses*: All string values under `result.*` from server to client, including nested objects and arrays.
+* *Elicitation responses*: JSON-RPC responses sent from client back to server (MCP elicitation pattern).
+* *SSE streams*: Each `data:` payload in Server-Sent Events (MCP Streamable HTTP transport).
+
+Non-JSON bodies, binary content, and non-`POST` requests pass through unscanned. A request with a malformed or absent `Content-Type` header is treated as non-JSON and passed through unscanned.
+
+=== Detection Engines
+
+The policy always runs a built-in regex engine. When you configure the `presidio` block, the Presidio Analyzer runs *in addition to* the regex engine, not instead of it. On every scanned leg:
+
+. The regex engine runs, built from the built-in types in `entities` and from `customPatterns`.
+. If Presidio is configured, the Analyzer also scans the same values, using the full `entities` list and the `customPatterns` (forwarded as ad-hoc recognizers).
+. The two engines' findings are merged and deduplicated by entity type and matched value. A Presidio finding is skipped if the regex engine already recorded a finding with the same canonical entity type and value.
+. Any finding whose matched value is in the `allowList` is dropped from the merged set.
+. Each remaining finding's action is resolved the same way, regardless of which engine produced it: the first `rules` entry matching both the finding's entity type and the leg's direction wins; otherwise the finding falls back to the top-level `action`.
+. The leg's overall action is the most severe action across all findings (`Reject` > `Log and mask` > `Log`). A single reject-worthy finding upgrades the whole leg.
+
+Because both engines feed the same resolution logic, `rules` and `action` apply uniformly whether a finding came from the regex engine, from Presidio, or from both.
+
+The policy detects overlapping PII patterns and keeps the longest (most specific) match. For example, a credit card number with delimiters that could also match an SSN pattern is detected as a credit card.
+
+[[action-enforcement]]
+=== Action Enforcement
 
 [%header,cols="1,2,2,2"]
 |===
@@ -57,32 +160,54 @@ The policy scans:
 |Log and Mask
 
 |Request processing
-|Blocks the request with HTTP 403 error response. The upstream server never receives the request.
-|Forwards the request and logs findings with actual PII values.
-|Forwards the request and logs findings with masked values.
+|Blocks the request with an HTTP 403 error response. The upstream server never receives the request.
+|Forwards the request and logs the finding.
+|No-op on the request leg. Forwards the request unmodified and logs the finding, the same as *Log*.
 
 |Response processing (application/json)
-|Blocks the response with HTTP 403 error response. The client doesn't receive the original response containing PII.
-|Forwards the response and logs findings with actual PII values.
-|Rewrites every string under `result` with masked values and forwards the sanitized response.
+|Blocks the response with an HTTP 403 error response. The client doesn't receive the original response containing PII.
+|Forwards the response and logs the finding.
+|Rewrites every detected PII span under `result` with a masked value and forwards the sanitized response.
 
 |Elicitation responses (client → server)
 |Rewrites the result to indicate the response was declined and forwards the sanitized body to the server.
-|Forwards the response and logs findings.
-|Forwards the response and logs masked findings.
+|Forwards the response and logs the finding.
+|No-op. Forwards the response unmodified and logs the finding.
 
 |SSE streams (text/event-stream)
 |Entire stream is replaced with a single JSON-RPC error envelope and Content-Type changes to application/json.
-|Forwards the stream unchanged and logs findings.
-|Each event's result strings are rewritten with masked variants while preserving SSE framing.
+|Forwards the stream unchanged and logs the finding.
+|Rewrites each event's result strings with masked values while preserving SSE framing.
 |===
 
-The policy detects overlapping PII patterns and keeps the longest (most specific) match. For example, a credit card number with delimiters that could also match an SSN pattern is detected as a credit card.
+[IMPORTANT]
+====
+*Log and mask* is a permanent architectural boundary on the request leg: the request leg never masks. Masking a request argument in place would corrupt the value the MCP server executes against. For example, a masked email address is a different, likely invalid argument to a `send_email` tool. A rule combining `direction: request` (or `both`) with `action: Log and mask` is accepted but does nothing on the request leg; the policy logs a warning at startup and again at the first matching finding.
+====
+
+=== Access Log Format
+
+Every access-log line for a PII finding, on any leg and under any action, carries only an entity-type and count summary, such as `EMAIL_ADDRESS:1,US_SSN:2`. The log never contains the matched value, masked or raw, and there is no configuration option to include values. The access log is a lower-trust surface than the proxied traffic itself (different retention, often shipped to a SIEM), so a PII-detection policy must not become a second place that PII leaks out of. If you need raw values for diagnostics, they are only ever available in the proxied traffic under the *Log* action.
+
+Entity types in log output use the Presidio-style name regardless of which engine produced the finding: `EMAIL_ADDRESS`, `US_SSN`, `CREDIT_CARD`, and `PHONE_NUMBER` for the built-in types, and the recognizer or custom-pattern name for other types.
+
+=== Evidence Headers
+
+Whenever any PII is found on either leg, the policy emits the following headers on the response, regardless of which engine produced the findings:
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Header | Value
+| `X-PII-Detected` | `true`.
+| `X-PII-Entities` | CSV of `<entity>:<count>`, for example `EMAIL_ADDRESS:2,CREDIT_CARD:1`, using Presidio-style entity names.
+| `X-PII-Action` | The leg's resolved action: `blocked`, `redacted`, or `audited`.
+| `X-PII-Scan` | `fallback-regex`. Emitted only when Presidio is configured but the Analyzer was unreachable on this leg and `onServerError: Ignore` proceeded using the regex engine's findings alone. A request-leg fallback is carried forward and attached to the corresponding response.
+|===
 
 [[pii-types]]
 == PII Types
 
-When you configure an MCP PII Detector policy, you can choose which types of PII to detect:
+When you configure an MCP PII Detector policy, you choose which types of PII to detect. The regex engine recognizes the built-in types listed in the following table. When Presidio is configured, you can additionally list any recognizer name that the Analyzer supports, such as `PERSON`, `LOCATION`, or `IBAN_CODE`; the available set depends on the Analyzer's loaded recognizers.
 
 [%header,cols='1a,5a']
 |===
@@ -127,34 +252,34 @@ This example shows a request containing PII and the corresponding log output for
 Log::
 +
 --
-When the action is set to *Log*, the policy logs detect PII with the actual values:
+When the action is set to *Log*, the policy forwards the request and logs the detected entity types and counts:
 
 [source,text]
 ----
-[accessLog] PII detected in request (log only): [{"pii_type": "Email", "value": "john.doe@example.com", "start": 0, "end": 20}, {"pii_type": "Phone", "value": "(555) 123-4567", "start": 0, "end": 14}, {"pii_type": "SSN", "value": "123-45-6789", "start": 0, "end": 11}]
+[accessLog] PII detected in request (log only): EMAIL_ADDRESS:1,PHONE_NUMBER:1,US_SSN:1
 ----
 --
 
 Log and Mask::
 +
 --
-When the action is set to *Log and mask*, the policy logs detect PII with masked values:
+On the request leg, *Log and mask* behaves the same as *Log*: request-leg masking is a no-op. The policy forwards the request unmodified and logs the detected entity types and counts:
 
 [source,text]
 ----
-[accessLog] PII detected in request (log only): [{"pii_type": "Email", "masked_value": "****@example.com", "start": 0, "end": 20}, {"pii_type": "Phone", "masked_value": "+1******567", "start": 0, "end": 14}, {"pii_type": "SSN", "masked_value": "***-**-*789", "start": 0, "end": 11}]
+[accessLog] PII detected in request (log only): EMAIL_ADDRESS:1,PHONE_NUMBER:1,US_SSN:1
 ----
 --
 
 Reject::
 +
 --
-When the action is set to *Reject*, the policy blocks the request, logs masked findings, and returns an HTTP 403 error response:
+When the action is set to *Reject*, the policy blocks the request, logs the finding, and returns an HTTP 403 error response:
 
 Log output:
 [source,text]
 ----
-[accessLog] PII detected in request and declined: [{"pii_type": "Email", "masked_value": "****@example.com", "start": 0, "end": 20}, {"pii_type": "Phone", "masked_value": "+1******567", "start": 0, "end": 14}, {"pii_type": "SSN", "masked_value": "***-**-*789", "start": 0, "end": 11}]
+[accessLog] PII detected in request and declined: EMAIL_ADDRESS:1,PHONE_NUMBER:1,US_SSN:1
 ----
 
 Error response:
@@ -171,16 +296,16 @@ Error response:
       "phase": "request",
       "policy": "mcp-pii-detector",
       "findings": [
-        { "pii_type": "Email", "masked_value": "****@example.com" },
-        { "pii_type": "Phone", "masked_value": "+1******567" },
-        { "pii_type": "SSN", "masked_value": "***-**-*789" }
+        { "pii_type": "EMAIL_ADDRESS" },
+        { "pii_type": "PHONE_NUMBER" },
+        { "pii_type": "US_SSN" }
       ]
     }
   }
 }
 ----
 
-The upstream server never receives the original request containing PII.
+The upstream server never receives the original request containing PII. The error `findings[]` array carries only the entity type, never the matched value, masked or raw.
 
 NOTE: Request-side rejections use error code `-32602` (Invalid params) to indicate a client error, while response-side rejections use error code `-32603` (Internal error) to indicate the server response could not be safely returned.
 --
@@ -211,18 +336,18 @@ This example shows a server response containing PII and the corresponding behavi
 Log::
 +
 --
-When the action is set to *Log*, the policy forwards the response and logs detected PII with actual values:
+When the action is set to *Log*, the policy forwards the response and logs the detected entity types and counts:
 
 [source,text]
 ----
-[accessLog] PII detected in server response (log only): [{"pii_type": "Email", "value": "john.doe@example.com", "start": 14, "end": 34}, {"pii_type": "SSN", "value": "123-45-6789", "start": 41, "end": 52}]
+[accessLog] PII detected in server response (log only): EMAIL_ADDRESS:1,US_SSN:1
 ----
 --
 
 Log and Mask::
 +
 --
-When the action is set to *Log and mask*, the policy rewrites the response with masked values and logs masked findings:
+When the action is set to *Log and mask*, the policy rewrites the response with masked values and logs the finding:
 
 Response sent to client:
 [source,json]
@@ -234,7 +359,7 @@ Response sent to client:
     "content": [
       {
         "type": "text",
-        "text": "User contact: ****@example.com, SSN: ***-**-*789"
+        "text": "User contact: ********@example.com, SSN: ***-**-*789"
       }
     ]
   }
@@ -244,19 +369,21 @@ Response sent to client:
 Log output:
 [source,text]
 ----
-[accessLog] PII detected in server response (masked in body): [{"pii_type": "Email", "masked_value": "****@example.com", "start": 14, "end": 34}, {"pii_type": "SSN", "masked_value": "***-**-*789", "start": 41, "end": 52}]
+[accessLog] PII detected in server response (masked in body): EMAIL_ADDRESS:1,US_SSN:1
 ----
+
+The email local part is fully masked with asterisks while the domain is preserved; the SSN keeps only its last three digits and its separators.
 --
 
 Reject::
 +
 --
-When the action is set to *Reject*, the policy blocks the response, logs masked findings, and returns an HTTP 403 error:
+When the action is set to *Reject*, the policy blocks the response, logs the finding, and returns an HTTP 403 error:
 
 Log output:
 [source,text]
 ----
-[accessLog] PII detected in server response and declined: [{"pii_type": "Email", "masked_value": "****@example.com", "start": 14, "end": 34}, {"pii_type": "SSN", "masked_value": "***-**-*789", "start": 41, "end": 52}]
+[accessLog] PII detected in server response and declined: EMAIL_ADDRESS:1,US_SSN:1
 ----
 
 Error response:
@@ -273,8 +400,8 @@ Error response:
       "phase": "response",
       "policy": "mcp-pii-detector",
       "findings": [
-        { "pii_type": "Email", "masked_value": "****@example.com" },
-        { "pii_type": "SSN", "masked_value": "***-**-*789" }
+        { "pii_type": "EMAIL_ADDRESS" },
+        { "pii_type": "US_SSN" }
       ]
     }
   }
@@ -287,7 +414,7 @@ The client does not receive the original response containing PII.
 
 === Elicitation Response Example
 
-When a client sends a JSON-RPC response back to the server (MCP elicitation pattern) containing PII, and the action is set to *Reject*, the policy rewrites the result:
+When a client sends a JSON-RPC response back to the server (MCP elicitation pattern) containing PII, and the action is set to *Reject*, the policy rewrites the result rather than returning an HTTP error, because there is no request awaiting a reply:
 
 Original elicitation response:
 [source,json]
@@ -296,12 +423,10 @@ Original elicitation response:
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "content": [
-      {
-        "type": "text",
-        "text": "User SSN is 123-45-6789"
-      }
-    ]
+    "action": "accept",
+    "content": {
+      "email": "john.doe@example.com"
+    }
   }
 }
 ----
@@ -342,16 +467,63 @@ With a custom pattern configured (`name: AWS Access Key`, `pattern: AKIA[0-9A-Z]
 
 [source,text]
 ----
-[accessLog] PII detected in request (log only): [{"pii_type": "AWS Access Key", "value": "AKIAIOSFODNN7EXAMPLE", "start": 0, "end": 20}]
+[accessLog] PII detected in request (log only): AWS Access Key:1
 ----
+
+== Presidio Analyzer Integration
+
+When the `presidio` block is configured, the policy calls a co-deployed https://microsoft.github.io/presidio/[Microsoft Presidio^] Analyzer service in addition to the regex engine. Presidio extends detection to entity types that have no local regex equivalent, such as `PERSON` and `LOCATION`, and applies named-entity recognition that a static regex cannot.
+
+The regex engine's cost is paid on every leg regardless. When Presidio is configured, its cost is paid *in addition*, so enabling Presidio makes a leg more capable but never faster. A typical Analyzer call adds roughly 10–50 ms depending on text size and the number of loaded recognizers.
+
+=== Failure Handling
+
+If the Analyzer is unreachable (network failure, timeout, non-2xx response, or malformed response) on a scanned leg, the policy applies the configured `onServerError` behavior:
+
+* *Ignore* (default): The policy logs a warning, proceeds using only the regex engine's findings for that leg, and emits the `X-PII-Scan: fallback-regex` header. Because the regex engine always runs, this is a genuine fallback rather than a cold start. Entity types with no regex equivalent, such as `PERSON`, go undetected for the duration of the outage.
+* *Reject*: The policy rejects the leg with HTTP 503 and does not attempt a fallback scan.
+
+Example log output for `onServerError: Ignore`:
+
+[source,text]
+----
+Presidio Analyzer unreachable on request leg (Presidio service unavailable: ...); onServerError: Ignore, proceeding with the regex engine's findings only
+----
+
+Example error response for `onServerError: Reject`:
+
+[source,json]
+----
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "error": {
+    "code": -32603,
+    "message": "Internal error",
+    "data": {
+      "reason": "pii_scan_unavailable",
+      "policy": "mcp-pii-detector"
+    }
+  }
+}
+----
+
+The `Reject` response is returned with HTTP 503 Service Unavailable.
+
+[TIP]
+====
+Deployments that use `onServerError: Reject` should generally set a tighter `timeout` than the 1500 ms default: a long timeout before rejecting compounds a fail-closed outage with added latency on every request during it.
+====
 
 == Server-Sent Events (SSE) Considerations
 
 When the MCP server uses Server-Sent Events (text/event-stream) for streaming responses, the policy buffers and processes the entire stream:
 
-* *Log*: The stream is forwarded unchanged with raw PII values logged.
+* *Log*: The stream is forwarded unchanged and the finding is logged.
 * *Log and mask*: Each event's result strings are rewritten with masked values while preserving SSE framing (event names, IDs, comments).
 * *Reject*: The entire stream is replaced with a single JSON-RPC error envelope, and the Content-Type changes to application/json with HTTP 403 status.
+
+Detection runs once per event, and the leg's overall resolved action is the most severe action across every event. If the Analyzer fails on any single event with `onServerError: Reject`, the entire response is rejected.
 
 IMPORTANT: SSE buffering is suitable for short-lived tool-call responses but might not be appropriate for long-lived server-pushed streams. For notification streams or progress updates, use the *Log* action to avoid buffering.
 
@@ -359,7 +531,7 @@ NOTE: When *Reject* is applied to an SSE stream, the response Content-Type chang
 
 == Compliance and Data Flow
 
-This table shows where raw PII values appear based on the configured action:
+This table shows where raw PII values can appear based on the configured action:
 
 [%header,cols="1,2,2"]
 |===
@@ -368,19 +540,19 @@ This table shows where raw PII values appear based on the configured action:
 |Access Log
 
 |Reject
-|Masked (findings in error.data.findings[].masked_value)
-|Masked
+|Never. The body is replaced with an error envelope whose `findings[]` carries only entity types.
+|Never. Only entity types and counts are logged.
 
 |Log and mask
-|Masked (rewrites response body) or unchanged (forwards request unchanged)
-|Masked
+|Masked on the response leg (body rewritten); unchanged on the request leg (no-op, forwarded as-is).
+|Never. Only entity types and counts are logged.
 
 |Log
-|Forwarded unchanged (raw PII flows through)
-|Raw
+|Forwarded unchanged (raw PII flows through).
+|Never. Only entity types and counts are logged.
 |===
 
-IMPORTANT: *Reject* is the strict mode that never writes raw PII values anywhere (wire or log). If you need raw values in logs for diagnostics, use the *Log* action instead.
+IMPORTANT: The access log never contains PII values under any action, and error envelopes never contain PII values. Raw PII is only ever present in the proxied traffic itself under the *Log* action (and, on the response leg, in the masked form under *Log and mask*).
 
 NOTE: For the A2A PII Detector policy, the *Log and mask* action only masks the access log, not the request body. The MCP PII Detector's *Log and mask* action rewrites response bodies but forwards request bodies unchanged.
 
@@ -388,4 +560,4 @@ NOTE: For the A2A PII Detector policy, the *Log and mask* action only masks the 
 
 * xref:policies-included-a2a-pii-detector.adoc[A2A PII Detector Policy]
 * xref:policies-included-llm-pii-detection.adoc[LLM PII Detection Policy]
-
+* https://microsoft.github.io/presidio/[Microsoft Presidio documentation^]
