@@ -52,9 +52,9 @@ Each entry in *Custom PII Patterns* defines a pattern to detect values beyond th
 | Field | Required | Description
 | `name` | Yes | A descriptive name that identifies this pattern in detection results. Used as the entity type for regex-engine matches and as the recognizer name sent to the Analyzer.
 | `pattern` | Yes | A regular expression pattern to match sensitive data. For example, use `AKIA[0-9A-Z]{16}` to detect AWS access keys.
-| `supportedLanguage` | No | ISO 639-1 language code (for example, `en`) that this pattern's Presidio ad-hoc recognizer applies to. Ignored by the regex engine. Defaults to `presidio.language`.
-| `context` | No | Array of context words that boost this pattern's Presidio ad-hoc recognizer score. Ignored by the regex engine.
-| `score` | No | Base confidence score (`0.0`–`1.0`) for matches from this pattern's Presidio ad-hoc recognizer. Ignored by the regex engine. Default is `0.5`.
+| `supportedLanguage` | No | ISO 639-1 language code (for example, `en`) that this pattern applies to when sent to the Analyzer. Ignored by the regex engine. Defaults to `presidio.language`.
+| `context` | No | Array of context words that boost this pattern's detection score in the Analyzer. Ignored by the regex engine.
+| `score` | No | Base confidence score (`0.0`–`1.0`) for matches from this pattern in the Analyzer. Ignored by the regex engine. Default is `0.5`.
 |===
 
 [[per-entity-rules]]
@@ -67,7 +67,7 @@ Each entry in *Per-Entity Rules* overrides the top-level action for a specific e
 | Field | Required | Description
 | `entity` | Yes | Entity type this rule applies to. Accepts either spelling, for example `Email` or `EMAIL_ADDRESS`, or `PERSON`. Built-in types are matched regardless of spelling, so a rule written as `Email` also matches a Presidio-origin `EMAIL_ADDRESS` finding.
 | `action` | Yes | Action to take for this entity. Supported values are *Reject*, *Log*, and *Log and mask*.
-| `direction` | No | Which leg this rule applies to: `request`, `response`, or `both`. Default is `both`. Combining `direction: request` (or `both`) with `action: Log and mask` is a no-op on the request leg; see <<action-enforcement>>.
+| `direction` | No | Which leg this rule applies to: `request`, `response`, or `both`. Default is `both`. Combining `direction: request` (or `both`) with `action: Log and mask` is a no-op on the request leg. For more information, see <<action-enforcement>>.
 |===
 
 [[presidio]]
@@ -139,10 +139,10 @@ Non-JSON bodies, binary content, and non-`POST` requests pass through unscanned.
 The policy always runs a built-in regex engine. When you configure the `presidio` block, the Presidio Analyzer runs in addition to the regex engine. On every scanned leg:
 
 . The regex engine runs, built from the built-in types in `entities` and from `customPatterns`.
-. If Presidio is configured, the Analyzer also scans the same values, using the full `entities` list and the `customPatterns` (forwarded as ad-hoc recognizers).
+. If Presidio is configured, the Analyzer also scans the same values, using the full `entities` list and the `customPatterns` (forwarded to the Analyzer).
 . The two engines' findings are merged and deduplicated by entity type and matched value. A Presidio finding is skipped if the regex engine already recorded a finding with the same canonical entity type and value.
 . Any finding whose matched value is in the `allowList` is dropped from the merged set.
-. Each remaining finding's action is resolved the same way, regardless of which engine produced it: the first `rules` entry matching both the finding's entity type and the leg's direction wins; otherwise the finding falls back to the top-level `action`.
+. Each remaining finding's action is resolved the same way, regardless of which engine produced it. The first `rules` entry matching both the finding's entity type and the leg's direction wins. Otherwise, the finding falls back to the top-level `action`.
 . The leg's overall action is the most severe action across all findings (`Reject` > `Log and mask` > `Log`). A single reject-worthy finding upgrades the whole leg.
 
 Because both engines feed the same resolution logic, `rules` and `action` apply uniformly whether a finding came from the regex engine, from Presidio, or from both.
@@ -182,7 +182,7 @@ The policy detects overlapping PII patterns and keeps the longest (most specific
 
 [IMPORTANT]
 ====
-*Log and mask* is a permanent architectural boundary on the request leg: the request leg never masks. Masking a request argument in place would corrupt the value the MCP server executes against. For example, a masked email address is a different, likely invalid argument to a `send_email` tool. A rule combining `direction: request` (or `both`) with `action: Log and mask` is accepted but does nothing on the request leg; the policy logs a warning at startup and again at the first matching finding.
+*Log and mask* is a permanent architectural boundary on the request leg: the request leg never masks. Masking a request argument in place would corrupt the value the MCP server executes against. For example, a masked email address is a different, likely invalid argument to a `send_email` tool. A rule combining `direction: request` (or `both`) with `action: Log and mask` is accepted but does nothing on the request leg. The policy logs a warning at startup and again at the first matching finding.
 ====
 
 === Access Log Format
@@ -207,7 +207,7 @@ Whenever any PII is found on either leg, the policy emits the following headers 
 [[pii-types]]
 == PII Types
 
-When you configure an MCP PII Detector policy, you choose which types of PII to detect. The regex engine recognizes the built-in types listed in the following table. When Presidio is configured, you can additionally list any recognizer name that the Analyzer supports, such as `PERSON`, `LOCATION`, or `IBAN_CODE`; the available set depends on the Analyzer's loaded recognizers.
+When you configure an MCP PII Detector policy, you choose which types of PII to detect. The regex engine recognizes the built-in types listed in the following table. When Presidio is configured, you can additionally list any recognizer name that the Analyzer supports, such as `PERSON`, `LOCATION`, or `IBAN_CODE`. The available set depends on the Analyzer's loaded recognizers.
 
 [%header,cols='1a,5a']
 |===
@@ -372,7 +372,7 @@ Log output:
 [accessLog] PII detected in server response (masked in body): EMAIL_ADDRESS:1,US_SSN:1
 ----
 
-The email local part is fully masked with asterisks while the domain is preserved; the SSN keeps only its last three digits and its separators.
+The email local part is fully masked with asterisks while the domain is preserved. The SSN keeps only its last three digits and its separators.
 --
 
 Reject::
@@ -544,7 +544,7 @@ This table shows where raw PII values can appear based on the configured action:
 |Never. Only entity types and counts are logged.
 
 |Log and mask
-|Masked on the response leg (body rewritten); unchanged on the request leg (no-op, forwarded as-is).
+|Masked on the response leg (body rewritten). Unchanged on the request leg (no-op, forwarded as-is).
 |Never. Only entity types and counts are logged.
 
 |Log
