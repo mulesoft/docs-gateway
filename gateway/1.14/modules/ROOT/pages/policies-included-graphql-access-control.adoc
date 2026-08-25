@@ -1,0 +1,148 @@
+= GraphQL Access Control Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: graphql, access control, authorization, cedar, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | GraphQL Access Control
+>s| Summary | Authorizes incoming GraphQL requests by evaluating Cedar rules
+>s| Category | Security
+>s| First Omni Gateway version available | v1.14.0
+>s|Release Notes| xref:release-notes::gateway/policies/graphql-access-control-release-notes.adoc[]
+.3+>.^s| Returned status codes
+| 403 Forbidden — No rule authorizes the request. The response body is a JSON object with an `error` message such as `GraphQL request denied by access control policy`.
+| 500 Internal Server Error — An unexpected error occurred while evaluating the rules.
+| 503 Service Unavailable — The configured Cedar rules can't be parsed. The policy fails to start, and Omni Gateway rejects every request until you provide valid rules.
+|===
+
+== Summary
+
+The GraphQL Access Control policy authorizes each incoming GraphQL request against a set of https://www.cedarpolicy.com/[Cedar^] rules that you define. Cedar is an open source policy language that expresses authorization as `permit` and `forbid` statements. Omni Gateway follows the default-deny model: a request is allowed only when at least one `permit` rule matches and no `forbid` rule matches.
+
+Use this policy to enforce fine-grained, attribute-based authorization on GraphQL traffic, for example, to restrict mutations to privileged clients, allow specific named operations, or gate access by request header, SLA tier, or source IP address.
+
+To make identity-based decisions, apply an upstream authentication policy, such as Basic Authentication, Client ID Enforcement, JWT Validation, OAuth 2.0 Token Introspection, or OpenID Connect, before this policy. The authentication policy populates the `principal` that the rules evaluate. When no authentication policy runs, Omni Gateway evaluates the request against the `Client::"None"` principal.
+
+Cedar rules can match against the following `principal` attributes, which come from the upstream authentication policy:
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+s| Attribute s| Description
+
+| `principal.principal`
+| The authenticated principal identifier, such as the Basic Authentication username or the raw token.
+
+| `principal.client_id`
+| The client ID resolved by the upstream authentication policy, when available.
+
+| `principal.client_name`
+| The client application name resolved by the upstream authentication policy, when available.
+
+| `principal.properties.<name>`
+| Additional properties published by the upstream authentication policy. For example, JWT Validation exposes `principal.properties.claims.<claim>`, and OAuth 2.0 Token Introspection exposes `principal.properties.scope`.
+
+| `principal.properties.slaId`
+| The SLA tier ID of the client, when an upstream policy publishes it.
+
+| `principal.properties.slaName`
+| The human-readable SLA tier name that corresponds to `slaId`, resolved from the API instance metadata.
+|===
+
+Cedar rules can also match against the following request `context` attributes:
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+s| Attribute s| Description
+
+| `context.headers["<name>"]`
+| The value of a request header. Use bracket notation to access header names that contain characters such as dashes, for example, `context.headers["x-internal"]`.
+
+| `context.graphqlQuery`
+| The raw GraphQL operation text.
+
+| `context.operationName`
+| The name of the resolved operation. If the request provides an `operationName`, Omni Gateway resolves that operation; otherwise, it resolves the first operation in the document. Empty when the operation is anonymous.
+
+| `context.operationType`
+| The type of the resolved operation: `query`, `mutation`, or `subscription`. Shorthand documents resolve to `query`.
+
+| `context.rootField`
+| The name of the first top-level field in the resolved operation.
+
+| `context.ipAddress`
+| The source IP address of the request, when available.
+|===
+
+After Omni Gateway extracts the GraphQL operation text, the policy evaluates the rules. Omni Gateway doesn't inspect the operation text for persisted queries and passes them through without authorization checks. Non-GraphQL requests also pass through.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: graphql-access-control-flex
+  config:
+    rules: <array> // REQUIRED, list of Cedar policy statements; can't be empty
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+
+| Parameter | Required | Default Value | Description
+
+| `rules`
+| Yes
+| None
+| A list of Cedar policy statements that authorize requests. Each statement must be a valid Cedar `permit` or `forbid` rule that ends with a semicolon. The list can't be empty. If any rule fails to parse, the policy fails to start and Omni Gateway returns a `503` for every request.
+
+|===
+
+==== Resource Configuration Example
+
+This example permits queries from any client but restricts mutations to clients that authenticate as `admin`:
+
+[source,yaml]
+----
+- policyRef:
+    name: graphql-access-control-flex
+  config:
+    rules:
+      - permit(principal, action, resource) when { context.operationType == "query" };
+      - permit(principal, action, resource) when { principal.principal == "admin" };
+----
+
+This example permits requests only from internal callers, identified by a request header, and blocks introspection-style queries against the `__schema` root field:
+
+[source,yaml]
+----
+- policyRef:
+    name: graphql-access-control-flex
+  config:
+    rules:
+      - permit(principal, action, resource) when { context.headers["x-internal"] == "true" };
+      - forbid(principal, action, resource) when { context.rootField == "__schema" };
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+s|Field s|Description s|Default Value s|Required
+
+| Rules
+| The list of Cedar policy statements that authorize requests. Add one entry per `permit` or `forbid` rule. Each rule must be valid Cedar and end with a semicolon.
+| None
+| Yes
+|===
+
+== See Also
+
+* xref:policies-included-directory.adoc[Inbound Policies Directory]
+* xref:policies-included-graphql-introspection-control.adoc[GraphQL Introspection Control Policy]
+* xref:policies-included-graphql-schema-validation.adoc[GraphQL Schema Validation Policy]
+* xref:gateway-secure-apis.adoc[Securing Omni Gateway Instances with Policies]
+* https://www.cedarpolicy.com/[Cedar policy language^]
