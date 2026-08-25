@@ -142,7 +142,7 @@ kubectl create secret generic redis-password --from-literal=password='<your-redi
 +
 Replace `<your-redis-password>` with your Redis password.
 
-. In your Flex Gateway `Deployment`, mount the secret as a file and override the container command to read the password, write the shared storage configuration to a directory that Flex Gateway scans, and then start Flex Gateway. For example:
+. In your Omni Gateway `Deployment`, mount the secret as a file and override the container command to read the password, write the shared storage configuration to a directory that Omni Gateway scans, and then start Omni Gateway. For example:
 +
 [source,yaml]
 ----
@@ -196,7 +196,7 @@ spec:
 In this configuration:
 +
 * The `redis-password` volume mounts the `redis-password` secret at `/etc/redis-secret` in the container.
-* The container command reads the password from `/etc/redis-secret/password`, generates `shared-storage-config.yaml` in the `/etc/mulesoft/flex-gateway/conf.d` directory, and then starts Flex Gateway (`/init`).
+* The container command reads the password from `/etc/redis-secret/password`, generates `shared-storage-config.yaml` in the `/etc/mulesoft/flex-gateway/conf.d` directory, and then starts Omni Gateway (`/init`).
 * The `shared-storage-config` `emptyDir` volume provides a writable location for the generated configuration file. Because this directory is separate from the directory that stores your registration configuration, generating the file doesn't overwrite your registration.
 
 //end::secure-password-k8s[]
@@ -212,7 +212,7 @@ echo '<your-redis-password>' > /path/to/redis_password.txt
 +
 Manage this file with your secret store and restrict access to it.
 
-. Start the Flex Gateway container with the password file mounted, and override the command to generate the shared storage configuration before starting Flex Gateway:
+. Start the Omni Gateway container with the password file mounted, and override the command to generate the shared storage configuration before starting Omni Gateway:
 +
 [source,ssh]
 ----
@@ -238,7 +238,7 @@ EOF
 /init'
 ----
 +
-This command mounts the password file read-only, writes `shared-storage-config.yaml` to the in-container `/etc/mulesoft/flex-gateway/conf.d` directory, and then starts Flex Gateway (`/init`). Because the generated file is written inside the container instead of to the mounted host directory, the password isn't stored in plaintext on the host.
+This command mounts the password file read-only, writes `shared-storage-config.yaml` to the in-container `/etc/mulesoft/flex-gateway/conf.d` directory, and then starts Omni Gateway (`/init`). Because the generated file is written inside the container instead of to the mounted host directory, the password isn't stored in plaintext on the host.
 
 //end::secure-password-docker[]
 //tag::sentinel-intro[]
