@@ -26,7 +26,13 @@ Use this policy to enforce fine-grained, attribute-based authorization on GraphQ
 
 To make identity-based decisions, apply an upstream authentication policy, such as Basic Authentication, Client ID Enforcement, JWT Validation, OAuth 2.0 Token Introspection, or OpenID Connect, before this policy. The authentication policy populates the `principal` that the rules evaluate. When no authentication policy runs, Omni Gateway evaluates the request against the `Client::"None"` principal.
 
-Cedar rules can match against the following `principal` attributes, which come from the upstream authentication policy:
+After Omni Gateway extracts the GraphQL operation text, the policy evaluates your rules against the request. The policy skips persisted queries, because Omni Gateway doesn't inspect their operation text, and passes them to the upstream service without authorization checks. Non-GraphQL requests also pass through.
+
+== Attributes Available to Cedar Rules
+
+Cedar rules authorize a request by matching against attributes of the `principal`, which is the authenticated client, and the request `context`. Use these attributes in the `when` clause of a rule to make fine-grained decisions.
+
+The following `principal` attributes come from the upstream authentication policy:
 
 [%header%autowidth.spread,cols="a,a"]
 |===
@@ -51,7 +57,7 @@ s| Attribute s| Description
 | The human-readable SLA tier name that corresponds to `slaId`, resolved from the API instance metadata.
 |===
 
-Cedar rules can also match against the following request `context` attributes:
+The following request `context` attributes describe the incoming GraphQL request:
 
 [%header%autowidth.spread,cols="a,a"]
 |===
@@ -75,8 +81,6 @@ s| Attribute s| Description
 | `context.ipAddress`
 | The source IP address of the request, when available.
 |===
-
-After Omni Gateway extracts the GraphQL operation text, the policy evaluates the rules. Omni Gateway doesn't inspect the operation text for persisted queries and passes them through without authorization checks. Non-GraphQL requests also pass through.
 
 == Configuring Policy Parameters
 
