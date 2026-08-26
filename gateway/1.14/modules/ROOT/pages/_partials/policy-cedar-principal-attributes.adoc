@@ -1,4 +1,5 @@
-// Shared reference: Cedar `principal` attributes populated by upstream authentication policies.
+// Shared reference: Cedar `principal` attributes populated by upstream authentication policies,
+// for both included and custom authentication policies.
 // Included by the GraphQL Access Control and MCP Attribute-Based Access Control policy pages.
 // The `principal` bindings come from the shared authentication object, so they're identical across policies.
 Apply one of these authentication policies before the access control policy to populate the `principal` attributes:
@@ -38,3 +39,25 @@ s| Attribute s| Description
 | `principal.properties.slaName`
 | The human-readable SLA tier name that corresponds to `slaId`, resolved from the API instance metadata.
 |===
+
+=== Custom Authentication Policies
+
+For custom authentication policies, the custom policy must authenticate by using the `Authentication` injectable. To configure the `Authentication` injectable, see xref:pdk::policies-pdk-configure-features-authentication.adoc[].
+
+For the Rust `AuthenticationData` struct:
+
+[source, rust]
+----
+pub struct AuthenticationData {
+    pub principal: Option<String>,
+    pub client_id: Option<String>,
+    pub client_name: Option<String>,
+    pub properties: Value,
+}
+----
+
+The `AuthenticationData` parameters map to these Cedar bindings:
+
+* `principal`: `principal.principal`
+* `client_name`: `principal.client_name`
+* `properties`: `principal.properties.*`
