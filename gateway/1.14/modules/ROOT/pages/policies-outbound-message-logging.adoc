@@ -45,6 +45,13 @@ spec:
           level: <string> // REQUIRED
           firstSection: <bool> // OPTIONAL
           secondSection: <bool> // OPTIONAL
+    enableDataMasking: <bool> // OPTIONAL
+    dataMasking: // OPTIONAL
+      entities:
+        - <string> // Supported values: Email, US SSN, Credit Card, Phone Number
+      customPatterns:
+        - name: <string>
+          pattern: <string>
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -93,6 +100,21 @@ For more information, see <<severity-levels>>.
 | `false`
 | Boolean that indicates if messages are logged after receiving the response from the upstream service, taking into account the order in which this policy is applied.
 
+| `enableDataMasking`
+| Optional
+| `false`
+| When enabled, the policy detects and masks configured PII in log messages before they are written. Request and response bodies are forwarded to the upstream service unchanged.
+
+| `dataMasking.entities`
+| Optional
+| `[]`
+| List of built-in PII types to mask. Supported values: `Email`, `US SSN`, `Credit Card`, and `Phone Number`.
+
+| `dataMasking.customPatterns`
+| Optional
+| `[]`
+| List of custom patterns to mask when built-in PII detection doesn't cover the value. Each pattern must have a `name` and a `pattern` (regular expression) property.
+
 |===
 
 ==== Resource Configuration Example
@@ -136,6 +158,9 @@ include::partial$policy-title-headers.adoc[tag=ui]
 For more information, see <<severity-levels>>.|Required
 |Before Sending Request |Set to cause your logging policy to log messages before the outbound request is sent to the upstream service, taking into account the order in which this policy is applied. |Optional
 |After Receiving Response |Set to cause your logging policy to log messages after receiving the response from the upstream service, taking into account the order in which this policy is applied. |Optional
+|Enable data masking |Detect and mask configured PII before writing log messages. Request and response bodies are forwarded to the upstream service unchanged. |Optional
+|PII Detection |Select built-in PII types to mask: Email, US SSN, Credit Card, and Phone Number. |Optional
+|Custom Patterns |Add a regular expression pattern to mask a value that built-in PII detection doesn't cover. Each pattern has a name and a regex. |Optional
 |===
 
 
