@@ -48,31 +48,7 @@ You must apply either an included authentication policy or a custom authenticati
 
 === Included Authentication Policies
 
-The authentication policy you apply affects the available Cedar `principal` bindings:
-
-* Multiple policies can validate Client ID:
-** xref:policies-included-client-id-enforcement.adoc[]
-** xref:policies-included-rate-limiting-sla.adoc[]
-** xref:policies-included-oauth-token-introspection.adoc[] (If Client ID enforcement is configured)
-** xref:policies-included-openid-token-enforcement.adoc[] (If Client ID enforcement is configured)
-** xref:policies-included-jwt-validation.adoc[] (If Client ID enforcement is configured)
-+ 
-Policies validating Client ID provide these Cedar bindings:
-+
-** `principal.client_name`: Name of the contract's client application
-** `principal.principal`: ID of the contract's client application
-** `principal.properties.slaId`: SLA ID assigned to the contract
-
-* xref:policies-included-jwt-validation.adoc[]:
-** `principal.properties.claims.<claimName>`: All claims provided by the JWT
-
-* Multiple policies validate basic authentication credentials:
-** xref:policies-included-basic-auth-simple.adoc[]
-** xref:policies-included-basic-auth-ldap.adoc[]
-+ 
-Policies validating basic authentication credentials provide these Cedar bindings:
-+
-** `principal.principal`: Username passed as basic auth user
+include::partial$policy-cedar-principal-attributes.adoc[]
 
 === Custom Authentication Policies
 
