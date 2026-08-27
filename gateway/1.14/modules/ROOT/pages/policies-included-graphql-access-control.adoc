@@ -76,7 +76,7 @@ s| Attribute s| Description
 | The raw GraphQL operation text.
 
 | `context.operationName`
-| The name of the resolved operation. If the request provides an `operationName`, Omni Gateway resolves that operation; otherwise, it resolves the first operation in the document. Empty when the operation is anonymous.
+| The name of the resolved operation. If the request provides an `operationName`, Omni Gateway resolves that operation. Otherwise, Omni Gateway resolves the first operation in the document. Empty when the operation is anonymous.
 
 | `context.operationType`
 | The type of the resolved operation: `query`, `mutation`, or `subscription`. Shorthand documents resolve to `query`.
@@ -88,7 +88,7 @@ s| Attribute s| Description
 | The source IP address of the request, when available.
 |===
 
-Cedar rules can also match requests against these `principal` attributes. Apply an upstream authentication policy to populate these values. To learn what policies update which attributes, see <<authentication-policies-principal-attributes>> t.
+Cedar rules can also match requests against these `principal` attributes. You must apply an authentication policy before the GraphQL Access Control policy to populate these values. To learn what policies update which attributes, see <<authentication-policies-principal-attributes>>.
 
 [%header%autowidth.spread,cols="a,a"]
 |===
@@ -114,8 +114,6 @@ s| Attribute s| Description
 |===
 
 When no authentication policy runs, Omni Gateway evaluates the request against the `Client::"None"` principal, and these `principal` attributes are empty.
-
-After Omni Gateway extracts the GraphQL operation text, the policy evaluates the rules. Omni Gateway doesn't inspect the operation text for persisted queries and passes them through without authorization checks. Non-GraphQL requests also pass through.
 
 [[authentication-policies-principal-attributes]]
 == Authentication Policies Principal Attributes
