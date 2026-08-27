@@ -8,7 +8,7 @@ endif::[]
 [width="100%", cols="5,15"]
 |===
 >s| Policy Name | Model Proxy Request Compression Policy
->s|Summary      | Compresses replayed tool-result strings in Model Proxy request bodies before they reach the upstream provider, reducing billed input tokens
+>s|Summary      | Compresses scope-selected message content and replayed tool results in Model Proxy request bodies before they reach the upstream provider, reducing billed input tokens while preserving stable prompt-cache prefixes
 >s|Category | LLM
 >s|First Omni Gateway version available | v1.13.0
 >s|Release Notes| xref:release-notes::gateway/policies/llm-proxy-request-compression-release-notes.adoc[]
@@ -17,15 +17,22 @@ endif::[]
 
 == Summary
 
-The Model Proxy Request Compression policy reduces token consumption by compressing the tool-result strings that agents carry in an LLM request body before that body reaches the upstream provider. 
+The Model Proxy Request Compression policy reduces token consumption by compressing the strings that agents carry in an LLM request body before that body reaches the upstream provider.
 
-In a multi-turn agent conversation, each tool call and its result are appended to the conversation history, and that full history is re-sent on every subsequent request so the model retains context. A large tool result is therefore billed as input tokens again on each following turn. Compressing those replayed strings reduces the input tokens.
+In a multi-turn agent conversation, each message and each tool result is appended to the conversation history, and that full history is re-sent on every subsequent request so the model retains context. Large strings are therefore billed as input tokens again on each following turn. Compressing those replayed strings reduces the input tokens.
 
-The policy runs on the inbound Model Proxy chain. It scans the request body for `role: "tool"` result strings and rewrites each one, keeping the rewritten value only when it is strictly smaller than the original. It supports both the Chat Completions and Responses API shapes.
+The policy runs on the inbound Model Proxy chain. It walks the entire request body and rewrites each scope-selected string, keeping the rewritten value only when it is strictly smaller than the original. It supports both the Chat Completions and Responses API shapes.
 
-The compression is organized into two independent features:
+Two independent *compression scopes* control which strings are eligible:
 
-. *Clean Payload* - Compresses each tool-result string using a configurable set of transforms: minify (removes only whitespace, so no data is lost), remove null values, remove empty values, and HTML to Markdown. Enabled by default.
+* *Compress Tool Results* - Compresses every supplied tool result, including replayed history. This covers Chat Completions tool-message content and Responses function and custom-tool call outputs. Enabled by default to preserve the policy's original behavior.
+* *Compress Messages* - Compresses the Responses `instructions` field and the textual content of every supplied system, user, and assistant message, including history. Roles, tool calls, metadata, cache breakpoints, and non-text content are preserved. Disabled by default because message content can contain formatting-sensitive instructions or data.
+
+Because both scopes traverse the whole request rather than only the latest message, a runtime-replayed history is transformed deterministically on every turn, which keeps prompt-cache prefixes stable. Provider-managed history is never part of the request body and is never reconstructed.
+
+The transforms applied within those scopes are organized into two independent features:
+
+. *Clean Payload* - Compresses each eligible string using a configurable set of transforms: minify (removes only whitespace, so no data is lost), remove null values, remove empty values, and HTML to Markdown. Enabled by default.
 . *TOON Encoding* - Re-encodes uniform JSON structures as Token-Oriented Object Notation (TOON), a compact tabular format that reduces tokens for repeated structures. Disabled by default.
 
 The policy is *fail-open* throughout: any gate miss, parse failure, or result that doesn't get smaller forwards the original bytes unchanged. When compression does engage, the policy measures the tokens and bytes saved and feeds the token/cost savings to Cost Management telemetry.
@@ -45,7 +52,17 @@ The Model Proxy Request Compression policy isn't supported in Local Mode.
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
-The policy configuration is organized into two features. Each feature has a switch that enables the fields below it and an *Agent IDs* allowlist that controls which agents the feature applies to.
+The policy configuration is organized into two compression scopes that select which strings are eligible, plus two transform features. Each feature has a switch that enables the fields below it and an *Agent IDs* allowlist that controls which agents the feature applies to.
+
+=== Compression Scopes
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Description | Default
+
+| Compress Tool Results | Applies the enabled transforms to every supplied tool result, including replayed history. Covers Chat Completions tool-message content and Responses function and custom-tool call outputs. | Enabled
+| Compress Messages | Applies the enabled transforms to the Responses `instructions` field and the textual content of every supplied system, user, and assistant message, including history. Roles, tool calls, metadata, cache breakpoints, and non-text content are preserved. | Disabled
+|===
 
 === Clean Payload
 
@@ -54,10 +71,10 @@ The policy configuration is organized into two features. Each feature has a swit
 | Element | Description | Default
 
 | Enable Clean Payload | Enablement switch for the Clean Payload feature. | Enabled
-| Minify | Reserializes tool-result JSON in compact form, dropping only insignificant whitespace such as indentation and spaces between tokens. The parsed data is unchanged, so no information is lost. | Enabled
-| Remove Null Values | Lossy. Recursively drops object keys whose value is `null` from tool-result JSON. Null array elements are preserved. | Disabled
+| Minify | Reserializes eligible JSON content in compact form, dropping only insignificant whitespace such as indentation and spaces between tokens. The parsed data is unchanged, so no information is lost. | Enabled
+| Remove Null Values | Lossy. Recursively drops object keys whose value is `null` from eligible JSON content. Null array elements are preserved. | Disabled
 | Remove Empty Values | Drops object keys whose value is an empty string, array, or object, applied bottom-up until no more can be removed. | Disabled
-| HTML to Markdown | Converts HTML tool results to Markdown after stripping `<script>` and `<style>` blocks. Fails open to the cleaned input. | Disabled
+| HTML to Markdown | Converts eligible HTML content to Markdown after stripping `<script>` and `<style>` blocks. Fails open to the cleaned input. | Disabled
 | Clean Payload — Agent IDs | Allowlist of agent IDs opted into the Clean Payload feature. For details on allowlist behavior, see <<agent-id-gating>>. | `[]` (empty)
 |===
 
@@ -68,7 +85,7 @@ The policy configuration is organized into two features. Each feature has a swit
 | Element | Description | Default
 
 | Enable TOON Encoding | Enablement switch for the TOON feature. | Disabled
-| TOON Minimum Response Bytes | Apply TOON encoding only to tool-result strings that are at least this many bytes long. A value of `0` disables the threshold. | `500`
+| TOON Minimum Response Bytes | Apply TOON encoding only to eligible strings that are at least this many bytes long. A value of `0` disables the threshold. | `500`
 | TOON — Agent IDs | Allowlist of agent IDs opted into the TOON feature. For details on allowlist behavior, see <<agent-id-gating>>. | `[]` (empty)
 |===
 
@@ -93,9 +110,9 @@ For each request, the policy processes the body only when these conditions are m
 
 When those conditions are met, the policy:
 
-. Determines which features are engaged and if the agent is in a per-agent allowlist.
-. Scans the request body and locates the `role: "tool"` result strings.
-. Rewrites each tool-result string.
+. Determines which scopes and features are engaged and if the agent is in a per-agent allowlist.
+. Walks the full request body and locates the scope-selected strings, in document order, across the complete supplied history.
+. Rewrites each located string.
 . Keeps a rewritten string only when it is strictly smaller than the original.
 . Removes the stale `Content-Length` header and reserializes the body.
 
@@ -104,11 +121,11 @@ Because the policy is fail-open, an unparseable body, a missing gate, or a resul
 [[toon-encoding]]
 === TOON Encoding
 
-Token-Oriented Object Notation (TOON) is a compact, JSON-equivalent text format that reduces token consumption for structured data. When *Enable TOON Encoding* is enabled, the policy re-encodes eligible tool-result JSON as TOON, prefixing the result with `TOON: `.
+Token-Oriented Object Notation (TOON) is a compact, JSON-equivalent text format that reduces token consumption for structured data. When *Enable TOON Encoding* is enabled, the policy re-encodes eligible JSON content as TOON, prefixing the result with `TOON: `.
 
 TOON encoding:
 
-* Applies only to tool-result strings that are at least *TOON Minimum Response Bytes*.
+* Applies only to eligible strings that are at least *TOON Minimum Response Bytes*.
 * Applies only to the shapes that TOON can shrink, such as uniform arrays of objects and objects with repeated structure.
 * Is lossless but format-changing: the data is preserved, but the model receives it as TOON rather than JSON.
 * Preserves or reduces payload size: the re-encoded value is kept only when it is strictly smaller than the original.
