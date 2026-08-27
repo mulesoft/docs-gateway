@@ -21,7 +21,7 @@ The Model Proxy Request Compression policy reduces token consumption by compress
 
 In a multi-turn agent conversation, each message and each tool result is appended to the conversation history, and that full history is re-sent on every subsequent request so the model retains context. Large strings are therefore billed as input tokens again on each following turn. Compressing those replayed strings reduces the input tokens.
 
-The policy runs on the inbound Model Proxy chain. It walks the entire request body and rewrites each scope-selected string, keeping the rewritten value only when it is strictly smaller than the original. It supports both the Chat Completions and Responses API shapes.
+The policy runs on the inbound Model Proxy chain. It scans the entire request body and rewrites each scope-selected string, keeping the rewritten value only when it is strictly smaller than the original. It supports both the Chat Completions and Responses API shapes.
 
 Two independent *compression scopes* control which strings are eligible:
 
@@ -111,7 +111,7 @@ For each request, the policy processes the body only when these conditions are m
 When those conditions are met, the policy:
 
 . Determines which scopes and features are engaged and if the agent is in a per-agent allowlist.
-. Walks the full request body and locates the scope-selected strings, in document order, across the complete supplied history.
+. Scans the full request body and locates the scope-selected strings, in document order, across the complete supplied history.
 . Rewrites each located string.
 . Keeps a rewritten string only when it is strictly smaller than the original.
 . Removes the stale `Content-Length` header and reserializes the body.
