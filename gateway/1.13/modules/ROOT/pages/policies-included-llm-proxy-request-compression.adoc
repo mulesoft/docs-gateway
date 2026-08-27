@@ -28,7 +28,7 @@ Two independent *compression scopes* control which strings are eligible:
 * *Compress Tool Results* - Compresses every supplied tool result, including replayed history. This covers Chat Completions tool-message content and Responses function and custom-tool call outputs. Enabled by default to preserve the policy's original behavior.
 * *Compress Messages* - Compresses the Responses `instructions` field and the textual content of every supplied system, user, and assistant message, including history. Roles, tool calls, metadata, cache breakpoints, and non-text content are preserved. Disabled by default because message content might contain formatting-sensitive instructions or data.
 
-Both scopes traverse the whole request rather than only the latest message. When a runtime re-sends the raw history in the request body, the policy rewrites it the same way every time, which keeps prompt-cache prefixes stable. History that the provider manages server-side is never part of the request body, so the policy neither transforms nor reconstructs it.
+Both scopes traverse the whole request rather than only the latest message. When a runtime resends the raw history in the request body, the policy rewrites it the same way every time, which keeps prompt-cache prefixes stable. History that the provider manages server-side is never part of the request body, so the policy neither transforms nor reconstructs it.
 
 The transforms applied within those scopes are organized into two independent features:
 
