@@ -25,7 +25,7 @@ The policy scans the entire request body and rewrites each scope-selected string
 
 Two independent *compression scopes* control which strings are eligible:
 
-* *Compress Tool Results* - Compresses every supplied tool result, including replayed history. This covers Chat Completions tool-message content and Responses function and custom-tool call outputs. Enabled by default to preserve the policy's original behavior.
+* *Compress Tool Results* - Compresses every supplied tool result, including replayed history. This covers Chat Completions tool-message content and outputs from Responses function and custom-tool calls. Enabled by default to preserve the policy's original behavior.
 * *Compress Messages* - Compresses the Responses `instructions` field and the textual content of every supplied system, user, and assistant message, including history. Roles, tool calls, metadata, cache breakpoints, and non-text content are preserved. Disabled by default because message content might contain formatting-sensitive instructions or data.
 
 Both scopes traverse the whole request rather than only the latest message. When a runtime resends the raw history in the request body, the policy rewrites it the same way every time, which keeps prompt-cache prefixes stable. History that the provider manages server-side is never part of the request body, so the policy neither transforms nor reconstructs it.
@@ -74,7 +74,7 @@ The policy configuration is organized into two compression scopes that select wh
 | Minify | Reserializes eligible JSON content in compact form, dropping only insignificant whitespace such as indentation and spaces between tokens. The parsed data is unchanged, so no information is lost. | Enabled
 | Remove Null Values | Lossy. Recursively drops object keys with `null` values from eligible JSON content. Null array elements are preserved. | Disabled
 | Remove Empty Values | Drops object keys whose value is an empty string, array, or object, applied bottom-up until no more can be removed. | Disabled
-| HTML to Markdown | Converts eligible HTML content to Markdown after stripping `<script>` and `<style>` blocks. Fails open to the compressed HTML input. | Disabled
+| HTML to Markdown | Converts eligible HTML content to Markdown after stripping `<script>` and `<style>` blocks. If the conversion fails, the policy falls back to that stripped HTML instead of erroring. | Disabled
 | Clean Payload — Agent IDs | Allowlist of agent IDs opted into the Clean Payload feature. For details on allowlist behavior, see <<agent-id-gating>>. | `[]` (empty)
 |===
 
