@@ -19,7 +19,7 @@ endif::[]
 
 The Model Proxy Request Compression policy reduces token consumption by compressing the strings that agents carry in an LLM request body before that body reaches the upstream provider.
 
-In an ongoing agent conversation, each message and each tool result is added to the conversation history. To keep context, a client or runtime often re-sends the whole history with each new request. Every time it does, the provider charges input tokens for that history again. Compressing those repeated strings reduces the input tokens.
+In an ongoing agent conversation, each message and each tool result is added to the conversation history. To keep context, a client or runtime might re-sends the whole history with each new request. Every time it does, the provider charges input tokens for that history again. Compressing those repeated strings reduces the input tokens.
 
 The policy scans the entire request body and rewrites each scope-selected string, keeping the rewritten value only when it is strictly smaller than the original. It supports both the Chat Completions and Responses API shapes.
 
