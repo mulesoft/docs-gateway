@@ -21,12 +21,12 @@ The Model Proxy Request Compression policy reduces token consumption by compress
 
 In an ongoing agent conversation, each message and each tool result is added to the conversation history. To keep context, a client or runtime often re-sends the whole history with each new request. Every time it does, the provider charges input tokens for that history again. Compressing those repeated strings reduces the input tokens.
 
-The policy runs on the inbound Model Proxy chain. It scans the entire request body and rewrites each scope-selected string, keeping the rewritten value only when it is strictly smaller than the original. It supports both the Chat Completions and Responses API shapes.
+The policy scans the entire request body and rewrites each scope-selected string, keeping the rewritten value only when it is strictly smaller than the original. It supports both the Chat Completions and Responses API shapes.
 
 Two independent *compression scopes* control which strings are eligible:
 
 * *Compress Tool Results* - Compresses every supplied tool result, including replayed history. This covers Chat Completions tool-message content and Responses function and custom-tool call outputs. Enabled by default to preserve the policy's original behavior.
-* *Compress Messages* - Compresses the Responses `instructions` field and the textual content of every supplied system, user, and assistant message, including history. Roles, tool calls, metadata, cache breakpoints, and non-text content are preserved. Disabled by default because message content can contain formatting-sensitive instructions or data.
+* *Compress Messages* - Compresses the Responses `instructions` field and the textual content of every supplied system, user, and assistant message, including history. Roles, tool calls, metadata, cache breakpoints, and non-text content are preserved. Disabled by default because message content might contain formatting-sensitive instructions or data.
 
 Both scopes traverse the whole request rather than only the latest message. When a runtime re-sends the raw history in the request body, the policy rewrites it the same way every time, which keeps prompt-cache prefixes stable. History that the provider manages server-side is never part of the request body, so the policy neither transforms nor reconstructs it.
 
