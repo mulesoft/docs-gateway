@@ -1,4 +1,4 @@
-= LLM Proxy Request Compression Policy
+= Model Proxy Request Compression Policy
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -7,8 +7,8 @@ endif::[]
 
 [width="100%", cols="5,15"]
 |===
->s| Policy Name | LLM Proxy Request Compression Policy
->s|Summary      | Compresses replayed tool-result strings in LLM Proxy request bodies before they reach the upstream provider, reducing billed input tokens
+>s| Policy Name | Model Proxy Request Compression Policy
+>s|Summary      | Compresses replayed tool-result strings in Model Proxy request bodies before they reach the upstream provider, reducing billed input tokens
 >s|Category | LLM
 >s|First Omni Gateway version available | v1.14.0
 >s|Release Notes| xref:release-notes::gateway/policies/llm-proxy-request-compression-release-notes.adoc[]
@@ -17,7 +17,7 @@ endif::[]
 
 == Summary
 
-The LLM Proxy Request Compression policy reduces billed *input* token consumption by compressing the tool-result strings that agents carry in an LLM request body before that body reaches the upstream provider. 
+The Model Proxy Request Compression policy reduces billed *input* token consumption by compressing the tool-result strings that agents carry in an LLM request body before that body reaches the upstream provider. 
 
 In a multi-turn agent conversation, each tool call and its result are appended to the conversation history, and that full history is re-sent on every subsequent request so the model retains context. A large tool result is therefore billed as input tokens again on each following turn. Compressing those replayed strings reduces the input tokens.
 
@@ -34,14 +34,14 @@ The policy is *fail-open* throughout: any gate miss, parse failure, or result th
 
 Apply this policy to the inbound Model Proxy chain:
 
-* *After* the LLM Proxy core processing.
+* *After* the Model Proxy core processing.
 * *Before* any provider transcoding policy, so it operates on the request before it is rewritten for a specific provider.
 
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
-The LLM Proxy Request Compression policy isn't supported in Local Mode.
+The Model Proxy Request Compression policy isn't supported in Local Mode.
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
@@ -77,7 +77,7 @@ The policy configuration is organized into two features. Each feature has a swit
 
 Each feature has its own *Agent IDs* independent allowlist (*Clean Payload — Agent IDs* and *TOON — Agent IDs*). The policy resolves the agent ID from the request and decides to apply the feature:
 
-* *Direct requests to the LLM Proxy* carry no agent ID. The feature always applies to these requests, regardless of the allowlist contents.
+* *Direct requests to the Model Proxy* carry no agent ID. The feature always applies to these requests, regardless of the allowlist contents.
 * *Requests from an identified agent* apply the feature if the agent's ID is in that feature's allowlist.
 
 You must add an agent to the allowlist for the the feature to apply to it's request. There is no allow all functionality.
@@ -89,7 +89,7 @@ In Cost Management, applying the policy to an agent appends the agent's ID to th
 For each request, the policy processes the body only when these conditions are met:
 
 * The request is a `POST` with a `Content-Type` of `application/json`.
-* The request has been normalized to OpenAI shape by the upstream LLM Proxy core processing.
+* The request has been normalized to OpenAI shape by the upstream Model Proxy core processing.
 
 When those conditions are met, the policy:
 
