@@ -1,0 +1,119 @@
+= Model Proxy Request Compression Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, llm, model proxy, compression, tokens, toon
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Model Proxy Request Compression Policy
+>s|Summary      | Compresses replayed tool-result strings in Model Proxy request bodies before they reach the upstream provider, reducing billed input tokens
+>s|Category | LLM
+>s|First Omni Gateway version available | v1.13.0
+>s|Release Notes| xref:release-notes::gateway/policies/llm-proxy-request-compression-release-notes.adoc[]
+>s| Returned Status Codes | No return codes exist for this policy.
+|===
+
+== Summary
+
+The Model Proxy Request Compression policy reduces token consumption by compressing the tool-result strings that agents carry in an LLM request body before that body reaches the upstream provider. 
+
+In a multi-turn agent conversation, each tool call and its result are appended to the conversation history, and that full history is re-sent on every subsequent request so the model retains context. A large tool result is therefore billed as input tokens again on each following turn. Compressing those replayed strings reduces the input tokens.
+
+The policy runs on the inbound Model Proxy chain. It scans the request body for `role: "tool"` result strings and rewrites each one, keeping the rewritten value only when it is strictly smaller than the original. It supports both the Chat Completions and Responses API shapes.
+
+The compression is organized into two independent features:
+
+. *Clean Payload* - Compresses each tool-result string using a configurable set of transforms: minify (removes only whitespace, so no data is lost), remove null values, remove empty values, and HTML to Markdown. Enabled by default.
+. *TOON Encoding* - Re-encodes uniform JSON structures as Token-Oriented Object Notation (TOON), a compact tabular format that reduces tokens for repeated structures. Disabled by default.
+
+The policy is *fail-open* throughout: any gate miss, parse failure, or result that doesn't get smaller forwards the original bytes unchanged. When compression does engage, the policy measures the tokens and bytes saved and feeds the token/cost savings to Cost Management telemetry.
+
+== Placement
+
+Apply this policy to the inbound Model Proxy chain:
+
+* *After* the Model Proxy core processing.
+* *Before* any provider transcoding policy, so it operates on the request before it is rewritten for a specific provider.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The Model Proxy Request Compression policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+The policy configuration is organized into two features. Each feature has a switch that enables the fields below it and an *Agent IDs* allowlist that controls which agents the feature applies to.
+
+=== Clean Payload
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Description | Default
+
+| Enable Clean Payload | Enablement switch for the Clean Payload feature. | Enabled
+| Minify | Reserializes tool-result JSON in compact form, dropping only insignificant whitespace such as indentation and spaces between tokens. The parsed data is unchanged, so no information is lost. | Enabled
+| Remove Null Values | Lossy. Recursively drops object keys whose value is `null` from tool-result JSON. Null array elements are preserved. | Disabled
+| Remove Empty Values | Drops object keys whose value is an empty string, array, or object, applied bottom-up until no more can be removed. | Disabled
+| HTML to Markdown | Converts HTML tool results to Markdown after stripping `<script>` and `<style>` blocks. Fails open to the cleaned input. | Disabled
+| Clean Payload — Agent IDs | Allowlist of agent IDs opted into the Clean Payload feature. For details on allowlist behavior, see <<agent-id-gating>>. | `[]` (empty)
+|===
+
+=== TOON Encoding
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Description | Default
+
+| Enable TOON Encoding | Enablement switch for the TOON feature. | Disabled
+| TOON Minimum Response Bytes | Apply TOON encoding only to tool-result strings that are at least this many bytes long. A value of `0` disables the threshold. | `500`
+| TOON — Agent IDs | Allowlist of agent IDs opted into the TOON feature. For details on allowlist behavior, see <<agent-id-gating>>. | `[]` (empty)
+|===
+
+[[agent-id-gating]]
+=== Per-Agent Gating
+
+Each feature has its own *Agent IDs* independent allowlist (*Clean Payload — Agent IDs* and *TOON — Agent IDs*). The policy resolves the agent ID from the request and decides to apply the feature to:
+
+* Direct requests to the Model Proxy that carry no agent ID. The feature always applies to these requests, regardless of the allowlist contents.
+* Requests from an identified agent specified in the allowlist.
+
+You must add an agent to the allowlist for the the feature to apply to its request. There is no allow-all functionality.
+
+In Cost Management, applying the policy to an agent appends the agent's ID to the allowlist of the enabled feature.
+
+== How This Policy Works
+
+For each request, the policy processes the body only when these conditions are met:
+
+* The request is a `POST` with a `Content-Type` of `application/json`.
+* The request has been normalized to OpenAI shape by the upstream Model Proxy core processing.
+
+When those conditions are met, the policy:
+
+. Determines which features are engaged and if the agent is in a per-agent allowlist.
+. Scans the request body and locates the `role: "tool"` result strings.
+. Rewrites each tool-result string.
+. Keeps a rewritten string only when it is strictly smaller than the original.
+. Removes the stale `Content-Length` header and reserializes the body.
+
+Because the policy is fail-open, an unparseable body, a missing gate, or a result that does not shrink causes the original request to pass through unchanged, and no savings are reported.
+
+[[toon-encoding]]
+=== TOON Encoding
+
+Token-Oriented Object Notation (TOON) is a compact, JSON-equivalent text format that reduces token consumption for structured data. When *Enable TOON Encoding* is enabled, the policy re-encodes eligible tool-result JSON as TOON, prefixing the result with `TOON: `.
+
+TOON encoding:
+
+* Applies only to tool-result strings that are at least *TOON Minimum Response Bytes*.
+* Applies only to the shapes that TOON can shrink, such as uniform arrays of objects and objects with repeated structure.
+* Is lossless but format-changing: the data is preserved, but the model receives it as TOON rather than JSON.
+* Preserves or reduces payload size: the re-encoded value is kept only when it is strictly smaller than the original.
+
+== See Also
+
+* xref:policies-included-mcp-payload-optimization.adoc[]
+* xref:general::model-proxy.adoc[] - Overview of Model Proxy and routing
