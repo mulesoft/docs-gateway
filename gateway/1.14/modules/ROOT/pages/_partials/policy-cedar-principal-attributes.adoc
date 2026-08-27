@@ -1,44 +1,33 @@
-// Shared reference: Cedar `principal` attributes populated by upstream authentication policies,
-// for both included and custom authentication policies.
+// Shared reference: Cedar `principal` bindings populated by included and custom authentication policies.
 // Included by the GraphQL Access Control and MCP Attribute-Based Access Control policy pages.
 // The `principal` bindings come from the shared authentication object, so they're identical across policies.
-Apply one of these authentication policies before the access control policy to populate the `principal` attributes:
+=== Included Authentication Policies
 
-* Policies that validate a client ID populate `principal.client_id`, `principal.client_name`, and, for SLA-based clients, `principal.properties.slaId` and `principal.properties.slaName`:
+The authentication policy you apply affects the available Cedar `principal` bindings:
+
+* Multiple policies can validate Client ID:
 ** xref:policies-included-client-id-enforcement.adoc[]
 ** xref:policies-included-rate-limiting-sla.adoc[]
-** xref:policies-included-oauth-token-introspection.adoc[] (when Client ID enforcement is configured)
-** xref:policies-included-openid-token-enforcement.adoc[] (when Client ID enforcement is configured)
-** xref:policies-included-jwt-validation.adoc[] (when Client ID enforcement is configured)
-* xref:policies-included-jwt-validation.adoc[] also populates `principal.properties.claims.<claim>` for every claim in the validated JWT.
-* Basic authentication policies populate `principal.principal` with the authenticated username:
+** xref:policies-included-oauth-token-introspection.adoc[] (If Client ID enforcement is configured)
+** xref:policies-included-openid-token-enforcement.adoc[] (If Client ID enforcement is configured)
+** xref:policies-included-jwt-validation.adoc[] (If Client ID enforcement is configured)
++
+Policies validating Client ID provide these Cedar bindings:
++
+** `principal.client_name`: Name of the contract's client application
+** `principal.principal`: ID of the contract's client application
+** `principal.properties.slaId`: SLA ID assigned to the contract
+
+* xref:policies-included-jwt-validation.adoc[]:
+** `principal.properties.claims.<claimName>`: All claims provided by the JWT
+
+* Multiple policies validate basic authentication credentials:
 ** xref:policies-included-basic-auth-simple.adoc[]
 ** xref:policies-included-basic-auth-ldap.adoc[]
-
-These `principal` attributes are available in your rules:
-
-[%header%autowidth.spread,cols="a,a"]
-|===
-s| Attribute s| Description
-
-| `principal.principal`
-| The authenticated principal identifier, such as the Basic Authentication username or the raw token.
-
-| `principal.client_id`
-| The client ID resolved by the upstream authentication policy, when available.
-
-| `principal.client_name`
-| The client application name resolved by the upstream authentication policy, when available.
-
-| `principal.properties.<name>`
-| Additional properties published by the upstream authentication policy. For example, JWT Validation exposes `principal.properties.claims.<claim>`, and OAuth 2.0 Token Introspection exposes `principal.properties.scope`.
-
-| `principal.properties.slaId`
-| The SLA tier ID of the client, when an upstream policy publishes it.
-
-| `principal.properties.slaName`
-| The human-readable SLA tier name that corresponds to `slaId`, resolved from the API instance metadata.
-|===
++
+Policies validating basic authentication credentials provide these Cedar bindings:
++
+** `principal.principal`: Username passed as basic auth user
 
 === Custom Authentication Policies
 

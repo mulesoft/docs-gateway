@@ -61,16 +61,9 @@ s|Field s|Description s|Default Value s|Required
 | Yes
 |===
 
-[[attributes-available-to-cedar-rules]]
 == Attributes Available to Cedar Rules
 
-Cedar rules authorize a request by matching against attributes of the `principal`, which is the authenticated client, and the request `context`. Use these attributes in the `when` clause of a rule to make fine-grained decisions.
-
-include::partial$policy-cedar-principal-attributes.adoc[]
-
-When no authentication policy runs, Omni Gateway evaluates the request against the `Client::"None"` principal, and these `principal` attributes are empty.
-
-These request `context` attributes describe the incoming GraphQL request:
+Cedar rules can match requests against these `context` attributes:
 
 [%header%autowidth.spread,cols="a,a"]
 |===
@@ -83,7 +76,7 @@ s| Attribute s| Description
 | The raw GraphQL operation text.
 
 | `context.operationName`
-| The name of the resolved operation. If the request provides an `operationName`, Omni Gateway resolves that operation. Otherwise, Omni Gateway resolves the first operation in the document. Empty when the operation is anonymous.
+| The name of the resolved operation. If the request provides an `operationName`, Omni Gateway resolves that operation; otherwise, it resolves the first operation in the document. Empty when the operation is anonymous.
 
 | `context.operationType`
 | The type of the resolved operation: `query`, `mutation`, or `subscription`. Shorthand documents resolve to `query`.
@@ -94,6 +87,42 @@ s| Attribute s| Description
 | `context.ipAddress`
 | The source IP address of the request, when available.
 |===
+
+Cedar rules can also match requests against these `principal` attributes. Apply an upstream authentication policy to populate these values. To learn what policies update which attributes, see <<authentication-policies-principal-attributes>> t.
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+s| Attribute s| Description
+
+| `principal.principal`
+| The authenticated principal identifier, such as the Basic Authentication username or the raw token.
+
+| `principal.client_id`
+| The client ID resolved by the upstream authentication policy, when available.
+
+| `principal.client_name`
+| The client application name resolved by the upstream authentication policy, when available.
+
+| `principal.properties.<name>`
+| Additional properties published by the upstream authentication policy. For example, JWT Validation exposes `principal.properties.claims.<claim>`, and OAuth 2.0 Token Introspection exposes `principal.properties.scope`.
+
+| `principal.properties.slaId`
+| The SLA tier ID of the client, when an upstream policy publishes it.
+
+| `principal.properties.slaName`
+| The human-readable SLA tier name that corresponds to `slaId`, resolved from the API instance metadata.
+|===
+
+When no authentication policy runs, Omni Gateway evaluates the request against the `Client::"None"` principal, and these `principal` attributes are empty.
+
+After Omni Gateway extracts the GraphQL operation text, the policy evaluates the rules. Omni Gateway doesn't inspect the operation text for persisted queries and passes them through without authorization checks. Non-GraphQL requests also pass through.
+
+[[authentication-policies-principal-attributes]]
+== Authentication Policies Principal Attributes
+
+Apply an authentication policy before this policy to populate the `principal` attributes that your Cedar rules evaluate.
+
+include::partial$policy-cedar-principal-attributes.adoc[]
 
 == Configuration Examples
 
