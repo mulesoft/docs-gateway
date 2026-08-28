@@ -179,11 +179,13 @@ Ports 9998 and 9999 are reserved for internal processes and shouldn't be used in
 Payloads that exceed this limit receive a 413 response.
 | Contracts per API | 1,000 | Exceeding this limit isn’t supported but doesn't cause errors.
 | Contracts per gateway instance | 10,000 | Exceeding this limit isn’t supported but doesn't cause errors.
-| Upstreams per API | 100 | The 100 upstreams can consist of a combination of different routes. +
-To learn more, see xref:api-manager::create-instance-task-flex.adoc#limits[Multiple Upstream Limits].
-| Routes per API | 100 | 
+| Upstreams per API | 100 | Each API supports 100 upstreams. The 100 upstreams can consist of a combination of different routes.
+| Routes per API | 100 | Each API supports 100 routes.
 | Upstreams per route | 10 |
+| Headers per route rule | 10 |
 |===
+
+To configure multiple upstream services in Connected Mode, see xref:api-manager::create-instance-task-flex.adoc#traffic-management[Multiple Upstream Services for Omni Gateway Running in Connected Mode].
 
 [[managed-flex-gateway-limits]]
 === Managed Omni Gateway Limits and Performance Metrics
@@ -204,9 +206,21 @@ Each Managed Omni Gateway size supports a maximum number of transactions per sec
 |===
 | Gateway Size | TPS
 | Extra Large Managed Gateway| 4000
-| Large Managed Gateway | 1500 
-| Small Managed Gateway | 50 
+| Large Managed Gateway | 1500
+| Small Managed Gateway | 50
 |===
+
+Each Managed Omni Gateway size is highly available. All sizes run at least two replicas distributed across different availability zones. Large and extra large gateways autoscale, adding replicas based on CPU usage.
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Gateway Size | Highly Available | Autoscales
+| Extra Large Managed Gateway| Yes | Yes
+| Large Managed Gateway | Yes | Yes
+| Small Managed Gateway | Yes | No
+|===
+
+For more information about how Managed Omni Gateway handles high availability and autoscaling, see xref:gateway-architecture-managed-dr-ha.adoc[].
 
 === Self-Managed Omni Gateway Limits and Performance Metrics
 
