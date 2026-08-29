@@ -1,0 +1,294 @@
+= JavaScript Scripting Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: javascript, scripting, custom policy, request filter, response filter, flex gateway, gateway, policy
+
+[width="100%", cols="1,3"]
+|===
+>s|Policy Name| JavaScript Scripting
+>s|Summary| Executes a user-supplied JavaScript ES module to inspect and modify HTTP requests and responses
+>s|Category| Transformation
+>s|First Omni Gateway version available |v1.13.0
+>s|Returned Status Codes
+a|
+* `500` - Internal Server Error (when a filter function throws an unhandled exception)
+|===
+
+== Summary
+
+The JavaScript Scripting policy executes a user-supplied JavaScript https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules[ES module] on every HTTP exchange passing through the gateway. The module can export a `requestFilter` function, a `responseFilter` function, or both.
+
+* `requestFilter` — Runs before the request reaches the upstream service. Use it to inspect or modify request headers and body, or to short-circuit the request with an early response.
+* `responseFilter` — Runs after the upstream response is received. Use it to inspect or modify response headers and body.
+
+If a filter function throws an unhandled exception, the gateway returns a `500` response with a JSON error body and logs the exception with an `[javascript exception]` prefix.
+
+[NOTE]
+====
+The JavaScript runtime is https://boajs.dev[Boa], an ECMAScript 2021-compatible engine embedded in the gateway process. Async functions and dynamic `import()` are not supported. The module is evaluated once at policy startup; module-level variables persist across requests for the lifetime of the policy instance.
+====
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: javascript-scripting-flex
+  config:
+    script: |    // REQUIRED: the full source of the JavaScript ES module
+      export function requestFilter(request) {
+        // ...
+      }
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required | Default Value | Description
+
+| `script`
+| Yes
+| —
+| The full source text of a JavaScript ES module. The module must export at least one of `requestFilter` or `responseFilter`. Both functions may be exported.
+
+|===
+
+==== Resource Configuration Example
+
+----
+- policyRef:
+    name: javascript-scripting-flex
+  config:
+    script: |
+      export function requestFilter(request) {
+        const token = request.getHeader("authorization");
+        if (!token) {
+          return {
+            flow: "break",
+            response: {
+              statusCode: 401,
+              headers: [["content-type", "application/json"]],
+              body: '{"error":"Unauthorized"}'
+            }
+          };
+        }
+        request.setHeader("x-forwarded-token", token);
+      }
+
+      export function responseFilter(response, requestData) {
+        response.setHeader("x-processed-by", "javascript-scripting");
+      }
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+|Field |Description
+|Script | The full source text of the JavaScript ES module to execute.
+|===
+
+== How This Policy Works
+
+=== Script Module Contract
+
+The `script` value must be a valid JavaScript ES module. The gateway evaluates the module once during policy initialization and extracts the exported `requestFilter` and `responseFilter` functions.
+
+At least one of the two functions must be exported. If neither is present, the policy fails to initialize.
+
+==== `requestFilter(request)`
+
+Called for every incoming HTTP request before the upstream service is contacted.
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+|Parameter |Description
+|`request`  | A `Request` object providing read and write access to the request headers and body. See <<request-response-api>>.
+|===
+
+The function may return a `FlowResult` to control what happens next:
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+|Return value |Effect
+
+| `undefined` (or no return)
+| The request continues to the upstream service unchanged.
+
+| `{ flow: "continue" }`
+| The request continues to the upstream service.
+
+| `{ flow: "continue", data: value }`
+| The request continues. `value` is carried to `responseFilter` via the `requestData.data` field.
+
+| `{ flow: "break", response: { statusCode, headers, body } }`
+| The request is short-circuited. The gateway immediately returns the specified response without contacting the upstream service.
+|===
+
+Any other return shape emits a `[javascript warning]` log entry and falls back to `flow: "continue"`.
+
+==== `responseFilter(response, requestData)`
+
+Called for every upstream HTTP response.
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+|Parameter |Description
+|`response`    | A `Response` object providing read and write access to the response headers and body. See <<request-response-api>>.
+|`requestData` | An object describing the outcome of `requestFilter`. Its `flow` field is `"continue"`, `"break"`, or `"cancel"`. When `flow` is `"continue"`, the `data` field carries the value returned by `requestFilter`.
+|===
+
+The return value of `responseFilter` is ignored.
+
+[#request-response-api]
+=== Request and Response API
+
+Both `Request` and `Response` expose the same set of methods for inspecting and modifying headers and body:
+
+==== Headers
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+|Method |Description
+|`getHeaders()` | Returns all headers as an array of `[name, value]` pairs.
+|`setHeaders(headers)` | Replaces all headers with the provided `[name, value]` pair array.
+|`getHeader(name)` | Returns the value of the first header matching `name`, or `undefined` if absent.
+|`setHeader(name, value)` | Sets a header, replacing any existing value(s) for that name.
+|`addHeader(name, value)` | Appends a header, preserving any existing value(s) for that name.
+|`removeHeader(name)` | Removes all headers matching `name`.
+|===
+
+==== Body
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+|Method |Description
+|`getBody()` | Returns the body as a `Uint8Array`.
+|`setBody(body)` | Replaces the body with the provided `Uint8Array`. Throws if the entity has no body or if the body exceeds 1 MiB.
+|`getBodyString()` | Returns the body decoded as a UTF-8 string. Invalid byte sequences are replaced with the Unicode replacement character.
+|`setBodyString(body)` | Replaces the body with the UTF-8 encoding of the provided string. Throws if the entity has no body or if the encoded body exceeds 1 MiB.
+|===
+
+[NOTE]
+====
+Body access requires the policy to buffer the full request or response body before the filter function runs. This adds latency proportional to the body size.
+====
+
+=== Logging
+
+Use the standard `console` object to emit log entries. Log entries are prefixed with `[javascript console]` in the gateway logs.
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+|Method |Log level
+|`console.debug(msg)` | Debug
+|`console.info(msg)` | Info
+|`console.log(msg)` | Info
+|`console.warn(msg)` | Warn
+|`console.error(msg)` | Error
+|===
+
+=== State and Lifecycle
+
+The JavaScript module is evaluated once when the policy is initialized. Module-level variables are shared across all requests handled by the same policy instance, and their values persist for the lifetime of the policy.
+
+----
+// Module-level state persists across requests.
+let requestCount = 0;
+
+export function requestFilter(request) {
+  requestCount++;
+  request.setHeader("x-request-count", String(requestCount));
+}
+----
+
+=== Error Handling
+
+If `requestFilter` throws an unhandled exception, the gateway:
+
+. Logs the exception at the Error level, prefixed with `[javascript exception]`.
+. Returns a `500` response with `Content-Type: application/json` and body `{"error":"Internal problem"}`.
+. Does *not* contact the upstream service.
+
+If `responseFilter` throws an unhandled exception, the gateway:
+
+. Logs the exception at the Error level, prefixed with `[javascript exception]`.
+. Replaces the response body with `{"error":"Internal problem"}` and sets `Content-Length` accordingly.
+. Returns the upstream HTTP status code unchanged.
+
+== Examples
+
+=== Adding a Request Header
+
+----
+- policyRef:
+    name: javascript-scripting-flex
+  config:
+    script: |
+      export function requestFilter(request) {
+        request.setHeader("x-api-version", "2");
+      }
+----
+
+=== Blocking Requests Without an API Key
+
+----
+- policyRef:
+    name: javascript-scripting-flex
+  config:
+    script: |
+      export function requestFilter(request) {
+        const key = request.getHeader("x-api-key");
+        if (!key) {
+          return {
+            flow: "break",
+            response: {
+              statusCode: 403,
+              headers: [["content-type", "application/json"]],
+              body: '{"error":"Forbidden"}'
+            }
+          };
+        }
+      }
+----
+
+=== Transforming a JSON Response Body
+
+----
+- policyRef:
+    name: javascript-scripting-flex
+  config:
+    script: |
+      export function responseFilter(response) {
+        const raw = response.getBodyString();
+        try {
+          const obj = JSON.parse(raw);
+          obj.gateway = "omni";
+          response.setBodyString(JSON.stringify(obj));
+          response.setHeader("content-type", "application/json");
+        } catch (_) {
+          // non-JSON body: leave unchanged
+        }
+      }
+----
+
+=== Passing Data from Request to Response Filter
+
+----
+- policyRef:
+    name: javascript-scripting-flex
+  config:
+    script: |
+      export function requestFilter(request) {
+        const traceId = request.getHeader("x-trace-id") || "none";
+        return { flow: "continue", data: { traceId } };
+      }
+
+      export function responseFilter(response, requestData) {
+        if (requestData.flow === "continue") {
+          response.setHeader("x-trace-id", requestData.data.traceId);
+        }
+      }
+----
