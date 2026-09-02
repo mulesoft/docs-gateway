@@ -107,99 +107,40 @@ The granular reason for the failure is carried only in the emitted policy violat
 
 Because the signature is verified against the exact bytes the sender signed, apply this policy *before* any policy that transforms the request body. If an earlier policy rewrites the body before this policy runs, the recomputed signature will not match and legitimate requests are rejected.
 
-The policy is driven entirely by its static configuration and reads no control-plane context, so it is fully functional in Local Mode.
-
 == Configuring Policy Parameters
 
-include::partial$policy-title-headers.adoc[tag=configFile]
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
-----
-- policyRef:
-    name: request-signature-verification-policy-flex
-  config:
-    profile: <string> // REQUIRED
-    signingSecret: <string> // REQUIRED
-    timestampToleranceSeconds: <int> // OPTIONAL
-----
+The Request Signature Verification policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
-|Parameter | Required or Optional | Default Value | Description
+|Field | Required | Default | Description
 
-| `profile`
+| Signing Profile
 | Required
 | N/A
-| Selects the built-in signing-scheme preset for the sender. Must be one of `slack`, `github`, or `stripe`. The preset fixes every scheme parameter, so only `profile` and `signingSecret` need to be configured. See <<supported-profiles>>.
+| Selects the built-in signing-scheme preset for the sender. Must be one of `slack`, `github`, or `stripe`. The preset fixes every scheme parameter, so only the signing profile and signing secret need to be configured. See <<supported-profiles>>.
 
-| `signingSecret`
+| Signing Secret
 | Required
 | N/A
-| The sender's signing secret used as the HMAC-SHA256 key, for example Slack's signing secret, a GitHub webhook secret, or a Stripe endpoint signing secret (not a bot token or API key). Store this as a secret. It must be non-empty: a missing or empty value fails the policy deployment, because an empty HMAC key is public and could not verify anything.
+| The sender's signing secret used as the HMAC-SHA256 key, for example Slack's signing secret, a GitHub webhook secret, or a Stripe endpoint signing secret (not a bot token or API key). Stored as a secret and masked in the UI. Must be non-empty: a missing or empty value fails the policy deployment, because an empty HMAC key is public and could not verify anything.
 
-| `timestampToleranceSeconds`
+| Timestamp Tolerance (seconds)
 | Optional
 | `300`
 | The maximum age, in seconds, of the request timestamp relative to the current time, in either direction. A request whose timestamp falls outside this window fails verification, bounding the replay window. Must be in the range `1`–`600`. Ignored for profiles that carry no timestamp, such as `github`.
 
 |===
 
-==== Resource Configuration Example
+== Request and Response Examples
 
-[source,yaml]
-----
-- policyRef:
-    name: request-signature-verification-policy-flex
-  config:
-    profile: slack
-    signingSecret: "8f742231b10e8888abcd99yyyzzz85a5"
-    timestampToleranceSeconds: 300
-----
+A request with a matching signature—and, for timestamped profiles, a timestamp inside the tolerance window—is forwarded upstream unchanged. For the `github` profile, which carries no timestamp, `timestampToleranceSeconds` is ignored.
 
-include::partial$policy-title-headers.adoc[tag=ui]
-
-[width="100%", cols="2,6,1,1"]
-|===
-s|Field s|Description s|Default s|Required
-
-|Signing Profile|Selects the built-in signing-scheme preset for the sender: `slack`, `github`, or `stripe` ^|N/A ^|true
-|Signing Secret|The sender's signing secret used as the HMAC-SHA256 key. Stored as a secret and masked in the UI ^|N/A ^|true
-|Timestamp Tolerance (seconds)|The maximum age of the request timestamp, in either direction, bounding the replay window. Range `1`–`600`. Ignored for profiles that carry no timestamp ^|300 ^|false
-|===
-
-== Usage Examples
-
-=== Slack Profile
-
-[source,yaml]
-----
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: PolicyBinding
-metadata:
-  name: request-signature-verification-policy
-spec:
-  targetRef:
-    kind: ApiInstance
-    name: my-slack-api
-  policyRef:
-    name: request-signature-verification-policy-flex
-  config:
-    profile: slack
-    signingSecret: "8f742231b10e8888abcd99yyyzzz85a5"
-    timestampToleranceSeconds: 300
-----
-
-=== GitHub Profile (No Replay Window)
-
-The `github` scheme carries no timestamp, so `timestampToleranceSeconds` is ignored:
-
-[source,yaml]
-----
-config:
-  profile: github
-  signingSecret: "<github-webhook-secret>"
-----
-
-A request with a matching signature—and, for timestamped profiles, a timestamp inside the tolerance window—is forwarded upstream unchanged. Any verification failure returns:
+Any verification failure returns the following response, and the request never reaches the backend:
 
 ----
 HTTP/1.1 401 Unauthorized
@@ -208,11 +149,9 @@ Content-Type: application/json
 {"error":"unauthorized","message":"Invalid request signature"}
 ----
 
-The body is identical for every failure reason, and the request never reaches the backend.
+The body is identical for every failure reason.
 
 == See Also
 
 * xref:policies-included-directory.adoc[]
 * xref:policies-included-jwt-validation.adoc[]
-</content>
-</invoke>
