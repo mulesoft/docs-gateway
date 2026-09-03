@@ -17,11 +17,11 @@ endif::[]
 
 == Summary
 
-The Request Signature Verification policy confirms that an inbound HTTP request  originated from a trusted sender before. The policy recomputes an HMAC-SHA256 signature over the request's raw body and compares it against the signature the request carries in a header. If the signatures match, the request is forwarded to the upstream unchanged. If verification fails for any reason, the policy rejects the request with a `401 Unauthorized` and the backend is never reached.
+The Request Signature Verification policy confirms that an inbound HTTP request originated from a trusted sender. The policy recomputes an HMAC-SHA256 signature over the request's raw body and compares it against the signature the request carries in a header. If the signatures match, the request is forwarded to the upstream unchanged. If verification fails for any reason, the policy rejects the request with a `401 Unauthorized` and the backend is never reached.
 
 Use this policy to protect webhook receivers, such as Slack events, GitHub webhooks, or Stripe webhooks, without adding verification code to the backend service.
 
-Different senders sign might sign requests in different ways, for example, which header carries the signature, how the signed string is assembled, whether a timestamp bounds replay, and what prefix the signature uses. The policy captures those differences in a `profile` configuration that selects a built-in preset.
+Different senders might sign requests in different ways, for example, which header carries the signature, how the signed string is assembled, whether a timestamp bounds replay, and what prefix the signature uses. The policy captures those differences in a `profile` configuration that selects a built-in preset.
 
 A successful verification establishes request _provenance_—it proves the request was signed by the holder of the sender's shared secret. 
 
@@ -29,7 +29,7 @@ This policy only proves a request was sent by a holder of the sender's shared se
 
 [NOTE]
 ====
-The signature is computed over the exact bytes the sender signed, so you must place the policy *before* any policy that modifies the request body. For more infomation, see <<placement>>.
+The signature is computed over the exact bytes the sender signed, so you must place the policy *before* any policy that modifies the request body. For more information, see <<placement>>.
 ====
 
 == Configuring Policy Parameters
