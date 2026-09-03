@@ -12,16 +12,14 @@ endif::[]
 >s|Category | LLM
 >s|First Omni Gateway version available | v1.13.0
 >s|Release Notes| xref:release-notes::gateway/policies/f5-guardrails-release-notes.adoc[]
-.3+>.^s| Returned Status Codes
-|403 - Forbidden: Content blocked by F5 AI Guardrails
-|503 - Service Unavailable: F5 scan call failed or returned no verdict (only when fail-open is disabled)
+>s| Returned Status Codes |403 - Forbidden: Content blocked by F5 AI Guardrails
 |===
 
 == Summary
 
-The F5 Guardrails policy provides content moderation for LLM-based APIs by evaluating prompts and responses against https://docs.aisecurity.f5.com/[F5 AI Guardrails^]. The policy calls the F5 `POST /backend/v1/scans` API and enforces the returned verdict at the gateway before the request reaches the upstream LLM (request phase) or before the response is returned to the client (response phase).
+The F5 Guardrails policy provides content moderation for LLMs by evaluating prompts and responses against https://docs.aisecurity.f5.com/[F5 AI Guardrails^]. The policy calls the F5 (`POST /backend/v1/scans`) API and enforces the returned verdict at the gateway before the request reaches the upstream LLM (request phase) or before the response is returned to the client (response phase).
 
-Which scanners run and how they behave (harmful content, prompt injection, PII and other sensitive data, data leakage, and so on) is owned by your F5 project configuration, not the policy. The policy is the enforcement point that turns an F5 verdict into a gateway action:
+Which F5 scanners run and how they behave (harmful content, prompt injection, PII and other sensitive data, data leakage, and so on) is owned by your F5 project configuration, not the policy. The policy is the enforcement point that turns an F5 verdict into a gateway action:
 
 * *Allow*: Cleared content is forwarded unchanged.
 * *Flag*: Flagged content is allowed but a policy violation is recorded (audit).
@@ -44,7 +42,7 @@ Before configuring this policy, you need:
 3. *An F5 API token* issued from the F5 console.
 4. *(Optional) An F5 project ID or friendly ID* whose scanner configuration the scan should use.
 
-If you connect to F5 SaaS, ensure the Flex Gateway data plane is allowed to reach the F5 host outbound (egress firewall / NAT allowlist). For a self-hosted F5 Moderator that presents a certificate signed by a private CA, configure that CA in the gateway's outbound TLS trust for the F5 service, the same as for any other internal upstream.
+If you connect to F5 SaaS, ensure the Omni Gateway can reach the F5 host outbound (egress firewall / NAT allowlist).
 
 == Configuring Policy Parameters
 
@@ -69,7 +67,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 | F5 Project
 | No
-| F5 project ID or friendly ID. When set, it's sent as the `project` field so the scan uses that project's scanner configuration. When omitted, the token's globally available scanners are used.
+| F5 project ID or friendly ID. When set, it's sent as the `project` field so the scan uses that project's scanner configuration. When omitted, the token's globally available F5 scanners are used.
 
 | Moderate Request
 | No
@@ -91,11 +89,11 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 | Flag Only (Audit Mode)
 | No
-| When enabled, the scan carries `flagOnly: true` so blockable scanners return `flagged` instead of `blocked`, and the policy never returns `403` for a scanner hit. A policy violation is still recorded. Use this to observe what F5 would block without enforcing. Default: disabled.
+| When enabled, the scan carries `flagOnly: true` so blockable F5 scanners return `flagged` instead of `blocked`, and the policy never returns `403` for a scanner hit. A policy violation is still recorded. Use this to observe what F5 would block without enforcing. Default: disabled.
 
 | Disabled Scanners
 | No
-| Scanner IDs to disable, sent as the `disabled` array. Applies to both phases unless overridden per phase by Request-Phase or Response-Phase Scanner Overrides. Overrides the project or token defaults for the named scanners.
+| Scanner IDs to disable, sent as the `disabled` array. Applies to both phases unless overridden per phase by Request-Phase or Response-Phase Scanner Overrides. Overrides the project or token defaults for the named F5 scanners.
 
 | Force-Enabled Scanners
 | No
@@ -127,7 +125,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 == How This Policy Works
 
-The F5 Guardrails policy integrates with F5 AI Guardrails to evaluate LLM prompts and responses. The policy delegates _what_ is unsafe to F5's scanners and enforces the global scan `outcome`.
+The F5 Guardrails policy integrates with F5 AI Guardrails to evaluate LLM prompts and responses.
 
 [[request-and-response-moderation]]
 === Request and Response Moderation
@@ -165,7 +163,7 @@ The policy enforces the global `result.outcome` returned by F5:
 
 | `flagged`
 | Flag
-| Traffic continues, a policy violation is recorded, and the failed scanner names populate the reason header. This is the outcome for audit (non-blocking) scanners and for every blockable scanner when Flag Only is enabled.
+| Traffic continues, a policy violation is recorded, and the failed scanner names populate the reason header. This is the outcome for audit (non-blocking) F5 scanners and for every blockable scanner when Flag Only is enabled.
 
 | `redacted`
 | Redact
@@ -177,7 +175,7 @@ The policy enforces the global `result.outcome` returned by F5:
 
 | `none` (no verdict)
 | Indeterminate
-| An empty or `none` outcome isn't treated as a block. It's resolved by the Fail Open setting: fail-closed returns HTTP `503`, fail-open passes traffic through unscanned.
+| An empty or `none` outcome isn't treated as a block. It's resolved by the Fail Open setting: fail-closed returns a `503` HTTP error, fail-open passes traffic through unscanned.
 |===
 
 Every non-`cleared` outcome records a policy violation and adds the failed scanner names to the reason header.
@@ -187,8 +185,8 @@ Every non-`cleared` outcome records a policy violation and adds the failed scann
 
 The `disabled` and `forceEnabled` scanner lists sent on each scan are resolved per phase, so the request (prompt) and response (completion) phases can target different scanner sets:
 
-* The *request phase* uses Request-Phase Scanner Overrides when set, otherwise the global Disabled Scanners and Force-Enabled Scanners lists.
-* The *response phase* uses Response-Phase Scanner Overrides with the same global fallback.
+* The *request phase* uses Request-Phase Scanner Overrides when set, otherwise the global *Disabled Scanners* and *Force-Enabled Scanners* lists.
+* The *response phase* uses response-phase scanner overrides with the same global fallback.
 * Each list falls back independently. An explicitly empty per-phase array (`[]`) replaces (clears) the global list for that phase; an unset array falls back to the global list.
 
 When neither per-phase override is set, the global lists apply to both phases. If a per-phase override is set for a phase whose moderation is disabled, the override can never take effect, and the policy logs a startup warning.
@@ -250,7 +248,7 @@ When the policy blocks content, it returns a `403` response with this structure:
 
 === Audit Mode — Observe Without Enforcing
 
-No request is ever blocked; every scanner hit surfaces as `flag` with a policy violation and reason header. Use this to measure impact before switching to enforcement.
+No request is ever blocked. Every scanner hit surfaces as `flag` with a policy violation and reason header. Use this to measure impact before switching to enforcement.
 
 [source,yaml]
 ----
