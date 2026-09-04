@@ -1,0 +1,71 @@
+Omni Gateway provides these environment variables to configure your gateway:
+
+[cols="3,2,4"]
+|===
+|Variable Name |Default Value |Description
+
+|FLEX_CONNECTION_IDLE_TIMEOUT_SECONDS
+|`60`
+|Maximum number of seconds a connection can be idle before it times out. For more information, see xref:{page-mode}-timeout.adoc[].
+
+|FLEX_STREAM_IDLE_TIMEOUT_SECONDS
+|`300`
+|Maximum number of seconds a stream can remain idle without receiving any data in either the inbound (client to Omni Gateway) or outbound (Omni Gateway to upstream service) direction. For more information, see xref:{page-mode}-timeout.adoc[].
+
+|FLEX_UPSTREAM_CONNECTION_IDLE_TIMEOUT_SECONDS
+|`60`
+|Maximum number of seconds a stream between Omni Gateway and the upstream service can remain idle between requests. For more information, see xref:{page-mode}-timeout.adoc[].
+
+|FLEX_UPSTREAM_RESPONSE_TIMEOUT_SECONDS
+|`15`
+|Maximum number of seconds an Omni Gateway waits for a response from an upstream service. For more information, see xref:{page-mode}-timeout.adoc[].
+
+|FLEX_ENVOY_HEADERS_ENABLED
+| `false`
+|Allows (`true`) or removes (`false`) Envoy headers from requests. For more information, see xref:review-prerequisites.adoc[].
+
+|FLEX_REWRITE_HOST_HEADER
+|`true`
+|Rewrite HTTP Host header to match upstream.
+
+|FLEX_REMOVE_SERVER_HEADER
+|`false`
+|Removes the `Server` HTTP response header from outbound responses when set to `true`. Set to `true` to reduce exposure of server implementation details for security or compliance purposes.
+
+|FLEX_HEADER_RAW_VALUE_ENABLE
+|`tru`e
+|Controls header encoding for external authorization. Set to `false` to send headers encoded in UTF-8. For more information, see xref:policies-included-external-authorization.adoc[].
+
+|FLEX_FORWARD_CLIENT_CERT_DETAILS
+|`SANITIZE`
+|Controls how the `x-forwarded-client-cert` (XFCC) HTTP header is handled. Supported values are `SANITIZE`, `FORWARD_ONLY`, `APPEND_FORWARD`, `SANITIZE_SET`, and `ALWAYS_FORWARD_ONLY`. For more information, see https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto#envoy-v3-api-enum-extensions-filters-network-http-connection-manager-v3-httpconnectionmanager-forwardclientcertdetails[HTTP connection manager (proto)] in the Envoy documentation.
+
+|FLEX_DOWNSTREAM_CONNECTION_BUFFER_LIMIT_BYTES
+|`1048576` (1 MB)
+|Maximum size, in bytes, of read and write buffers for new connections. For more information, see xref:review-prerequisites.adoc[].
+
+|FLEX_DATASOURCE_CONTROL_NODE_ENABLED
+|`true`
+|Enable configuration caching in Redis shared storage for Connected Mode replicas. This variable is enabled by default. To disable configuration caching, set this variable to `false`. For more information, see xref:conn-replica-caching.adoc[].
+
+|FLEX_SERVICE_ENVOY_DRAIN_TIME
+|`25`
+|Drain period in seconds during shutdown before Omni Gateway exits gracefully. For more information, see xref:{page-mode}-monitor.adoc[].
+
+|FLEX_SYNC_DEBOUNCE_TIME
+|"5s"
+|Specifies the amount of time to wait after detecting a configuration change before applying it. This prevents excessive reloading during rapid successive changes. The value must be a valid duration string, such as `"5s"` or `"500ms"`.
+
+|FLEX_DNS_REFRESH_RATE
+|`5s`
+|Sets how often Omni Gateway refreshes DNS for upstream service clusters. The value is a duration string that is clamped between `5s` and `60s`. Values below the minimum or above the maximum are adjusted to the nearest bound.
+
+|FLEX_LOG_LEVEL
+| `4` (INFO)
+| Sets the logging level for Omni Gateway. For the environment variable configuration of log level, you specify a number that corresponds to the log level. Supported values are NONE:`-1`, FATAL:`0`, ERROR:`1`, WARN:`2`, INFO:`4`, DEBUG:`8`, and TRACE:`16`.
+
+|FLEX_CONFIG
+|N/A
+|Provides Omni Gateway registration and configuration as a YAML-formatted string. The YAML content must be properly escaped to preserve special characters. Provide your registration and configuration as a string if deploying environments where file mounting isn't practical, such as Amazon ECS or Azure Container Apps.
+
+|===

@@ -1,0 +1,216 @@
+= Deploy a Managed Omni Gateway
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:page-aliases: flex-gateway-managed-set-up.adoc
+
+
+Deploy a Managed Omni Gateway to CloudHub 2.0 or a Runtime Fabric namespace to launch a completely managed gateway.
+
+== Before You Begin
+
+=== CloudHub 2.0
+
+Before getting started with Omni Gateway on CloudHub 2.0, make sure:
+
+* The business group you want to deploy your gateway to has Managed Omni Gateway Resources. To redestribute Managed Omni Gateway resources to a business group, see xref:access-management::business-groups.adoc#redistribute-resources[Redistribute Resources Between Existing Business Groups].
+* xref:cloudhub-2::ps-create-configure.adoc[Create a CloudHub 2.0 Private Space]
+
+[[rtf]]
+=== Runtime Fabric
+
+Before getting started with Omni Gateway on Runtime Fabric, make sure:
+
+* Your Runtime Fabric deployment version is 2.11.0 or later. To upgrade, see xref:runtime-fabric::upgrade-index.adoc[Upgrading Runtime Fabric].
+* The business group you want to deploy your gateway to has Managed Omni Gateway Resources. To redestribute Managed Omni Gateway resources to a business group, see xref:access-management::business-groups.adoc#redistribute-resources[Redistribute Resources Between Existing Business Groups].
++ 
+NOTE: Gateways cannot be shared across business groups. A user must be a member of the business group to access the Omni Gateway. 
+
+* Run this command in the same namespace as your Runtime Fabric agent to enable the `ManagedFlexGateway` resource:
++
+[source,bash]
+----
+# When performing the helm upgrade for the first time, during Runtime Fabric creation:
+helm upgrade runtime-fabric rtf/rtf-agent -n <rtf-agent-namespace> --version <target-rtf-version> --set global.crds.flex.enabled=true
+
+# When enabling Managed Flex Gateway for an existing runtime fabric:
+helm upgrade runtime-fabric rtf/rtf-agent -n <rtf-agent-namespace> --reset-then-reuse-values --set global.crds.flex.enabled=true
+----
+
+NOTE: For Omni Gateway Agent Fabric deployments on Runtime Fabric, you must enable Open Telemetry with a `100` percent *Sampling percentage*. You can't override the sampling percentage for individual instances.
+
+
+== Deploy a Managed Omni Gateway
+
+. Log in to https://anypoint.mulesoft.com/login/[Anypoint Platform^] with your Anypoint username and password.
+. Select *Runtime Manager*.
+. Ensure you're in environment where you would like to deploy your Managed Gateway
+. Click *Omni Gateways* in the side navigation panel.
+. Click *Managed Omni Gateway*.
+. Click *Add Managed Omni Gateway*.
+. Enter a *Gateway Name*.
+. Select the *Deployment Target* where you want to deploy your Managed Omni Gateway.
+. Select a *Release Channel*:
++
+[cols="1a,1a"]
+|===
+| Release channel | Description
+| *Edge* | This channel releases a new minor version every four months. It has the latest features and shorter support windows.
+| *Long-Term Support* | This channel releases a new minor version once a year.
+|===
++
+To learn more about the differences between release channels, see xref:gateway-version-lifecycle.adoc[].
+
+. Select *Version*.
++
+Select the latest version unless if a later version is specifically needed.
+
+. Select *Gateway type*:
++
+[cols="1a,1a"]
+|===
+| Size | Description
+| *Small Managed Omni Gateway* | Use for testing and staging purposes. Small Managed Omni Gateways can deploy up to 50 APIs.
+| *Large Managed Omni Gateway* | Use for production purposes. Large Managed Omni Gateways can deploy up to 500 APIs.
+| *Extra Large Managed Omni Gateway* | Use for production purposes with higher throughput and more process demanding policies. Extra Large Managed Omni Gateways can deploy up to 500 APIs.  
+|===
++
+To learn more about Managed Omni Gateway sizing, see xref:review-prerequisites.adoc#managed-flex-gateway-limits[Managed Omni Gateway Limits].
+
+. Configure *Advanced options*:
++
+Ingress::
++
+You can't configure the ingress options for a Managed Omni Gateway deployed to a CloudHub 2.0 shared space. Shared Spaces don't support vanity domains.
++
+* *Public endpoint*:
++
+.. Select your desired private space *Domain*.
++
+To learn more, see xref:cloudhub-2::ps-create-configure.adoc[].
++
+.. Enter a *Host*.
++
+.. Click *Add Endpoint* to add an additional endpoint to a different domain. 
++
+Managed Omni Gateway supports one *Public endpoint* per domain in your private space.
++
+* *Ingress options*:
++
+** *Forward SSL Session*:
++
+Enables SSL forwarding during a session.
++
+SSL forwarding is mostly used with client authentication. See xref:anypoint-security::enable-client-authentication.adoc[].
+SSL forwarding forwards client certificate details in HTTP request headers so they are available to the gateway.
+These fields can identify an authenticated client and allow the gateway policies to determine and use the identity.
++
+The following headers are available:
++
+[%header,cols="2*a"]
+|===
+| Header Name | Value
+| x-ssl-client-verify | SUCCESS/FAIL
+| x-ssl-issuer | Client certificate issuer
+| x-ssl-client-serial | Client certificate serial number
+| x-ssl-client-dn | Contents of the client certificate DN field
+| x-ssl-client-cert | Contents of the client certificate
+|===
++
+** *Last-mile Security*:
++
+Specifies that TLS termination and decryption for the forwarded HTTPS connections occurs in the gateway.
++
+Properties::
++
+To configure how long Managed Omni Gateway waits for response or idle connections, configure the timeout properties:
++
+[cols="1a,1a"]
+|===
+| Parameter | Description
+| *Upstream Connection Idle Timeout* | The time a upstream connection can remain idle without receiving client requests. Upstream responses are not included in this timeout.
+| *Upstream Response Timeout* | The time the upstream service has to respond from when Omni Gateway sends a request.
+| *Stream Idle Timeout* | The time a stream can remain idle without receiving additional client requests or upstream responses.
+|===
++
+You can also update timeout values later from *Runtime Configurations* in Runtime Manager. For details, see xref:managed-timeout.adoc[].
++
+Logging::
++
+* *Forward application logs to Anypoint Monitoring*:
++
+Forwards Omni Gateway logs to Anypoint Monitoring. When disabled, logs are only available in Runtime Manager.
++
+* *Additional Log Levels*:
++
+** *INFO*: Informative messages
+** *DEBUG*: Debugging messages
+** *WARNING*: Warning messages
+** *ERROR*: Error messages, such as when an exception occurs
+** *FATAL*: Fatal messages for when an application fails
++
+[NOTE]
+====
+ You can use Access Management audit logs to track Managed Omni Gateway actions, such as creating, editing, starting, and stopping gateways. Audit logs don't require configuration.
+ 
+ To learn more, see xref:managed-view-status.adoc#audit-logs[View Managed Omni Gateway Audit Logs].
+====
++
+Distributed Tracing::
++
+* *Distributed tracing*:
++
+Enable to generate OpenTelemetry distributed tracing data for the Managed Omni Gateway. When enabled, you can set the sampling percentage.
++
+* *Sampling percentage*:
++
+Set the overall distributed tracing sampling percentage. This setting corresponds to the `overall` sampling percentage. The `client` and `random` sampling percentages are set to 100% by default, if the sampling percentage is set to a non-zero value here.
++
+Set the *Sampling percentage* to 0 if you want to specify the sampling percentage only on a per-API basis, using the Tracing policy.
++
+NOTE: For Omni Gateway Agent Fabric deployments on Runtime Fabric, you must enable Open Telemetry with a `100` percent *Sampling percentage*. You cannot override the sampling percentage for individual instances.
++
+. Click *Save & deploy*.
+
+[[managed-omni-gateway-endpoints]]
+== Managed Omni Gateway Endpoints
+
+Omni Gateway provides these endpoints:
+
+* *Public Endpoint*: The public endpoint is exposed to the public internet. Traffic comes from the internet through the CloudHub 2.0 load balancer.
+* *Internal Endpoint*: The internal endpoint is not publicly exposed on the internet, but traffic still goes through the CloudHub 2.0 load balancer for internal traffic within the private space. Use an internal endpoint when you don't know if traffic comes from inside the cluster or from a connected network. This is only available for Managed Omni Gateways deployed to a CloudHub 2.0 Private Space.
+* *Cluster Endpoint*: Only accessible from inside the cluster. Use when the gateway is acting as an egress gateway receiving traffic from internal apps. Port 8082 is reserved for cluster endpoint traffic.
+
+To find the endpoint names:
+
+. From Anypoint Platform, select *Runtime Manager > Omni Gateways*.
+. Click the Managed Omni Gateway name.
+. Copy your endpoint from the dashboard.
+
+== Edit a Managed Omni Gateway Settings
+
+To edit a Managed Omni Gateway setting:
+
+. From Anypoint Platform, select *Runtime Manager > Omni Gateways*.
+. Click the Managed Omni Gateway name.
+. In the navigation menu, click Settings.
+. Make the necessary edits.
+. Click *Apply changes*.
+
+== Remove a Public Endpoint
+
+To remove an endpoint:
+
+. From Anypoint Platform, select *Runtime Manager > Omni Gateways*.
+. Click the Managed Omni Gateway name.
+. In the navigation menu, click Settings.
+. Click *Advanced options*.
+. In the *Public endpoint* row, click *X* (Delete).
+. Click *Apply changes*.
+
+
+== Next Steps
+
+* xref:review-prerequisites.adoc[]
+* xref:gateway-set-up.adoc[]

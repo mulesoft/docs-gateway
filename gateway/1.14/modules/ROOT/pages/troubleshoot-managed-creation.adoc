@@ -1,0 +1,66 @@
+= Troubleshooting Managed Omni Gateway Creation
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:page-aliases: flex-troubleshoot-managed-creation.adoc
+
+When creating and deploying a Managed Omni Gateway instance, you might encounter issues. Check these topics for possible causes and solutions.
+
+* xref:add-button-missing[Add Managed Omni Gateway Button is Missing]
+* xref:add-button-disabled[Add Managed Omni Gateway Button is Disabled]
+* xref:private-space[Private Space Not Available]
+
+
+[[add-button-missing]]
+== Add Managed Omni Gateway Button is Missing
+
+The *Add Managed Omni Gateway* button in Runtime Manager might be missing because the selected business group does not have Managed Omni Gateway resources. Instead you see a "Start protecting your APIs with Managed Omni Gateways" message and a *Create a Self-Managed Omni Gateway* button.
+
+Check Your Business Group Managed Omni Gateway Resources::
+
+. Navigate to *Access Management > Subscription > Runtime Manage Subscription*. If your subscription tier doesn't include *Small Managed Omni Gateways* and *Large Managed Omni Gateways* resources, contact your MuleSoft representative for more information.
+
+
+. If your business group shows quantity *0/0 in use* or shows *Reassigned* for *Small Managed Omni Gateways* or *Large Managed Omni Gateways*, try redistributing Managed Omni Gateway resources from one organization or business group to your selected business group. See xref:access-management::business-groups.adoc#redistribute-resources[Redistribute Resources Between Existing Business Groups].
+
+[[add-button-disabled]]
+== Add Managed Omni Gateway Button is Disabled
+
+The *Add Managed Omni Gateway* button in Runtime Manager might be disabled due to quota limitations or insufficient permissions. This issue occurs if you reach the maximum number of Managed Omni Gateways allowed for all sizes in your organization or if you don't have the required _Manage Servers_ and _Read Servers_ Runtime Manager permissions . 
+
+Check Managed Omni Gateway quotas for your organization::
+
+. In Anypoint Platform, go to *Access Management*.
+. Click *Runtime Manager* in *Subscription* section of the side navigation panel.
+. Review the Managed Gateway quotas to determine if the quota has been exhausted for all Managed Omni Gateway sizes.
+
+To deploy more Managed Omni Gateways, delete existing gateways or upgrade to a subscription plan with a higher quota.
+
+Verify your permissions::
+
+In Access Management, ensure that you have the required _Manage Servers_ and _Read Servers_ Runtime Manager permissions.
+
+Your Anypoint Platform Admin can add these permissions in Access Management.
+For more information, see xref:access-management::configure-teams.adoc#manage-team-permissions[Manage Team Permissions].
+
+
+[[private-space]]
+== Private Space Not Available
+
+When creating a new Managed Omni Gateway, if you don't see the desired Private Space in the *Deployment Target* list, you might not have the necessary permissions for that Private Space. 
+
+Verify the Private Space permissions::
+
+. In Runtime Manager, access the details of the Private Space you are trying to use.
+. Navigate to the *Environments* tab.
+. Confirm that the target organization and environment are within the allowed environments for that private space.
+
+If necessary, update the Private Space Environments configuration to include the target organization and environment:
+
+. Modify the Private Space *Environments* configuration to include the target organization and environment.
+. Wait a few minutes for the changes to propagate and be reflected in the *Deployment Target* list.
+
+== See Also
+
+include::release-notes::partial$release-notes/rn-known-issues.adoc[tag=knownIssuesSeeAlsoLink]

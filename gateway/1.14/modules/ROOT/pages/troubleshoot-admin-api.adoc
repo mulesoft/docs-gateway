@@ -1,0 +1,371 @@
+= Troubleshooting with the CLI
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:page-aliases: flex-troubleshoot-admin-api.adoc
+
+Omni Gateway includes a `flexctl dump` CLI that collects a full snapshot of the gateway's runtime state and writes it to a single ZIP file. The snapshot includes information related to a gateway's API instances, services, configuration, and available extensions (policies), along with logs, Envoy statistics, and other diagnostic data.
+
+The dump is assembled by the gateway and streamed directly to the CLI. Each source is collected on a best-effort basis: if a particular source is unavailable, that entry is omitted and the rest of the ZIP is still produced.
+
+As an example, the following inline configuration snippet defines a single API instance named `jsonplaceholder-api` in the default namespace (it remains `default` because namespace is not explicitly defined.) Additionally, the snippet defines one included policy: `http-basic-authentication-flex`.
+
+NOTE: To run `flexctl dump` for Linux deployments, either add the user to the `flex` user group or run `flexctl dump` with the `sudo` command. To learn more, see xref:troubleshoot-linux-permissions.adoc[].
+
+== Configuration Example
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: jsonplaceholder-api
+spec:
+  address: http://0.0.0.0:8080
+  services:
+    jsonplaceholder:
+      address: https://jsonplaceholder.typicode.com:443/
+      routes:
+        - rules:
+            - path: /api(/users/.*)
+            - path: /api(/comments/.*)
+  policies:
+    - policyRef:
+        name: http-basic-authentication-flex
+      config:
+        username: chris
+        password: admin
+----
+
+== Run the CLI
+
+. To collect a snapshot of the gateway's runtime state, run the following command:
++
+[source,ssh]
+----
+flexctl dump
+----
++
+By default, the command writes the snapshot to a file named `dump.zip` in the current directory.
++
+[NOTE]
+====
+When running in a Docker or Podman container, either run the command in the container itself or stream the ZIP out of the container without entering it. To learn more, see <<change-output-location>>.
+====
+
+. Extract the ZIP file to view its contents. The ZIP includes the following entries, among others:
++
+[cols="1,3"]
+|===
+|Entry |Description
+
+|`resources/ApiInstance.json`
+|All API instances known to the gateway.
+
+|`resources/Service.json`
+|All services known to the gateway.
+
+|`resources/Configuration.json`
+|The gateway's effective configuration.
+
+|`resources/Extension.json`
+|All extensions (policies) available in the gateway.
+
+|`resources/PolicyBinding.json`
+|All policy bindings.
+
+|`logs/current`
+|The current log file.
+
+|`envoy/stats.json`, `envoy/config_dump.json`, `envoy/memory.json`
+|Envoy statistics, configuration, and memory usage.
+
+|`env/vars.json`
+|The gateway process environment variables, with sensitive values redacted.
+|===
++
+NOTE: Some entries appear only when the corresponding data is available in your deployment.
+
+. View the contents of any extracted JSON file by running `cat` followed by the file name. For example, the extracted files resemble the following:
++
+[tabs]
+====
+Api Instances::
++
+[source,ssh]
+----
+cat resources/ApiInstance.json
+----
++
+The `resources/ApiInstance.json` file contents resemble the following:
++
+----
+[
+   {
+      "address":"http://0.0.0.0:8080",
+      "kind":"ApiInstance",
+      "name":"jsonplaceholder-api",
+      "namespace":"default",
+      "policies":[
+         {
+            "config":{
+               "password":"admin",
+               "username":"chris"
+            },
+            "extension":{
+               "kind":"Extension",
+               "name":"http-basic-authentication-flex",
+               "namespace":"default"
+            },
+            "kind":"Policy",
+            "name":"jsonplaceholder-api-http-basic-authentication-flex-1",
+            "namespace":"default"
+         },
+         {
+            "config":{
+               "destinationRef":{
+                  "kind":"Service",
+                  "name":"jsonplaceholder-api-jsonplaceholder",
+                  "namespace":"default"
+               }
+            }
+            "extension":{
+               "kind":"Extension",
+               "name":"route",
+               "namespace":"default"
+            },
+            "kind":"Policy",
+            "name":"jsonplaceholder-api-jsonplaceholder-route-1",
+            "namespace":"default",
+            "order":50,
+            "rules":[
+               {
+                  "path":"/api(/users/.*)"
+               },
+               {
+                  "path":"/api(/comments/.*)"
+               }
+            ]
+         },
+         {
+            "extension":{
+               "kind":"Extension",
+               "name":"envoy.filters.http.router",
+               "namespace":"default"
+            },
+            "kind":"Policy",
+            "name":"envoy.filters.http.router",
+            "namespace":"default",
+            "order":2147483647
+         }
+      ]
+   }
+]
+----
+
+Services::
++
+[source,ssh]
+----
+cat resources/Service.json
+----
++
+The `resources/Service.json` file contents resemble the following:
++
+----
+[
+   {
+      "address":"https://jsonplaceholder.typicode.com:443/",
+      "kind":"Service",
+      "name":"jsonplaceholder-api-jsonplaceholder",
+      "namespace":"default"
+   }
+]
+----
+
+
+Configuration::
++
+[source,ssh]
+----
+cat resources/Configuration.json
+----
++
+The `resources/Configuration.json` file contents resemble the following:
++
+----
+{
+  "internalMetrics": {
+    "enabled": false
+  },
+  "logging": {},
+  "platformConnection": {
+    "anypoint": {
+      "url": "https://anypoint.mulesoft.com"
+    },
+    "environment": {
+      "cluster_id": "4aa281e9-1a1d-4c56-8669-2d887b2e1938",
+      "env_id": "ad067f80-69ee-4abb-9d05-bec98ece1e20",
+      "org_id": "1caa0b9b-4f4d-43c4-a1b6-f925a8c77baa"
+    },
+    "logging": {
+      "certificate": {
+        "cert": "demo-local.pem",
+        "key": "demo-local.key"
+      },
+      "url": "https://logging.ingestion.us-east-1.msap.io/ingestion/api/v1/logging"
+    },
+    "metering": {
+      "certificate": {
+        "cert": "demo-local.pem",
+        "key": "demo-local.key"
+      },
+      "url": "https://metering.ingestion.us-east-1.msap.io/ingestion/api/v1/metering"
+    },
+    "mode": "offline",
+    "monitoring": {
+      "certificate": {
+        "cert": "demo-local.pem",
+        "key": "demo-local.key"
+      },
+      "url": "https://monitoring.ingestion.us-east-1.msap.io/ingestion/api/v1/monitoring"
+    },
+    "runtimeEvents": {
+      "certificate": {
+        "cert": "demo-local.pem",
+        "key": "demo-local.key"
+      },
+      "url": "https://anypoint.mulesoft.com/apiruntime/v1/events"
+    }
+  },
+  "resourceLimits": {
+    "apiInstances": 100,
+    "policies": 400
+  },
+  "sharedStorage": {},
+  "version": "1.1.0"
+}
+----
+
+Extensions::
++
+[source,ssh]
+----
+cat resources/Extension.json
+----
++
+The `resources/Extension.json` file contains all the policies available in Omni Gateway. The file contents resemble the following:
++
+----
+{
+    "extends": [
+      {
+        "kind": "Extension",
+        "labels": {
+          "flex.mulesoft.com/created-by": "flex-filesystem",
+          "flex.mulesoft.com/managed-by": "flex-filesystem"
+        },
+        "name": "extension-definition",
+        "namespace": "default"
+      },
+      {
+        "kind": "Extension",
+        "labels": {
+          "flex.mulesoft.com/created-by": "flex-filesystem",
+          "flex.mulesoft.com/managed-by": "flex-filesystem"
+        },
+        "name": "extension-qos",
+        "namespace": "default"
+      }
+    ],
+    "kind": "Extension",
+    "labels": {
+      "flex.mulesoft.com/created-by": "flex-filesystem",
+      "flex.mulesoft.com/managed-by": "flex-filesystem"
+    },
+    "name": "header-injection-definition",
+    "namespace": "default",
+    "properties": [
+      {
+        "name": "config",
+        "properties": [
+          {
+            "items": {
+              "name": "inboundHeaders",
+              "properties": [
+                {
+                  "name": "key",
+                  "type": "stringOrDataweave"
+                },
+                {
+                  "name": "value",
+                  "type": "stringOrDataweave"
+                }
+              ],
+              "type": "object"
+            },
+            "name": "inboundHeaders",
+            "type": "array"
+          },
+          {
+            "items": {
+              "name": "outboundHeaders",
+              "properties": [
+                {
+                  "name": "key",
+                  "type": "stringOrDataweave"
+                },
+                {
+                  "name": "value",
+                  "type": "stringOrDataweave"
+                }
+              ],
+              "type": "object"
+            },
+            "name": "outboundHeaders",
+            "type": "array"
+          }
+        ],
+        "type": "object"
+      }
+    ]
+  }
+----
+====
+
+[[change-output-location]]
+== Change the Output Location
+
+Use the `-o` (or `--output`) flag to write the ZIP file to a specific path, including the file name. For example, to write the dump to `/tmp/my-dump.zip`, run the following command:
+
+[source,ssh]
+----
+flexctl dump -o /tmp/my-dump.zip
+----
+
+To stream the ZIP file to standard output instead of writing it to a file, pass either `-` or `/dev/stdout` to the `-o` flag, and redirect the output:
+
+[source,ssh]
+----
+flexctl dump -o - > dump.zip
+----
+
+Streaming to standard output also lets you capture a dump from a container without entering it:
+
+[source,ssh]
+----
+docker exec flex-gateway flexctl dump -o - > dump.zip
+----
+
+== Change Verbosity Level
+
+You can change the amount of information output by the `flexctl dump` CLI. For example, to increase verbosity to a value of `10`, run `flexctl dump` with the following:
+
+[source,ssh]
+----
+flexctl dump -v 10
+----
+
+== See Also
+
+include::release-notes::partial$release-notes/rn-known-issues.adoc[tag=knownIssuesSeeAlsoLink]
