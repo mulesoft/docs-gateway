@@ -1,0 +1,148 @@
+= Request Signature Verification Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, security, hmac, signature, webhook, slack, github, stripe
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Request Signature Verification
+>s|Summary      | Verifies that an inbound request was signed by the holder of a shared secret by recomputing an HMAC-SHA256 signature over the raw body and comparing it against the request's signature header
+>s|Category | Security
+>s|First Omni Gateway version available | v1.13.0
+>s|Release Notes| xref:release-notes::gateway/policies/request-signature-verification-release-notes.adoc[]
+>s| Returned Status Codes | 401 - Unauthorized (any verification failure)
+|===
+
+== Summary
+
+The Request Signature Verification policy confirms that an inbound HTTP request originated from a trusted sender. The policy recomputes an HMAC-SHA256 signature over the request's raw body and compares it against the signature the request carries in a header. If the signatures match, the request is forwarded to the upstream unchanged. If verification fails for any reason, the policy rejects the request with a `401 Unauthorized` and the backend is never reached.
+
+Use this policy to protect webhook receivers, such as Slack events, GitHub webhooks, or Stripe webhooks, without adding verification code to the backend service.
+
+Different senders might sign requests in different ways, for example, which header carries the signature, how the signed string is assembled, whether a timestamp bounds replay, and what prefix the signature uses. The policy captures those differences in a `profile` configuration that selects a built-in preset.
+
+A successful verification establishes request _provenance_—it proves the request was signed by the holder of the sender's shared secret. 
+
+This policy only proves a request was sent by a holder of the sender's shared secret. The policy doesn't establish a per-user identity, so the policy does not publish an authenticated principal object for DataWeave parameters.
+
+[NOTE]
+====
+The signature is computed over the exact bytes the sender signed, so you must place the policy *before* any policy that modifies the request body. For more information, see <<placement>>.
+====
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The Request Signature Verification policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Field | Required | Default | Description
+
+| Signing Profile
+| Required
+| N/A
+| Selects the built-in signing-scheme preset for the sender. Must be one of `slack`, `github`, or `stripe`. The preset fixes every scheme parameter, so you only need to configure the signing profile and signing secret. See <<supported-profiles>>.
+
+| Signing Secret
+| Required
+| N/A
+| The sender's signing secret used as the HMAC-SHA256 key, for example Slack's signing secret, a GitHub webhook secret, or a Stripe endpoint signing secret (not a bot token or API key).
+
+| Timestamp Tolerance (seconds)
+| Optional
+| `300`
+| The maximum age of the request timestamp before or after the current time. A request whose timestamp falls outside this window fails verification. The value must be in the range of `1` to `600`. This field is ignored for profiles that carry no timestamp, such as `github`.
+
+|===
+
+[[supported-profiles]]
+== Supported Profiles
+
+The `profile` value selects a built-in preset that fixes every scheme parameter for that sender.
+
+[%header%autowidth.spread]
+|===
+| Profile | Signature header | Timestamp | Basestring | Encoding and prefix | Replay window
+
+| `slack`
+| `X-Slack-Signature`
+| `X-Slack-Request-Timestamp`
+| `v0:{timestamp}:{raw_body}`
+| Lowercase hex, prefix `v0=`
+| Yes
+
+| `github`
+| `X-Hub-Signature-256`
+| None
+| `{raw_body}`
+| Lowercase hex, prefix `sha256=`
+| No
+
+| `stripe`
+| `Stripe-Signature` (composite `t=…,v1=…`)
+| Embedded `t=` component
+| `{timestamp}.{raw_body}`
+| Lowercase hex, `v1=` component
+| Yes
+|===
+
+== How This Policy Works
+
+The policy runs as an inbound request filter. For each request, it buffers the headers and body, resolves the profile's parameters, and runs the verification checks below. The policy only reads the request, and never modifies the body or headers.
+
+The verification checks run in this order. For profiles that carry no timestamp (such as `github`), the timestamp checks are skipped:
+
+. *Signature header present.* Reads the profile's signature header. If it's absent, empty, or unparseable (for a composite header such as Stripe's), verification fails.
+. *Timestamp present and well-formed* (timestamped profiles only). Reads the profile's timestamp and parses it as a Unix epoch-seconds integer. If it is absent, empty, or non-numeric, verification fails.
+. *Timestamp within tolerance* (timestamped profiles only). If the absolute difference between the current time and the request timestamp exceeds `timestampToleranceSeconds`, verification fails. Both past and future directions are bounded, so a far-future timestamp is also rejected. This check runs before the signature is recomputed.
+. *Recompute the signature.* Build the profile's basestring from the request's timestamp value and the raw buffered body, compute `HMAC-SHA256(signingSecret, basestring)`, and encode it as lowercase hex with the profile's prefix.
+. *Constant-time compare.* Compare the recomputed signature against the supplied signature using a constant-time byte comparison. If the signatures aren't the same, verification fails. Otherwise, the request is forwarded upstream unchanged.
+
+[[placement]]
+== Placement
+
+Because the signature is verified against the exact bytes the sender signed, apply this policy *before* any policy that transforms the request body. If an earlier policy rewrites the body before this policy runs, the recomputed signature will not match and legitimate requests are rejected.
+
+=== Raw Body Handling
+
+The HMAC is computed over the raw buffered body bytes—never a parsed and re-serialized form. The policy doesn't parse the body as JSON or form data and doesn't depend on `Content-Type`. The buffered body is bounded by Envoy's platform-default request-body limit.
+
+== Request and Response Examples
+
+A request with a matching signature—and, for timestamped profiles, a timestamp inside the tolerance window—is forwarded upstream unchanged. For the `github` profile, which carries no timestamp, `timestampToleranceSeconds` is ignored.
+
+Any verification failure returns the following response, and the request never reaches the backend:
+
+----
+HTTP/1.1 401 Unauthorized
+Content-Type: application/json
+
+{"error":"unauthorized","message":"Invalid request signature"}
+----
+
+The body is identical for every failure reason.
+
+The specific failure reason for the failure is only emitted in policy violation logs. The signing secret, the recomputed signature, and the supplied signature are never logged. These are the specific failure reasons:
+
+[%header%autowidth.spread]
+|===
+| Reason | Meaning
+
+| `missing_signature` | The profile's signature header is absent or empty.
+| `malformed_signature` | A composite signature header is present but cannot be parsed.
+| `missing_timestamp` | The profile's timestamp is absent or empty (timestamped profiles).
+| `malformed_timestamp` | The timestamp is present but is not a base-10 integer.
+| `stale_timestamp` | The timestamp is outside the tolerance window (replay defense).
+| `signature_mismatch` | The recomputed signature does not equal the supplied signature.
+|===
+
+== See Also
+
+* xref:policies-included-directory.adoc[]
+* xref:policies-included-jwt-validation.adoc[]
