@@ -49,13 +49,13 @@ This example looks for an HTTP header called ‘client_id’ and uses its value.
 |Client Secret Expression | A DataWeave expression that resolves the Client application’s client secret for a contract of the API |
 This is an optional value.
 Example: `#[attributes.headers['client_secret']]`
-|Distributed | When enabled, the quota is shared among all nodes running the API. For a Mule runtime engine target, the runtime must be running in high-availability (HA) cluster mode for the quota to be shared; if you enable this option without HA cluster mode, each node enforces the quota independently. | Checked or unchecked
+|Distributed | When enabled, the quota is shared among all nodes running the API. For a Mule runtime engine target, the nodes share the quota only when the runtime runs in high-availability (HA) cluster mode. Otherwise, each node enforces the quota independently. | Checked or unchecked
 | Expose Headers| Defines whether to expose the <<response-header,x-ratelimit headers,>> as part of the response | Checked or unchecked
 |===
 
 [NOTE]
 ====
-To share the quota across nodes by using the *Distributed* option, the Mule runtime engine instance must be running as part of a Mule high-availability (HA) cluster. If the runtime is not running in HA cluster mode, enabling *Distributed* has no effect: each node enforces the quota independently.
+The *Distributed* option shares the quota across nodes only when the Mule runtime engine instance runs as part of a Mule high-availability (HA) cluster. If the runtime does not run in HA cluster mode, enabling *Distributed* has no effect, and each node enforces the quota independently.
 ====
 
 == How This Policy Works
