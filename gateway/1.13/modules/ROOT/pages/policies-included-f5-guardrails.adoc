@@ -40,7 +40,7 @@ Before configuring this policy, you need:
 1. *F5 AI Guardrails access* (SaaS tenant or a self-hosted deployment).
 2. *An F5 AI Guardrails endpoint URL*, for example, `\https://us1.calypsoai.app`.
 3. *An F5 API token* issued from the F5 console.
-4. *(Optional) An F5 project ID or friendly ID* whose scanner configuration the scan should use.
+4. *(Optional) An F5 project ID or friendly ID* whose F5 scanner configuration the scan should use.
 
 If you connect to F5 SaaS, ensure the Omni Gateway can reach the F5 host outbound (egress firewall / NAT allowlist).
 
@@ -67,7 +67,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 | F5 Project
 | No
-| F5 project ID or friendly ID. When set, it's sent as the `project` field so the scan uses that project's scanner configuration. When omitted, the token's globally available F5 scanners are used.
+| F5 project ID or friendly ID. When set, it's sent as the `project` field so the scan uses that project's F5 scanner configuration. When omitted, the token's globally available F5 scanners are used.
 
 | Moderate Request
 | No
@@ -89,27 +89,27 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 | Flag Only (Audit Mode)
 | No
-| When enabled, the scan carries `flagOnly: true` so blockable F5 scanners return `flagged` instead of `blocked`, and the policy never returns `403` for a scanner hit. A policy violation is still recorded. Use this to observe what F5 would block without enforcing. Default: disabled.
+| When enabled, the scan carries `flagOnly: true` so blockable F5 scanners return `flagged` instead of `blocked`, and the policy never returns `403` for an F5 scanner hit. A policy violation is still recorded. Use this to observe what F5 would block without enforcing. Default: disabled.
 
 | Disabled Scanners
 | No
-| Scanner IDs to disable, sent as the `disabled` array. Applies to both phases unless overridden per phase by Request-Phase or Response-Phase Scanner Overrides. Overrides the project or token defaults for the named F5 scanners.
+| F5 scanner IDs to disable, sent as the `disabled` array. Applies to both phases unless overridden per phase by Request-Phase or Response-Phase Scanner Overrides. Overrides the project or token defaults for the named F5 scanners.
 
 | Force-Enabled Scanners
 | No
-| Scanner IDs to force-enable, sent as the `forceEnabled` array, even if disabled in the project. Applies to both phases unless overridden per phase.
+| F5 scanner IDs to force-enable, sent as the `forceEnabled` array, even if disabled in the project. Applies to both phases unless overridden per phase.
 
 | Request-Phase Scanner Overrides
 | No
-| Per-phase scanner selection for the request (prompt) scan, with optional `disabledScanners` and `forceEnabledScanners` arrays. See <<per-phase-scanner-selection>>.
+| Per-phase F5 scanner selection for the request (prompt) scan, with optional `disabledScanners` and `forceEnabledScanners` arrays. See <<per-phase-scanner-selection>>.
 
 | Response-Phase Scanner Overrides
 | No
-| Per-phase scanner selection for the response (completion) scan. Same shape as Request-Phase Scanner Overrides. See <<per-phase-scanner-selection>>.
+| Per-phase F5 scanner selection for the response (completion) scan. Same shape as Request-Phase Scanner Overrides. See <<per-phase-scanner-selection>>.
 
 | Verbose
 | No
-| When enabled, requests fuller scanner detail from F5, used to enrich the reason header and debug logs. Default: disabled.
+| When enabled, requests fuller F5 scanner detail, used to enrich the reason header and debug logs. Default: disabled.
 
 | API Timeout (ms)
 | No
@@ -163,7 +163,7 @@ The policy enforces the global `result.outcome` returned by F5:
 
 | `flagged`
 | Flag
-| Traffic continues, a policy violation is recorded, and the failed scanner names populate the reason header. This is the outcome for audit (non-blocking) F5 scanners and for every blockable scanner when Flag Only is enabled.
+| Traffic continues, a policy violation is recorded, and the failed F5 scanner names populate the reason header. This is the outcome for audit (non-blocking) F5 scanners and for every blockable F5 scanner when Flag Only is enabled.
 
 | `redacted`
 | Redact
@@ -178,12 +178,12 @@ The policy enforces the global `result.outcome` returned by F5:
 | An empty or `none` outcome isn't treated as a block. It's resolved by the Fail Open setting: fail-closed returns a `503` HTTP error, fail-open passes traffic through unscanned.
 |===
 
-Every non-`cleared` outcome records a policy violation and adds the failed scanner names to the reason header.
+Every non-`cleared` outcome records a policy violation and adds the failed F5 scanner names to the reason header.
 
 [[per-phase-scanner-selection]]
 === Per-Phase Scanner Selection
 
-The `disabled` and `forceEnabled` scanner lists sent on each scan are resolved per phase, so the request (prompt) and response (completion) phases can target different scanner sets:
+The `disabled` and `forceEnabled` F5 scanner lists sent on each scan are resolved per phase, so the request (prompt) and response (completion) phases can target different F5 scanner sets:
 
 * The *request phase* uses Request-Phase Scanner Overrides when set, otherwise the global *Disabled Scanners* and *Force-Enabled Scanners* lists.
 * The *response phase* uses response-phase scanner overrides with the same global fallback.
@@ -209,7 +209,7 @@ Every scanned request and response includes observability headers:
 | Which phase produced the decision surfaced in the action header.
 
 | `x-llm-proxy-f5-calypsoai-guardrail-reason`
-| comma-separated scanner names, `redaction_failed`, `service_unavailable`, `none_response`
+| comma-separated F5 scanner names, `redaction_failed`, `service_unavailable`, `none_response`
 | Why the content was flagged, redacted, or rejected. Present only on `flag`, `redact`, `reject`, or an error or no-verdict result.
 
 | `x-llm-proxy-f5-calypsoai-guardrail-scan-id`
@@ -248,7 +248,7 @@ When the policy blocks content, it returns a `403` response with this structure:
 
 === Audit Mode — Observe Without Enforcing
 
-No request is ever blocked. Every scanner hit surfaces as `flag` with a policy violation and reason header. Use this to measure impact before switching to enforcement.
+No request is ever blocked. Every F5 scanner hit surfaces as `flag` with a policy violation and reason header. Use this to measure impact before switching to enforcement.
 
 [source,yaml]
 ----
@@ -266,7 +266,7 @@ No request is ever blocked. Every scanner hit surfaces as `flag` with a policy v
 
 === Request-Only, Fail-Open, Custom Scanners
 
-Only the prompt is scanned, one scanner is disabled for this route, and if F5 is unreachable the request proceeds unscanned (with the `service_unavailable` header emitted).
+Only the prompt is scanned, one F5 scanner is disabled for this route, and if F5 is unreachable the request proceeds unscanned (with the `service_unavailable` header emitted).
 
 [source,yaml]
 ----
@@ -287,7 +287,7 @@ Only the prompt is scanned, one scanner is disabled for this route, and if F5 is
 
 === Per-Phase Scanner Selection
 
-The request scan and response scan target independent scanner sets. The request phase clears the global disable list and force-enables a scanner; the response phase keeps the global disable and adds another scanner.
+The request scan and response scan target independent F5 scanner sets. The request phase clears the global disable list and force-enables an F5 scanner; the response phase keeps the global disable and adds another F5 scanner.
 
 [source,yaml]
 ----
