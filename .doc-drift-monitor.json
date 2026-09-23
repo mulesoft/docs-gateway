@@ -1,0 +1,617 @@
+{
+  "id": "gateway",
+  "code_repos": [
+    "/Users/glenn.rodgers/git/microgateway-api-policies-definitions-library",
+    "/Users/glenn.rodgers/git/microgateway-policies",
+    "/Users/glenn.rodgers/git/microgateway-hybrid-policies"
+  ],
+  "docs_branch": "latest",
+  "code_branch": "develop",
+  "code_branches": {
+    "microgateway-hybrid-policies": "main"
+  },
+  "cadence": "daily",
+  "notify_on_clean": true,
+  "mappings": [
+    {
+      "id": "policies-included-a2a-agent-card",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-a2a-agent-card.adoc",
+      "code_dirs": [
+        "agent/a2a_v0.3/a2a-agent-card-policy"
+      ],
+      "scope": "Config labels Consumer URL / Card Path and summary match gcl.yaml. Only drift: cardPath default '/.well-known/agent-card.json' is undocumented. 'Total Agent Calls' metric behavior "
+    },
+    {
+      "id": "policies-included-a2a-pii-detector",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-a2a-pii-detector.adoc",
+      "code_dirs": [
+        "agent/a2a_v0.3/a2a-pii-detector-policy"
+      ],
+      "scope": "Enum values (Email, US SSN, Credit Card, Phone Number), Action enum (Reject, Log, Log and mask) + default Log, required=entities, and Custom PII Patterns all match gcl.yaml. Two lo"
+    },
+    {
+      "id": "policies-included-a2a-prompt-decorator",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-a2a-prompt-decorator.adoc",
+      "code_dirs": [
+        "agent/a2a_v0.3/a2a-prompt-decorator-policy"
+      ],
+      "scope": "All field titles match gcl.yaml: Text Decorators, Prompt Text, Condition, File Decorators, File Name, File Mime Type, File Source (enum Base64/Uri, default Base64), Content. Only a"
+    },
+    {
+      "id": "policies-included-a2a-quality-evaluation",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-a2a-quality-evaluation.adoc",
+      "code_dirs": [
+        "agent/a2a-quality-evaluation-policy"
+      ],
+      "scope": "Config fields (Quality LLM URL/API Key/Model, Request Timeout (ms)), defaults (gpt-4o, 10000), required set, headers x-quality-evaluation/-score/-explanation, metric mulesoft_agent"
+    },
+    {
+      "id": "policies-included-a2a-schema-validation",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-a2a-schema-validation.adoc",
+      "code_dirs": [
+        "agent/a2a_v0.3/a2a-schema-validation-policy"
+      ],
+      "scope": "gcl.yaml has properties {} / required [], matching the doc's 'There are no configuration parameters' statement. Policy Name and summary consistent with definition. No drift."
+    },
+    {
+      "id": "policies-included-a2a-token-rate-limit",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-a2a-token-rate-limit.adoc",
+      "code_dirs": [
+        "agent/a2a_v0.3/a2a-token-rate-limit-policy"
+      ],
+      "scope": "Field titles (Maximum Tokens min 1, Time Period (ms) min 1000, Key Selector), required set, GPT-4o-mini tokenizer, 429 status, and response headers x-token-limit/-remaining/-reset "
+    },
+    {
+      "id": "policies-included-a2a-v1-agent-card",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-a2a-v1-agent-card.adoc",
+      "code_dirs": [
+        "agent/a2a_v1/a2a-v1-agent-card-policy"
+      ],
+      "scope": "build_context scanned only 1 file; read definition/gcl.yaml and generated/config.rs directly. Policy name, Consumer URL, Agent Card Path (default /.well-known/agent-card.json), and"
+    },
+    {
+      "id": "policies-included-a2a-v1-azure-guardrails",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-a2a-v1-azure-guardrails.adoc",
+      "code_dirs": [
+        "agent/a2a_v1/a2a-v1-azure-guardrails-policy"
+      ],
+      "scope": "Four LABEL_MISMATCH findings, all confirmed against gcl.yaml titles: Policy Name 'A2A v1 Azure Content Guardrails Policy' vs title 'A2A v1 Azure Guardrails'; 'Moderate Response' vs"
+    },
+    {
+      "id": "policies-included-a2a-v1-bedrock-guardrails",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-a2a-v1-bedrock-guardrails.adoc",
+      "code_dirs": [
+        "agent/a2a_v1/a2a-v1-bedrock-guardrails-policy"
+      ],
+      "scope": "No drift. All titles (Bedrock Runtime Endpoint, AWS Credentials sub-fields, Guardrail Identifier/Version, Moderate Request/Response, Advanced fields), defaults (guardrailVersion DR"
+    },
+    {
+      "id": "policies-included-a2a-v1-pii-detector",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-a2a-v1-pii-detector.adoc",
+      "code_dirs": [
+        "agent/a2a_v1/a2a-v1-pii-detector-policy"
+      ],
+      "scope": "No drift. Policy title, PII Types enum (Email, US SSN, Credit Card, Phone Number), Action enum (Reject, Log, Log and mask) with default Log, Custom PII Patterns with Pattern Name /"
+    },
+    {
+      "id": "policies-included-a2a-v1-prompt-decorator",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-a2a-v1-prompt-decorator.adoc",
+      "code_dirs": [
+        "agent/a2a_v1/a2a-v1-prompt-decorator-policy"
+      ],
+      "scope": "No drift. All titles match including the aliased ones: field 'file' -> title 'Content', field 'fileType' -> title 'File Source' (enum Base64/Uri, default Base64). Text Decorators/F"
+    },
+    {
+      "id": "policies-included-a2a-v1-schema-validation",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-a2a-v1-schema-validation.adoc",
+      "code_dirs": [
+        "agent/a2a_v1/a2a-v1-schema-validation-policy"
+      ],
+      "scope": "Policy has no config params (confirmed: properties {} / required []) matching doc. One confirmed medium INCORRECT: doc gives gRPC detection path '/a2a.A2AService/<RPC>' but code co"
+    },
+    {
+      "id": "policies-included-a2a-v1-to-v03-transcoder",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-a2a-v1-to-v03-transcoder.adoc",
+      "code_dirs": [
+        "agent/a2a_v1/a2a-v1-to-v03-transcoder-policy",
+        "agent/libs/a2a-core/src/a2a_v1/transcoding"
+      ],
+      "scope": "Config-free policy; title/category/status codes match gcl.yaml. Findings: (1) doc attributes `additionalInterfaces` to the v1.0 card, but code maps v0.3 url+additionalInterfaces IN"
+    },
+    {
+      "id": "policies-included-a2a-v1-token-rate-limit",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-a2a-v1-token-rate-limit.adoc",
+      "code_dirs": [
+        "agent/a2a_v1/a2a-v1-token-rate-limit-policy"
+      ],
+      "scope": "All config field labels (Maximum Tokens, Time Period (ms), Key Selector), required flags, and minimums match gcl.yaml; token-counting/headers match spec. Findings: (1) doc says not"
+    },
+    {
+      "id": "policies-included-agent-connection-telemetry",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-agent-connection-telemetry.adoc",
+      "code_dirs": [
+        "agent/agent-connection-telemetry-policy",
+        "agent/libs/agent-core/src"
+      ],
+      "scope": "Strong drift. (HIGH x2) doc says the default extraction header is X-AGENT-ID, but gcl.yaml sourceAgentId default is #[attributes.headers['X-ANYPOINT-API-INSTANCE-ID']] (X-AGENT-ID "
+    },
+    {
+      "id": "policies-included-api-security-identification-header",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-api-security-identification-header.adoc",
+      "code_dirs": [
+        "security/api-identification-header-policy"
+      ],
+      "scope": "Policy name/summary/category/no-config all match gcl.yaml; header names and reject/503 bodies match spec. Findings: (1) doc says x-ms-correlation-id-1 holds the 'business group ID'"
+    },
+    {
+      "id": "policies-included-azure-content-safety",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-azure-content-safety.adoc",
+      "code_dirs": [
+        "llm-gw/azure-content-safety-policy",
+        "libs/llm-core/src/contracts"
+      ],
+      "scope": "Extensive verification: all Basic/Advanced field titles, defaults (2024-09-01, 5000/1000-30000, threshold enum 0/2/4/6), response header names, reason values (severity_hate/self_ha"
+    },
+    {
+      "id": "policies-included-basic-auth-ldap",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-basic-auth-ldap.adoc",
+      "code_dirs": [
+        "ldap-authentication"
+      ],
+      "scope": "(HIGH) doc marks ldapServerURL Optional with default ldap://127.0.0.1:389, but Flex config.rs ldap_server_url is a required String with no default and DEFS lists it required/no-def"
+    },
+    {
+      "id": "policies-included-basic-auth-simple",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-basic-auth-simple.adoc",
+      "code_dirs": [
+        "basic-authentication"
+      ],
+      "scope": "Policy display name colon-vs-hyphen mismatch (doc 'Basic Authentication: Simple' vs title 'Basic Authentication - Simple'); username/password described as 'base-64 encoded string' "
+    },
+    {
+      "id": "policies-included-bedrock-guardrails",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-bedrock-guardrails.adoc",
+      "code_dirs": [
+        "llm-gw/bedrock-guardrails-policy"
+      ],
+      "scope": "Uses gcl.yaml not policy-definition.json. Doc matches gcl.yaml closely (all field titles, DRAFT default, apiTimeoutMs 5000 range 1000-30000, failOpen false). One gap: moderateReque"
+    },
+    {
+      "id": "policies-included-client-id-enforcement",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-client-id-enforcement.adoc",
+      "code_dirs": [
+        "client-id-enforcement"
+      ],
+      "scope": "No drift. Title, Credentials origin oneOf labels (HTTP Basic Authentication Header / Custom Expression), Client ID Expression, Client Secret Expression, required/optional flags, an"
+    },
+    {
+      "id": "policies-included-cors",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-cors.adoc",
+      "code_dirs": [
+        "cors"
+      ],
+      "scope": "Undocumented origin-group 'name' field (title 'Origin Group Name', default 'Default group'), required when publicResource=false. origins/accessControlMaxAge/allowedMethods marked O"
+    },
+    {
+      "id": "policies-included-dataweave-body-transformation",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-dataweave-body-transformation.adoc",
+      "code_dirs": [
+        "dataweave-body-transformation"
+      ],
+      "scope": "requestFlow has schema default 'onRequest' but doc shows Default '\u2014' and Required. script has a schema default but doc shows '\u2014'. UI table 'Request flow' vs schema title 'Request F"
+    },
+    {
+      "id": "policies-included-dataweave-headers-transformation",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-dataweave-headers-transformation.adoc",
+      "code_dirs": [
+        "dataweave-headers-transformation"
+      ],
+      "scope": "requestFlow schema default 'onRequest' not documented (doc '\u2014'/Required). script schema default not documented. UI labels 'Request flow' vs 'Request Flow' and 'Requires payload' vs"
+    },
+    {
+      "id": "policies-included-dataweave-request-filter",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-dataweave-request-filter.adoc",
+      "code_dirs": [
+        "dataweave-request-filter",
+        "dataweave_request_filter"
+      ],
+      "scope": "Compared against policy-definition.json + manifest.yaml. Category mismatch (doc Transformation vs manifest annotation Security), UI label casing 'Requires payload' vs code 'Require"
+    },
+    {
+      "id": "policies-included-directory",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-directory.adoc",
+      "code_dirs": [],
+      "scope": "Index page covering ~70 policies; only categories/summaries for the 6 target policies were code-verified. DataWeave Request Filter listed as Transformation vs manifest category Sec"
+    },
+    {
+      "id": "policies-included-external-authorization",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-external-authorization.adoc",
+      "code_dirs": [
+        "ext-authz",
+        "native_ext_authz"
+      ],
+      "scope": "UI label 'Include peer certificates in the authorization server request' vs code title 'Include peer certificates'; 'Allowed headers' vs 'Allowed Headers'; serverApiVersion/include"
+    },
+    {
+      "id": "policies-included-external-processing",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-external-processing.adoc",
+      "code_dirs": [
+        "ext-proc",
+        "native_ext_proc"
+      ],
+      "scope": "All field titles/defaults/enums match. Returned status code '403 - IP is rejected' has no supporting code in native_ext_proc src (reads like copy-paste from an IP policy) -> UNVERI"
+    },
+    {
+      "id": "policies-included-graphql-access-control",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-graphql-access-control.adoc",
+      "code_dirs": [
+        "graphql-access-control",
+        "graphql_access_control"
+      ],
+      "scope": "rules default documented as 'None' but schema default is a permit-all rule 'permit(principal, action, resource);'. UI Field label 'Rules' vs code title 'Cedar Rules'. Cedar attribu"
+    },
+    {
+      "id": "policies-included-graphql-introspection-control",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-graphql-introspection-control.adoc",
+      "code_dirs": [
+        "graphql-introspection-control",
+        "graphql_introspection_control"
+      ],
+      "scope": "No drift. Field titles (Block __schema/__type/__typename), booleans, and defaults (all false) match policy-definition.json and manifest.yaml exactly. Descriptions are acceptable pa"
+    },
+    {
+      "id": "policies-included-graphql-operation-limits",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-graphql-operation-limits.adoc",
+      "code_dirs": [
+        "graphql-operation-limits"
+      ],
+      "scope": "Clean. DEFS title 'GraphQL Operation Limits' and UI titles Maximum Depth/Aliases/Root Fields/Directives match doc labels; config keys maxDepth/maxAliases/maxRootFields/maxDirective"
+    },
+    {
+      "id": "policies-included-graphql-schema-validation",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-graphql-schema-validation.adoc",
+      "code_dirs": [
+        "graphql-schema-validation"
+      ],
+      "scope": "Clean. DEFS defines only blockOperation (title 'Block request', required, default true) matching UI table. source (default context, enum context/inline) and schema (required when i"
+    },
+    {
+      "id": "policies-included-graphql-static-query-complexity",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-graphql-static-query-complexity.adoc",
+      "code_dirs": [
+        "graphql-static-query-complexity"
+      ],
+      "scope": "Clean. All 7 UI titles (Maximum Complexity, Default Field Cost, Block request, Reject unbounded lists, Directive Name, Value Argument, Multipliers Argument) match; defaults (cost/w"
+    },
+    {
+      "id": "policies-included-header-injection",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-header-injection.adoc",
+      "code_dirs": [
+        "header-injection"
+      ],
+      "scope": "4 low LABEL_MISMATCH: UI table uses 'Inbound/Outbound Header Key' and 'Inbound/Outbound Header Value', but DEFS array-item titles are simply 'Key' and 'Value' (nested under 'Inboun"
+    },
+    {
+      "id": "policies-included-header-removal",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-header-removal.adoc",
+      "code_dirs": [
+        "header-removal"
+      ],
+      "scope": "1 medium INCORRECT: doc lists 'accept' among non-removable headers, but IMPL model.rs NON_REM_HEADERS has exactly 6 entries (host, content-type, content-length, date, transfer-enco"
+    },
+    {
+      "id": "policies-included-health-check",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-health-check.adoc",
+      "code_dirs": [
+        "health-check"
+      ],
+      "scope": "1 low LABEL_MISMATCH: doc uses 'Base path' but DEFS title for 'path' is 'Base Path' (capital P). 'Upstream URL' and 'Response code' labels match; all three fields required, matchin"
+    },
+    {
+      "id": "policies-included-http-caching",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-http-caching.adoc",
+      "code_dirs": [
+        "http-caching",
+        "http_caching"
+      ],
+      "scope": "All 9 config fields, defaults, and required set match. Only drift: UI label 'Entry Time To Live' vs code title 'Entry Time To Live (in Seconds)'."
+    },
+    {
+      "id": "policies-included-injection-protection",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-injection-protection.adoc",
+      "code_dirs": [
+        "injection-protection",
+        "injection_protection"
+      ],
+      "scope": "builtInProtections is optional (default []) not required per code; real rule is >=1 protection (built-in or custom). Four UI labels differ from code titles (Protect Path and Query "
+    },
+    {
+      "id": "policies-included-ip-allowlist",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-ip-allowlist.adoc",
+      "code_dirs": [
+        "ip-allowlist",
+        "ip_allowlist"
+      ],
+      "scope": "Labels (IP expression, Allowlist), title, and default expression all match. Drift: ipExpression documented OPTIONAL but is in schema required array and impl rejects configs omittin"
+    },
+    {
+      "id": "policies-included-ip-blocklist",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-ip-blocklist.adoc",
+      "code_dirs": [
+        "ip-blocklist",
+        "ip_blocklist"
+      ],
+      "scope": "Labels (IP expression, Blocklist) and title match. Same ipExpression required-vs-optional drift as ip-allowlist; cited from ip-blocklist DEFS required array plus identically-modele"
+    },
+    {
+      "id": "policies-included-javascript-scripting",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-javascript-scripting.adoc",
+      "code_dirs": [
+        "javascript-scripting",
+        "javascript_scripting"
+      ],
+      "scope": "Script field/title, entire Script API (verified against pdk.d.ts), console log-level mapping, 1 MiB limit, and 500 body {\"error\":\"Internal error\"} all match. Drift: doc says unexpe"
+    },
+    {
+      "id": "policies-included-json-threat-protection",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-json-threat-protection.adoc",
+      "code_dirs": [
+        "json-threat-protection",
+        "json_threat_protection"
+      ],
+      "scope": "All 5 field labels, -1 defaults, and all-optional required set match. Only drift: display name 'JSON Threat Protection' vs code title 'Json Threat Protection' (acronym casing)."
+    },
+    {
+      "id": "policies-included-jwt-validation",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-jwt-validation.adoc",
+      "code_dirs": [
+        "jwt-validation-1x",
+        "jwt-validation-0x"
+      ],
+      "scope": "Config fields largely match. Protected Resource Metadata fields (enableProtectedResourceMetadata, protectedResourceMetadataAuthorizationServerUrl) are documented correctly \u2014 confir"
+    },
+    {
+      "id": "policies-included-llm-pii-detection",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-llm-pii-detection.adoc",
+      "code_dirs": [
+        "llm-gw/llm-pii-detection-policy"
+      ],
+      "scope": "Config fields (PII Types/entities enum, Custom PII Patterns, Action enum+default Log), reject response (type pii_detected, 'Request contains PII data:'), and log strings all match."
+    },
+    {
+      "id": "policies-included-llm-proxy-request-compression",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-llm-proxy-request-compression.adoc",
+      "code_dirs": [
+        "llm-gw/llm-proxy-request-compression-policy"
+      ],
+      "scope": "All defaults and the Compress Tool Results / Compress Messages / Minify / Remove Empty Values / HTML to Markdown / Agent IDs labels match. Four label mismatches: 'Enable TOON Encod"
+    },
+    {
+      "id": "policies-included-llm-token-rate-limit",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-llm-token-rate-limit.adoc",
+      "code_dirs": [
+        "llm-gw/llm-token-rate-limit-policy"
+      ],
+      "scope": "Config fields (Maximum Tokens min 1, Time Period (ms) min 1000, Key Selector, all required) match; 429 status matches. Findings: the x-token-limit/x-token-remaining/x-token-reset h"
+    },
+    {
+      "id": "policies-included-mcp-attribute-access-control",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-mcp-attribute-access-control.adoc",
+      "code_dirs": [
+        "mcp/mcp-access-control-policy"
+      ],
+      "scope": "UI labels Rules, Cedar Expression, Authentication Type all match; summary description matches exactly. Findings: Authentication Type element omits the allowed values (ClientId/Othe"
+    },
+    {
+      "id": "policies-included-mcp-global-access",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-mcp-global-access.adoc",
+      "code_dirs": [
+        "mcp/mcp-global-access-policy"
+      ],
+      "scope": "UI labels (Rules, Rule Allow/Block, Match type literal/pattern, Value), minItems 1, error code -32008, and 'Access denied to:' message all confirmed. Doc's tools+resources+prompts "
+    },
+    {
+      "id": "policies-included-mcp-payload-optimization",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-mcp-payload-optimization.adoc",
+      "code_dirs": [
+        "mcp/mcp-payload-optimization-policy"
+      ],
+      "scope": "Two confirmed LABEL_MISMATCH: doc 'Model Proxy URL'/'Model Proxy ID' vs code titles 'LLM Proxy URL'/'LLM Proxy ID'. All other labels (HTML to Markdown, Strip Base64, Remove Nulls, "
+    },
+    {
+      "id": "policies-included-mcp-pii-detector",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-mcp-pii-detector.adoc",
+      "code_dirs": [
+        "mcp/mcp-pii-detector-policy"
+      ],
+      "scope": "One low LABEL_MISMATCH: doc 'PII Types' vs code title 'PII types' (lowercase 't'). Custom PII Patterns, Action label, action enum (Reject/Log/Log and mask), default Log, entities e"
+    },
+    {
+      "id": "policies-included-mcp-progressive-disclosure",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-mcp-progressive-disclosure.adoc",
+      "code_dirs": [
+        "mcp/mcp-tools-progressive-disclosure-policy"
+      ],
+      "scope": "One medium LABEL_MISMATCH: doc 'Meta Tool Prefix' vs code title 'Meta-Tool Name Prefix'. Search Result Limit (default 20) and Hot Tools (default []) match. search_tools/invoke_tool"
+    },
+    {
+      "id": "policies-included-mcp-schema-validation",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-mcp-schema-validation.adoc",
+      "code_dirs": [
+        "mcp/mcp-schema-validation-policy"
+      ],
+      "scope": "One medium LABEL_MISMATCH: doc 'Validate Tool Schema' vs code title 'Validate Tool's Schema' (missing possessive). Tool Poisoning Detection, Descriptor Drift/Shadow Tool Name/Promp"
+    },
+    {
+      "id": "policies-included-mcp-support",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-mcp-support.adoc",
+      "code_dirs": [
+        "mcp/mcp-support-policy"
+      ],
+      "scope": "No drift. Single field 'Inject MCP Element Headers' matches gcl.yaml title exactly; default Disabled (false) matches; header names x-ms-mcp-element-id/x-ms-mcp-element-type and des"
+    },
+    {
+      "id": "policies-included-mcp-tool-mapping",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-mcp-tool-mapping.adoc",
+      "code_dirs": [
+        "mcp/mcp-tool-mapping-policy"
+      ],
+      "scope": "One low LABEL_MISMATCH: Mapping Type table shows capitalized '*Literal*'/'*Regex*' but gcl.yaml enum values are lowercase 'literal'/'regex' (doc's own YAML examples use lowercase)."
+    },
+    {
+      "id": "policies-included-message-logging",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-message-logging.adoc",
+      "code_dirs": [
+        "logging-21x"
+      ],
+      "scope": "All UI labels (Message, Conditional, Category, Level, Before/After Calling API, Enable data masking, PII Detection, Custom Patterns) and data-masking config match policy-definition"
+    },
+    {
+      "id": "policies-included-oauth-protected-resource-metadata",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-oauth-protected-resource-metadata.adoc",
+      "code_dirs": [
+        "auth/oauth-protected-resource-metadata-policy"
+      ],
+      "scope": "Policy lives in HYBRID (not DEFS). All 14 documented field labels match gcl.yaml titles. Two drifts: (1) authorizationServers is required in gcl.yaml required list and is a non-Opt"
+    },
+    {
+      "id": "policies-included-oauth-token-introspection",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-oauth-token-introspection.adoc",
+      "code_dirs": [
+        "oauth2-token-introspection"
+      ],
+      "scope": "Config keys, required list (introspectionURL, authorizationValue, skipClientIdValidation, consumerBy), and Protected Resource Metadata fields all present. Drifts: maxCacheEntries d"
+    },
+    {
+      "id": "policies-included-openid-token-enforcement",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-openid-token-enforcement.adoc",
+      "code_dirs": [
+        "open-id-0x"
+      ],
+      "scope": "Doc matches open-id-0x (full feature set: metadata, Validated Token TTL, Maximum Cache Entries). NOTE: the higher-numbered open-id-1x dir actually has FEWER fields (lacks metadata/"
+    },
+    {
+      "id": "policies-included-rate-limiting-sla",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-rate-limiting-sla.adoc",
+      "code_dirs": [
+        "rate-limit-sla-14x"
+      ],
+      "scope": "No drift. All 5 UI labels (Client ID Expression, Client Secret Expression, Distributed, Expose Headers, Block on unknown quota) match policy-definition.json titles exactly. The UI "
+    },
+    {
+      "id": "policies-included-rate-limiting",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-rate-limiting.adoc",
+      "code_dirs": [
+        "rate-limit-15x"
+      ],
+      "scope": "Doc matches rate-limit-15x (which includes blockOnUnknownQuota, default true); rate-limit-14x lacks blockOnUnknownQuota. Defaults exposeHeaders(false), clusterizable(true), blockOn"
+    },
+    {
+      "id": "policies-included-regex-prompt-guard",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-regex-prompt-guard.adoc",
+      "code_dirs": [
+        "llm-gw/regex-prompt-guard-policy"
+      ],
+      "scope": "Block-response body, 403 status, and RE2/regex-crate behavior all confirmed correct. Two low findings: top-level 'Deny Patterns' array element (title, required, minItems 1) undocum"
+    },
+    {
+      "id": "policies-included-response-timeout",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-response-timeout.adoc",
+      "code_dirs": [
+        "response-timeout"
+      ],
+      "scope": "Field name 'timeout', default 15, and required status all match. One medium LABEL_MISMATCH: UI element documented as 'Response timeout' but policy-definition.json title is 'Timeout"
+    },
+    {
+      "id": "policies-included-schema-validation",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-schema-validation.adoc",
+      "code_dirs": [
+        "spec-validation"
+      ],
+      "scope": "UI labels (Block request, Strict query parameters validation) and their defaults match. Medium UNDOCUMENTED: shipped config field 'strictHeadersValidation' (bool, default false) is"
+    },
+    {
+      "id": "policies-included-soap-schema-validation",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-soap-schema-validation.adoc",
+      "code_dirs": [
+        "soap-validation"
+      ],
+      "scope": "Service Name/Service Port UI titles and encoding default UTF-8 match. Medium INCORRECT: 'wsdlUrl' marked Required but manifest.yaml required list is [serviceName, servicePort, enco"
+    },
+    {
+      "id": "policies-included-spike-control",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-spike-control.adoc",
+      "code_dirs": [
+        "spike-control"
+      ],
+      "scope": "All six UI titles and the required-field set match; X-RateLimit header names match. Medium INCORRECT: queuingLimit default - doc says 0, but DEFS policy-definition.json declares de"
+    },
+    {
+      "id": "policies-included-sse-logging",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-sse-logging.adoc",
+      "code_dirs": [
+        "sse/sse-logging-policy"
+      ],
+      "scope": "All UI field labels (Logs, DataWeave expression for SSE response messages, Category, Level), the level enum (INFO/WARN/ERROR/DEBUG), defaults, and required set match gcl.yaml; impl"
+    },
+    {
+      "id": "policies-included-stream-idle-timeout",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-stream-idle-timeout.adoc",
+      "code_dirs": [
+        "stream-idle-timeout",
+        "stream_idle_timeout"
+      ],
+      "scope": "policy-definition.json field 'timeout' has default 60 but doc says 300 (HIGH). Field title is 'Idle Timeout' but UI table lists 'Stream idle timeout' (LABEL_MISMATCH). Narrative 30"
+    },
+    {
+      "id": "policies-included-tls-outbound",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-tls-outbound.adoc",
+      "code_dirs": [],
+      "scope": "TLS outbound is a native/built-in gateway policy: no policy-definition.json/.yaml or Rust crate in any repo. Only HYBRID e2e test YAML references 'name: tls-outbound' (test data). "
+    },
+    {
+      "id": "policies-included-tls",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-tls.adoc",
+      "code_dirs": [],
+      "scope": "Inbound TLS is a native/built-in gateway policy: no policy-definition.json/.yaml or Rust crate in any repo. Parameter table emitted as UNVERIFIED. Missing mapping recorded."
+    },
+    {
+      "id": "policies-included-tracing",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-tracing.adoc",
+      "code_dirs": [
+        "tracing"
+      ],
+      "scope": "labels.keyName documented as Required but policy-definition.json labels.items.required = [name,type,defaultValue] (keyName optional) - affects both param table and UI table (MEDIUM"
+    },
+    {
+      "id": "policies-included-traffic-management-route",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-traffic-management-route.adoc",
+      "code_dirs": [],
+      "scope": "The 'route' policy is a native/built-in gateway routing policy: no policy-definition or Rust crate in any repo. Only HYBRID test templates/tests reference name 'route' (test data)."
+    },
+    {
+      "id": "policies-included-traffic-management",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-traffic-management.adoc",
+      "code_dirs": [],
+      "scope": "The 'route-weighted' policy is a native/built-in gateway routing policy: no policy-definition or Rust crate in any repo. Only HYBRID a2a test template references 'name: route-weigh"
+    },
+    {
+      "id": "policies-included-websocket-connection-limit",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-websocket-connection-limit.adoc",
+      "code_dirs": [
+        "websocket-connection-limit",
+        "websocket_connection_limit"
+      ],
+      "scope": "No drift. Policy title 'WebSocket Connection Limit', config field title 'Maximum Connections', default 100, and required=true all match policy-definition.json. Doc's 'integer of 1 "
+    },
+    {
+      "id": "policies-included-xml-threat-protection",
+      "doc_file": "gateway/1.14/modules/ROOT/pages/policies-included-xml-threat-protection.adoc",
+      "code_dirs": [
+        "xml-threat-protection",
+        "xml_threat_protection"
+      ],
+      "scope": "No drift. All six UI field titles (Maximum Node Depth, Maximum Attribute Count Per Element, Maximum Child Count, Maximum Text Length, Maximum Attribute Length, Maximum Comment Leng"
+    }
+  ]
+}
