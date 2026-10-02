@@ -11,8 +11,10 @@ endif::[]
 >s|Summary| Validates WS-Security UsernameToken credentials, XML signatures, or both on inbound SOAP requests
 >s|Category| Security
 >s|First Omni Gateway version available |v1.9.3
->.^s| Returned Status Codes
-| SOAP 1.1 faults return HTTP `500` and `text/xml`; SOAP 1.2 sender faults return HTTP `400` and `application/soap+xml`. If the policy's connection to Anypoint API contracts isn't ready, it returns a server fault with HTTP `500`.
+.3+>.^s| Returned Status Codes
+|400 - SOAP 1.2 sender fault: malformed request, untrusted or invalid signature, or failed authentication
+|500 - SOAP 1.1 sender fault: malformed request, untrusted or invalid signature, or failed authentication
+|500 - Server fault: the policy's connection to Anypoint API contracts isn't ready
 |===
 
 == Summary
@@ -59,37 +61,17 @@ The policy applies the following checks in order. The first failed check determi
 . When *Validate XML Signature* is enabled, verifies the signature and every reference digest. The covered references must include the Timestamp and, when *Validate UsernameToken* is also enabled, the UsernameToken.
 . When *Validate UsernameToken* is enabled, authenticates the token's username and PasswordText password as an API-contract client ID and client secret.
 
-=== Fault Responses
+=== Supported Algorithms and Credentials
 
-Client-attributable failures return standards-compliant SOAP sender faults and never expose request content or credentials.
+The policy supports a fixed, non-configurable set of algorithms for XML Signature verification:
 
-[%header%autowidth.spread,cols="a,a"]
-|===
-| Condition | Fault
+* **Signature algorithm**: RSA-SHA256 (`http://www.w3.org/2001/04/xmldsig-more#rsa-sha256`)
+* **Canonicalization**: no-comments Exclusive XML Canonicalization (`http://www.w3.org/2001/10/xml-exc-c14n#`)
+* **Reference digest**: SHA-256 (`http://www.w3.org/2001/04/xmlenc#sha256`)
 
-| Non-SOAP content type, malformed multipart input, malformed SOAP, or a missing or duplicate Security header
-| `wsse:InvalidSecurity`
+A signature using any other algorithm is rejected.
 
-| Malformed UsernameToken or signing token
-| `wsse:InvalidSecurityToken`
-
-| `PasswordDigest`, or an unsupported signing-token form
-| `wsse:UnsupportedSecurityToken`
-
-| Unsupported signature, digest, canonicalization, or transform algorithm
-| `wsse:UnsupportedAlgorithm`
-
-| Signing-token reference can't be resolved
-| `wsse:SecurityTokenUnavailable`
-
-| Untrusted, expired, invalid, or incomplete certificate chain; invalid signature or reference digest; unsigned required Timestamp or UsernameToken; or XML Encryption present
-| `wsse:FailedCheck`
-
-| Unknown contract client ID, or an incorrect PasswordText secret
-| `wsse:FailedAuthentication`
-|===
-
-If *Validate UsernameToken* is enabled and the policy's connection to Anypoint API contracts isn't ready, the policy returns a server fault (`soap:Server` for SOAP 1.1, `env:Receiver` for SOAP 1.2) with HTTP `500` and no `wsse:*` fault subcode. The request can succeed after the dependency recovers.
+For UsernameToken authentication, the policy only supports `PasswordText` credentials. It always rejects `PasswordDigest`.
 
 === Principal Propagation
 
