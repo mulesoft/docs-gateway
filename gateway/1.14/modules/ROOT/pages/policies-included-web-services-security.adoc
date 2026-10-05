@@ -1,0 +1,382 @@
+= Web Services Security Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: web services security, ws-security, wss, usernametoken, xml signature, x.509, soap, wsdl, authentication, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Web Services Security
+>s| Summary | Validates UsernameToken credentials, XML signatures, or both on inbound SOAP requests
+>s| Category | Security
+>s| First Omni Gateway version available | v1.14.0
+>s|Release Notes| xref:release-notes::gateway/policies/web-services-security-release-notes.adoc[]
+.3+>.^s| Returned Status Codes
+| 400 - SOAP 1.2 sender fault: malformed request, unsupported or untrusted signature, or failed authentication
+| 500 - SOAP 1.1 sender fault: malformed request, unsupported or untrusted signature, or failed authentication
+| 500 - Server fault: API contracts aren't available yet, so Omni Gateway can't authenticate the UsernameToken
+|===
+
+== Summary
+
+NOTE: The Web Services Security policy supports only WSDL (SOAP 1.1 and 1.2) APIs.
+
+The Web Services Security (WS-Security) policy protects a SOAP service by validating the `<wsse:Security>` header of each inbound request. You can enable either or both of these controls:
+
+UsernameToken validation:: Authenticates the `<wsse:UsernameToken>` against the client applications that have contracts with the API. The username is the client ID, and the password is the client secret.
+XML Signature validation:: Verifies the `<ds:Signature>` in the Security header and confirms that the signing X.509 certificate chains to a certificate authority (CA) that you trust.
+
+When you enable both controls, the request must carry a trusted signature that covers the UsernameToken, and the UsernameToken must match an API contract.
+
+The policy is fail-closed. Every enabled control must succeed before Omni Gateway forwards the request to the upstream service. Omni Gateway forwards the original headers and body unchanged, and doesn't modify responses. When a check fails, Omni Gateway returns a WS-Security SOAP fault, and the request never reaches the upstream service.
+
+The policy accepts plain SOAP requests with a `text/xml` or `application/soap+xml` content type, and multipart SOAP requests with a `multipart/related` content type, such as MTOM/XOP and SOAP with Attachments (SwA).
+
+== Before You Begin
+
+* To validate UsernameTokens, client applications must have a contract with the API. For more information, see xref:api-manager::manage-client-apps-latest-task.adoc[].
+* To validate XML signatures, get the PEM-encoded certificates of the CAs that issue your client signing certificates.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+UsernameToken validation requires API contracts, which are available only in Connected Mode. In Local Mode, you can use the policy for XML Signature validation only. To do so, set `validateUsernameToken` to `false`.
+
+----
+- policyRef:
+    name: ws-security-policy-flex
+  config:
+    validateUsernameToken: <boolean> // OPTIONAL, default: true
+    validateSignature: <boolean> // OPTIONAL, default: true
+    trustAnchors: <string> // REQUIRED when validateSignature is true
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Parameter | Required or Optional | Default Value | Description
+
+| `validateUsernameToken`
+| Optional
+| `true`
+| Authenticates the UsernameToken username and `PasswordText` password as the client ID and client secret of an API contract.
+
+| `validateSignature`
+| Optional
+| `true`
+| Verifies the XML signature, its X.509 certificate chain, and the required signed elements. Requires `trustAnchors`.
+
+| `trustAnchors`
+| Required when `validateSignature` is `true`
+| None
+| One to sixteen PEM-encoded X.509 CA certificates that the signing certificate must chain to. To specify more than one CA, concatenate the PEM blocks. Omni Gateway doesn't use the operating system trust store.
+|===
+
+At least one of `validateUsernameToken` or `validateSignature` must be `true`. Omni Gateway rejects a configuration that disables both.
+
+Omni Gateway also rejects a `trustAnchors` value that is empty, is malformed PEM, contains more than sixteen certificates, contains a certificate larger than 16 KiB, or has trailing data after a certificate.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+s|Field s|Description s|Default Value s|Required
+
+| Validate UsernameToken
+| Authenticates the UsernameToken username and `PasswordText` password against API contracts. At least this field or *Validate XML Signature* must be enabled.
+| Enabled
+| No
+
+| Validate XML Signature
+| Verifies the XML signature, its X.509 certificate chain, and the required signed elements. Requires *Trust Anchors (PEM)*.
+| Enabled
+| No
+
+| Trust Anchors (PEM)
+| One or more PEM-encoded X.509 CA certificates that the signing certificate must chain to.
+| None
+| Required when *Validate XML Signature* is enabled
+|===
+
+=== Configuration Examples
+
+These examples are valid whether you configure the policy in a Local Mode resource file or through the Omni Gateway UI, except that UsernameToken validation requires Connected Mode.
+
+This example enables both controls:
+
+[source,yaml]
+----
+- policyRef:
+    name: ws-security-policy-flex
+  config:
+    validateUsernameToken: true
+    validateSignature: true
+    trustAnchors: |
+      -----BEGIN CERTIFICATE-----
+      MIID...issuing-or-root-CA...
+      -----END CERTIFICATE-----
+----
+
+This example enables only UsernameToken validation. The policy doesn't require, inspect, or trust an XML signature:
+
+[source,yaml]
+----
+- policyRef:
+    name: ws-security-policy-flex
+  config:
+    validateUsernameToken: true
+    validateSignature: false
+----
+
+This example enables only XML Signature validation. The signature must cover the Timestamp. The policy doesn't require or authenticate a UsernameToken:
+
+[source,yaml]
+----
+- policyRef:
+    name: ws-security-policy-flex
+  config:
+    validateUsernameToken: false
+    validateSignature: true
+    trustAnchors: |
+      -----BEGIN CERTIFICATE-----
+      MIID...issuing-or-root-CA...
+      -----END CERTIFICATE-----
+----
+
+== How This Policy Works
+
+Omni Gateway applies these checks in order. The first check that fails determines the fault that Omni Gateway returns:
+
+. *Content type*: The request must use `text/xml`, `application/soap+xml`, or `multipart/related`. For a multipart request, Omni Gateway selects the root part, which is the part whose `Content-ID` matches the `start` parameter, or the first part when `start` is absent.
+. *SOAP envelope*: The envelope must be a single well-formed SOAP 1.1 or SOAP 1.2 document.
+. *Security header*: The SOAP `<Header>` must contain exactly one direct `<wsse:Security>` child. The policy ignores the SOAP 1.1 `actor` and SOAP 1.2 `role` attributes.
+. *Required elements*: The Security header must contain exactly one of each element that the enabled controls require. The Security header must not contain XML Encryption elements.
+. *Signature algorithms*: If XML Signature validation is enabled, the signature must use the supported algorithms, and its `KeyInfo` must reference an X.509 `<wsse:BinarySecurityToken>` in the same Security header.
+. *Certificate trust*: If XML Signature validation is enabled, the signing certificate must chain to a configured trust anchor.
+. *Signature verification*: If XML Signature validation is enabled, the signature and every reference digest must verify, and the signed references must cover the required elements.
+. *UsernameToken authentication*: If UsernameToken validation is enabled, the username and password must match the client ID and client secret of an API contract.
+
+=== UsernameToken Validation
+
+When UsernameToken validation is enabled, the Security header must contain exactly one `<wsse:UsernameToken>` with a username and a password:
+
+* The password must be `PasswordText`. When the `<wsse:Password>` element has no `Type` attribute, the policy treats the password as `PasswordText`.
+* The policy always rejects `PasswordDigest` because it can't access the client secret in clear text to recompute the digest.
+* Omni Gateway applies Unicode NFC normalization to the username before it looks up the client ID.
+
+If API contracts aren't available, for example, while Omni Gateway waits for the first contract update from Anypoint Platform, Omni Gateway returns a server fault. The request can succeed after the contracts load.
+
+=== XML Signature Validation
+
+When XML Signature validation is enabled, the Security header must contain:
+
+* Exactly one `<wsu:Timestamp>`.
+* Exactly one `<ds:Signature>`.
+* A `<wsse:BinarySecurityToken>` that contains the signing certificate.
+
+The signature must cover the Timestamp. When UsernameToken validation is also enabled, the signature must also cover the UsernameToken. The policy doesn't require the SOAP Body to be signed, but it verifies any Body reference that the signature includes.
+
+==== Supported Algorithms
+
+The policy supports only these algorithms. It rejects a signature that uses any other algorithm:
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Purpose | Algorithm
+
+| Signature
+| RSA-SHA256 (`\http://www.w3.org/2001/04/xmldsig-more#rsa-sha256`)
+
+| Canonicalization
+| Exclusive XML Canonicalization without comments (`\http://www.w3.org/2001/10/xml-exc-c14n#`)
+
+| Reference digest
+| SHA-256 (`\http://www.w3.org/2001/04/xmlenc#sha256`)
+|===
+
+The `<ds:KeyInfo>` element must reference the signing `<wsse:BinarySecurityToken>` by its `wsu:Id`. The policy rejects other `KeyInfo` forms, `X509PKIPathv1` and `PKCS7` tokens, external references, and attachment signature transforms.
+
+==== Certificate Requirements
+
+The signing certificate must meet these requirements:
+
+* It's a base64-encoded DER X.509 v3 certificate of up to 16 KiB, with an RSA key of 2048 to 4096 bits.
+* It chains to a configured trust anchor through at most eight issuer certificates. The request can include intermediate CA certificates as additional `<wsse:BinarySecurityToken>` elements in the same Security header.
+* Every certificate in the chain is valid at the time of the request, and every issuer is a CA certificate.
+
+The policy doesn't check certificate revocation or key usage.
+
+=== Principal Propagation
+
+When UsernameToken validation is enabled and every enabled check succeeds, the policy publishes the matched contract identity so that policies later in the chain can use it:
+
+* `principal` and `client_id`: The client ID of the matched contract.
+* `client_name`: The name of the client application.
+* `sla-tier-id` and `sla-tier-name` properties: The SLA tier of the contract, when the contract has one.
+
+The policy doesn't publish the client secret or any certificate or signature data. Rejected requests don't change the authentication data.
+
+When only XML Signature validation is enabled, the policy doesn't publish an identity.
+
+=== Security Considerations
+
+Consider these limitations when you configure the policy:
+
+* *No certificate-to-client binding*: When both controls are enabled, a valid signature proves that a trusted signer protected the UsernameToken. It doesn't bind the certificate to the client. Any certificate that chains to a configured trust anchor can sign a UsernameToken for any client ID, which the policy then authenticates separately against API contracts.
+* *No replay protection*: The policy requires a signed Timestamp but doesn't enforce its `<wsu:Expires>` value, and doesn't track previously seen requests. Use TLS to protect requests in transit. For more information, see xref:policies-included-tls.adoc[].
+* *Multipart attachments aren't inspected*: For `multipart/related` requests, the policy validates only the SOAP envelope in the root part. The root part must use `7bit`, `8bit`, or `binary` `Content-Transfer-Encoding`, or omit the header.
+* *XML hardening*: The policy rejects envelopes that contain a `<!DOCTYPE>` declaration or that nest elements more than 128 levels deep.
+
+=== Limits
+
+The policy enforces these fixed limits:
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Item | Limit
+
+| XML element nesting depth
+| 128
+
+| `<wsse:BinarySecurityToken>` elements in the Security header
+| 16
+
+| Certificates in `trustAnchors`
+| 16
+
+| Size of each decoded certificate
+| 16 KiB
+
+| Issuer certificates in a certificate chain
+| 8
+
+| `<ds:Reference>` elements in a signature
+| 16
+|===
+
+The request body is also bounded by the Envoy request body limit.
+
+== Request Example
+
+This SOAP 1.1 request carries a signing certificate, a signed Timestamp, a UsernameToken, and a signature that covers both the Timestamp and the UsernameToken:
+
+[source,xml]
+----
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
+               xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+               xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+  <soap:Header>
+    <wsse:Security>
+      <wsse:BinarySecurityToken wsu:Id="X509-signing-cert"
+          ValueType="...#X509v3" EncodingType="...#Base64Binary">MIIB...leaf-cert...</wsse:BinarySecurityToken>
+      <wsu:Timestamp wsu:Id="TS-1">
+        <wsu:Created>2026-09-30T12:00:00Z</wsu:Created>
+        <wsu:Expires>2026-09-30T12:05:00Z</wsu:Expires>
+      </wsu:Timestamp>
+      <wsse:UsernameToken wsu:Id="UT-1">
+        <wsse:Username>contract-client-id</wsse:Username>
+        <wsse:Password Type="...#PasswordText">contract-client-secret</wsse:Password>
+      </wsse:UsernameToken>
+      <ds:Signature><!-- RSA-SHA256 signature that references #TS-1 and #UT-1 --></ds:Signature>
+    </wsse:Security>
+  </soap:Header>
+  <soap:Body><!-- application payload --></soap:Body>
+</soap:Envelope>
+----
+
+With both controls enabled, Omni Gateway forwards this request when the certificate chains to a configured trust anchor, the signature verifies over `TS-1` and `UT-1`, and the UsernameToken matches an API contract.
+
+== SOAP Faults
+
+When the policy rejects a request, Omni Gateway returns a SOAP fault that matches the SOAP version of the request:
+
+* SOAP 1.1: HTTP status `500` with content type `text/xml`. The WS-Security fault code is in the `<faultcode>` element.
+* SOAP 1.2: HTTP status `400` with content type `application/soap+xml`. The fault code is `env:Sender`, and the WS-Security fault code is in the `<env:Subcode>` element.
+
+If Omni Gateway rejects the request before it identifies the SOAP version, it returns a SOAP 1.1 fault. Fault messages never include request content or credentials.
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Fault Code | Fault String | Condition
+
+| `wsse:InvalidSecurity`
+| An error was discovered processing the <wsse:Security> header
+| The content type isn't a SOAP media type, the multipart body or SOAP envelope is malformed, or the Security header is missing or duplicated.
+
+| `wsse:InvalidSecurityToken`
+| An invalid security token was provided
+| The UsernameToken or signing token is malformed.
+
+| `wsse:UnsupportedSecurityToken`
+| An unsupported token was provided
+| The UsernameToken uses `PasswordDigest`, or the signing token uses an unsupported form.
+
+| `wsse:UnsupportedAlgorithm`
+| An unsupported signature or encryption algorithm was used
+| The signature uses an unsupported signature, digest, canonicalization, or transform algorithm.
+
+| `wsse:SecurityTokenUnavailable`
+| Referenced security token could not be retrieved
+| The signing token that `KeyInfo` references can't be found.
+
+| `wsse:FailedCheck`
+| The signature or decryption was invalid
+| The certificate chain is untrusted, expired, invalid, or incomplete. The signature or a reference digest doesn't verify. The Timestamp or UsernameToken isn't signed when required. The Security header contains XML Encryption.
+
+| `wsse:FailedAuthentication`
+| The security token could not be authenticated or authorized
+| The client ID doesn't match an API contract, or the client secret is incorrect.
+|===
+
+When UsernameToken validation is enabled but API contracts aren't available, Omni Gateway returns a server fault with HTTP status `500` and the fault string `The security token could not be validated at this time`. The fault code is `soap:Server` for SOAP 1.1 and `env:Receiver` for SOAP 1.2, with no WS-Security subcode.
+
+=== SOAP 1.1 Fault Example
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <soap:Fault>
+      <faultcode xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">wsse:FailedAuthentication</faultcode>
+      <faultstring>The security token could not be authenticated or authorized</faultstring>
+    </soap:Fault>
+  </soap:Body>
+</soap:Envelope>
+----
+
+=== SOAP 1.2 Fault Example
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+  <env:Body>
+    <env:Fault>
+      <env:Code>
+        <env:Value>env:Sender</env:Value>
+        <env:Subcode>
+          <env:Value xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">wsse:FailedAuthentication</env:Value>
+        </env:Subcode>
+      </env:Code>
+      <env:Reason>
+        <env:Text xml:lang="en">The security token could not be authenticated or authorized</env:Text>
+      </env:Reason>
+    </env:Fault>
+  </env:Body>
+</env:Envelope>
+----
+
+=== Troubleshoot Rejected Requests
+
+To prevent callers from probing for the cause of a rejection, a single fault code covers several conditions. To identify the exact cause, set the Omni Gateway log level to `debug`. For each rejected request, the policy logs a detailed reason, such as `client ID has no matching API contract` or `certificate chain is not trusted`. Log messages never include credential values. Each rejection also generates a policy violation.
+
+== See Also
+
+* xref:policies-included-directory.adoc[Inbound Policies Directory]
+* xref:policies-included-soap-schema-validation.adoc[]
+* xref:policies-included-xml-threat-protection.adoc[]
+* xref:policies-included-tls.adoc[]
+* xref:gateway-secure-apis.adoc[Securing Omni Gateway Instances with Policies]
