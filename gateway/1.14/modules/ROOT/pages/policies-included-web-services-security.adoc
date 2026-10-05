@@ -147,35 +147,17 @@ This example enables only XML Signature validation. The signature must cover the
 The policy validates each request in the following order. If a step fails, Omni Gateway stops processing the request and returns the fault for that step. Steps 5 through 7 run only when *Validate XML Signature* is enabled, and step 8 runs only when *Validate UsernameToken* is enabled.
 
 . Omni Gateway confirms that the request's content type is `text/xml`, `application/soap+xml`, or `multipart/related`. For a `multipart/related` request, Omni Gateway also confirms that the multipart body is well-formed and selects the root part that contains the SOAP envelope.
-. Omni Gateway confirms that the SOAP envelope is a single, well-formed SOAP 1.1 or SOAP 1.2 document.
+. Omni Gateway confirms that the SOAP envelope is a single, well-formed SOAP 1.1 or SOAP 1.2 document with no `<!DOCTYPE>` declaration.
 . Omni Gateway confirms that the SOAP `<Header>` contains exactly one `<wsse:Security>` element as a direct child.
 . Omni Gateway confirms that the Security header contains exactly one of each element that the enabled validations require, such as the `<wsse:UsernameToken>` or the `<ds:Signature>`. Omni Gateway rejects the request if the Security header contains XML Encryption elements.
 . Omni Gateway confirms that the signature uses the supported algorithms: Exclusive XML Canonicalization, RSA-SHA256, and SHA-256 reference digests. The signature's `<ds:KeyInfo>` must reference an X.509 `<wsse:BinarySecurityToken>` in the same Security header.
 . Omni Gateway confirms that the signing certificate chains to a certificate in *Trust Anchors (PEM)*, through no more than eight issuer certificates.
-. Omni Gateway verifies the signature and the digest of every signed reference. The signed references must include the `<wsu:Timestamp>`. When *Validate UsernameToken* is also enabled, the signed references must also include the `<wsse:UsernameToken>`.
-. Omni Gateway authenticates the UsernameToken by using the username as the client ID and the `PasswordText` password as the client secret. The credentials must match an API contract.
+. Omni Gateway verifies the signature and the digest of every signed reference. The signed references must include the `<wsu:Timestamp>`. When *Validate UsernameToken* is also enabled, the signed references must also include the `<wsse:UsernameToken>`. The SOAP Body doesn't need to be signed, but if the signature references the Body, Omni Gateway verifies it.
+. Omni Gateway authenticates the UsernameToken by using the username as the client ID and the `PasswordText` password as the client secret. The credentials must match an API contract. Omni Gateway applies Unicode NFC normalization to the username before the lookup.
++
+If the `<wsse:Password>` element has no `Type` attribute, Omni Gateway treats the password as `PasswordText`. Omni Gateway always rejects `PasswordDigest`, because it can't recompute the digest without the client secret in clear text.
 
-=== UsernameToken Validation
-
-When UsernameToken validation is enabled, the Security header must contain exactly one `<wsse:UsernameToken>` with a username and a password:
-
-* The password must be `PasswordText`. When the `<wsse:Password>` element has no `Type` attribute, the policy treats the password as `PasswordText`.
-* The policy always rejects `PasswordDigest` because it can't access the client secret in clear text to recompute the digest.
-* Omni Gateway applies Unicode NFC normalization to the username before it looks up the client ID.
-
-If API contracts aren't available, for example, while Omni Gateway waits for the first contract update from Anypoint Platform, Omni Gateway returns a server fault. The request can succeed after the contracts load.
-
-=== XML Signature Validation
-
-When XML Signature validation is enabled, the Security header must contain:
-
-* Exactly one `<wsu:Timestamp>`.
-* Exactly one `<ds:Signature>`.
-* A `<wsse:BinarySecurityToken>` that contains the signing certificate.
-
-The signature must cover the Timestamp. When UsernameToken validation is also enabled, the signature must also cover the UsernameToken. The policy doesn't require the SOAP Body to be signed, but it verifies any Body reference that the signature includes.
-
-==== Supported Algorithms
+=== Supported Algorithms
 
 The policy supports only these algorithms. It rejects a signature that uses any other algorithm:
 
@@ -195,7 +177,7 @@ The policy supports only these algorithms. It rejects a signature that uses any 
 
 The `<ds:KeyInfo>` element must reference the signing `<wsse:BinarySecurityToken>` by its `wsu:Id`. The policy rejects other `KeyInfo` forms, `X509PKIPathv1` and `PKCS7` tokens, external references, and attachment signature transforms.
 
-==== Certificate Requirements
+=== Certificate Requirements
 
 The signing certificate must meet these requirements:
 
@@ -224,7 +206,6 @@ Consider these limitations when you configure the policy:
 * *No certificate-to-client binding*: When both controls are enabled, a valid signature proves that a trusted signer protected the UsernameToken. It doesn't bind the certificate to the client. Any certificate that chains to a configured trust anchor can sign a UsernameToken for any client ID, which the policy then authenticates separately against API contracts.
 * *No replay protection*: The policy requires a signed Timestamp but doesn't enforce its `<wsu:Expires>` value, and doesn't track previously seen requests. Use TLS to protect requests in transit. For more information, see xref:policies-included-tls.adoc[].
 * *Multipart attachments aren't inspected*: For `multipart/related` requests, the policy validates only the SOAP envelope in the root part. The root part must use `7bit`, `8bit`, or `binary` `Content-Transfer-Encoding`, or omit the header.
-* *XML hardening*: The policy rejects envelopes that contain a `<!DOCTYPE>` declaration or that nest elements more than 128 levels deep.
 
 === Limits
 
