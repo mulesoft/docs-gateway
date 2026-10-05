@@ -1,4 +1,4 @@
-= Web Services Security Policy
+= WS-Security Policy
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -7,8 +7,8 @@ endif::[]
 
 [width="100%", cols="5,15"]
 |===
->s| Policy Name | Web Services Security
->s| Summary | Validates UsernameToken credentials, XML signatures, or both on inbound SOAP requests
+>s| Policy Name | WS-Security
+>s| Summary | Validates Web Services Security (WS-Security) UsernameToken credentials, XML signatures, or both on inbound SOAP requests
 >s| Category | Security
 >s| First Omni Gateway version available | v1.14.0
 >s|Release Notes| xref:release-notes::gateway/policies/web-services-security-release-notes.adoc[]
@@ -20,14 +20,14 @@ endif::[]
 
 == Summary
 
-NOTE: The Web Services Security policy supports only WSDL (SOAP 1.1 and 1.2) APIs.
+NOTE: This policy supports only WSDL (SOAP 1.1 and 1.2) APIs.
 
-The Web Services Security policy protects a SOAP service by validating the `<wsse:Security>` header of each inbound request. You can enable either or both of these controls:
+The Web Services Security (WS-Security) policy protects a SOAP service by validating the `<wsse:Security>` header of each inbound request. You can enable either or both of these controls:
 
 * *UsernameToken validation*: Authenticates the `<wsse:UsernameToken>` against the client applications that have contracts with the API. The username is the client ID, and the password is the client secret.
 * *XML signature validation*: Verifies the `<ds:Signature>` in the Security header and confirms that the signing X.509 certificate chains to a certificate authority (CA) that you trust.
 
-The policy is fail-closed. Every enabled control must succeed before Omni Gateway forwards the request to the upstream service. Omni Gateway forwards the original headers and body unchanged, and doesn't modify responses. When a check fails, Omni Gateway returns a Web Services Security SOAP fault, and the request never reaches the upstream service.
+The policy is fail-closed. Every enabled control must succeed before Omni Gateway forwards the request to the upstream service. Omni Gateway forwards the original headers and body unchanged, and doesn't modify responses. When a check fails, Omni Gateway returns a WS-Security SOAP fault, and the request never reaches the upstream service.
 
 The policy accepts plain SOAP requests with a `text/xml` or `application/soap+xml` content type, and multipart SOAP requests with a `multipart/related` content type, such as MTOM/XOP and SOAP with Attachments (SwA).
 
@@ -78,7 +78,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 s|Field s|Description s|Default Value s|Required
 
 | Validate UsernameToken
-| Authenticates the UsernameToken username and `PasswordText` password against API contracts. At least this field or *Validate XML Signature* must be enabled.
+| Authenticates the UsernameToken username and `PasswordText` password against Anypoint API contracts. At least this field or *Validate XML Signature* must be enabled.
 | Enabled
 | No
 
