@@ -142,7 +142,7 @@ This example enables only XML Signature validation. The signature must cover the
 
 Omni Gateway applies these checks in order. The first check that fails determines the fault that Omni Gateway returns:
 
-. *Content type*: The request must use `text/xml`, `application/soap+xml`, or `multipart/related`. For a multipart request, Omni Gateway selects the root part, which is the part whose `Content-ID` matches the `start` parameter, or the first part when `start` is absent.
+. *Content type*: The request must use `text/xml`, `application/soap+xml`, or `multipart/related`. For a multipart request, Omni Gateway selects the root part, which is the part whose `Content-ID` matches the `start` parameter, or the first part when `start` is absent. The root part must use `7bit`, `8bit`, or `binary` `Content-Transfer-Encoding`, or omit the header. The policy validates only the SOAP envelope in the root part and forwards attachments to the upstream service without inspecting them.
 . *SOAP envelope*: The envelope must be a single well-formed SOAP 1.1 or SOAP 1.2 document with no `<!DOCTYPE>` declaration.
 . *Security header*: The SOAP `<Header>` must contain exactly one direct `<wsse:Security>` child. The policy ignores the SOAP 1.1 `actor` and SOAP 1.2 `role` attributes.
 . *Required elements*: The Security header must contain exactly one of each element that the enabled controls require. The Security header must not contain XML Encryption elements.
@@ -195,13 +195,7 @@ The policy doesn't publish the client secret or any certificate or signature dat
 
 When only XML Signature validation is enabled, the policy doesn't publish an identity.
 
-=== Security Considerations
-
-Consider these limitations when you configure the policy:
-
-* *No certificate-to-client binding*: When both controls are enabled, a valid signature proves that a trusted signer protected the UsernameToken. It doesn't bind the certificate to the client. Any certificate that chains to a configured trust anchor can sign a UsernameToken for any client ID, which the policy then authenticates separately against API contracts.
-* *No replay protection*: The policy requires a signed Timestamp but doesn't enforce its `<wsu:Expires>` value, and doesn't track previously seen requests. Use TLS to protect requests in transit. For more information, see xref:policies-included-tls.adoc[].
-* *Multipart attachments aren't inspected*: For `multipart/related` requests, the policy validates only the SOAP envelope in the root part. The root part must use `7bit`, `8bit`, or `binary` `Content-Transfer-Encoding`, or omit the header.
+When both controls are enabled, a valid signature proves that a trusted signer protected the UsernameToken, but it doesn't bind the signing certificate to the client. Any certificate that chains to a configured trust anchor can sign a UsernameToken for any client ID. The policy authenticates the client ID and client secret separately against Anypoint API contracts.
 
 == Request Example
 
