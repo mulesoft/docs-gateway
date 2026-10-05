@@ -22,14 +22,14 @@ endif::[]
 
 NOTE: The Web Services Security policy supports only WSDL (SOAP 1.1 and 1.2) APIs.
 
-The Web Services Security (WS-Security) policy protects a SOAP service by validating the `<wsse:Security>` header of each inbound request. You can enable either or both of these controls:
+The Web Services Security policy protects a SOAP service by validating the `<wsse:Security>` header of each inbound request. You can enable either or both of these controls:
 
-* UsernameToken validation: Authenticates the `<wsse:UsernameToken>` against the client applications that have contracts with the API. The username is the client ID, and the password is the client secret.
-* XML signature validation: Verifies the `<ds:Signature>` in the Security header and confirms that the signing X.509 certificate chains to a certificate authority (CA) that you trust.
+* *UsernameToken validation*: Authenticates the `<wsse:UsernameToken>` against the client applications that have contracts with the API. The username is the client ID, and the password is the client secret.
+* *XML signature validation*: Verifies the `<ds:Signature>` in the Security header and confirms that the signing X.509 certificate chains to a certificate authority (CA) that you trust.
 
 When you enable both controls, the request must carry a trusted signature that covers the UsernameToken, and the UsernameToken must match an API contract.
 
-The policy is fail-closed. Every enabled control must succeed before Omni Gateway forwards the request to the upstream service. Omni Gateway forwards the original headers and body unchanged, and doesn't modify responses. When a check fails, Omni Gateway returns a WS-Security SOAP fault, and the request never reaches the upstream service.
+The policy is fail-closed. Every enabled control must succeed before Omni Gateway forwards the request to the upstream service. Omni Gateway forwards the original headers and body unchanged, and doesn't modify responses. When a check fails, Omni Gateway returns a Web Services Security SOAP fault, and the request never reaches the upstream service.
 
 The policy accepts plain SOAP requests with a `text/xml` or `application/soap+xml` content type, and multipart SOAP requests with a `multipart/related` content type, such as MTOM/XOP and SOAP with Attachments (SwA).
 
@@ -290,8 +290,8 @@ With both controls enabled, Omni Gateway forwards this request when the certific
 
 When the policy rejects a request, Omni Gateway returns a SOAP fault that matches the SOAP version of the request:
 
-* SOAP 1.1: HTTP status `500` with content type `text/xml`. The WS-Security fault code is in the `<faultcode>` element.
-* SOAP 1.2: HTTP status `400` with content type `application/soap+xml`. The fault code is `env:Sender`, and the WS-Security fault code is in the `<env:Subcode>` element.
+* SOAP 1.1: HTTP status `500` with content type `text/xml`. The Web Services Security fault code is in the `<faultcode>` element.
+* SOAP 1.2: HTTP status `400` with content type `application/soap+xml`. The fault code is `env:Sender`, and the Web Services Security fault code is in the `<env:Subcode>` element.
 
 If Omni Gateway rejects the request before it identifies the SOAP version, it returns a SOAP 1.1 fault. Fault messages never include request content or credentials.
 
@@ -328,44 +328,7 @@ If Omni Gateway rejects the request before it identifies the SOAP version, it re
 | The client ID doesn't match an API contract, or the client secret is incorrect.
 |===
 
-When UsernameToken validation is enabled but API contracts aren't available, Omni Gateway returns a server fault with HTTP status `500` and the fault string `The security token could not be validated at this time`. The fault code is `soap:Server` for SOAP 1.1 and `env:Receiver` for SOAP 1.2, with no WS-Security subcode.
-
-=== SOAP 1.1 Fault Example
-
-[source,xml]
-----
-<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-  <soap:Body>
-    <soap:Fault>
-      <faultcode xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">wsse:FailedAuthentication</faultcode>
-      <faultstring>The security token could not be authenticated or authorized</faultstring>
-    </soap:Fault>
-  </soap:Body>
-</soap:Envelope>
-----
-
-=== SOAP 1.2 Fault Example
-
-[source,xml]
-----
-<?xml version="1.0" encoding="UTF-8"?>
-<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">
-  <env:Body>
-    <env:Fault>
-      <env:Code>
-        <env:Value>env:Sender</env:Value>
-        <env:Subcode>
-          <env:Value xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">wsse:FailedAuthentication</env:Value>
-        </env:Subcode>
-      </env:Code>
-      <env:Reason>
-        <env:Text xml:lang="en">The security token could not be authenticated or authorized</env:Text>
-      </env:Reason>
-    </env:Fault>
-  </env:Body>
-</env:Envelope>
-----
+When UsernameToken validation is enabled but API contracts aren't available, Omni Gateway returns a server fault with HTTP status `500` and the fault string `The security token could not be validated at this time`. The fault code is `soap:Server` for SOAP 1.1 and `env:Receiver` for SOAP 1.2, with no Web Services Security subcode.
 
 === Troubleshoot Rejected Requests
 
