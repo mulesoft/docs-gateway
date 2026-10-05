@@ -24,16 +24,14 @@ NOTE: The Web Services Security policy supports only WSDL (SOAP 1.1 and 1.2) API
 
 The Web Services Security (WS-Security) policy protects a SOAP service by validating the `<wsse:Security>` header of each inbound request. You can enable either or both of these controls:
 
-UsernameToken validation:: Authenticates the `<wsse:UsernameToken>` against the client applications that have contracts with the API. The username is the client ID, and the password is the client secret.
-XML Signature validation:: Verifies the `<ds:Signature>` in the Security header and confirms that the signing X.509 certificate chains to a certificate authority (CA) that you trust.
+* UsernameToken validation: Authenticates the `<wsse:UsernameToken>` against the client applications that have contracts with the API. The username is the client ID, and the password is the client secret.
+* XML signature validation: Verifies the `<ds:Signature>` in the Security header and confirms that the signing X.509 certificate chains to a certificate authority (CA) that you trust.
 
 When you enable both controls, the request must carry a trusted signature that covers the UsernameToken, and the UsernameToken must match an API contract.
 
 The policy is fail-closed. Every enabled control must succeed before Omni Gateway forwards the request to the upstream service. Omni Gateway forwards the original headers and body unchanged, and doesn't modify responses. When a check fails, Omni Gateway returns a WS-Security SOAP fault, and the request never reaches the upstream service.
 
 The policy accepts plain SOAP requests with a `text/xml` or `application/soap+xml` content type, and multipart SOAP requests with a `multipart/related` content type, such as MTOM/XOP and SOAP with Attachments (SwA).
-
-== Before You Begin
 
 * To validate UsernameTokens, client applications must have a contract with the API. For more information, see xref:api-manager::manage-client-apps-latest-task.adoc[].
 * To validate XML signatures, get the PEM-encoded certificates of the CAs that issue your client signing certificates.
@@ -42,13 +40,13 @@ The policy accepts plain SOAP requests with a `text/xml` or `application/soap+xm
 
 include::partial$policy-title-headers.adoc[tag=configFile]
 
-UsernameToken validation requires API contracts, which are available only in Connected Mode. In Local Mode, you can use the policy for XML Signature validation only. To do so, set `validateUsernameToken` to `false`.
+Because UsernameToken validation requires API contracts that are only available for Managed Gateway or Connected Mode, Local Mode only supports supports XML signature validation. To use the policy in local mode, you must set `validateUsernameToken` to `false`.
 
 ----
 - policyRef:
     name: ws-security-policy-flex
   config:
-    validateUsernameToken: <boolean> // OPTIONAL, default: true
+    validateUsernameToken: false
     validateSignature: <boolean> // OPTIONAL, default: true
     trustAnchors: <string> // REQUIRED when validateSignature is true
 ----
@@ -58,9 +56,9 @@ UsernameToken validation requires API contracts, which are available only in Con
 | Parameter | Required or Optional | Default Value | Description
 
 | `validateUsernameToken`
-| Optional
-| `true`
-| Authenticates the UsernameToken username and `PasswordText` password as the client ID and client secret of an API contract.
+| Required
+| `false`
+| To use this policy, you must set `validateUsernameToken` to `false`.
 
 | `validateSignature`
 | Optional
@@ -71,11 +69,11 @@ UsernameToken validation requires API contracts, which are available only in Con
 | Required when `validateSignature` is `true`
 | None
 | One to sixteen PEM-encoded X.509 CA certificates that the signing certificate must chain to. To specify more than one CA, concatenate the PEM blocks. Omni Gateway doesn't use the operating system trust store.
+
+Omni Gateway rejects a `trustAnchors` value that is empty, is malformed PEM, contains more than sixteen certificates, contains a certificate larger than 16 KiB, or has trailing data after a certificate.
 |===
 
-At least one of `validateUsernameToken` or `validateSignature` must be `true`. Omni Gateway rejects a configuration that disables both.
 
-Omni Gateway also rejects a `trustAnchors` value that is empty, is malformed PEM, contains more than sixteen certificates, contains a certificate larger than 16 KiB, or has trailing data after a certificate.
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
@@ -101,7 +99,7 @@ s|Field s|Description s|Default Value s|Required
 
 === Configuration Examples
 
-These examples are valid whether you configure the policy in a Local Mode resource file or through the Omni Gateway UI, except that UsernameToken validation requires Connected Mode.
+Examples that enable `validateUsernameToken` are only valid for Mnaged Gateway or Connected Mode.
 
 This example enables both controls:
 
