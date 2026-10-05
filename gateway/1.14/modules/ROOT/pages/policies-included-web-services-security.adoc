@@ -140,18 +140,18 @@ This example enables only XML Signature validation. The signature must cover the
 
 == How This Policy Works
 
-The policy validates each request in the following order. If a step fails, Omni Gateway stops processing the request and returns the fault for that step. Steps 5 through 7 run only when *Validate XML Signature* is enabled, and step 8 runs only when *Validate UsernameToken* is enabled.
+Omni Gateway applies these checks in order. The first check that fails determines the fault that Omni Gateway returns:
 
-. Omni Gateway confirms that the request's content type is `text/xml`, `application/soap+xml`, or `multipart/related`. For a `multipart/related` request, Omni Gateway also confirms that the multipart body is well-formed and selects the root part that contains the SOAP envelope.
-. Omni Gateway confirms that the SOAP envelope is a single, well-formed SOAP 1.1 or SOAP 1.2 document with no `<!DOCTYPE>` declaration.
-. Omni Gateway confirms that the SOAP `<Header>` contains exactly one `<wsse:Security>` element as a direct child.
-. Omni Gateway confirms that the Security header contains exactly one of each element that the enabled validations require, such as the `<wsse:UsernameToken>` or the `<ds:Signature>`. Omni Gateway rejects the request if the Security header contains XML Encryption elements.
-. Omni Gateway confirms that the signature uses the supported algorithms: Exclusive XML Canonicalization, RSA-SHA256, and SHA-256 reference digests. The signature's `<ds:KeyInfo>` must reference an X.509 `<wsse:BinarySecurityToken>` in the same Security header.
-. Omni Gateway confirms that the signing certificate chains to a certificate in *Trust Anchors (PEM)*, through no more than eight issuer certificates.
-. Omni Gateway verifies the signature and the digest of every signed reference. The signed references must include the `<wsu:Timestamp>`. When *Validate UsernameToken* is also enabled, the signed references must also include the `<wsse:UsernameToken>`. The SOAP Body doesn't need to be signed, but if the signature references the Body, Omni Gateway verifies it.
-. Omni Gateway authenticates the UsernameToken by using the username as the client ID and the `PasswordText` password as the client secret. The credentials must match an API contract. Omni Gateway applies Unicode NFC normalization to the username before the lookup.
+. *Content type*: The request must use `text/xml`, `application/soap+xml`, or `multipart/related`. For a multipart request, Omni Gateway selects the root part, which is the part whose `Content-ID` matches the `start` parameter, or the first part when `start` is absent.
+. *SOAP envelope*: The envelope must be a single well-formed SOAP 1.1 or SOAP 1.2 document with no `<!DOCTYPE>` declaration.
+. *Security header*: The SOAP `<Header>` must contain exactly one direct `<wsse:Security>` child. The policy ignores the SOAP 1.1 `actor` and SOAP 1.2 `role` attributes.
+. *Required elements*: The Security header must contain exactly one of each element that the enabled controls require. The Security header must not contain XML Encryption elements.
+. *Signature algorithms*: If XML Signature validation is enabled, the signature must use the supported algorithms, and its `KeyInfo` must reference an X.509 `<wsse:BinarySecurityToken>` in the same Security header.
+. *Certificate trust*: If XML Signature validation is enabled, the signing certificate must chain to a configured trust anchor.
+. *Signature verification*: If XML Signature validation is enabled, the signature and every reference digest must verify, and the signed references must cover the Timestamp. When UsernameToken validation is also enabled, the signed references must also cover the UsernameToken. The SOAP Body doesn't need to be signed, but if the signature references the Body, Omni Gateway verifies it.
+. *UsernameToken authentication*: If UsernameToken validation is enabled, the username and password must match the client ID and client secret of an API contract. Omni Gateway applies Unicode NFC normalization to the username before the lookup.
 +
-If the `<wsse:Password>` element has no `Type` attribute, Omni Gateway treats the password as `PasswordText`. Omni Gateway always rejects `PasswordDigest`, because it can't recompute the digest without the client secret in clear text.
+The password must be `PasswordText`. If the `<wsse:Password>` element has no `Type` attribute, Omni Gateway treats the password as `PasswordText`. Omni Gateway always rejects `PasswordDigest`, because it can't recompute the digest without the client secret in clear text.
 
 === Supported Algorithms
 
