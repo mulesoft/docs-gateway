@@ -27,8 +27,6 @@ The Web Services Security policy protects a SOAP service by validating the `<wss
 * *UsernameToken validation*: Authenticates the `<wsse:UsernameToken>` against the client applications that have contracts with the API. The username is the client ID, and the password is the client secret.
 * *XML signature validation*: Verifies the `<ds:Signature>` in the Security header and confirms that the signing X.509 certificate chains to a certificate authority (CA) that you trust.
 
-When you enable both controls, the request must carry a trusted signature that covers the UsernameToken, and the UsernameToken must match an API contract.
-
 The policy is fail-closed. Every enabled control must succeed before Omni Gateway forwards the request to the upstream service. Omni Gateway forwards the original headers and body unchanged, and doesn't modify responses. When a check fails, Omni Gateway returns a Web Services Security SOAP fault, and the request never reaches the upstream service.
 
 The policy accepts plain SOAP requests with a `text/xml` or `application/soap+xml` content type, and multipart SOAP requests with a `multipart/related` content type, such as MTOM/XOP and SOAP with Attachments (SwA).
@@ -73,8 +71,6 @@ Because UsernameToken validation requires API contracts that are only available 
 Omni Gateway rejects a `trustAnchors` value that is empty, is malformed PEM, contains more than sixteen certificates, contains a certificate larger than 16 KiB, or has trailing data after a certificate.
 |===
 
-
-
 include::partial$policy-title-headers.adoc[tag=ui]
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -99,7 +95,7 @@ s|Field s|Description s|Default Value s|Required
 
 === Configuration Examples
 
-Examples that enable `validateUsernameToken` are only valid for Mnaged Gateway or Connected Mode.
+Examples that enable `validateUsernameToken` are only valid for Managed Gateway or Connected Mode.
 
 This example enables both controls:
 
@@ -207,35 +203,6 @@ Consider these limitations when you configure the policy:
 * *No replay protection*: The policy requires a signed Timestamp but doesn't enforce its `<wsu:Expires>` value, and doesn't track previously seen requests. Use TLS to protect requests in transit. For more information, see xref:policies-included-tls.adoc[].
 * *Multipart attachments aren't inspected*: For `multipart/related` requests, the policy validates only the SOAP envelope in the root part. The root part must use `7bit`, `8bit`, or `binary` `Content-Transfer-Encoding`, or omit the header.
 
-=== Limits
-
-The policy enforces these fixed limits:
-
-[%header%autowidth.spread,cols="a,a"]
-|===
-| Item | Limit
-
-| XML element nesting depth
-| 128
-
-| `<wsse:BinarySecurityToken>` elements in the Security header
-| 16
-
-| Certificates in `trustAnchors`
-| 16
-
-| Size of each decoded certificate
-| 16 KiB
-
-| Issuer certificates in a certificate chain
-| 8
-
-| `<ds:Reference>` elements in a signature
-| 16
-|===
-
-The request body is also bounded by the Envoy request body limit.
-
 == Request Example
 
 This SOAP 1.1 request carries a signing certificate, a signed Timestamp, a UsernameToken, and a signature that covers both the Timestamp and the UsernameToken:
@@ -266,50 +233,6 @@ This SOAP 1.1 request carries a signing certificate, a signed Timestamp, a Usern
 ----
 
 With both controls enabled, Omni Gateway forwards this request when the certificate chains to a configured trust anchor, the signature verifies over `TS-1` and `UT-1`, and the UsernameToken matches an API contract.
-
-== SOAP Faults
-
-When the policy rejects a request, Omni Gateway returns a SOAP fault that matches the SOAP version of the request:
-
-* SOAP 1.1: HTTP status `500` with content type `text/xml`. The Web Services Security fault code is in the `<faultcode>` element.
-* SOAP 1.2: HTTP status `400` with content type `application/soap+xml`. The fault code is `env:Sender`, and the Web Services Security fault code is in the `<env:Subcode>` element.
-
-If Omni Gateway rejects the request before it identifies the SOAP version, it returns a SOAP 1.1 fault. Fault messages never include request content or credentials.
-
-[%header%autowidth.spread,cols="a,a,a"]
-|===
-| Fault Code | Fault String | Condition
-
-| `wsse:InvalidSecurity`
-| An error was discovered processing the <wsse:Security> header
-| The content type isn't a SOAP media type, the multipart body or SOAP envelope is malformed, or the Security header is missing or duplicated.
-
-| `wsse:InvalidSecurityToken`
-| An invalid security token was provided
-| The UsernameToken or signing token is malformed.
-
-| `wsse:UnsupportedSecurityToken`
-| An unsupported token was provided
-| The UsernameToken uses `PasswordDigest`, or the signing token uses an unsupported form.
-
-| `wsse:UnsupportedAlgorithm`
-| An unsupported signature or encryption algorithm was used
-| The signature uses an unsupported signature, digest, canonicalization, or transform algorithm.
-
-| `wsse:SecurityTokenUnavailable`
-| Referenced security token could not be retrieved
-| The signing token that `KeyInfo` references can't be found.
-
-| `wsse:FailedCheck`
-| The signature or decryption was invalid
-| The certificate chain is untrusted, expired, invalid, or incomplete. The signature or a reference digest doesn't verify. The Timestamp or UsernameToken isn't signed when required. The Security header contains XML Encryption.
-
-| `wsse:FailedAuthentication`
-| The security token could not be authenticated or authorized
-| The client ID doesn't match an API contract, or the client secret is incorrect.
-|===
-
-When UsernameToken validation is enabled but API contracts aren't available, Omni Gateway returns a server fault with HTTP status `500` and the fault string `The security token could not be validated at this time`. The fault code is `soap:Server` for SOAP 1.1 and `env:Receiver` for SOAP 1.2, with no Web Services Security subcode.
 
 == See Also
 
