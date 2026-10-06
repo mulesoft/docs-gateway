@@ -38,13 +38,13 @@ The policy accepts plain SOAP requests with a `text/xml` or `application/soap+xm
 
 include::partial$policy-title-headers.adoc[tag=configFile]
 
-Because UsernameToken validation requires API contracts that are only available for Managed Gateway or Connected Mode, Local Mode only supports supports XML signature validation. To use the policy in local mode, you must set `validateUsernameToken` to `false`.
+Because UsernameToken validation requires API contracts that are only available for Managed Gateway or Connected Mode, Local Mode only supports XML signature validation. To use the policy in local mode, you must set `validateUsernameToken` to `false`.
 
 ----
 - policyRef:
     name: ws-security-policy-flex
   config:
-    validateUsernameToken: false
+    validateUsernameToken: <boolean> // REQUIRED, set to false in Local Mode
     validateSignature: <boolean> // OPTIONAL, default: true
     trustAnchors: <string> // REQUIRED when validateSignature is true
 ----
@@ -56,7 +56,7 @@ Because UsernameToken validation requires API contracts that are only available 
 | `validateUsernameToken`
 | Required
 | `false`
-| To use this policy, you must set `validateUsernameToken` to `false`.
+| Authenticates the UsernameToken username and `PasswordText` password against Anypoint API contracts. Set to `false` in Local Mode, which doesn't have API contracts.
 
 | `validateSignature`
 | Optional
