@@ -20,21 +20,21 @@ endif::[]
 
 == Summary
 
-NOTE: This policy supports only WSDL (SOAP 1.1 and 1.2) APIs.
+NOTE: The WS-Security Policy policy supports only WSDL (SOAP 1.1 and 1.2) APIs.
 
 The Web Services Security (WS-Security) policy protects a SOAP service by validating the `<wsse:Security>` header of each inbound request. You can enable either or both of these controls:
 
 * *UsernameToken validation*: Authenticates the `<wsse:UsernameToken>` against the client applications that have contracts with the API. The username is the client ID, and the password is the client secret.
 * *XML signature validation*: Verifies the `<ds:Signature>` in the Security header and confirms that the signing X.509 certificate chains to a certificate authority (CA) that you trust.
 
-The policy is fail-closed. Every enabled control must succeed before Omni Gateway forwards the request to the upstream service. Omni Gateway forwards the original headers and body unchanged, and doesn't modify responses. When a check fails, Omni Gateway returns a WS-Security SOAP fault, and the request never reaches the upstream service.
+The WS-Security Policy policy is fail-closed. Every enabled control must succeed before Omni Gateway forwards the request to the upstream service. Omni Gateway forwards the original headers and body unchanged, and doesn't modify responses. When a check fails, Omni Gateway returns a WS-Security SOAP fault, and the request never reaches the upstream service.
 
 The policy accepts plain SOAP requests with a `text/xml` or `application/soap+xml` content type, and multipart SOAP requests with a `multipart/related` content type, such as MTOM/XOP and SOAP with Attachments (SwA).
 
 * To validate UsernameTokens, client applications must have a contract with the API. For more information, see xref:api-manager::manage-client-apps-latest-task.adoc[].
 * To validate XML signatures, get the PEM-encoded certificates of the CAs that issue your client signing certificates.
 
-== Configuring Policy Parameters
+== Configure WS-Security Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]
 
@@ -56,7 +56,7 @@ Because UsernameToken validation requires API contracts that are only available 
 | `validateUsernameToken`
 | Required
 | `false`
-| Authenticates the UsernameToken username and `PasswordText` password against Anypoint API contracts. Set to `false` in Local Mode, which doesn't have API contracts.
+| Authenticates the UsernameToken username and `PasswordText` password against Anypoint Platform API contracts. Set to `false` in Local Mode, which doesn't have API contracts.
 
 | `validateSignature`
 | Optional
@@ -78,7 +78,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 s|Field s|Description s|Default Value s|Required
 
 | Validate UsernameToken
-| Authenticates the UsernameToken username and `PasswordText` password against Anypoint API contracts. At least this field or *Validate XML Signature* must be enabled.
+| Authenticates the UsernameToken username and `PasswordText` password against Anypoint Platform API contracts. Enable either this field or *Validate XML Signature*.
 | Enabled
 | No
 
@@ -93,7 +93,7 @@ s|Field s|Description s|Default Value s|Required
 | Required when *Validate XML Signature* is enabled
 |===
 
-=== Configuration Examples
+=== WS-Security Policy Configuration Examples
 
 Examples that enable `validateUsernameToken` are only valid for Managed Gateway or Connected Mode.
 
@@ -138,7 +138,7 @@ This example enables only XML Signature validation. The signature must cover the
       -----END CERTIFICATE-----
 ----
 
-== How This Policy Works
+== How the WS-Security Policy Works
 
 Omni Gateway applies these checks in order. The first check that fails determines the fault that Omni Gateway returns:
 
@@ -155,7 +155,7 @@ The password must be `PasswordText`. If the `<wsse:Password>` element has no `Ty
 
 === Supported Algorithms
 
-The policy supports only these algorithms. It rejects a signature that uses any other algorithm:
+The WS-Security Policy supports only these algorithms. It rejects a signature that uses any other algorithm:
 
 [%header%autowidth.spread,cols="a,a"]
 |===
@@ -173,7 +173,7 @@ The policy supports only these algorithms. It rejects a signature that uses any 
 
 The `<ds:KeyInfo>` element must reference the signing `<wsse:BinarySecurityToken>` by its `wsu:Id`. The policy rejects other `KeyInfo` forms, `X509PKIPathv1` and `PKCS7` tokens, external references, and attachment signature transforms.
 
-=== Certificate Requirements
+=== WS-Security Policy Certificate Requirements
 
 The signing certificate must meet these requirements:
 
@@ -185,7 +185,7 @@ The policy doesn't check certificate revocation or key usage.
 
 === Principal Propagation
 
-When UsernameToken validation is enabled and every enabled check succeeds, the policy publishes the matched contract identity so that policies later in the chain can use it:
+When UsernameToken validation is enabled and every enabled check succeeds, the WS-Security Policy publishes the matched contract identity so that policies later in the chain can use it:
 
 * `principal` and `client_id`: The client ID of the matched contract.
 * `client_name`: The name of the client application.
