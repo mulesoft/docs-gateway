@@ -58,12 +58,53 @@ metadata:
   name: timeouts-config
 spec:
   timeouts:
-    upstreamConnectionIdleSeconds: 300
+    upstreamConnectionIdleSeconds: 60
     upstreamResponseSeconds: 15
-    streamIdleSeconds: 60   
+    streamIdleSeconds: 300
 ----
 
 //end::timeout-configuration-yaml[]
+
+//tag::timeout-precedence[]
+[[timeout-precedence]]
+== Timeout Precedence
+
+Omni Gateway determines the effective value of each timeout for an API instance in this order of precedence. The first value that is set for that timeout takes precedence:
+
+//end::timeout-precedence[]
+
+//tag::timeout-precedence-managed[]
+. *Policy*: A Response Timeout or Stream Idle Timeout policy applied to the API instance.
+. *Runtime Manager runtime configuration*: The value set in *Runtime Configurations > Timeouts*.
+. *Built-in default*: Used if neither of the other values is set. For example, the default Upstream Response Timeout is 15 seconds.
+//end::timeout-precedence-managed[]
+
+//tag::timeout-precedence-conn[]
+. *Policy*: A Response Timeout or Stream Idle Timeout policy applied to the API instance.
+. *Runtime Manager runtime configuration or Configuration resource*: Used if set for that timeout.
+. *Environment variable*: Used if no Runtime Manager or Configuration resource value is set for that timeout.
+. *Built-in default*: Used if none of the other values is set. For example, the default Upstream Response Timeout is 15 seconds.
+//end::timeout-precedence-conn[]
+
+//tag::timeout-precedence-details[]
+A policy value overrides the gateway-level value for the API instance it's applied to, whether the policy value is higher or lower than the gateway-level value. API instances without the policy use the gateway-level value. The lowest value doesn't take precedence.
+
+For example, this table shows the effective response timeout for an upstream service that takes 35 seconds to respond:
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Gateway-Level Upstream Response Timeout | Response Timeout Policy | Effective Timeout | Result
+| 30 seconds | 40 seconds | 40 seconds | The request succeeds.
+| 40 seconds | 30 seconds | 30 seconds | Omni Gateway returns `504` after 30 seconds.
+| 30 seconds | Not applied | 30 seconds | Omni Gateway returns `504` after 30 seconds.
+|===
+
+//end::timeout-precedence-details[]
+
+//tag::timeout-precedence-conn-sync[]
+Runtime Manager runtime configurations and environment variables don't synchronize. Changing a timeout in Runtime Manager doesn't update the corresponding `FLEX_*` environment variable on the gateway. Because the Runtime Manager value takes precedence, the environment variable has no effect on that timeout while the Runtime Manager value is set.
+
+//end::timeout-precedence-conn-sync[]
 
 //tag::timeout-configuration-policies[]
 == Configure Timeouts via Policies
