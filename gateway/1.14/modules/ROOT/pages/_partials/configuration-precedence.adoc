@@ -1,0 +1,45 @@
+// Set these attributes in the including page before including this partial:
+// :config-feature: Lowercase feature name used in sentences, for example "timeouts"
+// :config-feature-title: Title-case feature name used in the heading, for example "Timeout"
+// :config-policies: Policies that configure the feature, for example "A Response Timeout or Stream Idle Timeout policy"
+// :config-default-example: (Optional) Example of a built-in default value
+// :config-has-env-vars: (Optional) Set if the feature is configurable with environment variables in Connected Mode
+
+//tag::precedence[]
+[[configuration-precedence]]
+== {config-feature-title} Precedence
+
+When you configure {config-feature} in more than one place, Omni Gateway uses the first value that is set for each setting, in this order of precedence:
+
+//end::precedence[]
+
+//tag::precedence-managed[]
+. *Policy*: {config-policies} applied to the API instance.
+. *Runtime Manager runtime configuration*: Used if no policy value is set.
+. *Built-in default*: Used if neither of the other values is set.
+ifdef::config-default-example[]
+{config-default-example}
+endif::[]
+//end::precedence-managed[]
+
+//tag::precedence-conn[]
+. *Policy*: {config-policies} applied to the API instance.
+. *Runtime Manager runtime configuration or Configuration resource*: Used if no policy value is set.
+ifdef::config-has-env-vars[]
+. *Environment variable*: Used if no Runtime Manager or Configuration resource value is set.
+endif::[]
+. *Built-in default*: Used if none of the other values is set.
+ifdef::config-default-example[]
+{config-default-example}
+endif::[]
+//end::precedence-conn[]
+
+//tag::precedence-details[]
+A policy value overrides the gateway-level value for the API instance it's applied to. API instances without the policy use the gateway-level value.
+
+//end::precedence-details[]
+
+//tag::precedence-env-vars[]
+Runtime Manager runtime configurations and environment variables don't synchronize. Changing a value in Runtime Manager doesn't update the corresponding `FLEX_*` environment variable on the gateway. Because the Runtime Manager value takes precedence, the environment variable has no effect on that setting while the Runtime Manager value is set.
+
+//end::precedence-env-vars[]
