@@ -21,16 +21,7 @@ The Response Timeout policy sets how long Omni Gateway waits for a response from
 
 Without this policy, an API instance uses the gateway-level Upstream Response Timeout. The gateway-level default is 15 seconds.
 
-=== How the Policy Works with the Gateway-Level Timeout
-
-The policy replaces the gateway-level Upstream Response Timeout for the API instance you apply it to:
-
-* The policy value applies even if it's higher than the gateway-level value. The lower value doesn't win.
-* API instances without the policy keep using the gateway-level value.
-
-For example, if the gateway-level timeout is 30 seconds and the policy timeout is 40 seconds, Omni Gateway waits up to 40 seconds for that API instance.
-
-To change the gateway-level timeout, see xref:managed-timeout.adoc[] or xref:conn-timeout.adoc[].
+This policy overrides every other Upstream Response Timeout configuration for the API instance you apply it to, whether the policy value is higher or lower. To change the gateway-level timeout, see xref:managed-timeout.adoc[] or xref:conn-timeout.adoc[].
 
 == Configuring Policy Parameters
 
@@ -70,4 +61,3 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Element | Description | Required
 | Response timeout | Number of seconds Omni Gateway waits for a response from the upstream service. | Yes
 |===
-
