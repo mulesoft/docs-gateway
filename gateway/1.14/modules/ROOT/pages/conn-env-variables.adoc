@@ -16,6 +16,8 @@ You can configure these variables from Runtime Manager:
 * *Global connection buffer limit* (`FLEX_DOWNSTREAM_CONNECTION_BUFFER_LIMIT_BYTES`)
 * *Rewrite Host Header* (`FLEX_REWRITE_HOST_HEADER`)
 
+If a setting is configured in both places, the Runtime Manager value takes precedence over the environment variable.
+
 To configure these settings in Runtime Manager:
 
 . In Anypoint Platform, select *Runtime Manager*.
@@ -25,14 +27,14 @@ To configure these settings in Runtime Manager:
 . Edit the variables.
 . Apply the changes.
 
-If a setting is configured in both places, the Runtime Manager value takes precedence over the environment variable, which then has no effect on that setting.
-
-[[environment-variable-precedence]]
-== Environment Variable Precedence
+[[environment-variable-synchronization]]
+== Environment Variable Synchronization
 
 Runtime Manager runtime configurations and environment variables don't synchronize in either direction:
 
 * Omni Gateway reads `FLEX_*` environment variables only when the pod starts, and uses them to set the initial value. Applying a change in Runtime Manager doesn't update the environment variable, so commands such as `kubectl exec <pod> -- env` continue to show the original value after a successful change.
 * Changing an environment variable on the pod isn't reflected in Runtime Manager.
 
-To verify the effective value, don't check the pod environment. Instead, run `flexctl dump` and open `resources/Configuration.json` in the extracted ZIP file. If the setting is present, that value is in effect. If the setting is absent, the environment variable value or built-in default applies. For more information, see xref:troubleshoot-admin-api.adoc[].
+To verify the effective value, don't check the pod environment. Instead, run `flexctl dump` and open `resources/Configuration.json` in the extracted ZIP file. 
+
+If the setting is present, that value is in effect. If the setting is absent, the environment variable value or built-in default applies. For more information, see xref:troubleshoot-admin-api.adoc[].
