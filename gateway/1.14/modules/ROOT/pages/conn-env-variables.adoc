@@ -7,3 +7,33 @@ endif::[]
 :page-aliases: flex-conn-env-variables.adoc
 
 include::partial$env-variables.adoc[]
+
+[[runtime-manager-global-routing]]
+== Configure Global and Routing Settings in Runtime Manager
+
+Two of these environment variables also have Runtime Manager runtime configurations that apply to all API instances in the gateway:
+
+* *Global connection buffer limit* (`FLEX_DOWNSTREAM_CONNECTION_BUFFER_LIMIT_BYTES`): The maximum size, in bytes, of the read and write buffers for new downstream connections. The default is 1,048,576 bytes (1 MB).
+* *Rewrite Host Header* (`FLEX_REWRITE_HOST_HEADER`): Controls whether Omni Gateway rewrites the HTTP `Host` header to match the upstream service before forwarding a request. The default is to rewrite the header.
+
+To configure these settings in Runtime Manager:
+
+. In Anypoint Platform, select *Runtime Manager*.
+. Select *Omni Gateways*.
+. Select your Omni Gateway.
+. Open *Runtime Configurations*.
+. To set the connection buffer limit, open *Global* and set a value for *Global connection buffer limit*.
+. To control `Host` header rewriting, open *Routing* and set *Rewrite Host Header*.
+. Apply the changes.
+
+If a setting is configured in both places, the Runtime Manager value takes precedence over the environment variable, which then has no effect on that setting.
+
+[[environment-variable-precedence]]
+== Environment Variable Precedence
+
+Runtime Manager runtime configurations and environment variables don't synchronize in either direction:
+
+* Omni Gateway reads `FLEX_*` environment variables only when the pod starts, and uses them to set the initial value. Applying a change in Runtime Manager doesn't update the environment variable, so commands such as `kubectl exec <pod> -- env` continue to show the original value after a successful change.
+* Changing an environment variable on the pod isn't reflected in Runtime Manager.
+
+To verify the effective value, don't check the pod environment. Instead, run `flexctl dump` and open `resources/Configuration.json` in the extracted ZIP file. If the setting is present, that value is in effect. If the setting is absent, the environment variable value or built-in default applies. For more information, see xref:troubleshoot-admin-api.adoc[].
