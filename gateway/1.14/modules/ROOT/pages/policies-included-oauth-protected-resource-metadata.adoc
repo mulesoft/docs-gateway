@@ -22,7 +22,7 @@ endif::[]
 [[summary]]
 == Summary
 
-The OAuth Protected Resource Metadata policy serves a JSON document describing the protected resource's OAuth 2.0 metadata at `/.well-known/oauth-protected-resource` as defined by https://www.rfc-editor.org/rfc/rfc9728[RFC 9728^]. The metadata document is defined by the policy. By default, the policy doesn't fetch metadata from an external source. If you enable xref:#static-dynamic-client-registration[Static Dynamic Client Registration], the policy also proxies the authorization server's metadata so that MCP clients can register with an identity provider that doesn't support Dynamic Client Registration.
+The OAuth Protected Resource Metadata policy serves a JSON document describing the protected resource's OAuth 2.0 metadata at `/.well-known/oauth-protected-resource` as defined by https://www.rfc-editor.org/rfc/rfc9728[RFC 9728^].
 
 This policy enables authorization servers and client applications to discover important OAuth 2.0 configuration details about your protected resource, such as:
 
@@ -32,10 +32,7 @@ This policy enables authorization servers and client applications to discover im
 * Whether DPoP or mTLS token binding is required
 * What URLs are available for resource documentation, policy, and terms of service 
 
-The policy has two options:
-
-* *Protected Resource Metadata only (default):* Use this when your identity provider (IdP) supports Dynamic Client Registration (DCR), or clients only need to discover your authorization server and scopes. See <<configuring-policy-parameters>>.
-* *Static Dynamic Client Registration:* Use this when your IdP doesn't support DCR and MCP clients need a `registration_endpoint` to start the OAuth flow. See xref:#static-dynamic-client-registration[Static Dynamic Client Registration].
+For identity providers (IdP) that don't support support Dynamic Client Registration (DCR), the policy provides xref:#static-dynamic-client-registration[Static DCR configuration]. Use it when your MCP clients require a `registration_endpoint`, but your IdP doesn't support DCR. If your IdP supports DCR, or clients only need to discover your authorization server and scopes, static DCR configuration isn't required.
 
 IMPORTANT: This policy rejects all requests that aren't made to the `/.well-known/oauth-protected-resource` route with a `404 Not Found` response.
 
@@ -59,10 +56,10 @@ include::partial$policy-title-headers.adoc[tag=ui]
 Example: `"https://api.example.com/v1"`
 
 | Authorization Servers
-| Optional
-| (omitted from response)
+| Required
+|
 | Array of OAuth 2.0 authorization server issuer identifier URLs (per RFC 8414) whose tokens are accepted by this protected resource. Enter multiple values separated by commas or on separate lines. +
-Required if you enable Static Dynamic Client Registration. In that mode, these are the upstream servers whose metadata the policy proxies, and the response advertises the Consumer URL instead. +
+If you enable Static Dynamic Client Registration, these are the upstream servers whose metadata the policy fetches, and the response advertises the Consumer URL instead. +
 Example: `["https://auth.example.com"]`
 
 | JWK Set URI
@@ -288,7 +285,7 @@ Example: `"https://api.example.com"`
 |===
 
 [[static-dcr-configuration-example]]
-=== Configuration Example
+=== Static DCR Configuration Example
 
 [source,yaml]
 ----
@@ -310,7 +307,7 @@ Example: `"https://api.example.com"`
 ----
 
 [[static-dcr-walkthrough]]
-=== MCP Client Flow
+=== Static DCR MCP Client Flow
 
 First, create the OAuth clients in your IdP and apply the policy as shown in the example. Then an MCP client does the following:
 
@@ -364,7 +361,7 @@ The name matches `claude*`, so the policy returns `201 Created` with that client
 
 If no entry matches the `client_name`, the policy returns `400 Bad Request` with the error `invalid_client_metadata`.
 
-If the policy can't reach any IdP, the authorization server metadata request returns `502 Bad Gateway`. The registration endpoint doesn't depend on the IdP.
+The policy fetches the IdP's metadata on every authorization server metadata request and doesn't cache it. If the policy can't reach any IdP, the request returns `502 Bad Gateway`. The registration endpoint doesn't depend on the IdP.
 
 [[request-processing]]
 == Request Processing
