@@ -13,15 +13,17 @@ endif::[]
 >s|Category | Security
 >s|First Omni Gateway version available | v1.13.0
 >s|Release Notes| xref:release-notes::gateway/policies/oauth-protected-resource-metadata-release-notes.adoc[]
-.2+>.^s| Returned Status Codes
+.4+>.^s| Returned Status Codes
 |404 - Request path does not match the well-known endpoint
 |405 - HTTP method is not GET
+|400 - Registration request matches no configured client (xref:#static-dynamic-client-registration[Static Dynamic Client Registration] only)
+|502 - Upstream authorization server or consumer URL is unavailable (xref:#static-dynamic-client-registration[Static Dynamic Client Registration] only)
 |===
 
 [[summary]]
 == Summary
 
-The OAuth Protected Resource Metadata policy serves a JSON document describing the protected resource's OAuth 2.0 metadata at `/.well-known/oauth-protected-resource` as defined by https://www.rfc-editor.org/rfc/rfc9728[RFC 9728^]. The metadata document is defined by the policy. The policy doesn't fetch metadata from an external source.
+The OAuth Protected Resource Metadata policy serves a JSON document describing the protected resource's OAuth 2.0 metadata at `/.well-known/oauth-protected-resource` as defined by https://www.rfc-editor.org/rfc/rfc9728[RFC 9728^]. The metadata document is defined by the policy. By default, the policy doesn't fetch metadata from an external source. If you enable xref:#static-dynamic-client-registration[Static Dynamic Client Registration], the policy also proxies the authorization server's metadata so that MCP clients can register with an identity provider that doesn't support Dynamic Client Registration.
 
 This policy enables authorization servers and client applications to discover important OAuth 2.0 configuration details about your protected resource, such as:
 
@@ -32,6 +34,12 @@ This policy enables authorization servers and client applications to discover im
 * What URLs are available for resource documentation, policy, and terms of service 
 
 IMPORTANT: This policy rejects all requests that aren't made to the `/.well-known/oauth-protected-resource` route with a `404 Not Found` response.
+
+[[when-to-use]]
+== When to Use Each Option
+
+* *Protected Resource Metadata only (default):* Use this when your identity provider (IdP) supports Dynamic Client Registration (DCR), or clients only need to discover your authorization server and scopes. Configure it in <<configuring-policy-parameters>>.
+* *Static Dynamic Client Registration:* Use this when your IdP doesn't support DCR and MCP clients need a `registration_endpoint` to start the OAuth flow. Configure it in xref:#static-dynamic-client-registration[Static Dynamic Client Registration].
 
 [[configuring-policy-parameters]]
 == Configuring Policy Parameters
@@ -56,6 +64,7 @@ Example: `"https://api.example.com/v1"`
 | Optional
 | (omitted from response)
 | Array of OAuth 2.0 authorization server issuer identifier URLs (per RFC 8414) whose tokens are accepted by this protected resource. Enter multiple values separated by commas or on separate lines. +
+Required if you enable Static Dynamic Client Registration. In that mode, these are the upstream servers whose metadata the policy proxies, and the response advertises the Consumer URL instead. +
 Example: `["https://auth.example.com"]`
 
 | JWK Set URI
@@ -136,6 +145,11 @@ Example: `["ES256"]`
 | Optional
 | `false` (omitted from response when `false`)
 | Boolean indicating whether DPoP-bound access tokens are always required by this resource.
+
+| Static Dynamic Client Registration
+| Optional
+| (disabled)
+| Object that makes an identity provider without Dynamic Client Registration (DCR) support appear DCR-capable to MCP clients. For the fields and behavior, see xref:#static-dynamic-client-registration[Static Dynamic Client Registration].
 
 |===
 
@@ -223,6 +237,136 @@ This example shows how to configure different scopes for different resource path
           - "orders:read"
           - "orders:create"
 ----
+
+[[static-dynamic-client-registration]]
+== Static Dynamic Client Registration
+
+MCP clients register with an authorization server through its `registration_endpoint` (https://www.rfc-editor.org/rfc/rfc7591[RFC 7591^]). If your IdP doesn't support DCR, there is no `registration_endpoint`, and MCP clients can't complete the OAuth flow.
+
+When you enable Static Dynamic Client Registration, the policy:
+
+* Advertises the gateway's public URL (the Consumer URL) as the authorization server.
+* Serves the IdP's authorization server metadata with a `registration_endpoint` that points at the gateway.
+* Serves that endpoint at `/.well-known/idp/register`. It returns the credentials of a client you already created in the IdP, chosen by matching the request's `client_name`.
+
+The IdP still authorizes users and issues tokens.
+
+IMPORTANT: All MCP clients that match the same entry receive the same `client_id` and `client_secret`. Use public clients without a secret, or trusted MCP clients, and limit what the client can access in the IdP.
+
+[[static-dcr-parameters]]
+=== Parameters
+
+Configure these parameters under *Static Dynamic Client Registration* (`staticDcr`). You must also set Authorization Servers.
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Parameter | Required or Optional | Default Value | Description
+
+| Enable (`enabled`)
+| Optional
+| `false`
+| Turns the feature on.
+
+| Authorization Server Metadata Path (`authorizationServerMetadataPath`)
+| Optional
+| `/.well-known/oauth-authorization-server`
+| Path of the authorization server metadata. For OpenID Connect IdPs, use `/.well-known/openid-configuration`.
+
+| Consumer URL (`consumerUrl`)
+| Optional
+| Taken from API Manager
+| Public URL clients use to reach this API. Set it explicitly in Local Mode. +
+Example: `"https://api.example.com"`
+
+| Static DCR Clients (`clients`)
+| Required
+|
+| List of preconfigured clients. The policy uses the first entry whose `name` matches the request's `client_name`. If none match, the request is rejected. Each entry contains: +
+ +
+* `name` (required) - Case-insensitive match on `client_name`. Use `*` as a wildcard at the start or end, such as `claude*`. Use `*` alone to match any name. +
+* `clientId` (required) - The client ID to return. +
+* `clientSecret` (optional) - The client secret to return. Omit it for public clients.
+
+|===
+
+[[static-dcr-configuration-example]]
+=== Configuration Example
+
+[source,yaml]
+----
+- policyRef:
+    name: oauth-protected-resource-metadata-policy-flex
+  config:
+    resource: "https://api.example.com"
+    authorizationServers:
+      - "https://idp.example.com"
+    staticDcr:
+      enabled: true
+      consumerUrl: "https://api.example.com"
+      clients:
+        - name: "claude*"
+          clientId: "claude-mcp-client"
+          clientSecret: "<CLAUDE_CLIENT_SECRET>"
+        - name: "*"
+          clientId: "shared-mcp-client"
+----
+
+[[static-dcr-walkthrough]]
+=== MCP Client Flow
+
+First, create the OAuth clients in your IdP and apply the policy as shown in the example. Then an MCP client does the following:
+
+. Requests `/.well-known/oauth-protected-resource`. The policy returns the gateway as the authorization server:
++
+[source,json]
+----
+{
+  "resource": "https://api.example.com",
+  "authorization_servers": ["https://api.example.com/"]
+}
+----
++
+. Requests `/.well-known/oauth-authorization-server`. The policy returns the IdP's metadata with the gateway's `registration_endpoint`:
++
+[source,json]
+----
+{
+  "issuer": "https://idp.example.com",
+  "authorization_endpoint": "https://idp.example.com/authorize",
+  "token_endpoint": "https://idp.example.com/token",
+  "registration_endpoint": "https://api.example.com/.well-known/idp/register"
+}
+----
++
+. Sends a registration request to `/.well-known/idp/register`:
++
+[source,json]
+----
+{
+  "client_name": "Claude Desktop",
+  "redirect_uris": ["https://client.example.com/callback"]
+}
+----
++
+The name matches `claude*`, so the policy returns `201 Created` with that client's credentials:
++
+[source,json]
+----
+{
+  "client_id": "claude-mcp-client",
+  "client_secret": "<CLAUDE_CLIENT_SECRET>",
+  "client_secret_expires_at": 0,
+  "client_id_issued_at": 1719360000,
+  "client_name": "Claude Desktop",
+  "redirect_uris": ["https://client.example.com/callback"]
+}
+----
++
+. Signs the user in directly with the IdP using the returned `client_id`, then calls the API with the access token.
+
+If no entry matches the `client_name`, the policy returns `400 Bad Request` with the error `invalid_client_metadata`.
+
+If the policy can't reach any IdP, the authorization server metadata request returns `502 Bad Gateway`. The registration endpoint doesn't depend on the IdP.
 
 [[request-processing]]
 == Request Processing
