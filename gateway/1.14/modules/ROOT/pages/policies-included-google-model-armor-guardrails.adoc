@@ -1,0 +1,421 @@
+= Google Model Armor Guardrails Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, llm, content safety, google, google cloud, model armor, guardrails, redaction
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Google Model Armor Guardrails Policy
+>s|Summary      | Evaluates OpenAI and Gemini format LLM prompts and responses against a Google Cloud Model Armor template, blocking or redacting flagged content
+>s|Category | LLM
+>s|First Omni Gateway version available | v1.14.0
+>s|Release Notes| xref:release-notes::gateway/policies/google-model-armor-guardrails-release-notes.adoc[]
+.2+>.^s| Returned Status Codes
+|403 - Forbidden: Content blocked by Google Model Armor
+|503 - Service Unavailable: Model Armor or the Google OAuth token endpoint call failed, timed out, or returned no usable verdict (only when fail-open is disabled)
+|===
+
+== Summary
+
+The Google Model Armor Guardrails policy provides content moderation for LLMs by evaluating prompts and responses against a https://cloud.google.com/security/products/model-armor[Google Cloud Model Armor^] template. The policy calls the Model Armor `sanitizeUserPrompt` operation in the request phase and the `sanitizeModelResponse` operation in the response phase, and enforces the returned verdict at the gateway before the request reaches the upstream LLM or before the response is returned to the client.
+
+Which Model Armor filters run and how they behave (filter selection, confidence levels, Sensitive Data Protection (SDP) configuration, and filter version) is owned by your Model Armor template in Google Cloud, not the policy. The policy references the template, authenticates with a Google Cloud service account, and turns the Model Armor verdict into a gateway action:
+
+* *Allow*: Content with no filter match is forwarded unchanged.
+* *Redact*: When SDP de-identification is enabled, sensitive content is replaced with the Model Armor de-identified text, then forwarded.
+* *Reject*: Content that matches a filter is rejected with HTTP status `403`.
+
+The policy operates in two independent phases:
+
+* *Request phase*: Sends the recent conversation history of the request to `sanitizeUserPrompt`. Rejected prompts never reach the LLM.
+* *Response phase*: Sends the LLM completion to `sanitizeModelResponse` before returning it to the client.
+
+Both phases are enabled by default. Every moderated request and response emits observability headers and metrics, and rejections record a policy violation.
+
+== Before You Begin
+
+Before configuring this policy, you need:
+
+. *A Google Cloud project with the Model Armor API enabled.*
+. *A Model Armor template* in that project that defines the filters to apply. You can use one template for both phases or separate templates for prompts and responses.
+. *A Google Cloud service account key* (JSON) for a service account that has permission to call Model Armor sanitize operations on the template's project and location. If the template uses advanced SDP configuration (linked inspect or de-identify templates), the service account also needs the Sensitive Data Protection permissions those templates require. For the required roles, see the https://cloud.google.com/security-command-center/docs/model-armor-overview[Model Armor documentation^].
+. *The regional Model Armor endpoint* that matches the template's location, for example, `\https://modelarmor.us-central1.rep.googleapis.com`.
+
+Ensure that Omni Gateway can reach the Model Armor endpoint and the Google OAuth token endpoint (`\https://oauth2.googleapis.com`) outbound.
+
+The policy reads the `x-input-format` header, which the LLM proxy sets, to identify the caller's LLM format: `openai` or `gemini`. Requests with a missing or different format value, non-`POST` requests, and requests without a JSON body pass through unscanned.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The Google Model Armor Guardrails policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+=== Basic Configuration
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+| Model Armor Endpoint
+| Yes
+| Regional Model Armor API base URL, for example, `\https://modelarmor.us-central1.rep.googleapis.com`. The region must match the value of *Location*. The policy doesn't validate this match. A mismatch surfaces as a Model Armor API error at runtime.
+
+| Service Account Key
+| Yes
+| Google Cloud service account key JSON that the policy uses to obtain an OAuth 2.0 access token for the Model Armor API. Supply this value as a secret reference rather than inline. This value is sensitive and is never logged.
+
+| Project
+| Yes
+| Google Cloud project ID that owns the Model Armor template.
+
+| Location
+| Yes
+| Model Armor location, either a region (for example, `us-central1` or `europe-west2`) or a multi-region (`us` or `eu`). Must match the region of *Model Armor Endpoint*.
+
+| Template
+| Yes
+| Model Armor template ID. The policy combines *Project*, *Location*, and *Template* into the template resource name `projects/\{project}/locations/\{location}/templates/\{template}`. Applies to both phases unless overridden by *Request Template* or *Response Template*.
+
+| Google OAuth Token Endpoint
+| Yes
+| Google OAuth 2.0 token endpoint used to obtain the access token. Set this to `\https://oauth2.googleapis.com` unless you use a non-default OAuth host.
+
+| Moderate Request
+| No
+| When enabled (default), the policy evaluates the prompt with `sanitizeUserPrompt` before forwarding it to the upstream LLM. Rejected prompts never reach the LLM.
+
+| Moderate Response
+| No
+| When enabled (default), the policy evaluates the LLM completion with `sanitizeModelResponse` before returning it to the client.
+
+Streaming responses (`text/event-stream`) are also scanned. The policy buffers the entire stream and holds the response until the scan completes. This breaks the streaming experience for the client and increases latency and memory use.
+|===
+
+=== Advanced Configuration
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+| Request Template
+| No
+| Model Armor template ID to use for the request phase instead of *Template*. See <<per-phase-templates>>.
+
+| Response Template
+| No
+| Model Armor template ID to use for the response phase instead of *Template*. See <<per-phase-templates>>.
+
+| Enable Multi-Language Detection
+| No
+| When enabled, the policy sets the Model Armor multi-language detection flag on each sanitize call so that non-English content is screened. Default: disabled.
+
+| De-identify Request
+| No
+| When enabled and the request-phase template uses advanced SDP with a de-identify template, an SDP match replaces the prompt with the de-identified text instead of rejecting it. Default: disabled. See <<sdp-de-identification>>.
+
+| De-identify Response
+| No
+| When enabled and the response-phase template uses advanced SDP with a de-identify template, an SDP match replaces the completion with the de-identified text instead of rejecting it. Applies to non-streaming responses only. Default: disabled. See <<sdp-de-identification>>.
+
+| Inspect Only
+| No
+| When enabled, the policy reports verdicts in the observability headers but never rejects traffic. Use this to observe what Model Armor would block before enforcing a template. Default: disabled.
+
+| History Depth
+| No
+| Maximum number of recent conversation messages included in the request-phase scan. `0` (default) scans the full conversation history. A positive value scans only the last _N_ messages. Model Armor skips detection for content over its 4 MB text limit, so set a cap if you send long conversations.
+
+| API Timeout (ms)
+| No
+| Timeout in milliseconds for each Model Armor sanitize call and each OAuth token call. Must be between `1000` and `30000`. Out-of-range values are clamped. Default: `5000`.
+
+| Fail Open
+| No
+| Determines behavior when the Model Armor call or the OAuth token call fails, times out, or returns no usable verdict:
+
+* Disabled (default): Rejects with HTTP `503`.
+* Enabled: Allows traffic to proceed unscanned. The failure reason is still emitted in the reason header.
+|===
+
+== How This Policy Works
+
+The Google Model Armor Guardrails policy integrates with Google Cloud Model Armor to evaluate LLM prompts and responses.
+
+=== Authentication
+
+The policy authenticates to Model Armor with an OAuth 2.0 access token that it obtains from the Google OAuth token endpoint by using the configured service account key. The token is scoped to `\https://www.googleapis.com/auth/cloud-platform`, cached per gateway replica, and refreshed before it expires.
+
+The first request on each replica, and each token refresh, makes an extra call to the token endpoint before the sanitize call. Each call is bounded by *API Timeout (ms)*, so these requests can take up to twice the timeout before the fail-open or fail-closed behavior applies. Subsequent requests use the cached token and add no authentication latency.
+
+A token failure, such as an expired or revoked service account key, is handled the same way as a Model Armor call failure.
+
+[[request-and-response-moderation]]
+=== Request and Response Moderation
+
+The policy supports independent evaluation for request and response:
+
+. *Request Phase* (when Moderate Request is enabled):
+.. The policy resolves the caller's LLM format from the `x-input-format` header. Non-`POST` requests, unsupported formats, and non-JSON or empty bodies pass through unscanned.
+.. The policy extracts the conversation text from the request body, limited by *History Depth*. For OpenAI, the policy supports the Chat Completions and Responses APIs. For Gemini, the policy supports `generateContent` and `streamGenerateContent` request bodies. If no text can be extracted, the request passes through unscanned.
+.. The policy sends the text to `sanitizeUserPrompt` with the request-phase template.
+.. The policy enforces the returned verdict. See <<outcomes-and-actions>>.
+
+. *Response Phase* (when Moderate Response is enabled):
+.. The policy buffers the LLM response and extracts the completion text. For streaming responses, the policy reassembles the completion from the stream's chunks. If no completion text can be extracted, the response passes through unscanned.
+.. The policy sends the completion to `sanitizeModelResponse` with the response-phase template.
+.. The policy enforces the returned verdict. See <<outcomes-and-actions>>.
++
+NOTE: Streaming responses (`text/event-stream`) are buffered and scanned when Moderate Response is enabled. The client doesn't receive the response until the scan completes. For Gemini, only streaming with `alt=sse` is scanned.
+
+If the request phase rejects the request, the response phase doesn't run.
+
+[[outcomes-and-actions]]
+=== Outcomes and Actions
+
+[%header,cols='1a,1a,4a']
+|===
+| Model Armor Verdict | Action | Effect
+
+| No match
+| Allow
+| Content is forwarded unchanged.
+
+| Match on SDP only, with de-identification enabled for the phase
+| Redact
+| The prompt or completion is replaced with the de-identified text that Model Armor returns, and traffic continues. See <<sdp-de-identification>>.
+
+| Match
+| Reject
+| The request phase returns an HTTP `403` response instead of calling the LLM. The response phase rewrites the LLM response to an HTTP `403` response. A policy violation is recorded.
+
+| Match, with Inspect Only enabled
+| Allow
+| Traffic continues. The matched filters populate the reason header.
+
+| Error, timeout, or no usable verdict
+| Depends on Fail Open
+| When fail-open is disabled, the policy returns an HTTP `503` response and records a policy violation. When fail-open is enabled, traffic passes through unscanned.
+|===
+
+If Model Armor skips detection for a filter, for example, because the content exceeds the Model Armor size limits, the skip doesn't block traffic. The policy adds `skip_detection` to the reason header so the coverage gap is visible.
+
+Model Armor scans only the first 40 URLs in each interaction for malicious URL detection.
+
+The `403` response body lists every triggered filter:
+
+[source,json]
+----
+{
+  "error": "Content blocked by Google Model Armor",
+  "categories": ["pi_and_jailbreak", "malicious_uri"]
+}
+----
+
+The `503` response body lists the failure reason:
+
+[source,json]
+----
+{"error":"Google Model Armor service unavailable","categories":["auth_failed"]}
+----
+
+[[sdp-de-identification]]
+=== SDP De-identification
+
+By default, an SDP match rejects the content. To redact sensitive data instead, enable *De-identify Request* or *De-identify Response* and reference a Model Armor template that uses advanced SDP with a de-identify template.
+
+The policy rejects the content instead of redacting it when:
+
+* The template doesn't return de-identified text, for example, because it has no de-identify template.
+* A filter other than SDP also matched.
+* The scanned text spans more than one message or content part, so the policy can't write the de-identified text back to a single field. For example, a multi-turn conversation scanned with the default *History Depth* of `0`, or a multimodal message with several content parts.
+* The response is a stream. The policy can't write the de-identified text back into a stream.
+
+[[per-phase-templates]]
+=== Per-Phase Templates
+
+By default, both phases use *Template*. To apply different filters to prompts and completions, set *Request Template*, *Response Template*, or both. A phase without an override uses *Template*.
+
+=== Observability Headers
+
+The policy adds these headers to every moderated request and response:
+
+[%header,cols='1a,3a']
+|===
+| Header | Description
+
+| `x-llm-proxy-model-armor-action`
+| `allow`, `reject`, or `redact`.
+
+| `x-llm-proxy-model-armor-phase`
+| `request` or `response`.
+
+| `x-llm-proxy-model-armor-reason`
+| Comma-separated list of reasons. Present when content is rejected or redacted, when a call fails, or when Model Armor skips detection.
+|===
+
+The reason header contains one or more of these values:
+
+[%header,cols='1a,3a']
+|===
+| Reason | Description
+
+| `rai_hate_speech`
+| Responsible AI filter: hate speech.
+
+| `rai_harassment`
+| Responsible AI filter: harassment.
+
+| `rai_sexually_explicit`
+| Responsible AI filter: sexually explicit content.
+
+| `rai_dangerous`
+| Responsible AI filter: dangerous content.
+
+| `rai_sexually_suggestive`
+| Responsible AI filter: sexually suggestive content.
+
+| `rai_violence`
+| Responsible AI filter: violence.
+
+| `csam`
+| Child safety filter. Model Armor always applies this filter.
+
+| `pi_and_jailbreak`
+| Prompt injection and jailbreak detection.
+
+| `sdp`
+| Sensitive Data Protection.
+
+| `malicious_uri`
+| Malicious URL detection.
+
+| `match_unattributed`
+| Model Armor reported a match without identifying a specific filter.
+
+| `skip_detection`
+| Model Armor skipped detection for at least one filter. Doesn't block traffic.
+
+| `auth_failed`
+| The Model Armor or token endpoint returned HTTP `401` or `403`, for example, because the service account key is expired or revoked or lacks permissions.
+
+| `bad_request`
+| The Model Armor or token endpoint returned HTTP `400`.
+
+| `not_found`
+| The Model Armor or token endpoint returned HTTP `404`, for example, because the template doesn't exist in the configured project and location.
+
+| `timeout`
+| The call timed out.
+
+| `connection_error`
+| The call failed without an HTTP response, for example, because of a DNS, TLS, or connection failure.
+
+| `upstream_error`
+| The Model Armor or token endpoint returned an HTTP `5xx` status.
+
+| `service_unavailable`
+| Any other call failure, or a response with no usable verdict.
+|===
+
+The provider error reasons (`auth_failed` through `service_unavailable`) are diagnostic only. A fail-closed provider error always returns HTTP `503`.
+
+The policy never logs the prompt or completion content, the service account key, or the access token.
+
+== Example Configurations
+
+=== Minimal Configuration: Both Phases, One Template
+
+`moderateRequest` and `moderateResponse` default to `true`, so both the prompt and the completion are scanned against the same template, and the policy fails closed with a 5000 ms timeout.
+
+[source,yaml]
+----
+- policyRef:
+    name: google-model-armor-guardrails-policy-v1-0-impl
+    namespace: default
+  config:
+    modelArmorEndpoint: https://modelarmor.europe-west2.rep.googleapis.com
+    tokenEndpoint: https://oauth2.googleapis.com
+    serviceAccountKey: "${GOOGLE_MODEL_ARMOR_SA_KEY}"
+    project: my-security-project
+    location: europe-west2
+    template: prod-guardrail
+----
+
+=== Separate Request and Response Templates
+
+A prompt-injection-focused template for the request phase and a data-leakage-focused template for the response phase.
+
+[source,yaml]
+----
+- policyRef:
+    name: google-model-armor-guardrails-policy-v1-0-impl
+    namespace: default
+  config:
+    modelArmorEndpoint: https://modelarmor.us.rep.googleapis.com
+    tokenEndpoint: https://oauth2.googleapis.com
+    serviceAccountKey: "${GOOGLE_MODEL_ARMOR_SA_KEY}"
+    project: my-security-project
+    location: us
+    template: shared-baseline
+    advancedConfiguration:
+      requestTemplate: injection-strict-input
+      responseTemplate: leakage-strict-output
+      apiTimeoutMs: 8000
+----
+
+=== SDP De-identification
+
+On an SDP match, sensitive data is redacted in place and traffic continues. Matches on other filters are still rejected.
+
+[source,yaml]
+----
+- policyRef:
+    name: google-model-armor-guardrails-policy-v1-0-impl
+    namespace: default
+  config:
+    modelArmorEndpoint: https://modelarmor.us-central1.rep.googleapis.com
+    tokenEndpoint: https://oauth2.googleapis.com
+    serviceAccountKey: "${GOOGLE_MODEL_ARMOR_SA_KEY}"
+    project: my-security-project
+    location: us-central1
+    template: sdp-deidentify-guardrail
+    advancedConfiguration:
+      deidentifyRequest: true
+      deidentifyResponse: true
+      historyDepth: 1
+      enableMultiLanguageDetection: true
+----
+
+`historyDepth: 1` limits the request scan to the last message so that the de-identified text can be written back to the request.
+
+=== Inspect Only, Fail Open
+
+No traffic is ever rejected. Matched filters surface in the reason header, and if Model Armor is unreachable, traffic proceeds unscanned. Use this to measure the impact of a template before enforcing it.
+
+[source,yaml]
+----
+- policyRef:
+    name: google-model-armor-guardrails-policy-v1-0-impl
+    namespace: default
+  config:
+    modelArmorEndpoint: https://modelarmor.us-central1.rep.googleapis.com
+    tokenEndpoint: https://oauth2.googleapis.com
+    serviceAccountKey: "${GOOGLE_MODEL_ARMOR_SA_KEY}"
+    project: my-security-project
+    location: us-central1
+    template: prod-guardrail
+    advancedConfiguration:
+      inspectOnly: true
+      failOpen: true
+----
+
+== See Also
+
+* https://cloud.google.com/security-command-center/docs/model-armor-overview[Google Cloud Model Armor documentation^]
+* xref:policies-included-azure-content-safety.adoc[]
+* xref:policies-included-bedrock-guardrails.adoc[]
+* xref:general::model-proxy.adoc[]
+* xref:general::model-proxy-policies.adoc[]
