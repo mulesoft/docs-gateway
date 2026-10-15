@@ -66,7 +66,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 | Service Account Key
 | Yes
-| Google Cloud service account key JSON that the policy uses to obtain an OAuth 2.0 access token for the Model Armor API. Supply this value as a secret reference rather than inline. This value is sensitive and is never logged.
+| Google Cloud service account key JSON that the policy uses to obtain an OAuth 2.0 access token for the Model Armor API. This value is sensitive and is never logged.
 
 | Project
 | Yes
@@ -102,11 +102,11 @@ Streaming responses (`text/event-stream`) are also scanned. The policy buffers t
 | Element | Required | Description
 | Request Template
 | No
-| Model Armor template ID to use for the request phase instead of *Template*. See <<per-phase-templates>>.
+| Model Armor template ID to use for the request phase instead of *Template*.
 
 | Response Template
 | No
-| Model Armor template ID to use for the response phase instead of *Template*. See <<per-phase-templates>>.
+| Model Armor template ID to use for the response phase instead of *Template*.
 
 | Enable Multi-Language Detection
 | No
@@ -204,23 +204,6 @@ If Model Armor skips detection for a filter, for example, because the content ex
 
 Model Armor scans only the first 40 URLs in each interaction for malicious URL detection.
 
-The `403` response body lists every triggered filter:
-
-[source,json]
-----
-{
-  "error": "Content blocked by Google Model Armor",
-  "categories": ["pi_and_jailbreak", "malicious_uri"]
-}
-----
-
-The `503` response body lists the failure reason:
-
-[source,json]
-----
-{"error":"Google Model Armor service unavailable","categories":["auth_failed"]}
-----
-
 [[sdp-de-identification]]
 === SDP De-identification
 
@@ -233,98 +216,9 @@ The policy rejects the content instead of redacting it when:
 * The scanned text spans more than one message or content part, so the policy can't write the de-identified text back to a single field. For example, a multi-turn conversation scanned with the default *History Depth* of `0`, or a multimodal message with several content parts.
 * The response is a stream. The policy can't write the de-identified text back into a stream.
 
-[[per-phase-templates]]
-=== Per-Phase Templates
-
-By default, both phases use *Template*. To apply different filters to prompts and completions, set *Request Template*, *Response Template*, or both. A phase without an override uses *Template*.
-
-=== Observability Headers
-
-The policy adds these headers to every moderated request and response:
-
-[%header,cols='1a,3a']
-|===
-| Header | Description
-
-| `x-llm-proxy-model-armor-action`
-| `allow`, `reject`, or `redact`.
-
-| `x-llm-proxy-model-armor-phase`
-| `request` or `response`.
-
-| `x-llm-proxy-model-armor-reason`
-| Comma-separated list of reasons. Present when content is rejected or redacted, when a call fails, or when Model Armor skips detection.
-|===
-
-The reason header contains one or more of these values:
-
-[%header,cols='1a,3a']
-|===
-| Reason | Description
-
-| `rai_hate_speech`
-| Responsible AI filter: hate speech.
-
-| `rai_harassment`
-| Responsible AI filter: harassment.
-
-| `rai_sexually_explicit`
-| Responsible AI filter: sexually explicit content.
-
-| `rai_dangerous`
-| Responsible AI filter: dangerous content.
-
-| `rai_sexually_suggestive`
-| Responsible AI filter: sexually suggestive content.
-
-| `rai_violence`
-| Responsible AI filter: violence.
-
-| `csam`
-| Child safety filter. Model Armor always applies this filter.
-
-| `pi_and_jailbreak`
-| Prompt injection and jailbreak detection.
-
-| `sdp`
-| Sensitive Data Protection.
-
-| `malicious_uri`
-| Malicious URL detection.
-
-| `match_unattributed`
-| Model Armor reported a match without identifying a specific filter.
-
-| `skip_detection`
-| Model Armor skipped detection for at least one filter. Doesn't block traffic.
-
-| `auth_failed`
-| The Model Armor or token endpoint returned HTTP `401` or `403`, for example, because the service account key is expired or revoked or lacks permissions.
-
-| `bad_request`
-| The Model Armor or token endpoint returned HTTP `400`.
-
-| `not_found`
-| The Model Armor or token endpoint returned HTTP `404`, for example, because the template doesn't exist in the configured project and location.
-
-| `timeout`
-| The call timed out.
-
-| `connection_error`
-| The call failed without an HTTP response, for example, because of a DNS, TLS, or connection failure.
-
-| `upstream_error`
-| The Model Armor or token endpoint returned an HTTP `5xx` status.
-
-| `service_unavailable`
-| Any other call failure, or a response with no usable verdict.
-|===
-
-The provider error reasons (`auth_failed` through `service_unavailable`) are diagnostic only. A fail-closed provider error always returns HTTP `503`.
-
-The policy never logs the prompt or completion content, the service account key, or the access token.
-
 == Example Configurations
+
+The following examples demonstrate common configuration patterns for the Google Model Armor Guardrails policy.
 
 === Minimal Configuration: Both Phases, One Template
 
