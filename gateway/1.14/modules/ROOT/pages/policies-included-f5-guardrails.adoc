@@ -169,7 +169,7 @@ The policy enforces the global `result.outcome` returned by F5:
 
 | `flagged`
 | Flag
-| Traffic continues, a policy violation is recorded, and the failed F5 scanner names populate the reason header. This is the outcome for audit (non-blocking) F5 scanners and for every blockable F5 scanner when Flag Only is enabled.
+| Traffic continues, a policy violation is recorded, and the failed F5 scanner names populate the reason header. This is the outcome for audit (non-blocking) F5 scanners and for every blockable F5 scanner when *Flag Only* is enabled.
 
 | `redacted`
 | Redact
@@ -197,91 +197,12 @@ The `disabled` and `forceEnabled` F5 scanner lists sent on each scan are resolve
 
 When neither per-phase override is set, the global lists apply to both phases. If a per-phase override is set for a phase whose moderation is disabled, the override can never take effect, and the policy logs a startup warning.
 
-[[response-headers]]
-=== Response Headers
-
-Every scanned request and response includes observability headers:
-
-[%header%autowidth.spread,cols="a,a,a"]
-|===
-| Header | Values | Description
-
-| `x-llm-proxy-f5-calypsoai-guardrail-action`
-| `allow`, `flag`, `redact`, `reject`
-| Final moderation decision.
-
-| `x-llm-proxy-f5-calypsoai-guardrail-phase`
-| `request`, `response`
-| Which phase produced the decision surfaced in the action header.
-
-| `x-llm-proxy-f5-calypsoai-guardrail-reason`
-| comma-separated F5 scanner display names, `redaction_failed`, `none_response`, or an F5 failure reason: `auth_failed`, `bad_request`, `not_found`, `upstream_error`, `connection_error`, `parse_error`
-| Why the content was flagged, redacted, or rejected. Present only on `flag`, `redact`, `reject`, or an error or no-verdict result. The policy resolves scanner display names through F5 and falls back to the scanner version name, then the scanner ID, if the lookup fails.
-
-| `x-llm-proxy-f5-calypsoai-guardrail-ids`
-| comma-separated F5 scanner IDs
-| The IDs of the failed scanners, sent alongside the reason header on `flag`, `redact`, and `reject`. Use them to correlate a scanner display name to the F5 scanner catalog.
-
-| `x-llm-proxy-f5-calypsoai-guardrail-scan-id`
-| F5 scan ID
-| The F5 scan `id`, so a gateway decision correlates to the exact scan in the F5 console. Emitted only when F5 returns a non-empty `id`.
-|===
-
-== Response on Reject
-
-When the policy blocks content, it returns a native content-filter response for the caller's LLM format with HTTP status `200`, so OpenAI, Anthropic, and Gemini-compatible clients display the block message instead of a bare error:
-
-[%header,cols="1,3"]
-|===
-| LLM format | Content-filter indicator
-| OpenAI | `choices[0].finish_reason: "content_filter"`
-| Anthropic | `stop_reason: "refusal"`
-| Gemini | `finishReason: "SAFETY"`
-|===
-
-The assistant message isn't configurable. It names the guardrails that matched, the phase, and the F5 scan ID:
-
-* Request: `Your request was blocked because it matched: <guardrails> (phase request, scan <scan-id>).`
-* Response: `The response was withheld because it matched: <guardrails> (phase response, scan <scan-id>).`
-
-The scanner names, scanner IDs, and scan ID are also available in the `x-llm-proxy-f5-calypsoai-guardrail-*` response headers.
-
-== Error Responses
-
-When the F5 scan call fails, times out, or returns no verdict, and Fail Open is disabled, the policy returns HTTP `503` and records a policy violation:
-
-[source,json]
-----
-{
-  "error": {
-    "message": "F5 AI Guardrails call failed",
-    "type": "service_error",
-    "code": "<reason>"
-  }
-}
-----
-
-The `code` value matches the reason header:
-
-[%header,cols="1,3"]
-|===
-| Reason | Trigger
-| `auth_failed` | F5 returned HTTP 401 or 403. The token is invalid, expired, or unauthorized.
-| `bad_request` | F5 returned HTTP 400.
-| `not_found` | F5 returned HTTP 404. The endpoint or path is wrong.
-| `upstream_error` | F5 returned HTTP 5xx or another non-2xx status.
-| `connection_error` | DNS, TLS, or connection failure, or the scan timed out.
-| `parse_error` | F5 returned a 2xx response that couldn't be parsed.
-| `none_response` | F5 returned an empty or `none` outcome. The message is "F5 AI Guardrails returned no verdict".
-|===
-
-When Fail Open is enabled, traffic proceeds unscanned and the reason header is still emitted so you can detect partial coverage.
 
 == Example Configurations
 
 === Minimal Configuration — Both Phases, Enforce and Redact
 
-`moderateRequest` and `applyRedaction` default to `true`, so the prompt is scanned, sensitive data is masked in place on a `redacted` verdict, and blocked content returns a native content-filter response. `moderateResponse` defaults to `false`; add it to also scan the LLM response.
+`moderateRequest` and `applyRedaction` default to `true`, so the prompt is scanned, sensitive data is masked in place on a `redacted` verdict, and blocked content returns a native content-filter response. `moderateResponse` defaults to `false`. Add it to also scan the LLM response.
 
 [source,yaml]
 ----
