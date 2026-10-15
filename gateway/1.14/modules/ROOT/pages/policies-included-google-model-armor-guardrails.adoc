@@ -159,7 +159,7 @@ A token failure, such as an expired or revoked service account key, is handled t
 The policy supports independent evaluation for request and response:
 
 . *Request Phase* (when Moderate Request is enabled):
-.. The policy resolves the caller's LLM format from the `x-input-format` header. Non-`POST` requests, unsupported formats, and non-JSON or empty bodies pass through unscanned.
+.. The policy resolves the caller's LLM format from the `x-input-format` header. Non-POST requests, unsupported formats, and non-JSON or empty bodies pass through unscanned.
 .. The policy extracts the conversation text from the request body, limited by *History Depth*. For OpenAI, the policy supports the Chat Completions and Responses APIs. For Gemini, the policy supports `generateContent` and `streamGenerateContent` request bodies. If no text can be extracted, the request passes through unscanned.
 .. The policy sends the text to `sanitizeUserPrompt` with the request-phase template.
 .. The policy enforces the returned verdict. See <<outcomes-and-actions>>.
