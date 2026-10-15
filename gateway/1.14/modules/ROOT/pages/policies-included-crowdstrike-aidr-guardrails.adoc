@@ -23,7 +23,7 @@ The CrowdStrike Falcon AI Detection and Response (AIDR) Guardrails policy provid
 
 The policy supports only OpenAI Chat Completions format traffic, because the AIDR API accepts only that format.
 
-An AIDR collector token is both the credential and the link to your AIDR policy. Which detectors run, their thresholds, redaction rules, and whether a detection rejects content are all configured in the Falcon console, not in the gateway policy. Changes you make in the Falcon console take effect without changing the gateway policy.
+An AIDR collector token is both the credential and the link to your AIDR policy. Which detectors run, their thresholds, redaction rules, and whether a detection rejects content are all configured in the Falcon console, not in the gateway policy. Changes you make in the Falcon console take effect without needing to modify the gateway policy.
 
 The policy turns each AIDR verdict into one of these gateway actions:
 
@@ -47,15 +47,15 @@ Before configuring this policy, you need:
 
 1. *A CrowdStrike AIDR for Agents subscription.* AIDR for Workforce collectors aren't supported.
 2. *An AIDR Application collector token*, issued from the Falcon console. The AIDR policy assigned to the collector determines how content is evaluated.
-3. *The AIDR endpoint URL for your region.* Region is the only data residency control AIDR offers, so choose it deliberately:
+3. *The AIDR endpoint URL for your region.* Region is the only data residency control AIDR offers:
 +
 * US-1: `\https://api.crowdstrike.com/aidr/aiguard`
 * US-2: `\https://api.us-2.crowdstrike.com/aidr/aiguard`
 * EU-1: `\https://api.eu-1.crowdstrike.com/aidr/aiguard`
 
-Ensure the Omni Gateway can reach the AIDR host outbound. Prompts and responses leave your network when they're sent to CrowdStrike for evaluation. To keep content out of CrowdStrike logs, configure content logging exclusions in the Falcon console.
+Prompts and responses leave your network when they're sent to CrowdStrike for evaluation. Ensure the Omni Gateway can reach the AIDR host outbound. To keep content out of CrowdStrike logs, configure content logging exclusions in the Falcon console.
 
-The policy reads the `x-input-format` header, which the LLM proxy sets, to identify the caller's LLM format. If the header is absent, the policy uses `openai`. Traffic in any other format, non-`POST` requests, and requests without a JSON body pass through unscanned.
+Traffic in any other format, non-`POST` requests, and requests without a JSON body pass through unscanned.
 
 == Configuring Policy Parameters
 
