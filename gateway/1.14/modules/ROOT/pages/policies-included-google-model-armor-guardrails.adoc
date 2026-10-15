@@ -126,7 +126,8 @@ Streaming responses (`text/event-stream`) are also scanned. The policy buffers t
 
 | History Depth
 | No
-| Maximum number of recent conversation messages included in the request-phase scan. `0` (default) scans the full conversation history. A positive value scans only the last _N_ messages. Model Armor skips detection for content over its 4 MB text limit, so set a cap if you send long conversations.
+| Maximum number of recent conversation messages included in the request-phase scan. 0 (default) scans the full conversation history. If the scanned text exceeds the Model Armor size limits, Model Armor skips detection and the policy forwards the request unscanned, with skip_detection in the reason header. 
+Set this value to keep long conversations within he Model Armor size limits.
 
 | API Timeout (ms)
 | No
