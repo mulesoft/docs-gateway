@@ -15,6 +15,8 @@
 
 The Circuit Breaker policy prevents upstream services from receiving too many requests or connections at a time. If the defined maximums are reached, Omni Gateway returns a `503 - Service Unavailable` error.
 
+This policy overrides the circuit breaker thresholds set in Runtime Manager or a Configuration resource for the API instance you apply it to. To change the gateway-level thresholds, see xref:managed-circuit-breaker.adoc[] or xref:conn-circuit-breaker.adoc[].
+
 For Managed Omni Gateways or Connected Mode, each API instance has its own independent limit when requesting the same upstream, allowing each to use the full maximum. In Local Mode, the limits are shared among different API instances, so they must all adhere to the same upstream maximum. For all modes, maximums are not distributed across replicas; each Gateway can use the full maximum.
 
 The Circuit Breaker policy is an extension of the Envoy upstream clusters circuit breaking feature. To learn more about the Envoy's circuit breaking, see https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/circuit_breaking.html[Circuit Breaking] in the Envoy documentation.
