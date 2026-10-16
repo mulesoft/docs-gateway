@@ -32,6 +32,8 @@ Validates that requests conform to the MCP specification and, when *Validate Too
 
 When you use multiple MCP policies together, apply them in the following order so that they work as intended. Omni Gateway executes policies in this order on the request and in the reverse order on the response.
 
+. xref:policies-included-mcp-support.adoc[MCP Support], which must come first
+. xref:policies-included-mcp-progressive-disclosure.adoc[MCP Tools Progressive Disclosure], if you use it
 . An authentication policy, which the MCP Attribute-Based Access Control policy requires
 . MCP Tool Mapping
 . MCP Global Access
@@ -42,7 +44,11 @@ You must apply MCP Schema Validation after MCP Tool Mapping, MCP Global Access, 
 
 IMPORTANT: The default policy order might not meet this requirement. After you apply the policies, check the order and reorder the policies if needed. For instructions, see xref:policies-reorder.adoc[Ordering Policies].
 
-NOTE: If you use xref:policies-included-mcp-progressive-disclosure.adoc[MCP Tools Progressive Disclosure], it must be positioned after the xref:policies-included-mcp-support.adoc[MCP Support Policy] but before any other MCP access control policies.
+=== MCP Support and MCP Tools Progressive Disclosure
+
+The MCP Support policy must come first in the policy order. If it doesn't, Omni Gateway might throw a runtime error.
+
+If you use MCP Tools Progressive Disclosure, position it after MCP Support but before any other MCP policy, particularly any policy that reads tool names, such as access control, tool mapping, and schema validation. Clients call tools through the `invoke_tool` meta-tool, and the policy rewrites each call so that later policies see the real tool name. If an access control policy runs before MCP Tools Progressive Disclosure, that policy evaluates `invoke_tool` instead of the real tool, which creates an authorization bypass.
 
 == See Also
 
