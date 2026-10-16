@@ -1,0 +1,269 @@
+= CrowdStrike AIDR Guardrails Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, llm, content safety, crowdstrike, falcon, aidr, guardrails, redaction
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | CrowdStrike AIDR Guardrails Policy
+>s|Summary      | Evaluates OpenAI-format LLM prompts and responses against CrowdStrike Falcon AI Detection and Response (AIDR), rejecting or redacting flagged content
+>s|Category | LLM
+>s|First Omni Gateway version available | v1.14.0
+>s|Release Notes| xref:release-notes::gateway/policies/crowdstrike-aidr-guardrails-release-notes.adoc[]
+.2+>.^s| Returned Status Codes
+|403 - Forbidden: Content rejected by CrowdStrike AIDR
+|503 - Service Unavailable: AIDR call failed, timed out, or returned a verdict the policy can't use (only when fail-open is disabled)
+|===
+
+== Summary
+
+The CrowdStrike Falcon AI Detection and Response (AIDR) Guardrails policy provides content moderation for LLMs by evaluating prompts and responses against https://aidr-docs.crowdstrike.com/[CrowdStrike Falcon AIDR^]. The policy sends the conversation to AIDR and enforces the returned verdict at the gateway before the request reaches the upstream LLM (request phase) or before the response is returned to the client (response phase).
+
+The policy supports only OpenAI Chat Completions format traffic, because the AIDR API accepts only that format.
+
+An AIDR collector token is both the credential and the link to your AIDR policy. Which detectors run, their thresholds, redaction rules, and whether a detection rejects content are all configured in the Falcon console, not in the gateway policy. Changes you make in the Falcon console take effect without needing to modify the gateway policy.
+
+The policy turns each AIDR verdict into one of these gateway actions:
+
+* *Allow*: Content that AIDR doesn't reject is forwarded unchanged. Detections from an AIDR policy in report-only mode are allowed.
+* *Redact*: When Enable Transformation is enabled and AIDR returns redacted content, the policy replaces the original content with the redacted content and forwards it.
+* *Reject*: When AIDR rejects the content, the client receives an HTTP `403` response that names the triggered detectors.
+
+The policy rejects content only when the AIDR verdict says to reject it. Detections alone never cause a rejection.
+
+The policy operates in two independent phases:
+
+* *Request phase*: Sends the prompt messages to AIDR as an input event. Rejected prompts never reach the LLM.
+* *Response phase*: Sends the LLM completion to AIDR as an output event before returning it to the client.
+
+Both phases are enabled by default.
+
+[[before-you-begin]]
+== Before You Begin
+
+Before configuring this policy, you need:
+
+1. *A CrowdStrike AIDR for Agents subscription.* AIDR for Workforce collectors aren't supported.
+2. *An AIDR Application collector token*, issued from the Falcon console. The AIDR policy assigned to the collector determines how content is evaluated.
+3. *The AIDR endpoint URL for the CrowdStrike cloud that hosts your Falcon tenant.* The cloud is the only data residency control AIDR offers, so choose it deliberately. Each URL includes the `/aidr/aiguard` path:
++
+* US-1: `\https://api.crowdstrike.com/aidr/aiguard`
+* US-2: `\https://api.us-2.crowdstrike.com/aidr/aiguard`
+* EU-1: `\https://api.eu-1.crowdstrike.com/aidr/aiguard`
+
+Prompts and responses leave your network when they're sent to CrowdStrike for evaluation. Ensure the Omni Gateway can reach the AIDR host outbound. To keep content out of CrowdStrike logs, configure content logging exclusions in the Falcon console.
+
+Traffic in any other format, non-`POST` requests, and requests without a JSON body pass through unscanned.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The CrowdStrike AIDR Guardrails policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+=== Basic Configuration
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+| AIDR Endpoint
+| Yes
+| Base URL of the AIDR API for the CrowdStrike cloud that hosts your Falcon tenant: `\https://api.crowdstrike.com/aidr/aiguard` (US-1), `\https://api.us-2.crowdstrike.com/aidr/aiguard` (US-2), or `\https://api.eu-1.crowdstrike.com/aidr/aiguard` (EU-1). Include the `/aidr/aiguard` path. The policy appends `/v1/guard_chat_completions` and `/v1/unredact` at call time.
+
+| Collector Token
+| Yes
+| AIDR Application collector token. The token authenticates each call and selects the AIDR policy assigned to the collector. The collector must belong to an AIDR for Agents subscription. This value is sensitive and is never logged.
+
+| Moderate Request
+| No
+| When enabled (default), the policy evaluates the prompt messages against AIDR before forwarding them to the upstream LLM. Rejected prompts never reach the LLM.
+
+| Moderate Response
+| No
+| When enabled (default), the policy evaluates the LLM completion against AIDR before returning it to the client.
+
+Streaming responses (`text/event-stream`) are also evaluated. The policy buffers the entire stream and holds the response until the evaluation completes. This breaks the streaming experience for the client and increases latency and memory use.
+|===
+
+=== Advanced Configuration
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+| Request Collector Token
+| No
+| Collector token to use for the request phase, so prompts can use a different AIDR policy. When not set, the policy uses Collector Token.
+
+| Response Collector Token
+| No
+| Collector token to use for the response phase, so completions can use a different AIDR policy. When not set, the policy uses Collector Token.
+
+| Application ID
+| No
+| Application identifier sent on every AIDR call. Use it to identify this API on the AIDR Findings page.
+
+| Collector Instance ID
+| No
+| Identifier that distinguishes gateway instances or environments that share one collector.
+
+| Enable Transformation
+| No
+| When enabled, the policy replaces the original content with the redacted content that AIDR returns. If the redacted content doesn't match the original messages one for one, the policy doesn't apply it and handles the call as failed. See <<fail-open-and-fail-closed>>. Default: disabled.
+
+| Enable Unredact
+| No
+| When enabled, the policy restores redacted values in the LLM response, so the LLM never sees the original sensitive values but the client does. Requires Enable Transformation and Moderate Request. See <<redact-and-unredact>>. Default: disabled.
+
+| Sampling Rate
+| No
+| Percentage of requests sent to AIDR for evaluation. Must be between `0` and `100`. At `100`, every request is evaluated. Use a lower value to limit AIDR usage. Default: `100`.
+
+| History Depth
+| No
+| Maximum number of prior conversation turns sent to AIDR on each call. `0` sends the full conversation. AIDR rejects payloads larger than 1 MiB, so set a limit if your clients send long conversations. Default: `0`.
+
+| API Timeout (ms)
+| No
+| Timeout for each AIDR call in milliseconds. Must be between `1000` and `30000`. When Enable Unredact is enabled, the response phase makes two calls, so it can take up to twice this value. Default: `5000`.
+
+| Fail Open
+| No
+| Determines behavior when an AIDR call fails, times out, or returns a verdict the policy can't use:
+
+* Disabled (default): Rejects with HTTP `503`.
+* Enabled: Allows traffic to proceed unscanned (fail-open mode).
+|===
+
+== How This Policy Works
+
+The CrowdStrike AIDR Guardrails policy integrates with CrowdStrike Falcon AIDR to evaluate LLM prompts and responses.
+
+[[request-and-response-moderation]]
+=== Request and Response Moderation
+
+The policy supports independent evaluation for request and response:
+
+. *Request Phase* (when Moderate Request is enabled):
+.. The policy checks that the request is a `POST` request in OpenAI format with a JSON body. Other traffic passes through unscanned.
+.. The policy decides whether to sample the request, based on Sampling Rate. Requests that aren't sampled are allowed without evaluation in both phases.
+.. The policy sends the prompt messages, limited by History Depth, to AIDR as an input event, with Application ID and Collector Instance ID.
+.. The policy enforces the AIDR verdict. If the prompt is allowed, the policy forwards it to the upstream LLM. If AIDR redacts the prompt and Enable Transformation is enabled, the policy forwards the redacted prompt. If AIDR rejects the prompt, the policy returns HTTP `403`.
+
+. *Response Phase* (when Moderate Response is enabled):
+.. The policy buffers the LLM response. For a streaming response, the policy rebuilds the full completion from the stream.
+.. The policy sends the completion to AIDR as an output event.
+.. The policy enforces the AIDR verdict. If the completion is allowed, the policy returns it unchanged, or with redacted values restored when Enable Unredact is enabled. If AIDR redacts the completion and Enable Transformation is enabled, the policy returns the redacted completion. If AIDR rejects the completion, the policy replaces the response with an HTTP `403` response.
++
+NOTE: For streaming responses, the policy can't apply redacted content or restore redacted values. If AIDR redacts a streaming response, the policy handles the call as failed. See <<fail-open-and-fail-closed>>.
+
+[[redact-and-unredact]]
+=== Redact and Unredact
+
+When Enable Transformation and Enable Unredact are both enabled, the policy can keep sensitive values from the LLM while still returning them to the client:
+
+. In the request phase, AIDR redacts sensitive values in the prompt, and the policy forwards the redacted prompt to the LLM.
+. In the response phase, the policy asks AIDR to restore the redacted values in the LLM completion before returning it to the client.
+
+Only reversible redaction configured in the Falcon console (format-preserving encryption) can be restored. Values replaced with a placeholder, for example, `<US_SSN>`, can't be restored.
+
+The response phase restores values only when AIDR allows the completion. If AIDR redacts the completion, the client receives the redacted completion.
+
+If restoring values fails, Fail Open determines the result. When Fail Open is disabled, the policy returns HTTP `503`. When Fail Open is enabled, the client receives the redacted completion.
+
+[[fail-open-and-fail-closed]]
+=== Fail Open and Fail Closed
+
+The policy handles these conditions as a failed call:
+
+* The AIDR call returns an error or times out.
+* AIDR returns a verdict that doesn't say whether to reject the content.
+* AIDR returns redacted content that the policy can't apply to the original messages, or to a streaming response.
+
+When Fail Open is disabled, the policy rejects the request or response with HTTP `503`. When Fail Open is enabled, the policy allows the traffic unscanned.
+
+== Example Configurations
+
+The following examples demonstrate common configuration patterns for the CrowdStrike AIDR Guardrails policy.
+
+=== Minimal Configuration
+
+Only the two required fields. Both phases are evaluated, every request is sampled, and failed calls are rejected with a `5000` ms timeout.
+
+[source,yaml]
+----
+- policyRef:
+    name: crowdstrike-aidr-guardrails-policy-v1-0-impl
+    namespace: default
+  config:
+    aidrEndpoint: https://api.crowdstrike.com/aidr/aiguard
+    collectorToken: "${CROWDSTRIKE_AIDR_COLLECTOR_TOKEN}"
+----
+
+=== Regional Endpoint, Per-Phase Collectors, and Attribution
+
+An EU-1 endpoint, separate collectors for prompts and completions, and application and instance identifiers for the AIDR Findings page.
+
+[source,yaml]
+----
+- policyRef:
+    name: crowdstrike-aidr-guardrails-policy-v1-0-impl
+    namespace: default
+  config:
+    aidrEndpoint: https://api.eu-1.crowdstrike.com/aidr/aiguard
+    collectorToken: "${CROWDSTRIKE_AIDR_COLLECTOR_TOKEN}"
+    advancedConfiguration:
+      requestCollectorToken: "${CROWDSTRIKE_AIDR_INPUT_TOKEN}"
+      responseCollectorToken: "${CROWDSTRIKE_AIDR_OUTPUT_TOKEN}"
+      applicationId: checkout-assistant
+      collectorInstanceId: gateway-prod-eu
+      apiTimeoutMs: 8000
+----
+
+=== Redact and Unredact With Sampling
+
+Redacts sensitive values before the prompt reaches the LLM, restores them in the response to the client, and evaluates 25% of requests to limit AIDR usage.
+
+[source,yaml]
+----
+- policyRef:
+    name: crowdstrike-aidr-guardrails-policy-v1-0-impl
+    namespace: default
+  config:
+    aidrEndpoint: https://api.crowdstrike.com/aidr/aiguard
+    collectorToken: "${CROWDSTRIKE_AIDR_COLLECTOR_TOKEN}"
+    advancedConfiguration:
+      enableTransformation: true
+      enableUnredact: true
+      samplingRate: 25
+----
+
+=== Request-Only, Fail-Open, Limited History
+
+Only the prompt is evaluated, only the last 10 conversation turns are sent to AIDR, and if AIDR is unreachable the request proceeds unscanned.
+
+[source,yaml]
+----
+- policyRef:
+    name: crowdstrike-aidr-guardrails-policy-v1-0-impl
+    namespace: default
+  config:
+    aidrEndpoint: https://api.us-2.crowdstrike.com/aidr/aiguard
+    collectorToken: "${CROWDSTRIKE_AIDR_COLLECTOR_TOKEN}"
+    moderateRequest: true
+    moderateResponse: false
+    advancedConfiguration:
+      historyDepth: 10
+      failOpen: true
+----
+
+== See Also
+
+* https://aidr-docs.crowdstrike.com/[CrowdStrike AIDR documentation^]
+* xref:policies-included-azure-content-safety.adoc[]
+* xref:policies-included-bedrock-guardrails.adoc[]
+* xref:general::model-proxy.adoc[]
+* xref:general::model-proxy-policies.adoc[]
