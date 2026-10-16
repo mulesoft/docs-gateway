@@ -13,25 +13,50 @@ Omni Gateway provides three MCP policies that work together to control which too
 
 == How the Policies Work Together
 
-You can use MCP policies individually or combine them to fit your use cases. When you use multiple policies together, stack them in this order from the gateway toward the client so that they work as intended:
+You can use MCP policies individually or combine them to fit your use cases. Each policy has a role in the request flow:
 
-NOTE: If you use xref:policies-included-mcp-progressive-disclosure.adoc[MCP Tools Progressive Disclosure], it must be positioned after the xref:policies-included-mcp-support.adoc[MCP Support Policy] but before any other MCP access control policies.
+MCP Tool Mapping::
+Redefines tool names and descriptions to reduce prompt complexity and improve LLM comprehension. Mapping doesn't filter tools.
 
 MCP Global Access::
 Filters the overall tool list. Define rules to allow or block specific tools so that only the tools you want to expose enter your network.
 
-MCP Tool Mapping::
-Redefines tool names and descriptions to reduce prompt complexity and improve LLM comprehension. Mapping doesn't filter tools. If you use both policies, MCP Global Access must allow a tool before mapping applies.
-
 MCP Attribute-Based Access Control::
-Grants each connecting client a tailored subset of the available tools based on attributes, such as tiers, IP addresses, headers, or claims. 
+Grants each connecting client a tailored subset of the available tools based on attributes, such as tiers, IP addresses, headers, or claims.
 
-To configure the policy order, see xref:policies-reorder.adoc[Ordering Policies].
+MCP Schema Validation::
+Validates that requests conform to the MCP specification and, when *Validate Tool Schema* is enabled, validates tool invocation parameters against the tool's JSON schema. This policy isn't an access control policy, but its position relative to the access control policies affects how they work. To learn more, see xref:policies-included-mcp-schema-validation.adoc[MCP Schema Validation].
+
+[[policy-order]]
+== Policy Order
+
+When you use multiple MCP policies together, apply them in the following order so that they work as intended. Omni Gateway executes policies in this order on the request and in the reverse order on the response.
+
+. xref:policies-included-mcp-support.adoc[MCP Support]
+. xref:policies-included-mcp-progressive-disclosure.adoc[MCP Tools Progressive Disclosure], if you use it
+. An authentication policy (Required for the MCP Attribute-Based Access Control policy)
+. MCP Tool Mapping
+. MCP Global Access
+. MCP Attribute-Based Access Control
+. MCP Schema Validation
+. MCP Transcoding Router
+. MCP Transcoding
+
+You must apply MCP Schema Validation after MCP Tool Mapping, MCP Global Access, and MCP Attribute-Based Access Control. If MCP Schema Validation runs before these policies, MCP Attribute-Based Access Control doesn't work properly.
+
+The default policy order might not meet this requirement. After you apply the policies, check the order and reorder the policies if needed. For instructions, see xref:policies-reorder.adoc[Ordering Policies].
+
+=== MCP Support and MCP Tools Progressive Disclosure
+
+The MCP Support policy must come first in the policy order. If it doesn't, Omni Gateway might throw a runtime error.
+
+If you use MCP Tools Progressive Disclosure, position it after MCP Support but before any other MCP policy, particularly any policy that reads tool names, such as access control, tool mapping, and schema validation. Clients call tools through the `invoke_tool` meta-tool, and the policy rewrites each call so that later policies see the real tool name. If an access control policy runs before MCP Tools Progressive Disclosure, that policy evaluates `invoke_tool` instead of the real tool, which creates an authorization bypass.
 
 == See Also
 
 * xref:policies-included-mcp-global-access.adoc[MCP Global Access]
 * xref:policies-included-mcp-tool-mapping.adoc[MCP Tool Mapping]
 * xref:policies-included-mcp-attribute-access-control.adoc[MCP Attribute-Based Access Control]
+* xref:policies-included-mcp-schema-validation.adoc[MCP Schema Validation]
 * xref:policies-reorder.adoc[Ordering Policies]
 * xref:agent-policies.adoc[Omni Gateway Agent Policies]
