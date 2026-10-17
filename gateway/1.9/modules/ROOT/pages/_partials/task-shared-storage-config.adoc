@@ -10,10 +10,19 @@ You configure shared storage via a custom YAML file.
 The following steps demonstrate Redis-based storage support for Flex Gateway running in a Docker container, as a Linux Service,
 or as a Kubernetes cluster.
 
+ifeval::["{page-mode}" == "conn"]
+To secure your Redis password, or to configure Redis Sentinel or a TLS connection to your Redis shared storage, refer to:
+
+* <<redis-password>>
+* <<redis-sentinel>>
+* <<redis-tls>>
+endif::[]
+ifeval::["{page-mode}" != "conn"]
 To configure Redis Sentinel or a TLS connection to your Redis shared storage, refer to:
 
 * <<redis-sentinel>>
 * <<redis-tls>>
+endif::[]
 //end::intro2[]
 //tag::icon-table[]
 
@@ -112,11 +121,131 @@ spec:
 ----
 //end::sample-config-all[]
 
+//tag::secure-password-intro[]
+[[redis-password]]
+== Secure the Redis Password
+
+To avoid storing the Redis `password` in plaintext in the YAML configuration file, store it in your deployment environment's secret store and inject it into the shared storage configuration when the Omni Gateway container starts.
+
+Omni Gateway reads shared storage configuration only from a file in the `conf.d` directory. You can't reference an external secret directly from the `sharedStorage` configuration. These examples generate the configuration file from the stored secret at container startup, so you don't store the password in plaintext on disk.
+
+//end::secure-password-intro[]
+//tag::secure-password-k8s[]
+=== Secure the Redis Password in Kubernetes
+
+. Store the Redis password in a Kubernetes Secret:
++
+[source,ssh]
+----
+kubectl create secret generic redis-password --from-literal=password='<your-redis-password>'
+----
++
+Replace `<your-redis-password>` with your Redis password.
+
+. In your Omni Gateway `Deployment`, mount the secret as a file and override the container command to read the password, write the shared storage configuration to a directory that Omni Gateway scans, and then start Omni Gateway. For example:
++
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flex-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flex-gateway
+  template:
+    metadata:
+      labels:
+        app: flex-gateway
+    spec:
+      containers:
+      - name: flex-gateway
+        image: mulesoft/flex-gateway:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          REDIS_PASSWORD=$(cat /etc/redis-secret/password)
+          cat <<EOF > /etc/mulesoft/flex-gateway/conf.d/shared-storage-config.yaml
+          apiVersion: gateway.mulesoft.com/v1alpha1
+          kind: Configuration
+          metadata:
+            name: shared-storage-redis
+          spec:
+            sharedStorage:
+              redis:
+                address: "<your-redis-host>:6379"
+                password: "$REDIS_PASSWORD"
+          EOF
+          /init
+        volumeMounts:
+        - name: redis-password
+          mountPath: /etc/redis-secret
+          readOnly: true
+        - name: shared-storage-config
+          mountPath: /etc/mulesoft/flex-gateway/conf.d
+      volumes:
+      - name: redis-password
+        secret:
+          secretName: redis-password
+      - name: shared-storage-config
+        emptyDir: {}
+----
++
+In this configuration:
++
+* The `redis-password` volume mounts the `redis-password` secret at `/etc/redis-secret` in the container.
+* The container command reads the password from `/etc/redis-secret/password`, generates `shared-storage-config.yaml` in the `/etc/mulesoft/flex-gateway/conf.d` directory, and then starts Omni Gateway (`/init`).
+* The `shared-storage-config` `emptyDir` volume provides a writable location for the generated configuration file. Because this directory is separate from the directory that stores your registration configuration, generating the file doesn't overwrite your registration.
+
+//end::secure-password-k8s[]
+//tag::secure-password-docker[]
+=== Secure the Redis Password in Docker
+
+. Create a file that contains the Redis password:
++
+[source,ssh]
+----
+echo '<your-redis-password>' > /path/to/redis_password.txt
+----
++
+Manage this file with your secret store and restrict access to it.
+
+. Start the Omni Gateway container with the password file mounted, and override the command to generate the shared storage configuration before starting Omni Gateway:
++
+[source,ssh]
+----
+docker run --rm \
+--name flex-gateway \
+-v /path/to/redis_password.txt:/etc/redis-secret/password:ro \
+-v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
+-p 8080:8080 \
+--entrypoint /bin/sh \
+mulesoft/flex-gateway -c '\
+REDIS_PASSWORD=$(cat /etc/redis-secret/password); \
+cat <<EOF > /etc/mulesoft/flex-gateway/conf.d/shared-storage-config.yaml
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: shared-storage-redis
+spec:
+  sharedStorage:
+    redis:
+      address: "<your-redis-host>:6379"
+      password: "$REDIS_PASSWORD"
+EOF
+/init'
+----
++
+This command mounts the password file read-only, writes `shared-storage-config.yaml` to the in-container `/etc/mulesoft/flex-gateway/conf.d` directory, and then starts Omni Gateway (`/init`). Because the generated file is written inside the container instead of to the mounted host directory, the password isn't stored in plaintext on the host.
+
+//end::secure-password-docker[]
 //tag::sentinel-intro[]
 [[redis-sentinel]]
 == Configure Redis Sentinel
 
-Redis Sentinel provides high availability for Redis shared storage. For more information about Redis Sentinel, refer to https://redis.io/docs/latest/operate/oss_and_stack/management/sentinel/[Redi Sentinel^].
+Redis Sentinel provides high availability for Redis shared storage. For more information about Redis Sentinel, refer to https://redis.io/docs/latest/operate/oss_and_stack/management/sentinel/[Redis Sentinel^].
 
 Configure Redis Sentinel using the steps described in the previous sections.
 
