@@ -7,10 +7,117 @@ endif::[]
 :page-aliases: flex-managed-inbound-tls-config.adoc
 
 
+How you configure inbound TLS for Managed Omni Gateway depends on where you deploy the gateway:
+
+* <<cloudhub-2, CloudHub 2.0>>
+* <<runtime-fabric-openshift, Runtime Fabric on OpenShift>>
+
+[[cloudhub-2]]
+== Configure Inbound TLS on CloudHub 2.0
+
 For Managed Omni Gateway deployed on CloudHub 2.0, the CloudHub 2.0 space manages the inbound TLS.
 
 To configure a TLS context for the private space you're deploying your Managed Omni Gateway to, see xref:cloudhub-2::ps-config-domains.adoc[]. You can't edit the TLS context for a shared space.
 
 Configuring a TLS context for your private space means all APIs deployed to Managed Omni Gateways in the private space are HTTPS and secure.
 
-To configure outbound TLS context, see xref:managed-outbound-tls-config.adoc[].
+[[runtime-fabric-openshift]]
+== Configure Inbound TLS on Runtime Fabric on OpenShift
+
+For Managed Omni Gateway deployed on Runtime Fabric on OpenShift, terminate external TLS at an OpenShift route and re-encrypt traffic to the gateway. This configuration uses two TLS connections:
+
+. The external client connects to the OpenShift route, which presents the cluster wildcard certificate.
+. The OpenShift route connects to Managed Omni Gateway, which presents its internal certificate. The route validates this certificate by using the destination CA certificate.
+
+Don't create the OpenShift `Route` resource directly. Instead, create an `HTTPRouteTemplate` resource with `reencrypt` TLS termination. The Runtime Fabric agent renders the template into the `Route` resource and keeps it reconciled.
+
+=== Before You Begin
+
+Before configuring inbound TLS for Managed Omni Gateway on Runtime Fabric, make sure that you have:
+
+* A Managed Omni Gateway deployed to Runtime Fabric. See xref:gateway-managed-set-up.adoc[].
+* The cluster wildcard certificate and private key, in PEM format.
+* The CA certificate that signs the internal certificate of Managed Omni Gateway, in PEM format.
+
+=== Create the Route Template
+
+. Create a YAML file with an `HTTPRouteTemplate` resource:
++
+[source,yaml]
+----
+apiVersion: rtf.mulesoft.com/v1
+kind: HTTPRouteTemplate
+metadata:
+  name: omni-ingress-reencrypt
+  namespace: rtf
+spec:
+  baseEndpoints:
+    - https://<public-hostname>/
+  resources: |
+    apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      name: {{ .ResourceName }}
+      namespace: {{ .Namespace }}
+    spec:
+      host: {{ .Host }}
+      path: {{ .Path }}
+      to:
+        kind: Service
+        name: {{ .Service.Name }}
+  tls:
+    termination: reencrypt
+    key: <cluster-wildcard-key-PEM>
+    certificate: <cluster-wildcard-cert-PEM>
+    caCertificate: <issuing-CA-chain-PEM>
+    destinationCACertificate: <omni-gateway-CA-PEM>
+----
++
+Configure these `tls` parameters:
++
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Parameter | Required or Optional | Description
+
+| `termination`
+| Required
+| Set to `reencrypt`.
+
+| `key`
+| Required
+| Private key of the cluster wildcard certificate.
+
+| `certificate`
+| Required
+| Cluster wildcard certificate that the route presents to external clients.
+
+| `caCertificate`
+| Optional
+| CA chain that issued the cluster wildcard certificate.
+
+| `destinationCACertificate`
+| Required
+| CA certificate that signs the internal certificate of Managed Omni Gateway. The route uses this CA to validate the gateway.
+|===
+. Apply the resource:
++
+[source,ssh]
+----
+oc apply -f <file-name>.yaml
+----
+
+=== Verify the Inbound TLS Configuration
+
+From outside the cluster, run:
+
+[source,ssh]
+----
+curl -v https://<public-hostname>
+----
+
+The TLS handshake completes and the response presents the cluster wildcard certificate, not the internal `*.svc.cluster.local` certificate of the gateway.
+
+== See Also
+
+* xref:managed-outbound-tls-config.adoc[]
+* xref:gateway-managed-set-up.adoc[]
