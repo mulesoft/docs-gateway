@@ -23,3 +23,42 @@ For the UI steps and parameter descriptions, see xref:gateway-managed-set-up.ado
 include::partial$timeout-configuration.adoc[tags=timeout-runtime-manager]
 
 include::partial$timeout-configuration.adoc[tags=timeout-configuration-policies]
+
+[[openshift-timeouts]]
+== Timeouts for Managed Omni Gateway on Runtime Fabric on OpenShift
+
+On Runtime Fabric on Red Hat OpenShift, the OpenShift route in front of Managed Omni Gateway has its own timeout. Requests can time out at either layer.
+
+[%header%autowidth.spread,cols="a,a,a,a,a"]
+|===
+| Layer | Timeout | Default | Where to Configure | Result When Exceeded
+
+| OpenShift route
+| Route timeout
+| 30 seconds
+| `haproxy.router.openshift.io/timeout` annotation on the route
+| `504 Gateway Timeout`
+
+| Managed Omni Gateway
+| Response Timeout
+| 15 seconds
+| See <<configure-timeouts-during-managed-gateway-deployment,Configure Timeouts During Managed Gateway Deployment>>
+| `504 Gateway Timeout`
+
+| Managed Omni Gateway
+| Upstream Idle Timeout
+| 60 seconds
+| See <<configure-timeouts-during-managed-gateway-deployment,Configure Timeouts During Managed Gateway Deployment>>
+| Connection reset
+
+| Managed Omni Gateway
+| Stream Idle Timeout
+| 300 seconds
+| See <<configure-timeouts-during-managed-gateway-deployment,Configure Timeouts During Managed Gateway Deployment>>
+| Connection reset
+|===
+
+If you increase the Response Timeout above the route timeout, the route returns `504 Gateway Timeout` before Managed Omni Gateway receives the upstream response. Set the route timeout higher than the longest Managed Omni Gateway timeout that applies to requests through the route.
+
+On Runtime Fabric, the agent creates the route from a route template. Add the `haproxy.router.openshift.io/timeout` annotation to the template, not to the route. See xref:runtime-fabric::configure-openshift-routes.adoc[].
+
