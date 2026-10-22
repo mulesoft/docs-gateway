@@ -243,7 +243,7 @@ The default value is 10 seconds.
 * *Key*: The literal name of the claim, for example `scp`. The key is not a DataWeave expression. Don't wrap it in `#[...]`.
 * *Value*: Either a literal string or a DataWeave expression `#[...]` that returns a boolean. Use a literal string only for scalar claims. For array and object claims, you must use a DataWeave expression.
 
-The policy provides a _claimSet_ variable that contains all the claims present in the incoming JWT. Use `vars.claimSet` in DataWeave expressions inside Custom Claim Validation. For example:
+The policy provides a _claimSet_ variable that contains all the claims present in the incoming JWT. Use `vars.claimSet` in DataWeave expressions when you configure custom claim validations. For example:
 
 * Key: `role`, Value: `admin`
 * Key: `scp`, Value: `#[vars.claimSet.scp contains "myscope"]`
@@ -297,7 +297,7 @@ For both cases, if a claim is present, the policy validates the token value. If 
 
 After the policy parses and validates the JWT, the claims are propagated to downstream policies and flows through the *claims* property in the authentication object.
 
-NOTE: Use `vars.claimSet` only inside the policy's Custom Claim Validation configuration. Downstream policies can't access `vars.claimSet`; they must use `authentication.properties.claims`.
+NOTE: Use `vars.claimSet` only in the custom claim validation expressions that you configure in the policy. Downstream policies can't access `vars.claimSet`; they must use `authentication.properties.claims`.
 
 To access the claim values from a downstream policy, you can use the following Dataweave 2.0 expression by replacing `<claimName>` with the name of the desired claim to access:
 
