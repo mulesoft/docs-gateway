@@ -263,7 +263,7 @@ In addition to these _provided claims_, you can also specify other claims to use
 * The name of the claim you want to validate. +
 For example *iss*, for the issuer of the token.
 * The value used to test. +
-You can provide a simple literal string if the claim is a scalar, or you can provide a DataWeave expression that returns a boolean for more complex comparisons. A DataWeave expression is required for array and object claims, for example `#[vars.claimSet.scp contains "myscope"]` for the `scp` claim.
+You can provide a simple literal string if the claim is scalar, or you can provide a DataWeave expression that returns a boolean for more complex comparisons. A DataWeave expression is required for array and object claims, for example `#[vars.claimSet.scp contains "myscope"]` validates that the `scp` claim is present.
 
 You can define each claim validation as mandatory or non-mandatory. If a claim is defined as mandatory and is not present in the incoming JWT, the policy rejects this token. If a claim is defined as non-mandatory and is not present in the incoming JWT, the policy does not reject the token for that specific validation. +
 For both cases, if a claim is present, the policy validates the token value. If the validation fails, the JWT will be rejected.
