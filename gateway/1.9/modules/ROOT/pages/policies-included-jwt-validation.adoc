@@ -223,15 +223,15 @@ The default value is 10 seconds.
 | Enables the usage of custom validations in the policy. The JWT will be valid only if all DataWeave expressions are fulfilled.
 | Each custom claim validation has a *Key* and a *Value*:
 
-* *Key*: The literal name of the claim, for example `scp`. The key is not a DataWeave expression. Don't wrap it in `#[...]`.
-* *Value*: Either a literal string or a DataWeave expression `#[...]` that returns a boolean. Use a literal string only for scalar claims. For array and object claims, you must use a DataWeave expression.
+* *Key*: The literal name of the claim, for example `scp`. The key isn't a DataWeave expression.
+* *Value*: Either a literal string or a DataWeave expression `#[...]`. Use a literal string only for scalar claims. For array and object claims, you must use a DataWeave expression.
 
 The policy provides a _claimSet_ variable that contains all the claims present in the incoming JWT. Use `vars.claimSet` in DataWeave expressions when you configure custom claim validations. For example:
 
 * Key: `role`, Value: `admin`
 * Key: `scp`, Value: `#[vars.claimSet.scp contains "myscope"]`
-
-All DataWeave expressions must return a boolean value or they will always fail. If you put a DataWeave expression in the Key field, the request is rejected with a `401` and the message `Mandatory custom claim mismatch or not present`.
++
+All DataWeave expressions must return a boolean value or they always fail
 |===
 
 == How This Policy Works
