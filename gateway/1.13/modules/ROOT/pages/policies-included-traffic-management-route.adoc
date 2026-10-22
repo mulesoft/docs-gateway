@@ -174,11 +174,11 @@ The following table describes all the possible parameter combinations, with exam
 [[empty-capture-group]]
 == Route Requests to an Unrelated Upstream Path
 
-When `rules.path` contains a capture group, Omni Gateway appends only the captured part of the request path to `destinationPath`. If you use an empty capture group, `()`, nothing is captured, so Omni Gateway sends the request to `destinationPath` exactly as configured. Use an empty capture group when the upstream path has no relationship to the request path.
+To route requests to an upstream path unrelated to the request path, add an empty capture group, `()`, to `rules.path`. Omni Gateway appends only captured text to `destinationPath`, so with an empty group it sends the request to `destinationPath` unchanged.
 
-This approach is especially useful for SOAP services. SOAP clients often call a fixed URL generated from a WSDL, and the `SOAPAction` header, not the path, determines the operation. With an empty capture group, you can expose the service at any path and route it to the upstream SOAP endpoint without a custom policy.
+This is useful for SOAP services, where clients call a fixed WSDL URL and the `SOAPAction` header determines the operation.
 
-For example, this configuration routes requests to `/api/masterdata/CustomerService` to `https://soap.svc.local:443/sap/bc/srt/scs/sap/customer_service`:
+For example, this configuration routes `/api/masterdata/CustomerService` to `https://soap.svc.local:443/sap/bc/srt/scs/sap/customer_service`:
 
 [source,yaml]
 ----
