@@ -264,7 +264,7 @@ In addition to these _provided claims_, you can also specify other claims to use
 * The name of the claim you want to validate. +
 For example *iss*, for the issuer of the token.
 * The value used to test. +
-You can provide a simple literal string if the claim is a scalar, or you can provide a DataWeave expression that returns a boolean for more complex comparisons. A DataWeave expression is required for array and object claims, for example `#[vars.claimSet.scp contains "myscope"]` for the `scp` claim.
+You can provide a simple literal string if the claim is scalar, or you can provide a DataWeave expression that returns a boolean for more complex comparisons. A DataWeave expression is required for array and object claims, for example `#[vars.claimSet.scp contains "myscope"]` validates that the `scp` claim is present.
 
 You can define each claim validation as mandatory or non-mandatory. If a claim is defined as mandatory and is not present in the incoming JWT, the policy rejects this token. If a claim is defined as non-mandatory and is not present in the incoming JWT, the policy does not reject the token for that specific validation. +
 For both cases, if a claim is present, the policy validates the token value. If the validation fails, the JWT will be rejected.
@@ -273,10 +273,11 @@ For both cases, if a claim is present, the policy validates the token value. If 
 
 After the policy parses and validates the JWT, the claims are propagated to downstream policies and flows through the *claims* property in the authentication object.
 
-NOTE: Use `vars.claimSet` only in the custom claim validation expressions that you configure in the policy. Downstream policies can't access `vars.claimSet`. Other policies must use `authentication.properties.claims`.
+NOTE: Use `vars.claimSet` only in the custom claim validation expressions that you configure in the policy. Policies that run after this policy can't access `vars.claimSet`; they must use `authentication.properties.claims`.
 
-To access the claim values from a downstream policy, you can use this DataWeave expression `#[authentication.properties.claims.<claimName>]`.
+To access the claim values from a policy that runs after this policy, you can use the following Dataweave 2.0 expression by replacing `<claimName>` with the name of the desired claim to access:
 
+`#[authentication.properties.claims.<claimName>]`
 
 The JWT is also propagated downstream, and you can access it by using the following Dataweave 2.0 expression:
 
