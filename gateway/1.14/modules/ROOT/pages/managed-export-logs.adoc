@@ -1,0 +1,159 @@
+= Configuring and Exporting Logs for Managed Omni Gateway
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:page-mode: managed
+
+Managed Omni Gateway generates runtime logs and access logs. By default, Managed Omni Gateway forwards these logs to Anypoint Platform, where you can view them in Runtime Manager and Anypoint Monitoring.
+
+You can also export logs to third-party observability services, such as New Relic, Splunk, or any OpenTelemetry-compliant tool. Managed Omni Gateway sends logs directly to each external output that you configure by using the OpenTelemetry Protocol (OTLP) over HTTP or gRPC. Exporting logs enables you to correlate Omni Gateway logs with data from other systems and keep logs in the tools your teams already use.
+
+You can export logs to one or more external outputs. For each output, choose whether to send access logs, runtime logs, or both. Exporting logs to external outputs doesn't affect forwarding logs to Anypoint Platform.
+
+[[runtime-access-logs]]
+== Runtime Logs and Access Logs
+
+Runtime logs include:
+
+* The startup and shutdown of Omni Gateway and its components
+* Deployed APIs and policies
+* Possible misconfigurations of Omni Gateway or other errors
+
+Access logs describe incoming requests and responses for specific APIs. To generate access logs, apply a Message Logging policy to the API instances whose request and response data you want to log. See xref:managed-message-log.adoc[].
+
+// TODO W-24640329: Confirm that access logs for Managed Omni Gateway require a Message Logging policy, as they do in Connected Mode.
+
+[[runtime-manager-config]]
+== Configure and Export Logs in Runtime Manager
+
+. In Anypoint Platform, select *Runtime Manager*.
+. Select *Omni Gateways*.
+. Select your Omni Gateway.
+. Open *Runtime Configurations*.
+. Open *Logging*.
+. Under *Anypoint Logging*, turn *Forward logs to Anypoint* on or off.
++
+When this setting is off, logs aren't available in Anypoint Monitoring.
++
+// TODO W-24640329: Confirm whether logs remain available in Runtime Manager when Forward logs to Anypoint is off, as the deployment flow states.
+. To export logs to a third-party service, under *External Outputs*, click *Add*, and then configure the output:
+.. For *Type*, select *OpenTelemetry*.
+.. Under *Parameters*, configure the connection to your OpenTelemetry endpoint. See <<otel-output-parameters>>.
+.. To add more outputs, click *Add* and repeat these steps.
+. Under *Access Logs*, turn on each output that receives access logs.
+. Under *Runtime Logs*, turn on each output that receives runtime logs.
+. For *Log Level*, select the minimum severity level of runtime logs to include. See <<log-levels>>.
+. Click *Apply changes*.
+
+To stop exporting logs to an output, click the delete icon for the output, and then click *Apply changes*.
+
+[[otel-output-parameters]]
+=== OpenTelemetry Output Parameters
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Parameter | Required | Default Value | Description
+
+| *Host*
+| Yes
+| N/A
+| Hostname of the OpenTelemetry endpoint, for example, `otlp.nr-data.net`.
+
+| *Port*
+| Yes
+| N/A
+| Port of the OpenTelemetry endpoint, for example, `4317`.
+
+| *TLS*
+| Yes
+| On
+| Enables or disables TLS for this output.
+
+| *TLS Verify*
+| Yes
+| On
+| Enables or disables TLS certificate validation. Applies only when *TLS* is *On*.
+
+| *gRPC*
+| No
+| Off
+| Uses OTLP/gRPC over HTTP/2 instead of OTLP/HTTP. Turning on this option also enables HTTP/2.
+
+| *Compress*
+| No
+| N/A
+| Payload compression mechanism for OTLP/HTTP. Supported values are *Gzip* and *Zstd*.
+
+| *Batch Size*
+| No
+| 1000
+| Maximum number of log records to send at a time.
+
+| *Headers*
+| No
+| N/A
+| Custom headers to add to requests sent to the OpenTelemetry endpoint, such as an API key for authentication. Click *Add* to add a header name and value.
+
+| *Add Label*
+| No
+| N/A
+| Custom labels to add to exported logs. Click *Add* to add a label name and value.
+
+| *Logs URI*
+| No
+| N/A
+| Path of the logs endpoint. Overrides the default path.
+
+| *Net Connect Timeout (seconds)*
+| No
+| 10
+| Maximum time to establish a connection, including the TLS handshake.
+
+| *Net IO Timeout (seconds)*
+| No
+| 0
+| Maximum time that a connection can stay idle while assigned. A value of `0` means no timeout.
+
+| *Output entry name*
+| No
+| Output
+| Name for this output. The name identifies the output in the *Access Logs* and *Runtime Logs* sections, for example, *Output - OpenTelemetry*.
+|===
+
+// TODO W-24640329: Confirm the defaults read from the UI (TLS, TLS Verify, gRPC, Batch Size, Net Connect Timeout, Net IO Timeout, Output entry name), the Compress values and default, the default Logs URI path (/v1/logs?), and that 0 for Net IO Timeout means no timeout.
+// TODO W-24640329: The Add Label UI description says "Adds a custom label to the metrics." Confirm that labels apply to exported logs.
+
+[[log-levels]]
+=== Runtime Log Levels
+
+The *Log Level* setting includes runtime logs of the selected severity level and higher. For example, if you select *Warning*, Managed Omni Gateway exports warning, error, and fatal messages.
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Log Level | Description
+
+| *Debug*
+| Debugging messages.
+
+| *Info*
+| Informative messages.
+
+| *Warning*
+| Warning messages.
+
+| *Error*
+| Error messages, such as when an exception occurs.
+
+| *Fatal*
+| Fatal messages, such as when an application fails.
+|===
+
+// TODO W-24640329: Confirm the Log Level options and order, and whether Log Level applies only to external outputs or also to logs forwarded to Anypoint Platform.
+
+== See Also
+
+* xref:managed-message-log.adoc[]
+* xref:managed-view-logs-in-runtime-manager.adoc[]
+* xref:managed-view-logs-in-monitoring.adoc[]
+* xref:managed-tracing-config.adoc[]

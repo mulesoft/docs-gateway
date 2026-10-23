@@ -1,4 +1,4 @@
-= Configuring Distributed Tracing for Managed Omni Gateway
+= Configuring and Exporting Distributed Tracing for Managed Omni Gateway
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -13,6 +13,11 @@ Configure distributed tracing for Managed Omni Gateway using one of these method
 * xref:managed-tracing-config.adoc#runtime-manager-config[Runtime Manager runtime configurations]: Applies to all API instances in the gateway after the gateway is deployed.
 * xref:managed-tracing-config.adoc#policy-config[Policy]: Applies to one API instance and provides granular control.
 
+Export traces from Managed Omni Gateway using one of these methods:
+
+* xref:managed-tracing-config.adoc#runtime-manager-config[OpenTelemetry provider]: Managed Omni Gateway sends traces directly to your OpenTelemetry collector by using the OpenTelemetry Protocol (OTLP) over HTTP or gRPC. Traces don't pass through Anypoint Monitoring. Configure the endpoint, authentication headers, and resource attributes in the Runtime Manager tracing configuration.
+* xref:managed-tracing-config.adoc#export-otel-traces-from-monitoring-telemetry-exporter[Anypoint Monitoring Telemetry Exporter]: Managed Omni Gateway sends traces to Anypoint Monitoring, and the Telemetry Exporter forwards them to third-party providers. Use this method to view traces in Anypoint Monitoring and in a third-party tool.
+
 include::partial$configuration-precedence.adoc[tags=precedence;precedence-managed;precedence-details]
 
 include::partial$tracing-support.adoc[tags=before-you-begin]
@@ -23,7 +28,106 @@ include::partial$tracing-support.adoc[tags=before-you-begin]
 Set distributed tracing values in the deployment flow when you create a Managed Omni Gateway.
 For the UI steps and parameter descriptions, see xref:gateway-managed-set-up.adoc[].
 
-include::partial$tracing-export.adoc[tags=tracing-runtime-manager]
+[[runtime-manager-config]]
+== Configure and Export Distributed Tracing in Runtime Manager
+
+Send traces to Anypoint Monitoring, or send them directly to a third-party observability service, such as New Relic, Splunk, or any OpenTelemetry-compliant tool, by using the OpenTelemetry Protocol (OTLP).
+
+. In Anypoint Platform, select *Runtime Manager*.
+. Select *Omni Gateways*.
+. Select your Omni Gateway.
+. Open *Runtime Configurations*.
+. Open *Tracing*.
+. Turn on *Enable Tracing*.
+. Under *Provider*, for *Type*, select where to send traces:
++
+* To send traces to Anypoint Monitoring, select *Anypoint Monitoring*.
+* To send traces directly to an OpenTelemetry endpoint, select *OpenTelemetry*, and then under *Properties*, configure the OpenTelemetry provider. See <<otel-provider-parameters>>.
++
+// TODO W-24640329: Confirm the Type options and the exact label for the Anypoint Monitoring provider.
+. Under *Sampling*, set the *Overall*, *Client*, and *Random* sampling percentages. See <<sampling-parameters>>.
++
+To configure sampling only on a per-API basis with the Tracing policy, set *Overall* to `0`.
+. Optionally, under *Labels*, click *Add* to add span attributes to traces. See <<label-parameters>>.
+. Click *Apply changes*.
+
+[[otel-provider-parameters]]
+=== OpenTelemetry Provider Parameters
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Parameter | Required | Description
+
+| *Service Type*
+| Yes
+| Protocol used to send traces to the OpenTelemetry collector. Supported values are *HTTP* and *gRPC*.
+
+| *Address*
+| Yes
+| Address of the OpenTelemetry collector. For HTTP, include the traces path, for example, `https://otel-collector.example.com:4318/v1/traces`.
+
+| *Service Name*
+| Yes
+| Service name reported in exported traces, for example, `my-managed-gateway`.
+
+| *Timeout (seconds)*
+| Yes
+| Connection timeout, in seconds. The default value is `10`.
+
+| *Headers*
+| No
+| Custom headers to add to requests sent to the OpenTelemetry endpoint, such as an API key for authentication. Click *Add* to add a header name and value.
+
+| *Resource Attributes*
+| No
+| Custom resource attributes to add to reported traces, such as `deployment.environment`. Click *Add* to add an attribute name and value.
+|===
+
+// TODO W-24640329: Confirm the Service Type values (HTTP and gRPC), the gRPC address format, whether HTTP requires the /v1/traces path in Address, and the default Timeout.
+
+[[sampling-parameters]]
+=== Sampling Parameters
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Parameter | Default Value | Description
+
+| *Overall*
+| 100
+| Target percentage of requests that are traced after all other sampling checks have been applied, such as client-directed, force tracing, and random sampling.
+
+| *Client*
+| 100
+| Target percentage of requests that are force traced if the `x-client-trace-id` header is set.
+
+| *Random*
+| 100
+| Target percentage of requests that are randomly selected for trace generation, if not requested by the client or not forced.
+|===
+
+[[label-parameters]]
+=== Label Parameters
+
+Labels add span attributes to the trace data for all API instances in the gateway.
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Parameter | Description
+
+| *Name*
+| Name of the label, used as a span attribute name.
+
+| *Type*
+| Where the value for the label is taken from. Supported values are `literal`, `environment`, and `requestHeader`.
+
+| *Key Name*
+| Key used to retrieve the value, such as an environment variable or request header name.
+
+| *Default Value*
+| Value to use if the key isn't found or the retrieved value is empty.
+|===
+
+// TODO W-24640329: Confirm the Labels UI field names match the tracing configuration (name, type, keyName, defaultValue).
 
 [[policy-config]]
 include::partial$tracing-configuration.adoc[]
