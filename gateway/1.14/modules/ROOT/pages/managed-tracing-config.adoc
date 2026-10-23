@@ -1,4 +1,4 @@
-= Configuring Distributed Tracing for Managed Omni Gateway
+= Configuring and Exporting Distributed Tracing for Managed Omni Gateway
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -12,6 +12,8 @@ Configure distributed tracing for Managed Omni Gateway using one of these method
 * xref:managed-tracing-config.adoc#managed-deployment-config[Managed Omni Gateway deployment]: Set initial distributed tracing values when you create the gateway.
 * xref:managed-tracing-config.adoc#runtime-manager-config[Runtime Manager runtime configurations]: Applies to all API instances in the gateway after the gateway is deployed.
 * xref:managed-tracing-config.adoc#policy-config[Policy]: Applies to one API instance and provides granular control.
+
+To send traces to third-party services, see <<export-traces>>.
 
 include::partial$configuration-precedence.adoc[tags=precedence;precedence-managed;precedence-details]
 
@@ -28,4 +30,95 @@ include::partial$tracing-export.adoc[tags=tracing-runtime-manager]
 [[policy-config]]
 include::partial$tracing-configuration.adoc[]
 
-include::partial$tracing-export.adoc[tags=telemetry-exporter]
+[[export-traces]]
+== Export Traces to Third-Party Services
+
+Export Managed Omni Gateway distributed tracing data to third-party observability and analytics platforms, such as Azure Monitor, Splunk HEC, or any OpenTelemetry-compliant tool.
+
+Export traces from Managed Omni Gateway using one of these methods:
+
+* xref:managed-tracing-config.adoc#export-otel-endpoint[OpenTelemetry endpoint]: Managed Omni Gateway sends traces directly to an OpenTelemetry endpoint.
+* xref:managed-tracing-config.adoc#export-otel-traces-from-monitoring-telemetry-exporter[Anypoint Monitoring Telemetry Exporter]: Managed Omni Gateway sends traces to Anypoint Monitoring, and the Telemetry Exporter forwards them to third-party providers.
+
+[[export-otel-endpoint]]
+=== Export Traces to an OpenTelemetry Endpoint
+
+Before you export traces to an OpenTelemetry endpoint:
+
+* Have the address and any authentication headers, such as an API key, for your OpenTelemetry collector.
+* Ensure that your Managed Omni Gateway can reach the OpenTelemetry collector.
+
+To export traces:
+
+. In Anypoint Platform, select *Runtime Manager*.
+. Select *Omni Gateways*.
+. Select your Omni Gateway.
+. Open *Runtime Configurations*.
+. Open *Tracing*.
+. Turn on *Enable Tracing*.
+. Under *Provider*, for *Type*, select *OpenTelemetry*.
+. Configure the provider properties. See <<otel-trace-parameters>>.
+. Under *Sampling*, set the *Overall*, *Client*, and *Random* sampling percentages. See <<sampling-parameters>>.
+. Click *Apply changes*.
+
+[[otel-trace-parameters]]
+==== OpenTelemetry Provider Parameters
+
+[cols="1a,1a,2a"]
+|===
+| Parameter | Required | Description
+
+| *Service Type*
+| Yes
+| Protocol used to send traces to the OpenTelemetry collector, for example, *HTTP*.
+
+| *Address*
+| Yes
+| Address of the OpenTelemetry collector, for example, `https://otel-collector.example.com:4318/v1/traces`.
+
+| *Service Name*
+| Yes
+| Service name reported in exported traces, for example, `omnigw-direct-otel-traces`.
+
+| *Timeout (seconds)*
+| Yes
+| Connection timeout, in seconds.
+
+| *Headers*
+| No
+| Custom headers to add to requests sent to the OpenTelemetry endpoint, such as an API key for authentication. Click *Add* to add a header name and value.
+
+| *Resource Attributes*
+| No
+| Custom resource attributes to add to reported traces. Click *Add* to add an attribute.
+|===
+
+// TODO W-24640329: Confirm the Service Type options (HTTP and gRPC?) and the default Timeout (10?).
+
+[[sampling-parameters]]
+==== Sampling Parameters
+
+[cols="1a,2a"]
+|===
+| Parameter | Description
+
+| *Overall*
+| Target percentage of requests that are traced after all other sampling checks have been applied, such as client-directed, force tracing, and random sampling.
+
+| *Client*
+| Target percentage of requests that are force traced if the `x-client-trace-id` header is set.
+
+| *Random*
+| Target percentage of requests that are randomly selected for trace generation, if not requested by the client or not forced.
+
+| *Labels*
+| Custom labels to add to traced spans. Click *Add* to add a label.
+|===
+
+// TODO W-24640329: Confirm what Labels adds to traces. Confirm whether these sampling settings replace the Sampling percentage setting in the tracing-runtime-manager partial for Managed Omni Gateway.
+
+include::partial$tracing-export.adoc[tags=telemetry-exporter;telemetry-exporter-note,leveloffset=+1]
+
+== See Also
+
+* xref:managed-export-logs.adoc[]
