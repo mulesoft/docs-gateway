@@ -13,7 +13,7 @@ Configure distributed tracing for Managed Omni Gateway using one of these method
 * xref:managed-tracing-config.adoc#runtime-manager-config[Runtime Manager runtime configurations]: Applies to all API instances in the gateway after the gateway is deployed.
 * xref:managed-tracing-config.adoc#policy-config[Policy]: Applies to one API instance and provides granular control.
 
-To send traces directly from Managed Omni Gateway to a third-party observability service, see <<export-otel-endpoint>>.
+To send traces directly from Managed Omni Gateway to a third-party observability service, see <<runtime-manager-config>>.
 
 include::partial$configuration-precedence.adoc[tags=precedence;precedence-managed;precedence-details]
 
@@ -28,6 +28,8 @@ For the UI steps and parameter descriptions, see xref:gateway-managed-set-up.ado
 [[runtime-manager-config]]
 == Configure Distributed Tracing in Runtime Manager
 
+Send traces to Anypoint Monitoring, or send them directly to a third-party observability service, such as New Relic, Splunk, or any OpenTelemetry-compliant tool, by using the OpenTelemetry Protocol (OTLP).
+
 . In Anypoint Platform, select *Runtime Manager*.
 . Select *Omni Gateways*.
 . Select your Omni Gateway.
@@ -37,7 +39,7 @@ For the UI steps and parameter descriptions, see xref:gateway-managed-set-up.ado
 . Under *Provider*, for *Type*, select where to send traces:
 +
 * To send traces to Anypoint Monitoring, select *Anypoint Monitoring*.
-* To send traces directly to an OpenTelemetry endpoint, select *OpenTelemetry*, and then configure the provider properties. See <<export-otel-endpoint>>.
+* To send traces directly to an OpenTelemetry endpoint, select *OpenTelemetry*, and then under *Properties*, configure the OpenTelemetry provider. See <<otel-provider-parameters>>.
 +
 // TODO W-24640329: Confirm the Type options and the exact label for the Anypoint Monitoring provider.
 . Under *Sampling*, set the *Overall*, *Client*, and *Random* sampling percentages. See <<sampling-parameters>>.
@@ -45,6 +47,40 @@ For the UI steps and parameter descriptions, see xref:gateway-managed-set-up.ado
 To configure sampling only on a per-API basis with the Tracing policy, set *Overall* to `0`.
 . Optionally, under *Labels*, click *Add* to add span attributes to traces. See <<label-parameters>>.
 . Click *Apply changes*.
+
+[[otel-provider-parameters]]
+=== OpenTelemetry Provider Parameters
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Parameter | Required | Description
+
+| *Service Type*
+| Yes
+| Protocol used to send traces to the OpenTelemetry collector. Supported values are *HTTP* and *gRPC*.
+
+| *Address*
+| Yes
+| Address of the OpenTelemetry collector. For HTTP, include the traces path, for example, `https://otel-collector.example.com:4318/v1/traces`.
+
+| *Service Name*
+| Yes
+| Service name reported in exported traces, for example, `my-managed-gateway`.
+
+| *Timeout (seconds)*
+| Yes
+| Connection timeout, in seconds. The default value is `10`.
+
+| *Headers*
+| No
+| Custom headers to add to requests sent to the OpenTelemetry endpoint, such as an API key for authentication. Click *Add* to add a header name and value.
+
+| *Resource Attributes*
+| No
+| Custom resource attributes to add to reported traces, such as `deployment.environment`. Click *Add* to add an attribute name and value.
+|===
+
+// TODO W-24640329: Confirm the Service Type values (HTTP and gRPC), the gRPC address format, whether HTTP requires the /v1/traces path in Address, and the default Timeout.
 
 [[sampling-parameters]]
 === Sampling Parameters
@@ -89,64 +125,6 @@ Labels add span attributes to the trace data for all API instances in the gatewa
 |===
 
 // TODO W-24640329: Confirm the Labels UI field names match the tracing configuration (name, type, keyName, defaultValue).
-
-[[export-otel-endpoint]]
-== Export Traces to an OpenTelemetry Endpoint
-
-Send distributed tracing data directly from Managed Omni Gateway to a third-party observability service, such as New Relic, Splunk, or any OpenTelemetry-compliant tool, by using the OpenTelemetry Protocol (OTLP).
-
-Before you begin:
-
-* Have the address of your OpenTelemetry collector and any authentication headers that it requires, such as an API key.
-* Ensure that your Managed Omni Gateway can reach the OpenTelemetry collector.
-
-To export traces:
-
-. In Anypoint Platform, select *Runtime Manager*.
-. Select *Omni Gateways*.
-. Select your Omni Gateway.
-. Open *Runtime Configurations*.
-. Open *Tracing*.
-. Turn on *Enable Tracing*.
-. Under *Provider*, for *Type*, select *OpenTelemetry*.
-. Under *Properties*, configure the OpenTelemetry provider. See <<otel-provider-parameters>>.
-. Under *Sampling*, set the *Overall*, *Client*, and *Random* sampling percentages. See <<sampling-parameters>>.
-. Optionally, under *Labels*, click *Add* to add span attributes to traces. See <<label-parameters>>.
-. Click *Apply changes*.
-
-[[otel-provider-parameters]]
-=== OpenTelemetry Provider Parameters
-
-[%header%autowidth.spread,cols="a,a,a"]
-|===
-| Parameter | Required | Description
-
-| *Service Type*
-| Yes
-| Protocol used to send traces to the OpenTelemetry collector. Supported values are *HTTP* and *gRPC*.
-
-| *Address*
-| Yes
-| Address of the OpenTelemetry collector. For HTTP, include the traces path, for example, `https://otel-collector.example.com:4318/v1/traces`.
-
-| *Service Name*
-| Yes
-| Service name reported in exported traces, for example, `my-managed-gateway`.
-
-| *Timeout (seconds)*
-| Yes
-| Connection timeout, in seconds. The default value is `10`.
-
-| *Headers*
-| No
-| Custom headers to add to requests sent to the OpenTelemetry endpoint, such as an API key for authentication. Click *Add* to add a header name and value.
-
-| *Resource Attributes*
-| No
-| Custom resource attributes to add to reported traces, such as `deployment.environment`. Click *Add* to add an attribute name and value.
-|===
-
-// TODO W-24640329: Confirm the Service Type values (HTTP and gRPC), the gRPC address format, whether HTTP requires the /v1/traces path in Address, and the default Timeout.
 
 [[policy-config]]
 include::partial$tracing-configuration.adoc[]
