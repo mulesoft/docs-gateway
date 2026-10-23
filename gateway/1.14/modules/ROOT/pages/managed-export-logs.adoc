@@ -5,14 +5,101 @@ endif::[]
 :imagesdir: ../assets/images
 :page-mode: managed
 
-Export Managed Omni Gateway runtime and access logs to third-party observability services by using OpenTelemetry.
+Export Managed Omni Gateway runtime logs and access logs to third-party observability services, such as New Relic, Splunk, or any OpenTelemetry-compliant tool. Managed Omni Gateway sends logs to each external output you configure by using the OpenTelemetry Protocol (OTLP) over HTTP or gRPC.
 
-// TODO W-24640329: Add log export content for Managed Omni Gateway:
-// * Supported destinations and protocols (gRPC, HTTP)
-// * Before You Begin (permissions, endpoint requirements)
-// * Steps to configure log export (deployment and Runtime Manager runtime configurations)
-// * Parameter reference
-// * Relationship to Message Logging policy for access logs (see conn-third-party-logs-config.adoc#configure-access-logs)
+You can export logs to one or more external outputs. For each output, choose whether to send access logs, runtime logs, or both. Exporting logs to external outputs doesn't affect forwarding logs to Anypoint Platform.
+
+== Before You Begin
+
+* Have the host, port, and any authentication headers, such as an API key, for your OpenTelemetry endpoint.
+* Ensure that your Managed Omni Gateway can reach the OpenTelemetry endpoint.
+
+// TODO W-24640329: Confirm with engineering whether access logs require a Message Logging policy for Managed Omni Gateway, as they do in Connected Mode. If so, add:
+// To export access logs, apply a Message Logging policy to the APIs whose request and response data you want to export. See xref:managed-message-log.adoc[].
+
+[[export-logs-runtime-manager]]
+== Export Logs in Runtime Manager
+
+. In Anypoint Platform, select *Runtime Manager*.
+. Select *Omni Gateways*.
+. Select your Omni Gateway.
+. Open *Runtime Configurations*.
+. Open *Logging*.
+. Optionally, under *Anypoint Logging*, turn *Forward logs to Anypoint* on or off.
++
+This setting is independent of external outputs. You can forward logs to Anypoint Platform and to external outputs at the same time.
+. Under *External Outputs*, click *Add*.
+. For *Type*, select *OpenTelemetry*.
+. Configure the output parameters. See <<output-parameters>>.
+. To add more external outputs, click *Add* and repeat the previous steps.
+. Under *Access Logs*, turn on each output that receives access logs.
+. Under *Runtime Logs*, turn on each output that receives runtime logs.
+. For *Log Level*, select the minimum level of runtime logs to export.
+. Click *Apply changes*.
+
+To stop exporting logs to an output, click the delete icon for that output, and then click *Apply changes*.
+
+[[output-parameters]]
+== OpenTelemetry Output Parameters
+
+[cols="1a,1a,2a"]
+|===
+| Parameter | Required | Description
+
+| *Host*
+| Yes
+| Hostname of the OpenTelemetry endpoint, for example, `otlp.nr-data.net`.
+
+| *Port*
+| Yes
+| Port of the OpenTelemetry endpoint, for example, `4317`.
+
+| *TLS*
+| Yes
+| Enables or disables TLS for this output.
+
+| *TLS Verify*
+| Yes
+| Enables or disables TLS certificate validation. Applies only when *TLS* is *On*.
+
+| *gRPC*
+| No
+| Uses OTLP/gRPC over HTTP/2 instead of OTLP/HTTP. Enabling this option also enables HTTP/2.
+
+| *Compress*
+| No
+| Payload compression mechanism for OTLP/HTTP, for example, *Gzip*.
+
+| *Batch Size*
+| No
+| Maximum number of log records to send at a time.
+
+| *Headers*
+| No
+| Custom headers to add to requests sent to the OpenTelemetry endpoint, such as an API key for authentication. Click *Add* to add a header name and value.
+
+| *Add Label*
+| No
+| Custom labels to add to exported logs. Click *Add* to add a label.
+
+| *Logs URI*
+| No
+| Path for the logs endpoint. Overrides the default path.
+
+| *Net Connect Timeout (seconds)*
+| No
+| Maximum time to establish a connection, including the TLS handshake.
+
+| *Net IO Timeout (seconds)*
+| No
+| Maximum time a connection can stay idle while assigned.
+
+| *Output entry name*
+| No
+| Name for this output. The name identifies the output in the *Access Logs* and *Runtime Logs* sections.
+|===
+
+// TODO W-24640329: Confirm the default values for Batch Size (1000?), Net Connect Timeout (10?), Net IO Timeout (0?), Compress, TLS, TLS Verify, and gRPC, and the default Logs URI path (/v1/logs?). Add a Default column if needed.
 
 == See Also
 
