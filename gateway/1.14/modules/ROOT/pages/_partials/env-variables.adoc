@@ -54,7 +54,7 @@ Omni Gateway provides these environment variables to configure your gateway:
 
 |FLEX_SYNC_DEBOUNCE_TIME
 |"5s"
-|Specifies the amount of time to wait after detecting a configuration change before applying it. This prevents excessive reloading during rapid successive changes. The value must be a valid duration string, such as `"5s"` or `"500ms"`.
+|Specifies the amount of time to wait after detecting a configuration change before applying it. This prevents excessive reloading during rapid successive changes. The value must be a valid duration string, such as `"5s"` or `"500ms"`. For examples of how to set this value for each deployment target, see <<set-debounce-time>>.
 
 |FLEX_DNS_REFRESH_RATE
 |`5s`
@@ -69,3 +69,45 @@ Omni Gateway provides these environment variables to configure your gateway:
 |Provides Omni Gateway registration and configuration as a YAML-formatted string. The YAML content must be properly escaped to preserve special characters. Provide your registration and configuration as a string if deploying environments where file mounting isn't practical, such as Amazon ECS or Azure Container Apps.
 
 |===
+
+[[set-debounce-time]]
+== Set the Configuration Sync Debounce Time
+
+When a new Omni Gateway replica starts, it receives its API configurations from Anypoint Platform over a period of time. Each configuration that arrives within the debounce time of the previous one is applied together, after the debounce time passes with no further changes. Increase `FLEX_SYNC_DEBOUNCE_TIME` to reduce the chance that a new replica starts serving traffic before all of its APIs are loaded. The more APIs a gateway has, the longer the debounce time you might need. Test your value in a lower environment that has the same number of APIs as production.
+
+NOTE: A longer debounce time reduces the chance of a partially loaded gateway, but doesn't guarantee that all APIs are loaded. Combine it with a readiness probe, such as a TCP check on the gateway port, for your deployment target.
+
+Set the value using the method for your deployment target.
+
+=== Docker
+
+Pass the environment variable to the container with the `-e` option:
+
+[source,bash]
+----
+docker run --rm \
+  -v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
+  -p 8081:8081 \
+  -e FLEX_SYNC_DEBOUNCE_TIME=30s \
+  mulesoft/flex-gateway
+----
+
+=== Kubernetes with Helm
+
+Set the `gateway.syncDebounceTime` Helm value, either with `--set` on the command line or in your `values.yaml` file.
+
+[source,helm]
+----
+helm -n gateway upgrade -i --create-namespace \
+ingress flex-gateway/flex-gateway \
+--set gateway.syncDebounceTime=30s \
+--set-file registration.content=registration.yaml
+----
+
+Or in `values.yaml`:
+
+[source,yaml]
+----
+gateway:
+  syncDebounceTime: 30s
+----
