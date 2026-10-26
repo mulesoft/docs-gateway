@@ -6,7 +6,7 @@ endif::[]
 
 If your Runtime Fabric cluster reaches the internet through a forward proxy, configure the proxy for each Managed Omni Gateway explicitly.
 
-Managed Omni Gateway doesn't inherit the forward proxy settings of the OpenShift cluster or of Runtime Fabric. You can't configure a forward proxy for Managed Omni Gateway in Anypoint Platform. Apply a `Configuration` resource to the gateway instead.
+Managed Omni Gateway doesn't inherit the forward proxy settings of the Kubernetes cluster or of Runtime Fabric. You can't configure a forward proxy for Managed Omni Gateway in Anypoint Platform. Apply a `Configuration` resource to the gateway instead.
 
 include::partial$forward-proxy-config.adoc[tags=connections]
 
@@ -68,21 +68,32 @@ Replace the following values:
 | Host and port of the forward proxy.
 
 | `<api-server-host>`
-| Host of the OpenShift API server for your cluster.
+| Host of the Kubernetes API server for your cluster.
 
 | `.<internal-domain>`
 | Internal or corporate domains that resolve privately.
 |===
 +
-The `noProxy` list in the example bypasses the proxy for in-cluster service DNS, the loopback address, the cloud instance-metadata endpoint, the OpenShift API server, and internal domains. Adjust the list for your environment. The `noProxy` parameter doesn't support CIDR blocks.
+The `noProxy` list in the example bypasses the proxy for in-cluster service DNS, the loopback address, the cloud instance-metadata endpoint, the Kubernetes API server, and internal domains. Adjust the list for your environment. The `noProxy` parameter doesn't support CIDR blocks.
 +
 For HTTP log connections, list the full domain name instead of a domain suffix. See <<noproxy-parameter, noProxy Parameter>>.
 . Apply the resource:
++
+[tabs]
+====
+Kubernetes::
++
+[source,ssh]
+----
+kubectl apply -f <file-name>.yaml
+----
+OpenShift::
 +
 [source,ssh]
 ----
 oc apply -f <file-name>.yaml
 ----
+====
 
 include::partial$forward-proxy-config.adoc[tags=forward-proxy-parameters]
 
@@ -94,16 +105,38 @@ To confirm that the Managed Omni Gateway reaches external hosts through the forw
 
 . Find the egress gateway pod:
 +
+[tabs]
+====
+Kubernetes::
++
+[source,ssh]
+----
+kubectl get pods -n <omni-gateway-namespace>
+----
+OpenShift::
++
 [source,ssh]
 ----
 oc get pods -n <omni-gateway-namespace>
 ----
+====
 . Check the connection to an external upstream:
++
+[tabs]
+====
+Kubernetes::
++
+[source,ssh]
+----
+kubectl exec -n <omni-gateway-namespace> <omni-egress-pod> -c app -- flexctl check http https://<upstream-host>
+----
+OpenShift::
 +
 [source,ssh]
 ----
 oc exec -n <omni-gateway-namespace> <omni-egress-pod> -c app -- flexctl check http https://<upstream-host>
 ----
+====
 
 == See Also
 
