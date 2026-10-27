@@ -29,7 +29,14 @@ For Managed Omni Gateway deployed on Runtime Fabric on OpenShift, terminate exte
 . The external client connects to the OpenShift route, which presents the cluster wildcard certificate.
 . The OpenShift route connects to Managed Omni Gateway, which presents its internal certificate. The route validates this certificate by using the destination CA certificate.
 
-Don't create the OpenShift `Route` resource directly. Instead, create an `HTTPRouteTemplate` resource with `reencrypt` TLS termination. The Runtime Fabric agent renders the template into the `Route` resource and keeps it reconciled.
+You must configure both of these resources together:
+
+* An `HTTPRouteTemplate` resource with `reencrypt` TLS termination, which configures the OpenShift route.
+* A `PolicyBinding` resource for the `tls-inbound` policy, which configures HTTPS on the APIs.
+
+If you configure only the route template, the route can't connect to the APIs over HTTPS. If you configure only the policy binding, external clients don't connect to the gateway through the route with the cluster wildcard certificate.
+
+Don't create the OpenShift `Route` resource directly. Instead, create an `HTTPRouteTemplate` resource. The Runtime Fabric agent renders the template into the `Route` resource and keeps it reconciled.
 
 === Before You Begin
 
@@ -39,7 +46,37 @@ Before configuring inbound TLS for Managed Omni Gateway on Runtime Fabric, make 
 * The cluster wildcard certificate and private key, in PEM format.
 * The CA certificate that signs the internal certificate of Managed Omni Gateway, in PEM format.
 
-=== Create the Route Template
+[[inbound-tls-parameters]]
+=== TLS Parameters
+
+Both the `HTTPRouteTemplate` resource in Step 1 and the `PolicyBinding` resource in Step 2 use these `tls` parameters:
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Parameter | Required or Optional | Description
+
+| `termination`
+| Required
+| Set to `reencrypt`.
+
+| `key`
+| Required
+| Private key of the cluster wildcard certificate.
+
+| `certificate`
+| Required
+| Cluster wildcard certificate that the route presents to external clients.
+
+| `caCertificate`
+| Optional
+| CA chain that issued the cluster wildcard certificate.
+
+| `destinationCACertificate`
+| Required
+| CA certificate that signs the internal certificate of Managed Omni Gateway. The route uses this CA to validate the gateway.
+|===
+
+=== Step 1: Create the Route Template
 
 . Create a YAML file with an `HTTPRouteTemplate` resource:
 +
@@ -73,32 +110,7 @@ spec:
     destinationCACertificate: <omni-gateway-CA-PEM>
 ----
 +
-Configure these `tls` parameters:
-+
-[%header%autowidth.spread,cols="a,a,a"]
-|===
-| Parameter | Required or Optional | Description
-
-| `termination`
-| Required
-| Set to `reencrypt`.
-
-| `key`
-| Required
-| Private key of the cluster wildcard certificate.
-
-| `certificate`
-| Required
-| Cluster wildcard certificate that the route presents to external clients.
-
-| `caCertificate`
-| Optional
-| CA chain that issued the cluster wildcard certificate.
-
-| `destinationCACertificate`
-| Required
-| CA certificate that signs the internal certificate of Managed Omni Gateway. The route uses this CA to validate the gateway.
-|===
+Set the `tls` parameters as described in <<inbound-tls-parameters, TLS Parameters>>.
 . Apply the resource:
 +
 [source,ssh]
@@ -106,9 +118,9 @@ Configure these `tls` parameters:
 oc apply -f <file-name>.yaml
 ----
 
-=== Configure HTTPS on the APIs
+=== Step 2: Configure HTTPS on the APIs
 
-The `reencrypt` route connects to the gateway over HTTPS, so the APIs on Managed Omni Gateway must also serve HTTPS. To configure HTTPS on the APIs, bind the `tls-inbound` policy to them. This binding works together with the `HTTPRouteTemplate` resource.
+The `reencrypt` route connects to the gateway over HTTPS, so the APIs on Managed Omni Gateway must also serve HTTPS. To configure HTTPS on the APIs, bind the `tls-inbound` policy to them. You must apply this binding in addition to the `HTTPRouteTemplate` resource from Step 1.
 
 . Create a YAML file with a `PolicyBinding` resource.
 +
@@ -131,12 +143,19 @@ spec:
   policyRef:
     name: tls-inbound
   config:
-    # TLS inbound parameters
+    tls:
+      termination: reencrypt
+      key: <cluster-wildcard-key-PEM>
+      certificate: <cluster-wildcard-cert-PEM>
+      caCertificate: <issuing-CA-chain-PEM>
+      destinationCACertificate: <omni-gateway-CA-PEM>
 ----
 +
 Replace `<omni-gateway-namespace>` with the namespace of the Managed Omni Gateway and `<omni-gateway-id>` with the gateway ID from Runtime Manager.
 +
-For the parameters that you can set in `config`, see xref:policies-included-tls.adoc[].
+Set the `tls` parameters as described in <<inbound-tls-parameters, TLS Parameters>>.
++
+For the other parameters that you can set in `config`, see xref:policies-included-tls.adoc[].
 . Apply the resource:
 +
 [source,ssh]
@@ -146,7 +165,7 @@ oc apply -f <file-name>.yaml
 
 === Verify the Inbound TLS Configuration
 
-From outside the cluster, run:
+After you apply both resources, run the following command from outside the cluster:
 
 [source,ssh]
 ----
