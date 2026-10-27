@@ -113,19 +113,12 @@ spec:
   policyRef:
     name: tls-inbound
   config:
-    tls:
-      termination: reencrypt
-      key: <cluster-wildcard-key-PEM>
-      certificate: <cluster-wildcard-cert-PEM>
-      caCertificate: <issuing-CA-chain-PEM>
-      destinationCACertificate: <omni-gateway-CA-PEM>
+    # TLS inbound parameters
 ----
 +
 Replace `<omni-gateway-namespace>` with the namespace of the Managed Omni Gateway and `<omni-gateway-id>` with the gateway ID from Runtime Manager.
 +
-Set the `tls` parameters as described in <<inbound-tls-parameters, TLS Parameters>>.
-+
-For the other parameters that you can set in `config`, see xref:policies-included-tls.adoc[].
+For the parameters that you can set in `config`, see xref:policies-included-tls.adoc[].
 . Apply the resource:
 +
 [source,ssh]
@@ -147,7 +140,7 @@ The TLS handshake completes and the response presents the cluster wildcard certi
 [[inbound-tls-parameters]]
 === TLS Parameters
 
-Set `tls` using these parameters:
+In the `HTTPRouteTemplate` resource in Step 1, set `tls` using these parameters:
 
 [%header%autowidth.spread,cols="a,a,a"]
 |===
