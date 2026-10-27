@@ -106,6 +106,44 @@ Configure these `tls` parameters:
 oc apply -f <file-name>.yaml
 ----
 
+=== Configure HTTPS on the APIs
+
+The `reencrypt` route connects to the gateway over HTTPS, so the APIs on Managed Omni Gateway must also serve HTTPS. To configure HTTPS on the APIs, bind the `tls-inbound` policy to them. This binding works together with the `HTTPRouteTemplate` resource.
+
+. Create a YAML file with a `PolicyBinding` resource.
++
+To apply HTTPS to all APIs on the gateway, use a `Selector` target with no labels:
++
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: tls-inbound-all-apis
+  namespace: <omni-gateway-namespace>
+  labels:
+    rtf.mulesoft.com/target-id: <omni-gateway-id>
+spec:
+  targetRef:
+    kind: Selector
+    selector:
+      kind: ApiInstance
+  policyRef:
+    name: tls-inbound
+  config:
+    # TLS inbound parameters
+----
++
+Replace `<omni-gateway-namespace>` with the namespace of the Managed Omni Gateway and `<omni-gateway-id>` with the gateway ID from Runtime Manager.
++
+For the parameters that you can set in `config`, see xref:policies-included-tls.adoc[].
+. Apply the resource:
++
+[source,ssh]
+----
+oc apply -f <file-name>.yaml
+----
+
 === Verify the Inbound TLS Configuration
 
 From outside the cluster, run:
@@ -119,5 +157,6 @@ The TLS handshake completes and the response presents the cluster wildcard certi
 
 == See Also
 
+* xref:policies-included-tls.adoc[]
 * xref:managed-outbound-tls-config.adoc[]
 * xref:gateway-managed-set-up.adoc[]
