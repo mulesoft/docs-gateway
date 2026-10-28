@@ -1,0 +1,145 @@
+= Configure a Forward Proxy for Managed Omni Gateway on Runtime Fabric
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+If your Runtime Fabric cluster reaches the internet through a forward proxy, configure the proxy for each Managed Omni Gateway explicitly.
+
+Managed Omni Gateway doesn't inherit the forward proxy settings of the Kubernetes cluster or of Runtime Fabric. You can't configure a forward proxy for Managed Omni Gateway in Anypoint Platform. Apply a `Configuration` resource to the gateway instead.
+
+include::partial$forward-proxy-config.adoc[tags=connections]
+
+== Before You Begin
+
+Before configuring a forward proxy for a Managed Omni Gateway, make sure that:
+
+* You have deployed a Managed Omni Gateway to Runtime Fabric. See xref:gateway-managed-set-up.adoc[].
+* You have the gateway ID of the Managed Omni Gateway. Find the ID in Runtime Manager.
+* You have the forward proxy host and port.
+* The forward proxy allows the hosts and ports listed in xref:review-prerequisites.adoc[] for your control plane.
+* The forward proxy doesn't inspect TLS traffic (SSL passthrough) on the endpoints that use mTLS. These endpoints include:
+** The Anypoint Platform control plane endpoints that the Runtime Fabric agent connects to. Managed Omni Gateway receives its configuration through the Runtime Fabric agent.
+** The external endpoints that Managed Omni Gateway connects to over mTLS, such as Anypoint Monitoring.
++
+For the endpoints that require SSL passthrough, see xref:review-prerequisites.adoc[].
+
+== Configure the Forward Proxy
+
+. Create a YAML file with a `Configuration` resource that targets your Managed Omni Gateway:
++
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: forward-proxy
+  namespace: <omni-gateway-namespace>
+  labels:
+    rtf.mulesoft.com/target-id: <omni-gateway-id>
+spec:
+  forwardProxy:
+    https:
+      address: http://<proxy-host>:<proxy-port>
+    noProxy:
+      - .cluster.local
+      - .svc
+      - .local
+      - 127.0.0.1
+      - localhost
+      - 169.254.169.254
+      - <api-server-host>
+      - .<internal-domain>
+----
++
+Replace the following values:
++
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Value | Description
+
+| `<omni-gateway-namespace>`
+| Namespace where the Managed Omni Gateway runs.
+
+| `<omni-gateway-id>`
+| Gateway ID of the Managed Omni Gateway. The `rtf.mulesoft.com/target-id` label applies the configuration to this gateway.
+
+| `<proxy-host>:<proxy-port>`
+| Host and port of the forward proxy.
+
+| `<api-server-host>`
+| Host of the Kubernetes API server for your cluster.
+
+| `.<internal-domain>`
+| Internal or corporate domains that resolve privately.
+|===
++
+The `noProxy` list in the example bypasses the proxy for in-cluster service DNS, the loopback address, the cloud instance-metadata endpoint, the Kubernetes API server, and internal domains. Adjust the list for your environment. The `noProxy` parameter doesn't support CIDR blocks.
++
+For HTTP log connections, list the full domain name instead of a domain suffix. See <<noproxy-parameter, noProxy Parameter>>.
+. Apply the resource:
++
+[tabs]
+====
+Kubernetes::
++
+[source,ssh]
+----
+kubectl apply -f <file-name>.yaml
+----
+OpenShift::
++
+[source,ssh]
+----
+oc apply -f <file-name>.yaml
+----
+====
+
+include::partial$forward-proxy-config.adoc[tags=forward-proxy-parameters]
+
+include::partial$forward-proxy-config.adoc[tags=noproxy]
+
+== Verify the Forward Proxy Configuration
+
+To confirm that the Managed Omni Gateway reaches external hosts through the forward proxy:
+
+. Find the egress gateway pod:
++
+[tabs]
+====
+Kubernetes::
++
+[source,ssh]
+----
+kubectl get pods -n <omni-gateway-namespace>
+----
+OpenShift::
++
+[source,ssh]
+----
+oc get pods -n <omni-gateway-namespace>
+----
+====
+. Check the connection to an external upstream:
++
+[tabs]
+====
+Kubernetes::
++
+[source,ssh]
+----
+kubectl exec -n <omni-gateway-namespace> <omni-egress-pod> -c app -- flexctl check http https://<upstream-host>
+----
+OpenShift::
++
+[source,ssh]
+----
+oc exec -n <omni-gateway-namespace> <omni-egress-pod> -c app -- flexctl check http https://<upstream-host>
+----
+====
+
+== See Also
+
+* xref:review-prerequisites.adoc[]
+* xref:managed-outbound-tls-config.adoc[]
+* xref:conn-forward-proxy.adoc[]
