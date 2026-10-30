@@ -5,9 +5,11 @@ endif::[]
 :imagesdir: ../assets/images
 :page-aliases: flex-gateway-managed-ingress-egress.adoc
 
-Agent Network deployments require both an ingress and egress Omni Gateway. The ingress Omni Gateway sits in front of broker and API endpoints to manage and enforce policies on traffic entering the network. The egress Omni Gateway sits on outbound paths from brokers and agents to external agents and enforces policies, manages connections, and emits telemetry data.
+An agent network deployment requires at least one managed Omni Gateway. A single gateway can handle both ingress and egress traffic, which is the recommended configuration. One gateway simplifies operations with unified policy enforcement, centralized observability, and a single deployment to manage and scale. This configuration also reduces the cost of running multiple gateways.
 
-The only functional difference between ingress and egress Omni Gateways, is that the egress Gateway doesn't have a public endpoint. Only clients inside the same private space as the egress gateway can make requests to it. Traffic leaving the private space to external services passes through the egress gateway. 
+That gateway manages ingress traffic in front of broker and API endpoints and enforces policies on traffic entering the network. The same gateway manages egress traffic on outbound paths from brokers and agents to external agents and services, where it enforces policies, manages connections, and emits telemetry.
+
+If you need separate control of inbound and outbound traffic, you can deploy separate ingress and egress gateways in a private space. The only functional difference is that the egress gateway doesn't have a public endpoint. Only clients in the same private space as the egress gateway can send requests to it. Traffic leaving the private space to external services passes through the egress gateway.
 
 image::agent-fabric-architecture.png["Agent Network showing agents and MCP servers defined in YAML and published to Exchange, with traffic through Omni Gateway, governed by API Manager, and observed in Monitoring and Visualizer"]
 
