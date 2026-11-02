@@ -144,7 +144,98 @@ include::partial$task-add-tls-context.adoc[tags=redeploy]
 include::partial$tls-cipher.adoc[tags=connectedSelect;cipherSupport;ciphers]
 
 //Ciphers
+
+[[private-ca-rtf]]
+== Trust Upstreams Signed by a Private CA on Runtime Fabric
+
+For Managed Omni Gateway on Runtime Fabric, you can trust upstream services whose server certificates are signed by a private or corporate CA, such as a large language model (LLM) endpoint that uses private PKI.
+
+Managed Omni Gateway doesn't inherit the cluster CA bundle, such as the `trustedCA` bundle from the OpenShift cluster `Proxy` resource. Provide the CA to the gateway in a `tls-outbound` policy binding.
+
+When you configure `trustedCA`, the CA replaces the default CA bundle for the upstreams that the binding matches. Include the complete CA chain for every matched upstream.
+
+`trustedCA` accepts only an inline PEM value. You can't reference a Kubernetes secret or config map.
+
+. Create a YAML file with a `PolicyBinding` resource.
++
+To apply the CA to all upstream services, use a `Selector` target with no labels:
++
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: tls-outbound-all-upstreams
+  namespace: <omni-gateway-namespace>
+  labels:
+    rtf.mulesoft.com/target-id: <omni-gateway-id>
+spec:
+  targetRef:
+    kind: Selector
+    selector:
+      kind: Service
+  policyRef:
+    name: tls-outbound
+  config:
+    skipValidation: false
+    trustedCA: |
+      -----BEGIN CERTIFICATE-----
+      # insert the complete CA bundle for all upstreams
+      -----END CERTIFICATE-----
+----
++
+To apply the CA to a single upstream service, set `targetRef` to the service instead:
++
+[source,yaml]
+----
+  targetRef:
+    kind: Service
+    name: <upstream-service-name>
+----
++
+Replace `<omni-gateway-namespace>` with the namespace of the Managed Omni Gateway and `<omni-gateway-id>` with the gateway ID from Runtime Manager.
++
+If the upstream also requires a client certificate, add `config.certificate`. For all parameters, see xref:policies-included-tls-outbound.adoc[].
+. Apply the resource:
++
+[tabs]
+====
+Kubernetes::
++
+[source,ssh]
+----
+kubectl apply -f <file-name>.yaml
+----
+OpenShift::
++
+[source,ssh]
+----
+oc apply -f <file-name>.yaml
+----
+====
+. Verify that the egress gateway connects to the upstream without a certificate validation error:
++
+[tabs]
+====
+Kubernetes::
++
+[source,ssh]
+----
+kubectl get pods -n <omni-gateway-namespace>
+kubectl exec -n <omni-gateway-namespace> <omni-egress-pod> -c app -- flexctl check http https://<upstream-host>
+----
+OpenShift::
++
+[source,ssh]
+----
+oc get pods -n <omni-gateway-namespace>
+oc exec -n <omni-gateway-namespace> <omni-egress-pod> -c app -- flexctl check http https://<upstream-host>
+----
+====
+
 == See Also
 
 * xref:local-tls-config.adoc[]
 * xref:policies-included-tls.adoc[]
+* xref:policies-included-tls-outbound.adoc[]
+* xref:managed-forward-proxy.adoc[]

@@ -289,16 +289,11 @@ spec:
   policyRef:
     name: tls-outbound
   config:
-    skipValidation: true
-    certificate:
-      key: |
-        # -----BEGIN PRIVATE KEY-----
-        # insert certificate key
-        # -----END PRIVATE KEY-----
-      crt: |
-        # -----BEGIN CERTIFICATE-----
-        # insert certificate
-        # -----END CERTIFICATE-----
+    skipValidation: false
+    trustedCA: |
+      # -----BEGIN CERTIFICATE-----
+      # insert CA certificate that signs the upstream server certificate
+      # -----END CERTIFICATE-----
 ----
 
 This example uses the default values for `alpn`, `minversion`, `maxversion`, and `ciphers`.
@@ -338,7 +333,7 @@ spec:
     alpn:
       - http/1.1
       - h2
-    minversion: "1.1"
+    minversion: "1.2"
     maxversion: "1.3"
     ciphers:
       - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
