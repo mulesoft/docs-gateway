@@ -12,6 +12,7 @@ When using Omni Gateway Policy Development Kit (PDK), you might encounter issues
 * <<authorization-error>>
 * <<implementation-build-no-file>>
 * <<build-asset-files-asset-not-found>>
+* <<jwt-simple-compilation-error>>
 
 To debug issues with your custom policy, see:
 
@@ -142,6 +143,29 @@ make: *** [build-asset-files] Error 2
 ----
 
 Make sure that you've executed `make setup` and `make release-local` and that you've published the definition asset version before building the implementation.
+
+[[jwt-simple-compilation-error]]
+== Compilation Error After Upgrading pdk-jwt-lib
+
+After you upgrade `pdk-jwt-lib`, compilation can fail because an existing `Cargo.lock` file pins a version of `jwt-simple` that is incompatible with the new library version.
+
+To resolve this error, update the pinned `jwt-simple` version and rebuild:
+
+. Update `jwt-simple` to the version that your `pdk-jwt-lib` version requires:
++
+[source,ssh]
+----
+cargo update -p jwt-simple --precise <version>
+----
++
+Alternatively, delete the `Cargo.lock` file. Cargo regenerates it with compatible versions the next time you build.
+
+. Rebuild the policy:
++
+[source,ssh]
+----
+make build
+----
 
 == See Also
 
