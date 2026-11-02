@@ -1,0 +1,77 @@
+= WebSocket Connection Limit Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: websocket, connection limit, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | WebSocket Connection Limit
+>s| Summary | Limits the number of simultaneous WebSocket connections that each API instance allows
+>s| Category | Quality of Service
+>s| First Omni Gateway version available | v1.13.0
+>s|Release Notes| xref:release-notes::gateway/policies/websocket-connection-limit-release-notes.adoc[]
+.1+>.^s| Returned status codes
+| 429 - `Too many WebSocket connections`
+|===
+
+== Summary
+
+The WebSocket Connection Limit policy tracks the number of active WebSocket connections for a specific API instance. Omni Gateway identifies these requests by the `Upgrade: websocket` header and ignores standard HTTP traffic. The WebSocket connection limit is distributed across Omni replicas.
+
+When a WebSocket upgrade request arrives, Omni Gateway increments the counter to reserve capacity before forwarding the handshake to the upstream service. If the upstream service doesn't return a `101 Switching Protocols` response, Omni Gateway releases the reservation. After a successful WebSocket connection closes, Omni Gateway decrements the counter.
+
+If the counter reaches the `maximumConnections` limit, Omni Gateway rejects the upgrade request with a `429` error code.
+
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: websocket-connection-limit-flex
+  config:
+    maximumConnections: <integer> // REQUIRED, minimum 1
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+
+| Parameter | Required | Default Value | Description
+
+| `maximumConnections`
+| Yes
+| `100`
+| Maximum number of simultaneous WebSocket connections allowed for the API instance. The value must be an integer of 1 or greater.
+
+|===
+
+==== Resource Configuration Example
+
+[source,yaml]
+----
+- policyRef:
+    name: websocket-connection-limit-flex
+  config:
+    maximumConnections: 500
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+s|Field s|Description s|Default s|Required
+
+| Maximum Connections
+| Maximum number of simultaneous WebSocket connections allowed for the API instance.
+| `100` 
+| Yes
+|===
+
+
+== See Also
+
+* xref:policies-included-directory.adoc[Inbound Policies Directory]
+* xref:gateway-secure-apis.adoc[Securing Omni Gateway Instances with Policies]

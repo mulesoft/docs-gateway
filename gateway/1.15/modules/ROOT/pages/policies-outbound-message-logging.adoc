@@ -1,0 +1,225 @@
+= Outbound Message Logging Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: outbound message logging, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy name | Outbound Message Logging
+>s|Summary      | Logs custom messages from outbound requests sent to upstream services, responses from upstream services, or information from other outbound policies applied to the same upstream service
+>s|Category | Troubleshooting
+>s|First Omni Gateway version available | v1.11.0
+>s|Release Notes| xref:release-notes::gateway/policies/outbound-message-logging-release-notes.adoc[]
+.1+>.^s| Returned Status Codes
+| No return codes exist for this policy
+|===
+
+== Summary
+
+The Outbound Message Logging policy logs custom messages from outbound requests sent to upstream services, responses from upstream services, or information from other outbound policies applied to the same upstream service. This policy is applied at the upstream level.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: PolicyBinding
+metadata:
+  name: outbound-message-logging
+spec:
+  targetRef:
+    kind: Service
+    name: upstream
+  policyRef:
+    name: message-logging-outbound-flex
+  config:
+    loggingConfiguration: <array>
+      - itemName: <string> // REQUIRED
+        itemData: //REQUIRED
+          message: <dataweave> // REQUIRED
+          conditional: <dataweave> // OPTIONAL
+          category: <string> // OPTIONAL
+          level: <string> // REQUIRED
+          firstSection: <bool> // OPTIONAL
+          secondSection: <bool> // OPTIONAL
+    enableDataMasking: <bool> // OPTIONAL
+    dataMasking: // OPTIONAL
+      entities:
+        - <string> // Supported values: Email, US SSN, Credit Card, Phone Number
+      customPatterns:
+        - name: <string>
+          pattern: <string>
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+
+|Parameter | Required or Optional | Default Value | Description
+
+| `loggingConfiguration`
+| Required
+| N/A
+| Array of configurations.
+
+| `loggingConfiguration.itemName`
+| Required
+| N/A
+| Configuration name.
+
+| `loggingConfiguration.itemData.message`
+| Required
+| N/A
+| DataWeave expression that resolves to the message log. To learn more about supported DataWeave expressions, see <<dataweave-support>>.
+
+| `loggingConfiguration.itemData.conditional`
+| Optional
+| `true`
+| DataWeave expression that resolves to whether the message should be logged. To learn more about supported DataWeave expressions, see <<dataweave-support>>.
+
+| `loggingConfiguration.itemData.category`
+| Optional
+| Default category
+| Log message prefix that indicates the package and class where the log is executed.
+
+| `loggingConfiguration.itemData.level`
+| Required
+| N/A
+| Defines the level of message to log: `INFO`, `WARN`, `ERROR`, or `DEBUG` + 
+For more information, see <<severity-levels>>.
+
+| `loggingConfiguration.itemData.firstSection`
+| Optional
+| `false`
+| Boolean that indicates if messages are logged before the outbound request is sent to the upstream service, taking into account the order in which this policy is applied.
+
+| `loggingConfiguration.itemData.secondSection`
+| Optional
+| `false`
+| Boolean that indicates if messages are logged after receiving the response from the upstream service, taking into account the order in which this policy is applied.
+
+| `enableDataMasking`
+| Optional
+| `false`
+| When enabled, the policy detects and masks configured PII in log messages before they are written. Request and response bodies are forwarded to the upstream service unchanged.
+
+| `dataMasking.entities`
+| Optional
+| `[]`
+| List of built-in PII types to mask. Supported values: `Email`, `US SSN`, `Credit Card`, and `Phone Number`.
+
+| `dataMasking.customPatterns`
+| Optional
+| `[]`
+| List of custom patterns to mask when built-in PII detection doesn't cover the value. Each pattern must have a `name` and a `pattern` (regular expression) property.
+
+|===
+
+==== Resource Configuration Example
+
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: PolicyBinding
+metadata:
+  name: outbound-message-logging
+spec:
+  targetRef:
+    kind: Service
+    name: my-upstream
+  policyRef:
+    name: message-logging-outbound-flex
+  config:
+    loggingConfiguration:
+      - itemName: "Outbound Request Log"
+        itemData:
+          message: "#[payload]"
+          conditional: "#[attributes.queryParams['debug']=='true']"
+          level: "INFO"
+          firstSection: true
+      - itemName: "Outbound Response Log"
+        itemData:
+          message: "#['Upstream response: ' ++ attributes.statusCode as String]"
+          level: "INFO"
+          secondSection: true
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread]
+|===
+|Parameter |Description | Required or Optional
+|Message |A DataWeave expression for extracting the message to be logged from outbound requests or upstream responses. To learn more about supported DataWeave expressions, see <<dataweave-support>>.
+|Required
+|Conditional |A DataWeave Boolean expression used to specify whether a message is to be logged. To learn more about supported DataWeave expressions, see <<dataweave-support>>. |Optional
+|Category |A prefix in the log message that indicates the package and class where the log is executed. |Optional
+|Level |The level of message to log: `INFO`, `WARN`, `ERROR`, or `DEBUG`. + 
+For more information, see <<severity-levels>>.|Required
+|Before Sending Request |Set to cause your logging policy to log messages before the outbound request is sent to the upstream service, taking into account the order in which this policy is applied. |Optional
+|After Receiving Response |Set to cause your logging policy to log messages after receiving the response from the upstream service, taking into account the order in which this policy is applied. |Optional
+|Enable data masking |Detect and mask configured PII before writing log messages. Request and response bodies are forwarded to the upstream service unchanged. |Optional
+|PII Detection |Select built-in PII types to mask: Email, US SSN, Credit Card, and Phone Number. |Optional
+|Custom Patterns |Add a regular expression pattern to mask a value that built-in PII detection doesn't cover. Each pattern has a name and a regex. |Optional
+|===
+
+
+[[dataweave-support]]
+== DataWeave Expressions Support
+
+The Outbound Message Logging policy supports the xref:policies-dataweave-support.adoc[standard DataWeave Expressions supported by Omni Gateway policies] and the following additional xref:dataweave::dataweave-variables-context.adoc[`vars`] DataWeave expressions. Format the following expressions `#[vars.<expressions>]`, for example `#[vars.orgId]`:
+
+* `orgId`
+* `masterOrgId`
+* `envId`
+* `apiId`
+* `apiName`
+* `apiInstanceName`
+* `apiVersion`
+* `receivedTs` (rfc3339)
+* `repliedTs` (rfc3339, only available in response context)
+* `runtimeVersion` (For example: `v1.7.0`)
+* `hostId` (For example: `my-host`)
+* `reqId` (Referred to as `traceId` in Omni Gateway logs)
+* `requestDisposition` (`PROCESSED` or `VIOLATION`, only available in request context)
+* `request.remoteAddress`
+* `request.method`
+* `request.requestPath`
+* `request.headers` (all request headers)
+* `upstream.uri` (URI of the upstream service)
+* `upstream.headers` (headers sent to upstream service)
+* `upstream.statusCode` (status code from upstream response, only available in response context)
+* `violation.clientId` (Only available in response context)
+* `violation.clientName` (Only available in response context)
+* `violation.policyName` (Only available in response context)
+* `violation.violationType` (`VIOLATION` or `ERROR`, only available in response context)
+
+== How This Policy Works
+
+Logging an outbound policy consists of the following sequence:
+
+. An outbound request is prepared to be sent to an upstream service.
+. The message is logged if these conditions are `true`:
+** The level and category of the log defined in the policy are included in the logger defined in the configuration file.
+** Either the conditional field of the policy is not set, or is set and the condition is met.
+** The `firstSection` flag is enabled (if logging before sending the request).
+. The request is sent to the upstream service.
+. The upstream service responds.
+. The message is logged if these conditions are `true`:
+** The level and category of the log defined in the policy are included in the logger defined in the configuration file.
+** Either the conditional field of the policy is not set, or is set and the condition is met.
+** The `secondSection` flag is enabled (if logging after receiving the response).
+. The response is returned to the client. Outbound Message Logging Policy does not interfere with the execution of any policy nor its flow.
+. The message appears in the application log.
+
+== Logging Format
+
+A message log uses this format:
+
+`<date> [flex-gateway-envoy][<level>] wasm log <policy-name>.default.<api-name>.default.svc main: [req: <request uuid>] [accessLog] <message>`
+
+* `policy-name`: displays the name of the policy binding.
+* `api-name`: displays the name of the api instance.
+* `request uuid`: displays a unique identifier for the request that triggered the message.
+
+include::partial$logging-severity-level.adoc[]

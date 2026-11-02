@@ -1,0 +1,294 @@
+= AWS Request Signature Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: aws signature, aws request signing, authentication, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | AWS Request Signature
+>s|Summary  | Signs outgoing requests with AWS Signature Version 4 (SigV4) or Signature Version 4A (SigV4A)
+>s|Category | Security
+>s|First Omni Gateway version available | v1.11.0
+>s|Release Notes| xref:release-notes::gateway/policies/outbound-aws-signature-release-notes.adoc[]
+>s| Returned Status Codes | No return codes exist for this policy. Error codes are returned from the upstream service.
+|===
+
+[[summary]]
+== Summary
+
+The AWS Request Signature policy signs outgoing requests with AWS Signature Version 4 (SigV4) or Signature Version 4A (SigV4A) authentication. This policy injects the required AWS signature headers into requests to authenticate with AWS services, such as Amazon S3, Amazon API Gateway, or other AWS HTTP endpoints.
+
+The AWS Request Signature policy is an extension of the AWS Request Signing filter native to Envoy. To learn more about the AWS Request Signing filter, see https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/aws_request_signing/v3/aws_request_signing.proto[AWS Request Signing Filter]. Not all AWS Request Signing filter parameters are available to the AWS Request Signature policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>.
+
+[[configuring-policy-parameters]]
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+[source, yaml]
+----
+- policyRef:
+    name: native-aws-signature-flex
+  config:
+    serviceName: <string> // REQUIRED
+    region: <string> // REQUIRED
+    useUnsignedPayload: <boolean> // OPTIONAL
+    signingAlgorithm: <string> // REQUIRED
+    matchExcludedHeaders:
+      - <string> // OPTIONAL
+    authenticationMode: <string> // REQUIRED
+    credentialsFileProvider: <object> // OPTIONAL
+    inlineCredentialProvider: <object> // OPTIONAL
+----
+
+NOTE: If you don't configure required parameters, the policy the default value. If the policy doesn't have a default value, there is a configuration error.
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `serviceName`
+| Required
+| N/A
+| The service namespace of the HTTP endpoint. For example: `s3`, `execute-api`, or `ec2`.
+
+| `region`
+| Required
+| N/A
+| The AWS region of the service hosting the HTTP endpoint. +
+For `AWS_SIGV4`, this is a standard AWS region. For example: `us-west-2`. +
+For `AWS_SIGV4A`, this is a region set of comma-separated region names (`us-west-2`), wildcards (`*`), or region strings with wildcards (`us-east-*`). A region set enables a signed request to be sent to multiple regions.
+
+| `useUnsignedPayload`
+| Optional
+| `false`
+| Use the literal string `UNSIGNED-PAYLOAD` to calculate the payload hash instead of buffering the request to calculate the hash. Not all services support this option.
+
+| `matchExcludedHeaders`
+| Optional
+| N/A
+| A list of request header to exclude from signing. Match by any https://www.envoyproxy.io/docs/envoy/latest/api-v3/type/matcher/v3/string.proto#envoy-v3-api-msg-type-matcher-v3-stringmatcher[Envoy StringMatcher pattern]. For example: 
++
+[source, yaml]
+----
+matchExcludedHeaders: 
+  - prefix: x-envoy 
+  - exact: x-custom-header 
+  - exact: x-trace-id
+----
++
+In the example, the policy does not sign headers that start with `x-envoy` and the `x-custom-header` and `x-trace-id` headers.
++
+By default, Envoy excludes the `x-forwarded-for`, `x-forwarded-proto`, and `x-amzn-trace-id` headers.
+
+| `signingAlgorithm`
+| Required
+| `AWS_SIGV4`
+| The signing algorithm to use, either `AWS_SIGV4` or `AWS_SIGV4A`. `AWS_SIGV4A` supports multi-region requests.
+
+| `authenticationMode`
+| Required
+| `default`
+| Determines the mode of authentication for AWS credentials. Options are: +
+* `default`: Uses the AWS credential chain in the order of environment variables, AWS credential file, then AWS roles. +
+* `profile`: Uses a specific profile from the AWS credential file. +
+* `static`: Uses statically configured credentials provided in `inlineCredentialProvider`.
+
+| `credentialsFileProvider`
+| Optional
+| N/A
+| Configuration for using credentials from an AWS credential file. Required when `authenticationMode` is `profile`. See <<credential-provider-configuration, Credential Provider Configuration>> for details.
+
+| `inlineCredentialProvider`
+| Optional
+| N/A
+| Configuration for statically configured credentials. Required when `authenticationMode` is `static`. See <<credential-provider-configuration, Credential Provider Configuration>> for details.
+|===
+
+[[credential-provider-configuration]]
+=== Credential Provider Configuration
+
+The credential provider configuration depends on the `authenticationMode` setting:
+
+* **`default`**: No additional configuration needed. The policy uses the AWS credential chain (environment variables, AWS credential file, or AWS roles).
+
+* **`profile`**: Use `credentialsFileProvider` to specify the AWS credential file and profile.
+
+* **`static`**: Use `inlineCredentialProvider` to provide credentials directly in the configuration.
+
+[[credentials-file-provider]]
+==== Credentials File Provider
+
+Use `credentialsFileProvider` when `authenticationMode` is set to `profile`:
+
+[source, yaml]
+----
+credentialsFileProvider:
+  credentialsDataSource:
+    filename: <string> // REQUIRED
+  profile: <string> // OPTIONAL
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `credentialsDataSource.filename`
+| Required
+| N/A
+| Path to the AWS credential file. For example: `~/.aws/credentials`.
+
+| `profile`
+| Optional
+| `default`
+| The AWS profile name to use from the credential file.
+|===
+
+[[inline-credential-provider]]
+==== Inline Credential Provider
+
+Use `inlineCredentialProvider` when `authenticationMode` is set to `static`:
+
+[source, yaml]
+----
+inlineCredentialProvider:
+  accessKeyId: <string> // REQUIRED
+  secretAccessKey: <string> // REQUIRED
+  sessionToken: <string> // OPTIONAL
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `accessKeyId`
+| Required
+| N/A
+| AWS access key ID.
+
+| `secretAccessKey`
+| Required
+| N/A
+| AWS secret access key.
+
+| `sessionToken`
+| Optional
+| N/A
+| AWS session token (required for temporary credentials).
+|===
+
+[[resource-configuration-examples]]
+==== Resource Configuration Examples
+
+* Basic configuration with default authentication:
++
+[source, yaml]
+----
+- policyRef:
+    name: native-aws-signature-flex
+  config:
+    serviceName: s3
+    region: us-west-2
+    signingAlgorithm: AWS_SIGV4
+    authenticationMode: default
+----
+
+* Configuration with static credentials:
++
+[source, yaml]
+----
+- policyRef:
+    name: native-aws-signature-flex
+  config:
+    serviceName: execute-api
+    region: us-east-1
+    signingAlgorithm: AWS_SIGV4
+    authenticationMode: static
+    inlineCredentialProvider:
+      accessKeyId: AKIAIOSFODNN7EXAMPLE
+      secretAccessKey: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+----
+
+* Configuration with profile authentication:
++
+[source, yaml]
+----
+- policyRef:
+    name: native-aws-signature-flex
+  config:
+    serviceName: s3
+    region: us-west-2
+    signingAlgorithm: AWS_SIGV4
+    authenticationMode: profile
+    credentialsFileProvider:
+      credentialsDataSource:
+        filename: ~/.aws/credentials
+      profile: my-profile
+----
+
+* Configuration with SigV4A and unsigned payload:
++
+[source, yaml]
+----
+- policyRef:
+    name: native-aws-signature-flex
+  config:
+    serviceName: s3
+    region: "*"
+    signingAlgorithm: AWS_SIGV4A
+    authenticationMode: default
+    useUnsignedPayload: true
+----
+
+* Configuration with excluded headers:
++
+[source, yaml]
+----
+- policyRef:
+    name: native-aws-signature-flex
+  config:
+    serviceName: s3
+    region: us-west-2
+    signingAlgorithm: AWS_SIGV4
+    authenticationMode: default
+    matchExcludedHeaders:
+      - prefix: x-envoy
+      - exact: x-custom-header
+      - exact: x-trace-id
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread]
+|===
+|Parameter |Description | Required or Optional
+
+|Service name |The service namespace of the HTTP endpoint. For example: `s3`, `execute-api`, or `ec2`. |Required
+
+|Region |The AWS region string for the service. For SigV4, use a standard region. For example: `us-west-2`. For SigV4A, use a region set of comma-separated region names (`us-west-2`), wildcards (`*`), or region strings with wildcards (`us-east-*`). |Required
+
+|Use unsigned payload |Instead of buffering the request to calculate the payload hash, use the literal string `UNSIGNED-PAYLOAD`. |Optional
+
+|Signing algorithm |The signing algorithm to use: `AWS_SIGV4` or `AWS_SIGV4A`. `AWS_SIGV4A` supports multi-region requests. |Required
+
+|Match excluded headers |A list of request headers to exclude from signing. Match by any Envoy StringMatcher pattern. For example: `prefix: x-envoy`, `exact: x-custom-header`, or `exact: x-trace-id`. |Optional
+
+|Authentication mode |Determines the mode of authentication for AWS credentials. Options: `default` (uses AWS credential chain: environment variables, AWS credential file, AWS roles), `profile` (uses a specific profile from the AWS credential file), or `static` (uses statically configured credentials). |Required
+
+|Credentials file provider |Configuration for using credentials from an AWS credential file (required when authentication mode is `profile`). |Optional
+
+|Credentials file |Path to the AWS credential file. For example: `~/.aws/credentials`. |Required when using credentials file provider
+
+|Profile |The AWS profile name to use from the credential file. |Optional
+
+|Inline credential provider |Configuration for statically configured credentials (required when authentication mode is `static`). |Optional
+
+|Access key ID |AWS access key ID when using inline credential provider. |Required when using inline credential provider
+
+|Secret access key |AWS secret access key when using inline credential provider. |Required when using inline credential provider
+
+|Session token |AWS session token when using inline credential provider with temporary credentials. |Optional
+|===
+
