@@ -321,6 +321,10 @@ If you selected JSON Web Key Set (JWKS) as JWT Key Origin, the policy uses a ret
 
 Until the recaching finishes, the expired JWKS is used to process the request, and a `503` error is returned if no request is found. Using an expired JWKS enables you to apply cached values in upcoming requests, even if the previous requests failed.
 
+=== JWKS Service and Log Messages
+
+When you configure the JWT Validation policy to fetch a JWKS from a URL, the policy creates an internal service mapped to the control plane. During fetches, gateway logs sometime include messages with `default.svc``. This expected informational text indicates that the policy uses the internal service to communicate with the control plane to retrieve the JSON Web Key Set. This behavior occurs on all gateway types, including non-Kubernetes deployments. You can safely ignore these messages.
+
 == Obtain a Policy Compatible PEM Public Key
 
 If you have a preexisting RSA key in an unsupported format that you want to use, first covert the key to a PEM public key. The JWT policy uses public RSA key in PEM format.
