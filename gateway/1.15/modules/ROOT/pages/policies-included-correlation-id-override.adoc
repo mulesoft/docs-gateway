@@ -1,0 +1,143 @@
+= Correlation ID Override Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, correlation id, troubleshooting, request tracking
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Correlation ID Override
+>s|Summary | Overrides the global correlation ID header and generation expression for an API
+>s|Category | Troubleshooting
+>s|First Omni Gateway version available | v1.15.0
+>s|Release Notes| xref:release-notes::gateway/policies/correlation-id-override-release-notes.adoc[]
+^s| Returned Status Codes | No return codes exist for this policy
+|===
+
+== Summary
+
+The Correlation ID Override policy enables you to override the global correlation ID parameters for an API. Use this policy to change the name of the header that carries the correlation ID and how Omni Gateway generates the ID when a request doesn't include one.
+
+== Before You Begin
+
+This policy overrides the global correlation ID configuration for an API. Before you apply this policy, decide:
+
+* The name of the request header that carries the correlation ID.
+* The expression that generates the correlation ID when a request doesn't include the header.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: correlation-id-override-flex
+  config:
+    header: <string> // REQUIRED
+    generationExpression: <string> // REQUIRED
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+=== Basic Configuration
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+
+| Header
+| Yes
+| Name of the request header that carries the correlation ID. If the request doesn't include this header, Omni Gateway generates a correlation ID and adds the header to the request.
+
+| Generation Expression
+| Yes
+| Expression that generates the correlation ID when the request doesn't include the header. For example, `prefix(uuid(), 'REQ-')`.
+
+See <<generation-expressions>> for the supported functions.
+
+|===
+
+== How This Policy Works
+
+When you apply the Correlation ID Override policy to an API, the policy replaces the global correlation ID settings for that API.
+
+For each request, Omni Gateway checks for the header you configure in the Header field:
+
+* If the request includes the header, Omni Gateway uses the value as the correlation ID.
+* If the request doesn't include the header, Omni Gateway generates a correlation ID by evaluating the Generation Expression and adds the header to the request.
+
+[[generation-expressions]]
+=== Generation Expressions
+
+A generation expression can use the following functions:
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Function | Description
+
+| `uuid()`
+| Generates a unique identifier.
+
+| `timestamp()`
+| Generates a timestamp.
+
+| `concat(a, b, ...)`
+| Joins two or more values into one value.
+
+| `replace(str, from, to)`
+| Replaces text in a value.
+
+| `prefix(expr, str)`
+| Adds text to the beginning of the value of an expression.
+
+| `suffix(expr, str)`
+| Adds text to the end of the value of an expression.
+
+|===
+
+== Example Configurations
+
+The following examples demonstrate common configuration patterns for the Correlation ID Override policy.
+
+=== Generate a UUID
+
+In the following example, requests that don't include the `x-correlation-id` header receive a generated UUID.
+
+----
+- policyRef:
+    name: correlation-id-override-flex
+  config:
+    header: "x-correlation-id"
+    generationExpression: "uuid()"
+----
+
+=== Add a Prefix to the Generated ID
+
+In the following example, requests that don't include the `x-request-id` header receive a generated UUID that begins with `REQ-`.
+
+----
+- policyRef:
+    name: correlation-id-override-flex
+  config:
+    header: "x-request-id"
+    generationExpression: "prefix(uuid(), 'REQ-')"
+----
+
+=== Add a Suffix to the Generated ID
+
+In the following example, requests that don't include the `x-correlation-id` header receive a generated UUID that ends with `-gw`.
+
+----
+- policyRef:
+    name: correlation-id-override-flex
+  config:
+    header: "x-correlation-id"
+    generationExpression: "suffix(uuid(), '-gw')"
+----
+
+== See Also
+
+* xref:policies-included-directory.adoc[]
+* xref:policies-included-header-injection.adoc[]
+* xref:policies-included-tracing.adoc[]
