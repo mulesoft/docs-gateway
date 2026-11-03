@@ -19,13 +19,6 @@ endif::[]
 
 The Correlation ID Override policy enables you to override the global correlation ID parameters for an API. Use this policy to change the name of the header that carries the correlation ID and how Omni Gateway generates the ID when a request doesn't include one.
 
-== Before You Begin
-
-This policy overrides the global correlation ID configuration for an API. Before you apply this policy, decide:
-
-* The name of the request header that carries the correlation ID.
-* The expression that generates the correlation ID when a request doesn't include the header.
-
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]
@@ -37,6 +30,24 @@ include::partial$policy-title-headers.adoc[tag=configFile]
     header: <string> // REQUIRED
     generationExpression: <string> // REQUIRED
 ----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Parameter | Required or Optional | Default Value | Description
+
+| `header`
+| Required
+| N/A
+| Name of the request header that carries the correlation ID. If the request doesn't include this header, Omni Gateway generates a correlation ID and adds the header to the request.
+
+| `generationExpression`
+| Required
+| N/A
+| Expression that generates the correlation ID when the request doesn't include the header. For example, `prefix(uuid(), 'REQ-')`.
+
+See <<generation-expressions>> for the supported functions.
+
+|===
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
@@ -50,7 +61,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Yes
 | Name of the request header that carries the correlation ID. If the request doesn't include this header, Omni Gateway generates a correlation ID and adds the header to the request.
 
-| Generation Expression
+| Generation expression
 | Yes
 | Expression that generates the correlation ID when the request doesn't include the header. For example, `prefix(uuid(), 'REQ-')`.
 
@@ -65,7 +76,7 @@ When you apply the Correlation ID Override policy to an API, the policy replaces
 For each request, Omni Gateway checks for the header you configure in the Header field:
 
 * If the request includes the header, Omni Gateway uses the value as the correlation ID.
-* If the request doesn't include the header, Omni Gateway generates a correlation ID by evaluating the Generation Expression and adds the header to the request.
+* If the request doesn't include the header, Omni Gateway generates a correlation ID by evaluating the generation expression and adds the header to the request.
 
 [[generation-expressions]]
 === Generation Expressions
@@ -77,7 +88,7 @@ A generation expression can use the following functions:
 | Function | Description
 
 | `uuid()`
-| Generates a unique identifier.
+| Generates a universally unique identifier (UUID).
 
 | `timestamp()`
 | Generates a timestamp.
