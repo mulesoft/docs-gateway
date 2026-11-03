@@ -19,6 +19,16 @@ endif::[]
 
 The Correlation ID Override policy enables you to override the global correlation ID parameters for an API. Use this policy to change the name of the header that carries the correlation ID and how Omni Gateway generates the ID when a request doesn't include one.
 
+Use this policy when an API needs correlation IDs that differ from the global settings. For example, you can:
+
+* Generate a unique ID for each request with `uuid()`, so you can follow a single request through your logs.
+* Add a prefix with `prefix(uuid(), 'REQ-')`, so you can tell which API or application created the ID.
+* Add a suffix with `suffix(uuid(), '-gw')`, so you can tell that Omni Gateway created the ID.
+* Add a timestamp with `timestamp()`, so you can see when the request arrived.
+* Combine values with `concat(a, b, ...)`, or change text with `replace(str, from, to)`, to match the ID format that your other systems expect.
+
+See <<generation-expressions>> for the full list of functions.
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]
