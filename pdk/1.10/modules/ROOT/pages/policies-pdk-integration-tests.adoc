@@ -589,25 +589,6 @@ async fn hello() -> anyhow::Result<()> {
 }
 ----
 
-[[declare-upstream-hosts]]
-=== Declare Upstream Hosts as Service Properties
-
-If your policy calls an upstream host, declare the target as a service property (`format: service`) in the policy schema definition instead of using a raw hostname. Declaring a service property enables the platform to provision the upstream cluster for the policy. Don't build a service from a raw hostname.
-
-[source,yaml]
-----
-properties:
-  externalService:
-    type: string
-    format: service
-----
-
-In integration tests, pass the service configuration in the policy configuration, for example, `externalService`, so that the test exercises the same path as a deployed policy.
-
-Supply credentials, such as API keys or passwords, to the policy and the test through environment variables instead of hardcoding them in the policy configuration or test code.
-
-For more information about service properties, see xref:policies-pdk-create-schema-definition.adoc[] and xref:policies-pdk-configure-features-http-request.adoc[].
-
 [[review-service-logs]]
 == Review Service Logs
 
@@ -634,3 +615,5 @@ For the example, the `say_hello` test has the following service log:
 
 * xref:policies-pdk-debug-local.adoc[]
 * xref:policies-pdk-troubleshooting.adoc[]
+* xref:policies-pdk-create-schema-definition.adoc[]
+* xref:policies-pdk-configure-features-http-request.adoc[]
