@@ -13,6 +13,17 @@ You can also configure additional Fluent Bit to enable custom logging outputs an
 
 To view additional log outputs, find the appropriate method to view them. The following commands display only the standard output logs.
 
+== Identify the Replica in Access Logs
+
+Access logs don't include the replica host by default. If you run multiple replicas and need to know which replica handled a request, add the host to the log message in your Message Logging policy. For example, set the *Message* field to:
+
+[source,dataweave]
+----
+#['host=' ++ vars.hostId ++ ' path=' ++ attributes.requestPath]
+----
+
+For the list of supported variables, see xref:policies-included-message-logging.adoc#dataweave-support[DataWeave Expressions Support].
+
 == View Logs
 
 To view the standard output logs of your replica, run one of the following commands:
