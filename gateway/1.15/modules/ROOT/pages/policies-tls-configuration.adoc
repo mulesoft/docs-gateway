@@ -1,42 +1,165 @@
-= Configuring TLS for Outgoing Policy Requests
+= Configuring Default TLS for Omni Gateway
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
-:keywords: policy, custom
+:keywords: tls, mtls, default tls, inbound tls, outbound tls, policy
 
-Some Omni Gateway policies make outgoing requests to HTTP and gRPC upstream services. For example, the xref:policies-included-oauth-token-introspection.adoc[] sends token validation requests to an OAuth 2.0 service, and the xref:policies-included-external-authorization.adoc[] forwards incoming client requests to an authorization service. 
+A default TLS context applies to every HTTPS API instance and HTTPS upstream service on an Omni Gateway that doesn't have its own TLS context. Use a default TLS context so that you don't have to apply the same TLS context to each API instance and upstream service individually.
 
-By default, Managed and Self-Managed Omni Gateways protect these connections with a default TLS Context. The default TLS context is not mTLS and uses the default ciphers listed in <<local-support>>.
+You can configure two default TLS contexts:
 
-To override the default TLS context, configure a custom default TLS context for all outgoing requests from policies. You can't configure a custom default TLS context for Managed Omni Gateway.
+* *Default inbound TLS* +
+Applies to inbound requests on every HTTPS API instance that doesn't have an inbound TLS context.
+* *Default outbound TLS* +
+Applies to every HTTPS upstream service that doesn't have an outbound TLS context, and to the outgoing requests that policies make. For example, the xref:policies-included-oauth-token-introspection.adoc[] sends token validation requests to an OAuth 2.0 service, and the xref:policies-included-external-authorization.adoc[] forwards incoming client requests to an authorization service.
 
-== Configure a TLS Context for Self-Managed Gateways
+You can configure default TLS contexts for Managed Omni Gateway and for Self-Managed Omni Gateway in Connected Mode and Local Mode.
 
-For both local and connected mode, use a YAML configuration file to configure TLS between a policy and an upstream service:
+[[precedence]]
+== How Default TLS Contexts Apply
 
+Omni Gateway applies default TLS contexts with the lowest priority:
+
+* A TLS context that you apply to an API instance or upstream service always overrides the default TLS context. This includes TLS contexts that you apply in API Manager and the xref:policies-included-tls.adoc[] and xref:policies-included-tls-outbound.adoc[] policies.
+* Default TLS contexts apply only to API instances and upstream services that use HTTPS. HTTP API instances and upstream services aren't affected.
+* Omni Gateway implements inbound TLS at the port level. If any API instance on a port has an inbound TLS context, that context applies to the port instead of the default inbound TLS context. For more information, see xref:conn-tls-config.adoc#tls-context-applied-to-shared-ports[Inbound TLS Context Applied to Shared Ports].
+
+If you don't configure a default outbound TLS context, outgoing policy requests use a built-in TLS context. The built-in TLS context isn't mTLS and uses the default ciphers listed in <<supported-ciphers>>.
+
+[[connected-mode]]
+== Configure Default TLS in Runtime Manager
+
+For Managed Omni Gateway and Self-Managed Omni Gateway in Connected Mode, select TLS contexts that you created in Secrets Manager.
+
+=== Before You Begin
+
+Before configuring a default TLS context, complete these tasks:
+
+* xref:anypoint-security::asm-secret-group-creation-task.adoc[Create a secret group] and make it downloadable.
+* Add a TLS context with the *Omni Gateway* target to the secret group. To add a TLS context, see xref:conn-tls-config.adoc#add-a-tls-context[Add a TLS Context for Omni Gateway].
++
+A default inbound TLS context requires a keystore. To require client certificates (inbound mTLS), select *Validate Client certificate* and add a truststore.
+
+=== Configure Default TLS Contexts
+
+. In Anypoint Platform, select *Runtime Manager*.
+. Select *Omni Gateways*.
+. Select your Omni Gateway.
+. Open *Runtime Configurations*.
+. Open *TLS*.
+. To configure a default inbound TLS context, in *Default Inbound TLS*, select a *Secret Group* and a *TLS Context*.
+. To configure a default outbound TLS context, in *Default Outbound TLS*, select a *Secret Group* and a *TLS Context*.
+. Click *Apply changes*.
+
+To remove a default TLS context, clear its *Secret Group* and *TLS Context* fields, and then click *Apply changes*.
+
+If Omni Gateway can't use the selected TLS context, for example, because the TLS context was deleted, Omni Gateway ignores that default TLS context, logs a warning, and applies the rest of the runtime configuration.
+
+For Managed Omni Gateway on Runtime Fabric with last-mile security, the default inbound TLS context replaces the self-signed certificate that Omni Gateway presents to the cluster ingress. For more information, see xref:managed-inbound-tls-config.adoc#runtime-fabric-openshift[Configure Inbound TLS on Runtime Fabric on OpenShift].
+
+[[local-mode]]
+== Configure Default TLS in a Configuration File
+
+For Self-Managed Omni Gateway in Local Mode, and in Connected Mode if you prefer to use a configuration file, configure default TLS contexts in a `Configuration` resource:
+
+[source,yaml]
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
 kind: Configuration
 metadata:
- name: default-tls
+  name: default-tls
 spec:
- defaultTLS:
-   outboundPolicyCalls:
-       skipValidation: <boolean> // OPTIONAL
-       trustedCA: <string> # OPTIONAL, defaults to the CA of operating systems
-       certificate: // OPTIONAL
-           key: <string> // OPTIONAL
-           crt: <string> // OPTIONAL
-       alpn: <array> // OPTIONAL
-       minversion: <string> // OPTIONAL
-       maxversion: <string> // OPTIONAL
-       ciphers: <array> // OPTIONAL
-       
+  defaultTLS:
+    inbound: # OPTIONAL
+      certificate: # REQUIRED for inbound
+        key: <string>
+        crt: <string>
+        keyPassphrase: <string> # OPTIONAL
+      requireClientCertificate: <boolean> # OPTIONAL
+      trustedCA: <string> # OPTIONAL
+      alpn: <array> # OPTIONAL
+      minVersion: <string> # OPTIONAL
+      maxVersion: <string> # OPTIONAL
+      ciphers: <array> # OPTIONAL
+    outbound: # OPTIONAL
+      skipValidation: <boolean> # OPTIONAL
+      trustedCA: <string> # OPTIONAL
+      certificate: # OPTIONAL
+        key: <string>
+        crt: <string>
+        keyPassphrase: <string> # OPTIONAL
+      alpn: <array> # OPTIONAL
+      minVersion: <string> # OPTIONAL
+      maxVersion: <string> # OPTIONAL
+      ciphers: <array> # OPTIONAL
 ----
 
-Not including optional parameters in your configuration file applies the parameters default values to your TLS context.
+Add the file to the Omni Gateway configuration directory. For example, for Omni Gateway running as a Linux service, add the file to `/usr/local/share/mulesoft/flex-gateway/conf.d/`. For more information about where to add configuration files, see xref:local-tls-config.adoc[].
 
-When configuring the `ciphers` parameter, ensure that your API upstream supports the listed ciphers. For the supported ciphers, see <<local-support, TLS Cipher Support on Omni Gateway>>.
+Omni Gateway validates each default TLS context when you apply the `Configuration` resource. If a default TLS context is invalid, for example, because the certificate and key don't match or a cipher isn't supported, Omni Gateway rejects the resource and logs an error.
+
+Not including optional parameters applies their default values.
+
+[[inbound-parameters]]
+=== Default Inbound TLS Parameters
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `certificate`
+| Required
+| N/A
+| The server certificate that Omni Gateway presents to clients. To comply with security standards, all certificates must be 2048 bits or longer.
+
+| `certificate.key`
+| Required
+| N/A
+| The private key of the certificate, in PEM format.
+
+| `certificate.crt`
+| Required
+| N/A
+| The public certificate, in PEM format.
+
+| `certificate.keyPassphrase`
+| Optional, unless the private key is encrypted
+| N/A
+| The passphrase that decrypts the private key.
+
+| `requireClientCertificate`
+| Optional
+| `false`
+| If `true`, enables inbound mTLS. Clients must present a certificate signed by `trustedCA`.
+
+| `trustedCA`
+| Optional, unless `requireClientCertificate` is `true`
+| N/A
+| The CA that validates client certificates, in PEM format.
+
+| `alpn`
+| Optional
+| `http/1.1` and `h2`
+| A prioritized list of supported application-level protocols. Supported values are `http/1.1` and `h2`.
+
+| `minVersion`
+| Optional
+| `1.2`
+| The minimum TLS version allowed. Supported values are `1.2` and `1.3`.
+
+| `maxVersion`
+| Optional
+| `1.3`
+| The maximum TLS version allowed. Supported values are `1.2` and `1.3`.
+
+| `ciphers`
+| Optional
+| `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256`, `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`, `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256`, `TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256`, and `TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256`
+| A list of supported TLS 1.2 ciphers, in IANA format. For the supported ciphers, see <<local-support>>.
+|===
+
+[[outbound-parameters]]
+=== Default Outbound TLS Parameters
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
@@ -44,50 +167,101 @@ When configuring the `ciphers` parameter, ensure that your API upstream supports
 
 | `skipValidation`
 | Optional
-| false
-| If true, the upstream certificate is not validated.
+| `false`
+| If `true`, Omni Gateway doesn't validate upstream server certificates. Omni Gateway logs a warning while this setting is enabled.
 
 | `trustedCA`
 | Optional
-| N/A
-| The CA used to validate the upstream server certificate. If no trusted CA is provided, the policy uses the default OS CA.
+| The operating system CAs
+| The CA that validates upstream server certificates, in PEM format.
 
 | `certificate`
 | Optional
 | N/A
-| The client certificate to present for mTLS. To comply with security standards, all certificates must be 2048 bits or longer.
+| The client certificate that Omni Gateway presents for outbound mTLS. To comply with security standards, all certificates must be 2048 bits or longer.
 
 | `certificate.key`
-| Optional
+| Optional, unless `certificate` is set
 | N/A
-| The private key part of the certificate.
+| The private key of the certificate, in PEM format.
 
 | `certificate.crt`
-| Optional
+| Optional, unless `certificate` is set
 | N/A
-| The public key part of the certificate.
+| The public certificate, in PEM format.
+
+| `certificate.keyPassphrase`
+| Optional, unless the private key is encrypted
+| N/A
+| The passphrase that decrypts the private key.
 
 | `alpn`
 | Optional
-| `h2` and `http/1.1`
-| A prioritized list of supported application level protocols; for example, h2, http/1.1, and so forth.
+| `http/1.1` and `h2`
+| A prioritized list of supported application-level protocols. Supported values are `http/1.1` and `h2`.
 
-| `minversion`
+| `minVersion`
 | Optional
 | `1.2`
-| The minimum TLS version allowed.
+| The minimum TLS version allowed. Supported values are `1.2` and `1.3`.
 
-| `maxversion`
+| `maxVersion`
 | Optional
 | `1.3`
-| The maximum TLS version allowed.
+| The maximum TLS version allowed. Supported values are `1.2` and `1.3`.
 
 | `ciphers`
 | Optional
-| For the default and other supported ciphers, see <<local-support, TLS Cipher Support on Omni Gateway>>.
-| A list of supported TLS ciphers (IANA format).
-
+| `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256`, `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`, `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256`, and `TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256`
+| A list of supported TLS 1.2 ciphers, in IANA format. Ensure that your upstream services support the ciphers. For the supported ciphers, see <<local-support>>.
 |===
 
+=== Example Default TLS Configuration
+
+This example configures a default inbound TLS context and a default outbound TLS context that validates upstream certificates with a private CA:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: default-tls
+spec:
+  defaultTLS:
+    inbound:
+      certificate:
+        key: |
+          -----BEGIN PRIVATE KEY-----
+          # insert private key
+          -----END PRIVATE KEY-----
+        crt: |
+          -----BEGIN CERTIFICATE-----
+          # insert certificate
+          -----END CERTIFICATE-----
+    outbound:
+      trustedCA: |
+        -----BEGIN CERTIFICATE-----
+        # insert the CA that signs the upstream server certificates
+        -----END CERTIFICATE-----
+----
+
+This example uses the default values for `alpn`, `minVersion`, `maxVersion`, and `ciphers`.
+
+[[deprecated-outbound-policy-calls]]
+=== Deprecated `outboundPolicyCalls` Parameter
+
+The `defaultTLS.outboundPolicyCalls` parameter is deprecated. Use `defaultTLS.outbound` instead, which applies to both upstream services and outgoing policy requests.
+
+* If you configure only `outboundPolicyCalls`, Omni Gateway applies it to outgoing policy requests only and logs a deprecation warning.
+* If you configure both `outboundPolicyCalls` and `outbound`, Omni Gateway ignores `outboundPolicyCalls` and logs a warning.
+
+`outboundPolicyCalls` accepts the same parameters as `outbound`.
 
 include::partial$tls-cipher.adoc[tags=cipherSupportLocal;outboundImportantLocal;local-ciphers]
+
+== See Also
+
+* xref:conn-tls-config.adoc[]
+* xref:local-tls-config.adoc[]
+* xref:policies-included-tls.adoc[]
+* xref:policies-included-tls-outbound.adoc[]
