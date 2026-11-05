@@ -36,6 +36,8 @@ You must configure both of these resources together:
 
 If you configure only the route template, the route can't connect to the APIs over HTTPS. If you configure only the policy binding, external clients don't connect to the gateway through the route with the cluster wildcard certificate.
 
+Instead of a `PolicyBinding` resource for each API, you can configure a default inbound TLS context that applies to every HTTPS API that doesn't have an inbound TLS context. See <<default-tls, Configure a Default Inbound TLS Context>>.
+
 Don't create the OpenShift `Route` resource directly. Instead, create an `HTTPRouteTemplate` resource. The Runtime Fabric agent renders the template into the `Route` resource and keeps it reconciled.
 
 === Before You Begin
@@ -166,6 +168,25 @@ In the `HTTPRouteTemplate` resource that you create in <<create-the-route-templa
 | Required
 | CA certificate that signs the internal certificate of Managed Omni Gateway. The route uses this CA to validate the gateway.
 |===
+
+[[default-tls]]
+== Configure a Default Inbound TLS Context
+
+include::partial$task-default-tls.adoc[tags=intro]
+
+The default inbound TLS context applies to inbound requests on every HTTPS API instance that doesn't have an inbound TLS context.
+
+include::partial$task-default-tls.adoc[tags=precedence]
+
+For Managed Omni Gateway on Runtime Fabric with last-mile security, the default inbound TLS context replaces the self-signed certificate that Omni Gateway presents to the cluster ingress. Ensure that the `destinationCACertificate` of your route template signs the certificate in the default inbound TLS context.
+
+Before configuring a default inbound TLS context, add a TLS context with the *Omni Gateway* target and a keystore to a downloadable secret group. To add a TLS context, see xref:managed-outbound-tls-config.adoc#add-a-tls-context[Add a TLS Context]. To require client certificates (inbound mTLS), select *Validate Client certificate* and add a truststore.
+
+To configure a default inbound TLS context:
+
+include::partial$task-default-tls.adoc[tags=rm-steps-start;rm-step-inbound;rm-steps-end]
+
+To configure a default outbound TLS context, see xref:managed-outbound-tls-config.adoc#default-tls[Configure a Default Outbound TLS Context].
 
 == See Also
 

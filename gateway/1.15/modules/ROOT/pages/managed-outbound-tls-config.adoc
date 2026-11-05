@@ -13,7 +13,7 @@ include::partial$task-tls-config.adoc[tag=share-contexts]
 After you xref:anypoint-security::asm-secret-group-creation-task.adoc[create a secret group], you can add a TLS context or a mutual authentication TLS (mTLS) context and apply the TLS context to upstreams in API Manager to encrypt outbound traffic.
 
 
-include::partial$task-tls-config.adoc[tags=defaultOutboundTLS]
+include::partial$task-tls-config.adoc[tags=defaultOutboundTLS;defaultTLSLink]
 
 include::partial$task-tls-config.adoc[tag=aia-support]
 
@@ -139,6 +139,23 @@ To apply a TLS context to an upstream service:
 
 include::partial$task-add-tls-context.adoc[tags=redeploy]
 //Redeploy
+
+[[default-tls]]
+== Configure a Default Outbound TLS Context
+
+include::partial$task-default-tls.adoc[tags=intro]
+
+The default outbound TLS context applies to every HTTPS upstream service that doesn't have an outbound TLS context, and to the outgoing requests that policies make. For example, the xref:policies-included-oauth-token-introspection.adoc[] sends token validation requests to an OAuth 2.0 service.
+
+A TLS context that you apply to an upstream service always overrides the default outbound TLS context. HTTP upstream services aren't affected.
+
+Before configuring a default outbound TLS context, add a TLS context with the *Omni Gateway* target to a downloadable secret group. To add a TLS context, see <<add-a-tls-context, Add a TLS Context>>.
+
+To configure a default outbound TLS context:
+
+include::partial$task-default-tls.adoc[tags=rm-steps-start;rm-step-outbound;rm-steps-end]
+
+To configure a default inbound TLS context, see xref:managed-inbound-tls-config.adoc#default-tls[Configure a Default Inbound TLS Context].
 
 //Ciphers
 include::partial$tls-cipher.adoc[tags=connectedSelect;cipherSupport;ciphers]
