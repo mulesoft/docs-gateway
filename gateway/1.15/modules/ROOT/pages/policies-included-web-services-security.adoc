@@ -142,9 +142,6 @@ This example enables only XML Signature validation. The signature must cover the
 
 Omni Gateway applies these checks in order. The first check that fails determines the fault that Omni Gateway returns.
 
-=== SOAP Version Determination
-
-Omni Gateway determines the SOAP version from the incoming request, rather than from the WSDL. It infers the SOAP version using the `SOAPAction` header, `Content-Type` header, or SOAP envelope namespace. When the WS-Security Policy returns a fault, it uses the SOAP version of the incoming request. If the upstream service returns a fault in a SOAP version different from the request, Omni Gateway treats it as a malformed response and returns a `500` status code.
 
 . *Content type*: The request must use `text/xml`, `application/soap+xml`, or `multipart/related`. For a multipart request, Omni Gateway selects the root part, which is the part whose `Content-ID` matches the `start` parameter, or the first part when `start` is absent. The root part must use `7bit`, `8bit`, or `binary` `Content-Transfer-Encoding`, or omit the header. The policy validates only the SOAP envelope in the root part and forwards attachments to the upstream service without inspecting them.
 . *SOAP envelope*: The envelope must be a single well-formed SOAP 1.1 or SOAP 1.2 document with no `<!DOCTYPE>` declaration.
@@ -156,6 +153,10 @@ Omni Gateway determines the SOAP version from the incoming request, rather than 
 . *UsernameToken authentication*: If UsernameToken validation is enabled, the username and password must match the client ID and client secret of an API contract. Omni Gateway applies Unicode NFC normalization to the username before the lookup.
 +
 The password must be `PasswordText`. If the `<wsse:Password>` element has no `Type` attribute, Omni Gateway treats the password as `PasswordText`. Omni Gateway always rejects `PasswordDigest`, because it can't recompute the digest without the client secret in clear text.
+
+=== SOAP Version Determination
+
+Omni Gateway determines the SOAP version from the incoming request, rather than from the WSDL. It infers the SOAP version using the `SOAPAction` header, `Content-Type` header, or SOAP envelope namespace. When the WS-Security Policy returns a fault, it uses the SOAP version of the incoming request. If the upstream service returns a fault in a SOAP version different from the request, Omni Gateway treats it as a malformed response and returns a `500` status code.
 
 === Supported Algorithms
 
