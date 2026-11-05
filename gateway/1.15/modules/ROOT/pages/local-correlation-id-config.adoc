@@ -6,7 +6,7 @@ endif::[]
 :page-mode: local
 :keywords: api gateway, omni gateway, gateway, correlation id, request tracking, troubleshooting
 
-include::partial$correlation-id-configuration.adoc[tags=correlation-id-overview]
+include::partial$correlation-id-configuration.adoc[tag=overview]
 
 Configure a correlation ID in Local Mode using one of these methods:
 
@@ -20,14 +20,29 @@ include::partial$configuration-precedence.adoc[tags=precedence]
 
 include::partial$configuration-precedence.adoc[tags=precedence-details]
 
-include::partial$correlation-id-configuration.adoc[tags=correlation-id-yaml]
+[[yaml-resource-config]]
+== Configure with a YAML Resource
 
-include::partial$correlation-id-configuration.adoc[tags=correlation-id-parameters]
+Add `correlationId` under `spec.tracing` of a Configuration resource, and then apply the resource:
 
-include::partial$correlation-id-configuration.adoc[tags=correlation-id-resolution]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: Configuration
+metadata:
+  name: correlation-id
+spec:
+  tracing:
+    correlationId:
+      header: X-Correlation-Id
+      generationExpression: "prefix(uuid(), 'REQ-')"
+----
 
-include::partial$correlation-id-configuration.adoc[tags=generation-expressions]
+Omni Gateway applies changes without restarting. To disable the correlation ID, remove `correlationId` from the resource.
 
-include::partial$correlation-id-configuration.adoc[tags=correlation-id-invalid]
+include::partial$correlation-id-configuration.adoc[tag=reference]
 
-include::partial$correlation-id-configuration.adoc[tags=correlation-id-policy]
+[[policy-config]]
+== Override the Correlation ID for an API Instance
+
+To use a different header or generation expression for one API instance, apply the xref:policies-included-correlation-id-override.adoc[] policy to the API instance. The policy replaces the correlation ID configuration of the gateway for that API instance. Other API instances keep the configuration of the gateway.

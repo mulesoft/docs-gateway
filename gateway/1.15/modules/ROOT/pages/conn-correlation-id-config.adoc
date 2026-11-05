@@ -6,7 +6,7 @@ endif::[]
 :page-mode: conn
 :keywords: api gateway, omni gateway, gateway, correlation id, request tracking, troubleshooting
 
-include::partial$correlation-id-configuration.adoc[tags=correlation-id-overview]
+include::partial$correlation-id-configuration.adoc[tag=overview]
 
 Configure a correlation ID in Connected Mode using one of these methods:
 
@@ -16,16 +16,41 @@ Configure a correlation ID in Connected Mode using one of these methods:
 
 include::partial$configuration-precedence.adoc[tags=precedence;precedence-conn;precedence-details]
 
-include::partial$correlation-id-configuration.adoc[tags=correlation-id-runtime-manager]
+[[runtime-manager-config]]
+== Configure in Runtime Manager
 
-include::partial$correlation-id-configuration.adoc[tags=correlation-id-yaml]
+. In Anypoint Platform, select *Runtime Manager*.
+. Select *Omni Gateways*.
+. Select your Omni Gateway.
+. Open *Runtime Configurations*.
+. Open *Distributed Tracing*.
+// TODO: Confirm the Runtime Manager field labels and whether Distributed tracing must be enabled to set a correlation ID.
+. Set the correlation ID header and generation expression.
+. Apply the changes.
 
-include::partial$correlation-id-configuration.adoc[tags=correlation-id-parameters]
+[[yaml-resource-config]]
+== Configure with a YAML Resource
 
-include::partial$correlation-id-configuration.adoc[tags=correlation-id-resolution]
+Add `correlationId` under `spec.tracing` of a Configuration resource, and then apply the resource:
 
-include::partial$correlation-id-configuration.adoc[tags=generation-expressions]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: Configuration
+metadata:
+  name: correlation-id
+spec:
+  tracing:
+    correlationId:
+      header: X-Correlation-Id
+      generationExpression: "prefix(uuid(), 'REQ-')"
+----
 
-include::partial$correlation-id-configuration.adoc[tags=correlation-id-invalid]
+Omni Gateway applies changes without restarting. To disable the correlation ID, remove `correlationId` from the resource.
 
-include::partial$correlation-id-configuration.adoc[tags=correlation-id-policy]
+include::partial$correlation-id-configuration.adoc[tag=reference]
+
+[[policy-config]]
+== Override the Correlation ID for an API Instance
+
+To use a different header or generation expression for one API instance, apply the xref:policies-included-correlation-id-override.adoc[] policy to the API instance. The policy replaces the correlation ID configuration of the gateway for that API instance. Other API instances keep the configuration of the gateway.

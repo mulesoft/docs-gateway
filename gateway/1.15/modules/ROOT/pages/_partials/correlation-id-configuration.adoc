@@ -1,4 +1,4 @@
-//tag::correlation-id-overview[]
+//tag::overview[]
 A correlation ID is a value that identifies a request across Omni Gateway, your upstream services, and your tracing backend. When you configure a correlation ID, Omni Gateway makes sure that every request has one:
 
 * If the request includes the configured header, Omni Gateway keeps its value.
@@ -13,9 +13,9 @@ For every request, Omni Gateway also:
 You don't need to configure a tracing provider or sampling to use a correlation ID. Omni Gateway adds the header and the `baggage` member to every request. Only the span attribute requires tracing.
 
 The correlation ID applies to every API instance in the gateway. To use a different header or generation expression for one API instance, apply the xref:policies-included-correlation-id-override.adoc[] policy.
-//end::correlation-id-overview[]
+//end::overview[]
 
-//tag::correlation-id-parameters[]
+//tag::reference[]
 [[correlation-id-parameters]]
 == Correlation ID Parameters
 
@@ -34,45 +34,7 @@ The correlation ID applies to every API instance in the gateway. To use a differ
 | Expression that generates the correlation ID when the request doesn't include the header. See <<generation-expressions>>.
 
 |===
-//end::correlation-id-parameters[]
 
-//tag::correlation-id-yaml[]
-[[yaml-resource-config]]
-== Configure with a YAML Resource
-
-Add `correlationId` under `spec.tracing` of a Configuration resource, and then apply the resource:
-
-[source,yaml]
-----
-apiVersion: gateway.mulesoft.com/v1beta1
-kind: Configuration
-metadata:
-  name: correlation-id
-spec:
-  tracing:
-    correlationId:
-      header: X-Correlation-Id
-      generationExpression: "prefix(uuid(), 'REQ-')"
-----
-
-Omni Gateway applies changes without restarting. To disable the correlation ID, remove `correlationId` from the resource.
-//end::correlation-id-yaml[]
-
-//tag::correlation-id-runtime-manager[]
-[[runtime-manager-config]]
-== Configure in Runtime Manager
-
-. In Anypoint Platform, select *Runtime Manager*.
-. Select *Omni Gateways*.
-. Select your Omni Gateway.
-. Open *Runtime Configurations*.
-. Open *Distributed Tracing*.
-// TODO: Confirm the Runtime Manager field labels and whether Distributed tracing must be enabled to set a correlation ID.
-. Set the correlation ID header and generation expression.
-. Apply the changes.
-//end::correlation-id-runtime-manager[]
-
-//tag::correlation-id-resolution[]
 [[how-the-correlation-id-is-resolved]]
 == How Omni Gateway Resolves the Correlation ID
 
@@ -101,9 +63,7 @@ Omni Gateway never removes a header that the client sends.
 For example, a request with the header `baggage: userId=1,correlation.id=stale` and the correlation ID `REQ-1234` reaches the upstream service with the header `baggage: userId=1,correlation.id=REQ-1234`.
 
 If you configured a tracing label named `correlation.id`, Omni Gateway ignores the label, logs a warning, and uses the correlation ID for the `correlation.id` span attribute.
-//end::correlation-id-resolution[]
 
-//tag::generation-expressions[]
 [[generation-expressions]]
 == Generation Expressions
 
@@ -142,19 +102,10 @@ A generation expression combines the following functions and string literals:
 Use single or double quotes for string literals, for example `'REQ-'` or `"REQ-"`. You can nest functions. For example, `prefix(replace(uuid(), '-', ''), 'REQ-')` generates `REQ-` followed by 32 hexadecimal characters.
 
 An expression can be nested at most 32 levels deep, and can't generate a value longer than 8192 bytes.
-//end::generation-expressions[]
 
-//tag::correlation-id-invalid[]
 [[invalid-configuration]]
 == Invalid Configuration
 
 * If the header isn't a valid header name, for example `X Correlation` with a space, Omni Gateway doesn't apply the correlation ID and logs an error. The rest of the configuration and the traffic aren't affected.
 * If the generation expression isn't valid, for example it uses an unknown function, has the wrong arguments, or exceeds the limits, Omni Gateway rejects the configuration update. Omni Gateway doesn't apply this update or any later update until you fix the expression. Check the expression before you apply it.
-//end::correlation-id-invalid[]
-
-//tag::correlation-id-policy[]
-[[policy-config]]
-== Override the Correlation ID for an API Instance
-
-To use a different header or generation expression for one API instance, apply the xref:policies-included-correlation-id-override.adoc[] policy to the API instance. The policy replaces the correlation ID configuration of the gateway for that API instance. Other API instances keep the configuration of the gateway.
-//end::correlation-id-policy[]
+//end::reference[]
