@@ -5,10 +5,17 @@ Transport Layer Security (TLS) encrypts communication between clients, Omni Gate
 TLS between a client and an API instance (HTTPS).
 * *Outbound TLS* +
 TLS between Omni Gateway and an upstream service, and between Omni Gateway and the services that policies call.
-* *Mutual authentication TLS (mTLS)* +
-Inbound and outbound TLS where both sides present a certificate.
+* *Inbound mutual authentication TLS (mTLS)* +
+Inbound TLS where the client also presents a certificate that Omni Gateway validates.
+* *Outbound mutual authentication TLS (mTLS)* +
+Outbound TLS where Omni Gateway also presents a certificate that the upstream service validates.
 
-You can apply a TLS context to an individual API instance or upstream service, or configure a default TLS context that applies to every HTTPS API instance or upstream service that doesn't have its own TLS context.
+You can apply TLS contexts individually or configure default TLS contexts:
+
+* *Inbound TLS context* +
+Apply to an API instance. Because inbound TLS applies at the port level, the TLS context also applies to every API instance that shares the port. A default inbound TLS context applies to every HTTPS API instance that doesn't have its own inbound TLS context.
+* *Outbound TLS context* +
+Apply to an upstream service. Each upstream service can have its own TLS context. A default outbound TLS context applies to every HTTPS upstream service that doesn't have its own outbound TLS context, and to outgoing policy requests.
 
 //end::tls-types[]
 
@@ -115,7 +122,7 @@ If you change the port of an API instance, the inbound TLS context remains appli
 
 //tag::tls-redeploy[]
 [[redeploy-api-instance]]
-=== Update a TLS Context
+== Update a TLS Context
 
 If you edit a secret group or TLS context that's applied to an API instance, redeploy each affected API instance to apply the changes:
 
@@ -327,7 +334,7 @@ For all parameters and mTLS examples, see xref:policies-included-tls.adoc[] and 
 //end::tls-policy-binding[]
 
 //tag::tls-apply-files[]
-== Add the Configuration Files to Omni Gateway
+=== Add the Configuration Files to Omni Gateway
 
 Add the `PolicyBinding` and `Configuration` resources to Omni Gateway:
 
