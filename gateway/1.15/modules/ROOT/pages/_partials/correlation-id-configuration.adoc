@@ -1,18 +1,17 @@
 //tag::overview[]
 A correlation ID is a value that identifies a request across Omni Gateway, your upstream services, and your tracing backend. When you configure a correlation ID, Omni Gateway makes sure that every request has one:
 
-* If the request includes the configured header, Omni Gateway keeps its value.
-* If the request doesn't include the header, Omni Gateway generates a value with a generation expression and adds the header to the request.
+* If the request includes a correlation ID header, Omni Gateway keeps its value.
+* If the request doesn't include a correlation ID header, Omni Gateway generates a value with a generation expression and adds the header to the request.
 
 For every request, Omni Gateway also:
 
-* Forwards the header with the correlation ID to the upstream service.
 * Adds a `correlation.id` member to the W3C `baggage` header, so OpenTelemetry-instrumented services downstream receive the correlation ID. Omni Gateway keeps the other members of the `baggage` header, and replaces an existing `correlation.id` member.
 * Adds a `correlation.id` attribute to the spans of the request when tracing is enabled and the request is sampled, so you can search traces by correlation ID.
-
++
 You don't need to configure a tracing provider or sampling to use a correlation ID. Omni Gateway adds the header and the `baggage` member to every request. Only the span attribute requires tracing.
 
-The correlation ID applies to every API instance in the gateway. To use a different header or generation expression for one API instance, apply the xref:policies-included-correlation-id-override.adoc[] policy.
+The correlation ID applies to every API instance in the gateway. To use a different header or generation expression for one API instance, apply the xref:policies-included-correlation-id-override.adoc[].
 //end::overview[]
 
 //tag::reference[]
@@ -26,7 +25,7 @@ The correlation ID applies to every API instance in the gateway. To use a differ
 | `header`
 | Required
 | N/A
-| Name of the request header that carries the correlation ID. Omni Gateway reads the header and, when the request doesn't include it, adds it with a generated value. The name isn't case-sensitive.
+| Name of the request header that carries the correlation ID. When the header isn't present, Omni gateway adds it. The name isn't case-sensitive.
 
 | `generationExpression`
 | Optional
