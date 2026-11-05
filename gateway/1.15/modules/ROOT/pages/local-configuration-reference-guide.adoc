@@ -411,7 +411,7 @@ spec:
 
 == Configuration
 
-Define a desired gateway state by creating a `Configuration` entity. `Configuration` entities specify several runtime configuration aspects for Omni Gateway itself, such as <<logging, logging>> and <<shared-storage, shared storage>>. The definition includes the following:
+Define a desired gateway state by creating a `Configuration` entity. `Configuration` entities specify several runtime configuration aspects for Omni Gateway itself, such as <<logging, logging>>, <<shared-storage, shared storage>>, and <<default-tls, default TLS contexts>>. The definition includes the following:
 
 ----
 apiVersion: gateway.mulesoft.com/v1alpha1
@@ -422,6 +422,7 @@ metadata:
 spec: 
   logging: # logging configuration
   sharedStorage: # shared storage configuration
+  defaultTLS: # default TLS configuration
 ----
 
 [cols="2,1,1,3"]
@@ -441,7 +442,7 @@ spec:
 |`spec`
 |Required
 |N/A
-|The configuration object that defines gateway characteristics. Objects include: `logging`, `sharedStorage`, `tls`.
+|The configuration object that defines gateway characteristics. Objects include: `logging`, `sharedStorage`, `defaultTLS`, `tls`.
 
 |===
 
@@ -698,6 +699,24 @@ spec:
      enabled: true
 ----
 ====
+
+[[default-tls]]
+=== Default TLS
+
+Use `defaultTLS` to configure default inbound and outbound TLS contexts. A default inbound TLS context applies to every HTTPS API instance that doesn't have its own inbound TLS context. A default outbound TLS context applies to every HTTPS upstream service that doesn't have its own outbound TLS context, and to outgoing policy requests.
+
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: default-tls
+spec:
+  defaultTLS:
+    inbound: # default inbound TLS context
+    outbound: # default outbound TLS context
+----
+
+For parameters and examples, see xref:local-tls-config.adoc#default-tls[Configuring TLS Context for Omni Gateway in Local Mode] or xref:conn-tls-config.adoc#default-tls-config-file[Configuring TLS Context for Omni Gateway in Connected Mode].
 
 [[examples]]
 == Examples

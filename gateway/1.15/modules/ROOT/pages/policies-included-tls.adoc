@@ -42,8 +42,9 @@ Refer to the following policy definition and table of parameters:
     requireClientCertificate: <boolean> // OPTIONAL
     trustedCA: <string> // OPTIONAL
     certificate: // OPTIONAL
-        key: <string> // OPTIONAL
-        crt: <string> // OPTIONAL
+        key: <string> // REQUIRED
+        crt: <string> // REQUIRED
+        keyPassphrase: <string> // OPTIONAL
     alpn: <array> // OPTIONAL
     minversion: <string> // OPTIONAL
     maxversion: <string> // OPTIONAL
@@ -74,14 +75,19 @@ When configuring the `ciphers` parameter, see <<supported-ciphers>> for the supp
 | A TLS certificate key pair. To comply with security standards, all certificates must be 2048 bits or longer.
 
 | `certificate.key`
-| Optional
+| Required if `certificate` is set
 | N/A
 | The private key part of the certificate.
 
 | `certificate.crt`
-| Optional
+| Required if `certificate` is set
 | N/A
 | The public key part of the certificate.
+
+| `certificate.keyPassphrase`
+| Optional, unless the private key is encrypted
+| N/A
+| The passphrase that decrypts the private key.
 
 | `alpn`
 | Optional

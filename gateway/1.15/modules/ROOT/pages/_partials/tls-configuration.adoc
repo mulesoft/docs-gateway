@@ -242,6 +242,8 @@ For `outbound`, the CA that validates upstream server certificates.
 | A list of TLS 1.2 ciphers, in IANA format.
 |===
 
+NOTE: In the `Configuration` resource, the TLS version parameters are `minVersion` and `maxVersion`. In the `tls` and `tls-outbound` policies, the same parameters are lowercase: `minversion` and `maxversion`.
+
 This example configures a default inbound TLS context and a default outbound TLS context that trusts a private CA:
 
 [source,yaml]
@@ -336,7 +338,7 @@ For all parameters and mTLS examples, see xref:policies-included-tls.adoc[] and 
 //tag::tls-apply-files[]
 === Add the Configuration Files to Omni Gateway
 
-Add the `PolicyBinding` and `Configuration` resources to Omni Gateway:
+Add the YAML file to Omni Gateway:
 
 * *Linux service*: Save the YAML file in `/usr/local/share/mulesoft/flex-gateway/conf.d/`.
 * *Docker container*: Save the YAML file in the directory that you mount to `/usr/local/share/mulesoft/flex-gateway/conf.d` in the container, for example, with `-v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d`.
@@ -367,6 +369,44 @@ curl https://<SERVER_DOMAIN>:<SERVER_PORT>/get \
 If `curl` returns `error:1408F10B:SSL routines:ssl3_get_record:wrong version number`, check the indentation of the `key` and `crt` values in your YAML file.
 
 //end::tls-verify[]
+
+//tag::tls-troubleshoot-default-start[]
+== Troubleshoot Default TLS Contexts
+
+Omni Gateway logs these messages about default TLS contexts:
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Message | Description
+
+| `applying defaultTLS.inbound to the https API instances` +
+`applying defaultTLS.outbound to the https services`
+| Debug messages. Omni Gateway applied the default TLS context.
+
+| `defaultTLS.inbound could not be applied, the https API instances are served without TLS`
+| Error. Omni Gateway couldn't apply the default inbound TLS context. HTTPS API instances that don't have their own inbound TLS context are served without TLS. Check the certificate, key, and parameters of the default inbound TLS context.
+
+| `defaultTLS.outbound could not be applied to the https services`
+| Error. Omni Gateway couldn't apply the default outbound TLS context. Check the parameters of the default outbound TLS context.
+
+| `defaultTLS.outbound.skipValidation is enabled`
+| Warning. The default outbound TLS context doesn't validate server certificates. Omni Gateway logs this warning each time it applies the configuration.
+
+//end::tls-troubleshoot-default-start[]
+//tag::tls-troubleshoot-default-runtime-manager[]
+| `defaultTLS.<inbound\|outbound> is ignored, its TLS context '<name>' can't be used`
+| Warning. Omni Gateway can't use the TLS context selected in Runtime Manager, for example, because the TLS context was deleted from Secrets Manager or its certificate is invalid. Check the TLS context in Secrets Manager, or select a different TLS context.
+
+//end::tls-troubleshoot-default-runtime-manager[]
+//tag::tls-troubleshoot-default-config-resource[]
+| `defaultTLS.outboundPolicyCalls is deprecated`
+| Warning. The `Configuration` resource uses the deprecated `outboundPolicyCalls` parameter. Use `outbound` instead. For details, see xref:policies-tls-configuration.adoc#deprecated-outbound-policy-calls[Deprecated `outboundPolicyCalls` Parameter].
+
+//end::tls-troubleshoot-default-config-resource[]
+//tag::tls-troubleshoot-default-end[]
+|===
+
+//end::tls-troubleshoot-default-end[]
 
 //tag::tls-ciphers[]
 [[local-support]]
