@@ -1,16 +1,32 @@
-= Configuring Inbound TLS for Managed Omni Gateway
+= Configuring TLS for Managed Omni Gateway
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
 :imagesdir: ../assets/images
 :page-mode: conn
-:page-aliases: flex-managed-inbound-tls-config.adoc
+:page-aliases: managed-inbound-tls-config.adoc, managed-outbound-tls-config.adoc, flex-managed-inbound-tls-config.adoc, flex-managed-outbound-tls-config.adoc
 
+include::partial$tls-configuration.adoc[tags=tls-types]
 
-How you configure inbound TLS for Managed Omni Gateway depends on where you deploy the gateway:
+You can configure TLS for Managed Omni Gateway via:
 
-* <<cloudhub-2, CloudHub 2.0>>
-* <<runtime-fabric-openshift, Runtime Fabric on OpenShift>>
+* Runtime Manager runtime configurations: Applies default TLS contexts to all API instances and upstream services in the gateway.
+* API Manager: Applies an outbound TLS context to one upstream service.
+* CloudHub 2.0 private spaces: Manages inbound TLS for Managed Omni Gateway on CloudHub 2.0.
+* Policy bindings on Runtime Fabric: Configures inbound TLS behind an OpenShift route and trusts upstream services signed by a private CA.
+
+Outbound TLS contexts are the same for Managed Omni Gateway and Self-Managed Omni Gateway in Connected Mode. You can use the same TLS contexts for both.
+
+include::partial$configuration-precedence.adoc[tags=precedence]
+
+include::partial$tls-configuration.adoc[tags=tls-precedence;tls-precedence-details;tls-requirements;tls-secrets-manager]
+
+[[default-tls]]
+include::partial$tls-configuration.adoc[tags=tls-runtime-manager]
+
+For Managed Omni Gateway on Runtime Fabric with last-mile security, the default inbound TLS context replaces the self-signed certificate that Omni Gateway presents to the cluster ingress. Ensure that the `destinationCACertificate` of your route template signs the certificate in the default inbound TLS context. See <<runtime-fabric-openshift>>.
+
+include::partial$tls-configuration.adoc[tags=tls-api-manager-start;tls-api-manager-outbound;tls-api-manager-end;tls-redeploy]
 
 [[cloudhub-2]]
 == Configure Inbound TLS on CloudHub 2.0
@@ -36,7 +52,7 @@ You must configure both of these resources together:
 
 If you configure only the route template, the route can't connect to the APIs over HTTPS. If you configure only the policy binding, external clients don't connect to the gateway through the route with the cluster wildcard certificate.
 
-Instead of a `PolicyBinding` resource for each API, you can configure a default inbound TLS context that applies to every HTTPS API that doesn't have an inbound TLS context. See <<default-tls, Configure a Default Inbound TLS Context>>.
+Instead of a `PolicyBinding` resource for each API, you can configure a default inbound TLS context that applies to every HTTPS API that doesn't have an inbound TLS context. See <<default-tls>>.
 
 Don't create the OpenShift `Route` resource directly. Instead, create an `HTTPRouteTemplate` resource. The Runtime Fabric agent renders the template into the `Route` resource and keeps it reconciled.
 
@@ -48,6 +64,7 @@ Before configuring inbound TLS for Managed Omni Gateway on Runtime Fabric, make 
 * The cluster wildcard certificate and private key, in PEM format.
 * The CA certificate that signs the internal certificate of Managed Omni Gateway, in PEM format.
 
+[[create-the-route-template]]
 === Create the Route Template
 
 . Create a YAML file with an `HTTPRouteTemplate` resource:
@@ -169,27 +186,100 @@ In the `HTTPRouteTemplate` resource that you create in <<create-the-route-templa
 | CA certificate that signs the internal certificate of Managed Omni Gateway. The route uses this CA to validate the gateway.
 |===
 
-[[default-tls]]
-== Configure a Default Inbound TLS Context
+[[private-ca-rtf]]
+== Trust Upstreams Signed by a Private CA on Runtime Fabric
 
-include::partial$task-default-tls.adoc[tags=intro]
+For Managed Omni Gateway on Runtime Fabric, you can trust upstream services whose server certificates are signed by a private or corporate CA, such as a large language model (LLM) endpoint that uses private PKI.
 
-The default inbound TLS context applies to inbound requests on every HTTPS API instance that doesn't have an inbound TLS context.
+Managed Omni Gateway doesn't inherit the cluster CA bundle, such as the `trustedCA` bundle from the OpenShift cluster `Proxy` resource. Provide the CA to the gateway in a `tls-outbound` policy binding.
 
-include::partial$task-default-tls.adoc[tags=precedence]
+When you configure `trustedCA`, the CA replaces the default CA bundle for the upstreams that the binding matches. Include the complete CA chain for every matched upstream.
 
-For Managed Omni Gateway on Runtime Fabric with last-mile security, the default inbound TLS context replaces the self-signed certificate that Omni Gateway presents to the cluster ingress. Ensure that the `destinationCACertificate` of your route template signs the certificate in the default inbound TLS context.
+`trustedCA` accepts only an inline PEM value. You can't reference a Kubernetes secret or config map.
 
-Before configuring a default inbound TLS context, add a TLS context with the *Omni Gateway* target and a keystore to a downloadable secret group. To add a TLS context, see xref:managed-outbound-tls-config.adoc#add-a-tls-context[Add a TLS Context]. To require client certificates (inbound mTLS), select *Validate Client certificate* and add a truststore.
+. Create a YAML file with a `PolicyBinding` resource.
++
+To apply the CA to all upstream services, use a `Selector` target with no labels:
++
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: tls-outbound-all-upstreams
+  namespace: <omni-gateway-namespace>
+  labels:
+    rtf.mulesoft.com/target-id: <omni-gateway-id>
+spec:
+  targetRef:
+    kind: Selector
+    selector:
+      kind: Service
+  policyRef:
+    name: tls-outbound
+  config:
+    skipValidation: false
+    trustedCA: |
+      -----BEGIN CERTIFICATE-----
+      # insert the complete CA bundle for all upstreams
+      -----END CERTIFICATE-----
+----
++
+To apply the CA to a single upstream service, set `targetRef` to the service instead:
++
+[source,yaml]
+----
+  targetRef:
+    kind: Service
+    name: <upstream-service-name>
+----
++
+Replace `<omni-gateway-namespace>` with the namespace of the Managed Omni Gateway and `<omni-gateway-id>` with the gateway ID from Runtime Manager.
++
+If the upstream also requires a client certificate, add `config.certificate`. For all parameters, see xref:policies-included-tls-outbound.adoc[].
+. Apply the resource:
++
+[tabs]
+====
+Kubernetes::
++
+[source,ssh]
+----
+kubectl apply -f <file-name>.yaml
+----
+OpenShift::
++
+[source,ssh]
+----
+oc apply -f <file-name>.yaml
+----
+====
+. Verify that the egress gateway connects to the upstream without a certificate validation error:
++
+[tabs]
+====
+Kubernetes::
++
+[source,ssh]
+----
+kubectl get pods -n <omni-gateway-namespace>
+kubectl exec -n <omni-gateway-namespace> <omni-egress-pod> -c app -- flexctl check http https://<upstream-host>
+----
+OpenShift::
++
+[source,ssh]
+----
+oc get pods -n <omni-gateway-namespace>
+oc exec -n <omni-gateway-namespace> <omni-egress-pod> -c app -- flexctl check http https://<upstream-host>
+----
+====
 
-To configure a default inbound TLS context:
-
-include::partial$task-default-tls.adoc[tags=rm-steps-start;rm-step-inbound;rm-steps-end]
-
-To configure a default outbound TLS context, see xref:managed-outbound-tls-config.adoc#default-tls[Configure a Default Outbound TLS Context].
+include::partial$tls-configuration.adoc[tags=tls-ciphers]
 
 == See Also
 
+* xref:conn-tls-config.adoc[]
 * xref:policies-included-tls.adoc[]
-* xref:managed-outbound-tls-config.adoc[]
+* xref:policies-included-tls-outbound.adoc[]
+* xref:managed-forward-proxy.adoc[]
 * xref:gateway-managed-set-up.adoc[]

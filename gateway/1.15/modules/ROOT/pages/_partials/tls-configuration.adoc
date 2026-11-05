@@ -1,0 +1,568 @@
+//tag::tls-types[]
+Transport Layer Security (TLS) encrypts communication between clients, Omni Gateway, and upstream services. Omni Gateway supports:
+
+* *Inbound TLS* +
+TLS between a client and an API instance (HTTPS).
+* *Outbound TLS* +
+TLS between Omni Gateway and an upstream service, and between Omni Gateway and the services that policies call.
+* *Mutual authentication TLS (mTLS)* +
+Inbound and outbound TLS where both sides present a certificate.
+
+You can apply a TLS context to an individual API instance or upstream service, or configure a default TLS context that applies to every HTTPS API instance or upstream service that doesn't have its own TLS context.
+
+//end::tls-types[]
+
+//tag::tls-precedence[]
+. *TLS context applied to the API instance or upstream service*: A TLS context applied in API Manager or with a `tls` or `tls-outbound` policy binding.
+. *Default TLS context*: Used if the API instance or upstream service doesn't have its own TLS context.
+. *Built-in outbound TLS*: Used for upstream services and outgoing policy requests if no other TLS context applies. Omni Gateway validates the server certificate against the operating system CAs, uses the default ciphers, and doesn't present a client certificate.
+//end::tls-precedence[]
+
+//tag::tls-precedence-details[]
+
+Default TLS contexts apply only to API instances and upstream services that use HTTPS. HTTP API instances and upstream services aren't affected.
+
+//end::tls-precedence-details[]
+
+//tag::tls-port-level[]
+Omni Gateway applies inbound TLS at the port level. An inbound TLS context applied to one API instance applies to every API instance that shares its port, so you can't apply different inbound TLS contexts to API instances on the same port. To use different certificates, deploy the API instances on different ports. Outbound TLS contexts apply to each upstream service individually.
+
+//end::tls-port-level[]
+
+//tag::tls-requirements[]
+[[certificate-requirements]]
+== Certificate Requirements
+
+* Certificates must be 2048 bits or longer.
+* Certificates, keys, and CAs must be in Privacy Enhanced Mail (PEM) format.
+* Upstream server certificates must include the Subject Alternative Name (SAN) extension of type `dNSName`. The Common Name (CN) field is deprecated.
+* Omni Gateway doesn't support the Authority Information Access (AIA) certificate extension for outbound TLS.
+
+//end::tls-requirements[]
+
+//tag::tls-secrets-manager[]
+[[add-a-tls-context]]
+== Create a TLS Context in Secrets Manager
+
+Before you create a TLS context, xref:anypoint-security::asm-secret-group-creation-task.adoc[create a secret group] and add a xref:anypoint-security::asm-secret-group-creation-task.adoc#adding-a-keystore[keystore], a xref:anypoint-security::asm-secret-group-creation-task.adoc#adding-a-truststore[truststore], or both, depending on the TLS context you need:
+
+[[tls-configuration-options]]
+[%header%autowidth.spread,cols="a,a,a,a,a"]
+|===
+| Setting | Inbound TLS | Inbound mTLS | Outbound TLS | Outbound mTLS
+| *Keystore* | Required | Required | Not used | Required
+| *Truststore* | Not used | Required | Required, unless *Skip server certificate validation* is selected | Required
+| *Validate Client certificate* | Not selected | Selected | Not used | Not used
+| *Skip server certificate validation* | Not used | Not used | Either | Not selected
+|===
+
+You can use one TLS context for both directions if it includes the settings for both. You can't use one TLS context for both TLS and mTLS in the same direction.
+
+To create a TLS context:
+
+. In Anypoint Platform, select *Secrets Manager*.
+. Make your secret group downloadable:
+.. Click the pencil icon next to the name of your secret group.
+.. Select *Secret Group Downloadable*, and then click *Save*.
+. Click *Edit* for the secret group.
+. Select *TLS Context*, and then click *Add TLS Context*.
+. Enter the TLS context settings:
++
+* *Name*: A name for the TLS context.
+* *Target*: Select *Omni Gateway*.
+* *Min TLS Version* and *Max TLS Version*: The range of TLS versions to support. To support one version, select the same version for both.
+* *Keystore*: The certificate that Omni Gateway presents to the remote party.
+* *Truststore*: The CAs that Omni Gateway uses to validate the remote party's certificate.
+* *Expiration Date*: Optional. An expiration date for the TLS context.
+* *ALPN Protocols*: The application-level protocols to support. The default is *H2 - HTTP/1.1*.
+* *Inbound Settings*: To require client certificates (inbound mTLS), select *Validate Client certificate*.
+* *Outbound Settings*: To accept the upstream server certificate without validating it, select *Skip server certificate validation*.
+. Optional: To add TLS 1.2 ciphers to the defaults, click *Ciphers* and select the ciphers. For the supported ciphers, see <<supported-ciphers>>.
++
+Cipher selection isn't available if you support only TLS 1.3.
+. Click *Save*.
+
+//end::tls-secrets-manager[]
+
+//tag::tls-api-manager-start[]
+== Apply a TLS Context to an API Instance
+
+Apply a TLS context when you create an API instance or edit an existing one. For more information, see xref:api-manager::create-instance-task-flex.adoc[] and xref:api-manager::edit-api-endpoint-task.adoc[].
+
+. In Anypoint Platform, select *API Manager*.
+. Create an API instance, or open the *Settings* of an existing API instance.
+//end::tls-api-manager-start[]
+//tag::tls-api-manager-inbound[]
+. To apply an inbound TLS context, in the downstream configuration, select *HTTPS* for *Protocol*, click *Add TLS Context*, select a *Secret Group* and a *TLS Context*, and click *Ok*.
+//end::tls-api-manager-inbound[]
+//tag::tls-api-manager-outbound[]
+. To apply an outbound TLS context, in the upstream configuration, click *Add TLS Context*, select a *Secret Group* and a *TLS Context*, and click *Ok*.
+//end::tls-api-manager-outbound[]
+//tag::tls-api-manager-end[]
+. Save the API instance.
+
+//end::tls-api-manager-end[]
+
+//tag::tls-shared-ports[]
+[[tls-context-applied-to-shared-ports]]
+=== Inbound TLS Contexts on Shared Ports
+
+When you apply, edit, or remove the inbound TLS context of an API instance that shares its port, API Manager lists the other API instances on the port. To apply the same inbound TLS context to them, override their inbound TLS context. Overriding redeploys the API instances, which causes a brief downtime.
+
+If you change the port of an API instance, the inbound TLS context remains applied to the API instances on the previous port.
+
+//end::tls-shared-ports[]
+
+//tag::tls-redeploy[]
+[[redeploy-api-instance]]
+=== Update a TLS Context
+
+If you edit a secret group or TLS context that's applied to an API instance, redeploy each affected API instance to apply the changes:
+
+. In Anypoint Platform, select *API Manager*.
+. Click the name of the API instance.
+. Click *Runtime & Endpoint Configuration > Save & Apply*.
+
+For how to edit a secret group, see xref:anypoint-security::asm-secret-group-creation-task.adoc#edit-a-secret-group[Edit a Secret Group].
+
+//end::tls-redeploy[]
+
+//tag::tls-runtime-manager[]
+== Configure Default TLS Contexts in Runtime Manager
+
+Before you configure a default TLS context, <<add-a-tls-context, create a TLS context>> in a downloadable secret group. A default inbound TLS context requires a keystore.
+
+. In Anypoint Platform, select *Runtime Manager*.
+. Select *Omni Gateways*.
+. Select your Omni Gateway.
+. Open *Runtime Configurations*.
+. Open *TLS*.
+. To configure a default inbound TLS context, in *Default Inbound TLS*, select a *Secret Group* and a *TLS Context*.
+. To configure a default outbound TLS context, in *Default Outbound TLS*, select a *Secret Group* and a *TLS Context*.
+. Click *Apply changes*.
+
+To remove a default TLS context, clear its *Secret Group* and *TLS Context* fields, and then click *Apply changes*.
+
+If Omni Gateway can't use the selected TLS context, for example, because the TLS context was deleted, Omni Gateway ignores that default TLS context, logs a warning, and applies the rest of the runtime configuration.
+
+//end::tls-runtime-manager[]
+
+//tag::tls-config-resource[]
+== Configure Default TLS Contexts with a Configuration Resource
+
+Configure default TLS contexts in a `Configuration` resource. Both `inbound` and `outbound` are optional:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: default-tls
+spec:
+  defaultTLS:
+    inbound:
+      certificate:
+        key: <string>
+        crt: <string>
+        keyPassphrase: <string>
+      requireClientCertificate: <boolean>
+      trustedCA: <string>
+      alpn: <array>
+      minVersion: <string>
+      maxVersion: <string>
+      ciphers: <array>
+    outbound:
+      skipValidation: <boolean>
+      trustedCA: <string>
+      certificate:
+        key: <string>
+        crt: <string>
+        keyPassphrase: <string>
+      alpn: <array>
+      minVersion: <string>
+      maxVersion: <string>
+      ciphers: <array>
+----
+
+Omni Gateway validates each default TLS context when you apply the resource. If a default TLS context is invalid, for example, because the certificate and key don't match or a cipher isn't supported, Omni Gateway rejects the resource and logs an error.
+
+Parameters for `inbound` and `outbound`:
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Parameter | Required or Optional | Default Value | Description
+
+| `certificate.crt` and `certificate.key`
+| Required for `inbound`. Optional for `outbound`.
+| N/A
+| The certificate and private key that Omni Gateway presents. For `outbound`, the certificate enables mTLS.
+
+| `certificate.keyPassphrase`
+| Optional, unless the private key is encrypted
+| N/A
+| The passphrase that decrypts the private key.
+
+| `trustedCA`
+| Optional
+| `inbound`: N/A +
+`outbound`: The operating system CAs
+| For `inbound`, the CA that validates client certificates. Required if `requireClientCertificate` is `true`. +
+For `outbound`, the CA that validates upstream server certificates.
+
+| `requireClientCertificate`
+| Optional. `inbound` only.
+| `false`
+| If `true`, clients must present a certificate signed by `trustedCA` (inbound mTLS).
+
+| `skipValidation`
+| Optional. `outbound` only.
+| `false`
+| If `true`, Omni Gateway doesn't validate upstream server certificates and logs a warning.
+
+| `alpn`
+| Optional
+| `http/1.1` and `h2`
+| A prioritized list of application-level protocols. Supported values are `http/1.1` and `h2`.
+
+| `minVersion` and `maxVersion`
+| Optional
+| `1.2` and `1.3`
+| The minimum and maximum TLS versions. Supported values are `1.2` and `1.3`.
+
+| `ciphers`
+| Optional
+| The default TLS 1.2 ciphers in <<supported-ciphers>>. `outbound` excludes `TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256`.
+| A list of TLS 1.2 ciphers, in IANA format.
+|===
+
+This example configures a default inbound TLS context and a default outbound TLS context that trusts a private CA:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: default-tls
+spec:
+  defaultTLS:
+    inbound:
+      certificate:
+        key: |
+          -----BEGIN PRIVATE KEY-----
+          # insert private key
+          -----END PRIVATE KEY-----
+        crt: |
+          -----BEGIN CERTIFICATE-----
+          # insert certificate
+          -----END CERTIFICATE-----
+    outbound:
+      trustedCA: |
+        -----BEGIN CERTIFICATE-----
+        # insert the CA that signs the upstream server certificates
+        -----END CERTIFICATE-----
+----
+
+NOTE: The `defaultTLS.outboundPolicyCalls` parameter is deprecated. Use `defaultTLS.outbound` instead. For details, see xref:policies-tls-configuration.adoc[].
+
+//end::tls-config-resource[]
+
+//tag::tls-policy-binding[]
+== Apply a TLS Context with a Policy Binding
+
+To apply a TLS context to an API instance or upstream service, create a `PolicyBinding` resource:
+
+* For inbound TLS, bind the `tls` policy to an API instance. To apply it to all API instances, use a `Selector` target.
+* For outbound TLS, bind the `tls-outbound` policy to an upstream service.
+
+This example applies inbound TLS to an API instance:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: ingress-https-tls
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: ingress-https
+  policyRef:
+    name: tls
+  config:
+    certificate:
+      key: |
+        -----BEGIN PRIVATE KEY-----
+        # insert private key
+        -----END PRIVATE KEY-----
+      crt: |
+        -----BEGIN CERTIFICATE-----
+        # insert certificate
+        -----END CERTIFICATE-----
+----
+
+This example applies outbound TLS to an upstream service:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: tls-outbound
+spec:
+  targetRef:
+    kind: Service
+    name: ingress-test-outbound-upstream
+  policyRef:
+    name: tls-outbound
+  config:
+    skipValidation: false
+    trustedCA: |
+      -----BEGIN CERTIFICATE-----
+      # insert the CA that signs the upstream server certificate
+      -----END CERTIFICATE-----
+----
+
+For all parameters and mTLS examples, see xref:policies-included-tls.adoc[] and xref:policies-included-tls-outbound.adoc[]. TLS policies don't support policy ordering.
+
+//end::tls-policy-binding[]
+
+//tag::tls-apply-files[]
+== Add the Configuration Files to Omni Gateway
+
+Add the `PolicyBinding` and `Configuration` resources to Omni Gateway:
+
+* *Linux service*: Save the YAML file in `/usr/local/share/mulesoft/flex-gateway/conf.d/`.
+* *Docker container*: Save the YAML file in the directory that you mount to `/usr/local/share/mulesoft/flex-gateway/conf.d` in the container, for example, with `-v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d`.
+* *Kubernetes cluster*: Apply the YAML file with `kubectl apply -f <file-name>.yaml`.
+
+//end::tls-apply-files[]
+
+//tag::tls-verify[]
+=== Verify Inbound TLS
+
+Send a request to an HTTPS API instance:
+
+[source,ssh]
+----
+curl https://<SERVER_DOMAIN>:<SERVER_PORT>/get --cacert <SERVER_CERT_FILE> -v
+----
+
+The output shows the TLS handshake and an HTTP `200` response. For inbound mTLS, also pass the client certificate and key:
+
+[source,ssh]
+----
+curl https://<SERVER_DOMAIN>:<SERVER_PORT>/get \
+--cert <CLIENTAPP_CERT_FILE> \
+--key <CLIENTAPP_KEY_FILE> \
+--cacert <SERVER_CERT_FILE> -v
+----
+
+If `curl` returns `error:1408F10B:SSL routines:ssl3_get_record:wrong version number`, check the indentation of the `key` and `crt` values in your YAML file.
+
+//end::tls-verify[]
+
+//tag::tls-ciphers[]
+[[local-support]]
+[[supported-ciphers]]
+== Supported TLS Versions and Ciphers
+
+Omni Gateway supports TLS 1.2 and TLS 1.3:
+
+* *TLS 1.3*: Omni Gateway always supports all TLS 1.3 ciphers. You can't customize them.
+* *TLS 1.2*: Omni Gateway supports the default ciphers unless you customize them. In Secrets Manager, you add ciphers to the defaults. In a configuration file, the `ciphers` list replaces the defaults, so include every cipher that you want to support.
+
+For outbound TLS, ensure that your upstream services support the TLS versions and ciphers that you configure.
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Cipher | TLS Version | Default | Advice
+| `TLS_AES_128_GCM_SHA256` | 1.3 | Yes | Secure
+| `TLS_AES_256_GCM_SHA384` | 1.3 | Yes | Secure
+| `TLS_CHACHA20_POLY1305_SHA256` | 1.3 | Yes | Secure
+| `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256` | 1.2 | Yes | Recommended
+| `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384` | 1.2 | Yes | Recommended
+| `TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256` | 1.2 | Yes | Recommended
+| `TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256` | 1.2 | No | Recommended
+| `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256` | 1.2 | Yes | Secure
+| `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384` | 1.2 | Yes | Secure
+| `TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256` | 1.2 | Yes | Secure
+| `TLS_RSA_WITH_AES_128_GCM_SHA256` | 1.2 | No | Weak
+| `TLS_RSA_WITH_AES_256_GCM_SHA384` | 1.2 | No | Weak
+| `TLS_RSA_WITH_AES_128_CBC_SHA` | 1.2 | No | Weak
+| `TLS_RSA_WITH_AES_256_CBC_SHA` | 1.2 | No | Weak
+| `TLS_PSK_WITH_AES_128_CBC_SHA` | 1.2 | No | Weak
+| `TLS_PSK_WITH_AES_256_CBC_SHA` | 1.2 | No | Weak
+| `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA` | 1.2 | No | Weak
+| `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA` | 1.2 | No | Weak
+| `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` | 1.2 | No | Weak
+| `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` | 1.2 | No | Weak
+| `TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA` | 1.2 | No | Weak
+| `TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA` | 1.2 | No | Weak
+|===
+
+//end::tls-ciphers[]
+
+//tag::tls-sample-inbound-all[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: ingress-https-tls
+spec:
+  targetRef:
+    kind: Selector
+    selector:
+      kind: ApiInstance
+  policyRef:
+    name: tls
+  config:
+    certificate:
+      key: |
+        -----BEGIN PRIVATE KEY-----
+        # insert private key
+        -----END PRIVATE KEY-----
+      crt: |
+        -----BEGIN CERTIFICATE-----
+        # insert certificate
+        -----END CERTIFICATE-----
+    alpn:
+      - http/1.1
+      - h2
+    minversion: "1.2"
+    maxversion: "1.3"
+    ciphers:
+      - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+----
+//end::tls-sample-inbound-all[]
+
+//tag::tls-sample-inbound-instance[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: ingress-https-tls
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: ingress-https
+  policyRef:
+    name: tls
+  config:
+    certificate:
+      key: |
+        -----BEGIN PRIVATE KEY-----
+        # insert private key
+        -----END PRIVATE KEY-----
+      crt: |
+        -----BEGIN CERTIFICATE-----
+        # insert certificate
+        -----END CERTIFICATE-----
+----
+
+This example uses the default values for `alpn`, `minversion`, `maxversion`, and `ciphers`.
+//end::tls-sample-inbound-instance[]
+
+//tag::tls-sample-inbound-mtls[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: mtls
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: ingress-https
+  policyRef:
+    name: tls
+  config:
+    requireClientCertificate: true
+    trustedCA: |
+      -----BEGIN CERTIFICATE-----
+      # insert the CA that signs client certificates
+      -----END CERTIFICATE-----
+    certificate:
+      key: |
+        -----BEGIN PRIVATE KEY-----
+        # insert private key
+        -----END PRIVATE KEY-----
+      crt: |
+        -----BEGIN CERTIFICATE-----
+        # insert certificate
+        -----END CERTIFICATE-----
+----
+
+This example uses the default values for `alpn`, `minversion`, `maxversion`, and `ciphers`.
+//end::tls-sample-inbound-mtls[]
+
+//tag::tls-sample-outbound[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: tls-outbound
+spec:
+  targetRef:
+    kind: Service
+    name: ingress-test-outbound-upstream
+  policyRef:
+    name: tls-outbound
+  config:
+    skipValidation: false
+    trustedCA: |
+      -----BEGIN CERTIFICATE-----
+      # insert the CA that signs the upstream server certificate
+      -----END CERTIFICATE-----
+----
+
+This example uses the default values for `alpn`, `minversion`, `maxversion`, and `ciphers`.
+//end::tls-sample-outbound[]
+
+//tag::tls-sample-outbound-mtls[]
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: mtls-outbound
+spec:
+  targetRef:
+    kind: Service
+    name: ingress-test-outbound-upstream
+  policyRef:
+    name: tls-outbound
+  config:
+    skipValidation: false
+    trustedCA: |
+      -----BEGIN CERTIFICATE-----
+      # insert the CA that signs the upstream server certificate
+      -----END CERTIFICATE-----
+    certificate:
+      key: |
+        -----BEGIN PRIVATE KEY-----
+        # insert private key
+        -----END PRIVATE KEY-----
+      crt: |
+        -----BEGIN CERTIFICATE-----
+        # insert certificate
+        -----END CERTIFICATE-----
+    alpn:
+      - http/1.1
+      - h2
+    minversion: "1.2"
+    maxversion: "1.3"
+    ciphers:
+      - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+----
+//end::tls-sample-outbound-mtls[]

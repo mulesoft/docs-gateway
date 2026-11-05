@@ -6,55 +6,24 @@ endif::[]
 :page-mode: local
 :page-aliases: flex-local-tls-config.adoc
 
-// intro and graphics for each option - linux, docker, kubernetes
-include::partial$task-tls-config.adoc[tags=intro1;intro2;defaultOutboundTLS;defaultTLSLink;intro3;resources;intro4;icon-table;byb;linux;sample-config-instance-intro]
-// configure TLS context for Omni Gateway as a Linux Service
-+
-include::partial$task-tls-config.adoc[tags=sample-config-instance]
-+
-include::partial$task-tls-config.adoc[tags=openssl-standards]
-+
-include::partial$task-tls-config.adoc[tags=verify-config]
+include::partial$tls-configuration.adoc[tags=tls-types]
 
-// configure TLS context for Omni Gateway in a Docker container
-include::partial$task-tls-config.adoc[tags=docker-intro]
-+
-include::partial$task-reg-run-gateway.adoc[tags=start-command-local]
-+
-include::partial$task-tls-config.adoc[tags=docker-config-file-step]
-+
-include::partial$task-tls-config.adoc[tags=sample-config-instance-intro]
-+
-include::partial$task-tls-config.adoc[tags=sample-config-instance]
-+
-include::partial$task-tls-config.adoc[tags=openssl-standards]
-+
-include::partial$task-tls-config.adoc[tags=verify-config]
+You can configure TLS in Local Mode via:
 
-//configure TLS context for Omni Gateway as a Kubernetes cluster
-include::partial$task-tls-config.adoc[tags=k8s-intro]
-+
-include::partial$task-tls-config.adoc[tags=sample-config-instance-intro]
-+
-include::partial$task-tls-config.adoc[tags=sample-config-instance]
-+
-include::partial$task-tls-config.adoc[tags=openssl-standards]
+* Policy binding: Applies a TLS context to one API instance or upstream service.
+* Configuration YAML resource: Applies default TLS contexts to all API instances and upstream services in the gateway.
+
+include::partial$configuration-precedence.adoc[tags=precedence]
+
+include::partial$tls-configuration.adoc[tags=tls-precedence;tls-precedence-details;tls-port-level;tls-requirements;tls-policy-binding]
 
 [[default-tls]]
-== Configure Default TLS Contexts
-
-include::partial$task-default-tls.adoc[tags=intro]
-
-You can configure two default TLS contexts:
-
-include::partial$task-default-tls.adoc[tags=inbound-intro;outbound-intro;precedence;local-config]
-
-// ciphers
-include::partial$tls-cipher.adoc[tags=cipherSupportLocal;outboundImportantLocal;local-ciphers]
-
+include::partial$tls-configuration.adoc[tags=tls-config-resource;tls-apply-files;tls-verify;tls-ciphers]
 
 == See Also
 
-* xref:conn-tls-config.adoc[Configuring TLS Context for Omni Gateway in Connected Mode]
+* xref:managed-tls-config.adoc[]
+* xref:conn-tls-config.adoc[]
 * xref:policies-included-tls.adoc[]
 * xref:policies-included-tls-outbound.adoc[]
+* xref:policies-tls-configuration.adoc[]
