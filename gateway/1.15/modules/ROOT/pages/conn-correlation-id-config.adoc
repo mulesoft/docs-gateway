@@ -22,11 +22,18 @@ include::partial$configuration-precedence.adoc[tags=precedence;precedence-conn;p
 . In Anypoint Platform, select *Runtime Manager*.
 . Select *Omni Gateways*.
 . Select your Omni Gateway.
-. Open *Runtime Configurations*.
-. Open *Distributed Tracing*.
-// TODO: Confirm the Runtime Manager field labels and whether Distributed tracing must be enabled to set a correlation ID.
-. Set the correlation ID header and generation expression.
-. Apply the changes.
+. Open *Runtime configuration*.
+. Open the *Tracing* tab.
+// TODO: Confirm the Omni Gateways menu name (the page header reads "Self-Managed Omni Gateways").
+. Turn on *Enable Tracing*.
++
+Runtime Manager requires tracing to be enabled to apply a correlation ID.
+. Turn on *Enable Correlation ID*.
+. In *Header*, enter the name of the header that carries the correlation ID.
+. In *Generation Expression*, enter the expression that generates the correlation ID when the request doesn't include the header. For example, `prefix(uuid(), 'REQ-')`.
++
+In Runtime Manager, *Header* and *Generation Expression* are both required.
+. Click *Apply changes*.
 
 [[yaml-resource-config]]
 == Configure with a YAML Resource
