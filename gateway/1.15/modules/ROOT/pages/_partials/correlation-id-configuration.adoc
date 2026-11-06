@@ -7,9 +7,7 @@ A correlation ID is a value that identifies a request across Omni Gateway, your 
 For every request, Omni Gateway also:
 
 * Adds a `correlation.id` member to the W3C `baggage` header, so OpenTelemetry-instrumented services downstream receive the correlation ID. Omni Gateway keeps the other members of the `baggage` header, and replaces an existing `correlation.id` member.
-* Adds a `correlation.id` attribute to the spans of the request when tracing is enabled and the request is sampled, so you can search traces by correlation ID.
-+
-You don't need to configure a tracing provider or sampling to use a correlation ID. Omni Gateway adds the header and the `baggage` member to every request. Only the span attribute requires tracing.
+* Adds a `correlation.id` attribute to the spans of traced requests, so you can search traces by correlation ID.
 
 The correlation ID applies to every API instance in the gateway. To use a different header or generation expression for one API instance, apply the xref:policies-included-correlation-id-override.adoc[].
 //end::overview[]
