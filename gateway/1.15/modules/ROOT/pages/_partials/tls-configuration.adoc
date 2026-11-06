@@ -51,6 +51,8 @@ Omni Gateway applies inbound TLS at the port level. An inbound TLS context appli
 [[add-a-tls-context]]
 == Create a TLS Context in Secrets Manager
 
+To apply a TLS context in API Manager or Runtime Manager, you must first create the TLS context in a downloadable secret group in Secrets Manager. API Manager and Runtime Manager list only the TLS contexts in your secret groups.
+
 Before you create a TLS context, xref:anypoint-security::asm-secret-group-creation-task.adoc[create a secret group] and add a xref:anypoint-security::asm-secret-group-creation-task.adoc#adding-a-keystore[keystore], a xref:anypoint-security::asm-secret-group-creation-task.adoc#adding-a-truststore[truststore], or both, depending on the TLS context you need:
 
 [[tls-configuration-options]]
@@ -93,6 +95,8 @@ Cipher selection isn't available if you support only TLS 1.3.
 
 //tag::tls-api-manager-start[]
 == Apply a TLS Context to an API Instance
+
+Before you apply a TLS context, <<add-a-tls-context, create a TLS context>> in a downloadable secret group. You can't apply a TLS context in API Manager without a secret group.
 
 Apply a TLS context when you create an API instance or edit an existing one. For more information, see xref:api-manager::create-instance-task-flex.adoc[] and xref:api-manager::edit-api-endpoint-task.adoc[].
 
@@ -137,7 +141,7 @@ For how to edit a secret group, see xref:anypoint-security::asm-secret-group-cre
 //tag::tls-runtime-manager[]
 == Configure Default TLS Contexts in Runtime Manager
 
-Before you configure a default TLS context, <<add-a-tls-context, create a TLS context>> in a downloadable secret group. A default inbound TLS context requires a keystore.
+Before you configure a default TLS context, <<add-a-tls-context, create a TLS context>> in a downloadable secret group. You can't configure a default TLS context in Runtime Manager without a secret group. A default inbound TLS context requires a keystore.
 
 . In Anypoint Platform, select *Runtime Manager*.
 . Select *Omni Gateways*.
