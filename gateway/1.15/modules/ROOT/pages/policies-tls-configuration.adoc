@@ -2,92 +2,35 @@
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
-:keywords: policy, custom
+:keywords: policy, tls, default tls, outbound tls
 
-Some Omni Gateway policies make outgoing requests to HTTP and gRPC upstream services. For example, the xref:policies-included-oauth-token-introspection.adoc[] sends token validation requests to an OAuth 2.0 service, and the xref:policies-included-external-authorization.adoc[] forwards incoming client requests to an authorization service. 
+Some Omni Gateway policies make outgoing requests to HTTP and gRPC services. For example, the xref:policies-included-oauth-token-introspection.adoc[] sends token validation requests to an OAuth 2.0 service, and the xref:policies-included-external-authorization.adoc[] forwards incoming client requests to an authorization service.
 
-By default, Managed and Self-Managed Omni Gateways protect these connections with a default TLS Context. The default TLS context is not mTLS and uses the default ciphers listed in <<local-support>>.
+== How TLS Works for Outgoing Policy Requests
 
-To override the default TLS context, configure a custom default TLS context for all outgoing requests from policies. You can't configure a custom default TLS context for Managed Omni Gateway.
+Omni Gateway protects outgoing policy requests with the default outbound TLS context:
 
-== Configure a TLS Context for Self-Managed Gateways
+* If you configure a default outbound TLS context, Omni Gateway uses it for outgoing policy requests. The same default outbound TLS context also applies to every HTTPS upstream service that doesn't have its own outbound TLS context.
+* If you don't configure a default outbound TLS context, Omni Gateway uses built-in outbound TLS. Built-in outbound TLS validates the server certificate against the operating system CAs, uses the default ciphers, and doesn't present a client certificate.
 
-For both local and connected mode, use a YAML configuration file to configure TLS between a policy and an upstream service:
+Configure a default outbound TLS context when the services that your policies call require mTLS, use certificates signed by a private CA, or require specific TLS versions or ciphers.
 
-----
-apiVersion: gateway.mulesoft.com/v1alpha1
-kind: Configuration
-metadata:
- name: default-tls
-spec:
- defaultTLS:
-   outboundPolicyCalls:
-       skipValidation: <boolean> // OPTIONAL
-       trustedCA: <string> # OPTIONAL, defaults to the CA of operating systems
-       certificate: // OPTIONAL
-           key: <string> // OPTIONAL
-           crt: <string> // OPTIONAL
-       alpn: <array> // OPTIONAL
-       minversion: <string> // OPTIONAL
-       maxversion: <string> // OPTIONAL
-       ciphers: <array> // OPTIONAL
-       
-----
+== Configure a Default Outbound TLS Context
 
-Not including optional parameters in your configuration file applies the parameters default values to your TLS context.
+* Managed Omni Gateway: xref:managed-tls-config.adoc#default-tls[Configure Default TLS Contexts in Runtime Manager]
+* Self-Managed Omni Gateway in Connected Mode: xref:conn-tls-config.adoc#default-tls[Configure Default TLS Contexts in Runtime Manager] or xref:conn-tls-config.adoc#default-tls-config-file[Configure Default TLS Contexts with a Configuration Resource]
+* Self-Managed Omni Gateway in Local Mode: xref:local-tls-config.adoc#default-tls[Configure Default TLS Contexts with a Configuration Resource]
 
-When configuring the `ciphers` parameter, ensure that your API upstream supports the listed ciphers. For the supported ciphers, see <<local-support, TLS Cipher Support on Omni Gateway>>.
+[[deprecated-outbound-policy-calls]]
+== Deprecated `outboundPolicyCalls` Parameter
 
-[%header%autowidth.spread,cols="a,a,a,a"]
-|===
-|Parameter | Required or Optional | Default Value | Description
+In earlier versions, you configured TLS for outgoing policy requests with the `defaultTLS.outboundPolicyCalls` parameter of the `Configuration` resource. This parameter is deprecated. Use `defaultTLS.outbound` instead, which accepts the same parameters and applies to both outgoing policy requests and upstream services.
 
-| `skipValidation`
-| Optional
-| false
-| If true, the upstream certificate is not validated.
+* If you configure only `outboundPolicyCalls`, Omni Gateway applies it to outgoing policy requests only and logs a deprecation warning.
+* If you configure both `outboundPolicyCalls` and `outbound`, Omni Gateway ignores `outboundPolicyCalls` and logs a warning.
 
-| `trustedCA`
-| Optional
-| N/A
-| The CA used to validate the upstream server certificate. If no trusted CA is provided, the policy uses the default OS CA.
+== See Also
 
-| `certificate`
-| Optional
-| N/A
-| The client certificate to present for mTLS. To comply with security standards, all certificates must be 2048 bits or longer.
-
-| `certificate.key`
-| Optional
-| N/A
-| The private key part of the certificate.
-
-| `certificate.crt`
-| Optional
-| N/A
-| The public key part of the certificate.
-
-| `alpn`
-| Optional
-| `h2` and `http/1.1`
-| A prioritized list of supported application level protocols; for example, h2, http/1.1, and so forth.
-
-| `minversion`
-| Optional
-| `1.2`
-| The minimum TLS version allowed.
-
-| `maxversion`
-| Optional
-| `1.3`
-| The maximum TLS version allowed.
-
-| `ciphers`
-| Optional
-| For the default and other supported ciphers, see <<local-support, TLS Cipher Support on Omni Gateway>>.
-| A list of supported TLS ciphers (IANA format).
-
-|===
-
-
-include::partial$tls-cipher.adoc[tags=cipherSupportLocal;outboundImportantLocal;local-ciphers]
+* xref:managed-tls-config.adoc[]
+* xref:conn-tls-config.adoc[]
+* xref:local-tls-config.adoc[]
