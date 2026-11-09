@@ -17,6 +17,17 @@ The AWS Lambda policy triggers an AWS Lambda function from a standard HTTP reque
 
 The AWS Lambda policy is an extension of the AWS Lambda filter native to Envoy. To learn more about the AWS Lambda filter, see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/aws_lambda_filter[AWS Lambda Filter]. Not all AWS Lambda filter parameters are available to the AWS Lambda policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>. 
 
+[[payload-handling]]
+== Payload Handling
+
+The AWS Lambda policy processes only requests. Responses pass through unchanged.
+
+By default, `payloadPassthrough` is `false`. The policy wraps the request in a JSON envelope for the Lambda function, which requires it to buffer the full request body.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+To send the request payload without buffering, set `payloadPassthrough` to `true`.
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]

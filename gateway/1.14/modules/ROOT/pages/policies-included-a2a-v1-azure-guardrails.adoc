@@ -43,6 +43,21 @@ When content violates safety policies, the request is rejected with a `403` erro
 
 NOTE: This policy is designed for A2A v1.0 traffic only. gRPC traffic passes through without moderation in this version.
 
+[[payload-handling]]
+== Payload Handling
+
+The A2A v1 Azure Guardrails policy handles requests and responses differently:
+
+* *Requests*: The policy buffers the full request body for JSON-RPC and HTTP+JSON requests. It moderates only `SendMessage` and `SendStreamingMessage` requests. gRPC requests aren't buffered.
+* *JSON responses*: When *Moderate Response* (`moderateResponse`) is enabled, which is the default, the policy buffers the full response body.
+* *SSE responses*: When *Moderate Streaming Response* (`moderateStreamingResponse`) is enabled, which is the default, the policy doesn't buffer the full stream. It accumulates the text from the events until it reaches *Streaming Min Buffer Chars* (`streamingMinBufferChars`, default `256`), and then moderates that batch. If the stream exceeds 1 MB, the policy rejects it. When *Moderate Streaming Response* is disabled, SSE responses pass through unchanged.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+*Max Payload Bytes* (`maxPayloadBytes`) sets the largest request or response body that the policy sends to Azure for moderation. The default is `10000` bytes. This setting doesn't limit buffering.
+
+
+
 == Before You Begin
 
 Before configuring this policy, you need:

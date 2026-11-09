@@ -34,6 +34,19 @@ Default policies that internally enforce client application credentials include:
 
 Although token enforcement policies can optionally skip client validation, it is recommended that you enforce the validation to ensure that the token is associated to an approved contract.
 
+[[payload-handling]]
+== Payload Handling
+
+The Client ID Enforcement policy processes only requests. Responses pass through unchanged.
+
+When *Credentials origin* is *HTTP Basic Authentication Header*, the policy reads only the request headers and doesn't process the body.
+
+When *Credentials origin* is *Custom Expression*, the policy buffers the full request body only if the *Client ID Expression* or *Client Secret Expression* references `payload`. Otherwise, the policy reads only the request headers.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+To avoid buffering, extract the credentials from headers or query parameters instead of the payload.
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

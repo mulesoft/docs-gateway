@@ -27,6 +27,16 @@ If the policy can't extract the identification header, the policy doesn't block 
 
 NOTE: The Agent Connection Telemetry policy is applied by default to all agent and MCP server instances created using Agent Fabric.
 
+[[payload-handling]]
+== Payload Handling
+
+The Agent Connection Telemetry policy doesn't process requests. It processes only responses with a `2xx` status code:
+
+* *SSE responses*: The policy reads the stream one event at a time and doesn't buffer the full stream.
+* *Other responses*: The policy buffers the full response body to parse JSON-RPC errors.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configure Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

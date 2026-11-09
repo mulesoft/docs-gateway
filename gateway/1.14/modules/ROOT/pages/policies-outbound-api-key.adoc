@@ -22,6 +22,17 @@ The Credential Injection API Key policy injects authentication credentials into 
 * **API Key**: Injects an API key value into the `Authorization` header or a custom header.
 * **Client ID and Secret**: Injects the client ID and client secret value into the `client_id` and `client_secret` headers or custom headers.
 
+[[payload-handling]]
+== Payload Handling
+
+The Credential Injection API Key policy processes only requests. Responses pass through unchanged.
+
+When you set a static value for `apiKey`, the policy reads headers only and doesn't buffer the request body. When the `apiKey` value is a DataWeave expression that references `payload`, the policy buffers the full request body to evaluate it.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+To avoid buffering, use a static API key or an expression that doesn't reference `payload`.
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]

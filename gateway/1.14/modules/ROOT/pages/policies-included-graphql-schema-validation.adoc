@@ -30,6 +30,18 @@ If the document includes an `@link` to the Apollo Federation specification URL, 
 After Omni Gateway extracts inline GraphQL operation text from the request, the policy runs validation. If Omni Gateway can't resolve normal operation text, such as persisted query flows, it skips these checks and logs a warning before it forwards the request to the upstream.
 
 
+[[payload-handling]]
+== Payload Handling
+
+The GraphQL Schema Validation policy processes only requests. Responses pass through unchanged.
+
+How the policy reads the operation depends on the HTTP method:
+
+* *`GET` requests*: The policy reads the `query` parameter from the query string. It doesn't process the request body.
+* *`POST` requests*: The policy buffers the full request body when the `Content-Type` header is `application/json` or `application/graphql`. Requests with other content types pass through without processing.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]

@@ -26,6 +26,16 @@ The policy counts tokens from both request and response payloads. Tokens generat
 
 If a request exceeds the allowed token limit, the policy blocks the call and returns a `429` status code.
 
+[[payload-handling]]
+== Payload Handling
+
+The A2A Token Based Rate Limit policy handles requests and responses differently:
+
+* *Requests*: The policy buffers the full body of JSON `POST` requests to count tokens.
+* *JSON responses*: The policy buffers the full response body to count tokens.
+* *SSE responses*: The policy processes the stream one event at a time, keeps a running token count, and doesn't buffer the full stream.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 
 == Configuring Policy Parameters
 

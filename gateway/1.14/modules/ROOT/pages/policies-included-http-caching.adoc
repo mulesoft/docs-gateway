@@ -27,6 +27,21 @@ For Self-Managed Gateways, HTTP caching works out of the box using the default l
 
 NOTE: The HTTP Caching policy does not support MCP and A2A server instances.
 
+[[payload-handling]]
+== Payload Handling
+
+The HTTP Caching policy reads the request body only when the `httpCachingKey` or `requestExpression` expression references `payload`. In that case, the policy collects the full request body.
+
+The policy reads the response body only when the response can be cached:
+
+* If the `Content-Length` header is 1 MB or larger, the policy doesn't read or cache the response.
+* If the `responseExpression` expression uses only headers and attributes, the policy doesn't read the body to evaluate it.
+* Otherwise, the policy collects the response body up to 1 MB. If the body is larger, the policy forwards the response to the client without caching it.
+
+The 1 MB cache entry size is fixed. Changing the global payload limit doesn't change it.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 [[cpp]]
 == Configuring Policy Parameters
 

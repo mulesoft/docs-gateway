@@ -36,6 +36,16 @@ The policy works with both MCP transport types:
 * Standard JSON over HTTP: Transforms tool names in JSON-RPC messages
 * Server-Sent Events (SSE): Transforms tool names in SSE streaming responses
 
+[[payload-handling]]
+== Payload Handling
+
+The MCP Tool Mapping policy handles requests and responses differently:
+
+* *Requests*: The policy buffers the full request body.
+* *Responses*: The policy buffers the full body of JSON responses. For SSE (`text/event-stream`) responses, the policy processes the stream one event at a time and doesn't buffer the full stream. Other content types pass through.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

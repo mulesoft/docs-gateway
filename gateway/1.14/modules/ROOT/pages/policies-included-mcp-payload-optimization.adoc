@@ -40,6 +40,19 @@ Configure the minimum response size to skip transformation for small payloads. E
 
 The policy uses the `pre_transform_tokens` and `response_tokens` for tool metrics to estimate token reduction.
 
+[[payload-handling]]
+== Payload Handling
+
+The MCP Payload Optimization policy handles requests and responses differently:
+
+* *Requests*: The policy buffers the full request body when the request has a body.
+* *JSON responses*: The policy buffers the full response body.
+* *SSE responses*: By default, the policy processes the stream one event at a time and doesn't buffer the full stream. When *Enable Smart Response Trimming* is enabled and a *Model Proxy URL* is set, the policy buffers the full SSE response.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+*Threshold Bytes* sets the content size at which Smart Response Trimming runs. It doesn't limit the payload size. To avoid buffering SSE responses, leave Smart Response Trimming disabled.
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

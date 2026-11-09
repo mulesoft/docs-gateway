@@ -23,6 +23,15 @@ The policy extracts the Bearer token from the incoming request's `Authorization`
 
 To avoid triggering multiple requests for identical tokens, successful token exchanges are cached. By default, the cache only shares tokens between requests to the same replica. Enable distributed caching to share tokens between Omni Replicas. To learn more, see <<token-caching-oauth-obo>>.
 
+[[payload-handling]]
+== Payload Handling
+
+The OAuth 2.0 On-Behalf-Of Credential Injection policy processes only requests. Responses pass through unchanged.
+
+The policy always buffers the full request body.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

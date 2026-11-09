@@ -22,6 +22,15 @@ NOTE: The Schema Validation policy only supports SOAP 1.1 and 1.2 APIs.
 
 Use the SOAP Schema Validation policy to block incoming requests that don't conform to the the defined WSDL schema. This policy prevents malformed or malicious SOAP messages from reaching the backend and enforces contract compliance between clients and services.
 
+[[payload-handling]]
+== Payload Handling
+
+The SOAP Schema Validation policy processes only requests. Responses pass through unchanged.
+
+The policy buffers the full request body to validate it against the WSDL. A `GET` request for the WSDL is answered without processing a body.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]

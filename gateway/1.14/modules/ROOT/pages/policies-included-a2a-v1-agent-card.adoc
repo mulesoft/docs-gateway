@@ -29,6 +29,18 @@ The policy handles the following response formats:
 
 The A2A v1 Agent Card policy also enables the *Total Agent Calls* metric that tracks the total successful and unsuccessful calls made to the agent. To view *Total Agent Calls*, see xref:managed-view-api-metrics.adoc[].
 
+[[payload-handling]]
+== Payload Handling
+
+The A2A v1 Agent Card policy always buffers the full request body, because it needs the body to determine the A2A method. Responses are handled as follows:
+
+* *JSON responses*: The policy buffers the full response body to rewrite the URLs.
+* *Unary gRPC responses*: The policy buffers the full response body.
+* *Streaming gRPC responses*: The policy processes the response chunk by chunk and doesn't buffer the full stream.
+* *SSE responses*: The policy reads the stream one event at a time to record metrics and doesn't buffer the full stream.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

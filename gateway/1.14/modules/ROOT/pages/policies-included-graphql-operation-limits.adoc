@@ -28,6 +28,20 @@ If the parser can't read the query, the policy logs a debug message and doesn't 
 
 
 
+[[payload-handling]]
+== Payload Handling
+
+The GraphQL Operation Limits policy processes only requests. Responses pass through unchanged.
+
+How the policy reads the operation depends on the HTTP method:
+
+* *`GET` requests*: The policy reads the `query` parameter from the query string. It doesn't process the request body.
+* *`POST` requests*: The policy buffers the full request body when the `Content-Type` header is `application/json` or `application/graphql`. Requests with other content types pass through without processing.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+The `maxDepth`, `maxAliases`, `maxRootFields`, and `maxDirectives` parameters limit the structure of the GraphQL operation. They don't limit the size of the payload.
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]

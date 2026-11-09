@@ -36,6 +36,16 @@ IMPORTANT: This policy must be positioned after the xref:policies-included-mcp-s
 The policy performs no tool caching. Every `tools/list`, `search_tools`, and `invoke_tool` request is resolved against the live upstream, so the client always sees the real, per-caller-filtered upstream state.
 
 
+[[payload-handling]]
+== Payload Handling
+
+The MCP Tools Progressive Disclosure policy handles requests and responses differently:
+
+* *Requests*: The policy buffers the full request body.
+* *Responses*: The policy buffers the full body of JSON responses. For SSE (`text/event-stream`) responses, the policy processes the stream one event at a time and doesn't buffer the full stream. Other content types pass through.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

@@ -29,6 +29,23 @@ JSON Web Token (JWT) is a URL-secure method of representing claims to be transfe
 
 The JWT Validation policy validates the signature of the token and asserts the values of the claims of all incoming requests by using a JWT with JWS format. The policy does not validate JWT that uses JWE.
 
+[[payload-handling]]
+== Payload Handling
+
+The JWT Validation policy processes only requests. Responses pass through unchanged.
+
+The policy buffers the full request body if any of the following expressions reference `payload`:
+
+* The *Token Expression* (`jwtExpression`), when *JWT Origin* is *Custom Expression*.
+* The *Client ID Expression* (`clientIdExpression`), when *Skip Client ID Validation* is disabled.
+* A custom claim expression, when *Validate Custom Claim* is enabled.
+
+The policy doesn't buffer the body when *JWT Origin* is *HTTP Bearer Authentication Header* and no other expression references `payload`.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+To avoid buffering, read the token, client ID, and claim values from headers or from the JWT claims instead of the payload.
+
 [[agent-network-version]]
 == Use the Policy in Agent Network
 

@@ -25,6 +25,19 @@ When an error is encountered, the Basic Authentication - LDAP policy returns an 
 
 LDAP is an inverted tree, and each leaf has a username-password pair and associated metadata. Each level is like a tree branch. For more information about LDAP, see https://en.wikipedia.org/wiki/Lightweight_Directory_Access_Protocol[About LDAP^].
 
+[[payload-handling]]
+== Payload Handling
+
+The Basic Authentication - LDAP policy processes only requests. Responses pass through unchanged.
+
+When `authorizationOrigin` is `httpBasicAuthenticationHeader`, the policy reads only the request headers and doesn't process the body.
+
+When `authorizationOrigin` is `customExpression`, the policy collects the full request body in memory only if the `authorizationExpression` expression references `payload`.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+To avoid buffering, use the HTTP Basic Authentication header, or write the `authorizationExpression` expression so it doesn't reference the payload.
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]

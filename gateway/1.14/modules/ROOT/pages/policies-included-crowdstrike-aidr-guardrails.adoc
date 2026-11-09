@@ -40,6 +40,17 @@ The policy operates in two independent phases:
 
 Both phases are enabled by default.
 
+[[payload-handling]]
+== Payload Handling
+
+The CrowdStrike AIDR Guardrails policy scans the request body only when *Moderate Request* is enabled and the request is a `POST` request with a JSON body in a supported LLM format. In that case, the policy buffers the full request body. Other requests pass through without scanning.
+
+When *Moderate Response* is enabled, the policy buffers the full response, including SSE (`text/event-stream`) responses, and rebuilds the complete stream before it evaluates the content. The client doesn't receive a streamed response, and the policy increases latency and memory use.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+To keep streaming for your clients, disable *Moderate Response*.
+
 [[before-you-begin]]
 == Before You Begin
 

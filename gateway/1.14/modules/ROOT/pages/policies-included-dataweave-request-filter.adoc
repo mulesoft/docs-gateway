@@ -26,6 +26,17 @@ Result format:
 * Success: `{ "success": true }`
 * Error: `{ "success": false, "response": { "body": "...", "headers": {}, "statusCode": 400 } }`
 
+[[payload-handling]]
+== Payload Handling
+
+The DataWeave Request Filter policy processes only requests. Responses pass through unchanged.
+
+By default, `requiresPayload` is `false` and the policy reads headers only, without buffering the body. When `requiresPayload` is `true`, the policy buffers the full request body so that the script can read `payload`. If the request has no body, the policy returns a `400` error.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+To avoid buffering, keep `requiresPayload` set to `false` and write the script to use only the request headers.
+
 == Configure Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

@@ -21,6 +21,17 @@ The MCP PII Detector policy detects personally identifiable information (PII) in
 
 When PII is detected, you can configure the policy to reject the request or response, log findings, or log masked findings. The policy reports a policy violation when PII is detected.
 
+[[payload-handling]]
+== Payload Handling
+
+The MCP PII Detector policy handles requests and responses differently:
+
+* *Requests*: The policy buffers the full body of JSON `POST` requests. Other requests pass through without inspection.
+* *JSON responses*: The policy buffers the full response body.
+* *SSE responses*: The policy processes the stream one event at a time and doesn't buffer the full stream. Each event's `data:` content can be up to 8 MB. If an event is larger, the policy sends a JSON-RPC error event (code `-32603`) and drops the rest of the stream.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

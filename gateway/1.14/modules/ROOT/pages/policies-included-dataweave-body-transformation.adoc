@@ -21,6 +21,15 @@ endif::[]
 
 The DataWeave Body Transformation policy transforms request or response body content with a DataWeave script. The script receives `attributes.headers` and `payload`. The gateway streams body processing. If the script declares an output MIME type, such as `output application/json`, the gateway uses it for the transformed response. Otherwise, the gateway keeps the original `Content-Type`. In the request or response, the gateway processes the body in streaming mode and updates `Content-Type` and `Content-Length` after transformation.
 
+[[payload-handling]]
+== Payload Handling
+
+The DataWeave Body Transformation policy processes only the side that `requestFlow` sets. Set `onRequest` to transform the request or `onResponse` to transform the response. The other side passes through unchanged.
+
+The policy buffers the full body on the configured side, runs the script, and then updates the `Content-Length` header. Server-sent event (SSE) bodies, which have the `text/event-stream` content type, aren't buffered. The policy processes SSE bodies one event at a time.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configure Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]

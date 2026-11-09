@@ -21,6 +21,17 @@ endif::[]
 
 The DataWeave Headers Transformation policy transforms request or response headers with a DataWeave script. The script receives headers and the message body, and returns a map of header names to values. In the request or response, the gateway removes existing headers and runs the script with header bindings. The script output must be a map. Each entry becomes a header. For multi-value headers, use a list of values.
 
+[[payload-handling]]
+== Payload Handling
+
+The DataWeave Headers Transformation policy processes only the side that `requestFlow` sets: `onRequest` for the request or `onResponse` for the response. The other side passes through unchanged.
+
+By default, `requiresPayload` is `false` and the policy reads headers only, without buffering the body. When `requiresPayload` is `true`, the policy buffers the full body on the configured side so that the script can read `payload`.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+To avoid buffering, keep `requiresPayload` set to `false` and write the script to use only `attributes.headers`.
+
 == Configure Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]
