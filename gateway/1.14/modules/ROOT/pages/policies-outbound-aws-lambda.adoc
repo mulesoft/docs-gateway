@@ -20,7 +20,7 @@ The AWS Lambda policy is an extension of the AWS Lambda filter native to Envoy. 
 [[payload-handling]]
 == Payload Handling
 
-The AWS Lambda policy processes only requests. Responses pass through unchanged.
+The AWS Lambda policy converts the Lambda function's JSON response into an HTTP response, whether or not `payloadPassthrough` is enabled.
 
 By default, `payloadPassthrough` is `false`. The policy wraps the request in a JSON envelope for the Lambda function, which requires it to buffer the full request body.
 

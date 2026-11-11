@@ -36,7 +36,7 @@ The policy reads the response body only when the response can be cached:
 
 * If the `Content-Length` header is 1 MB or larger, the policy doesn't read or cache the response.
 * If the `responseExpression` expression uses only headers and attributes, the policy doesn't read the body to evaluate it.
-* Otherwise, the policy collects the response body up to 1 MB. If the body is larger, the policy forwards the response to the client without caching it.
+* Otherwise, the policy collects the response body until it reaches 1 MB. If the body is 1 MB or larger, the policy forwards the response to the client without caching it.
 
 The 1 MB cache entry size is fixed. Changing the global payload limit doesn't change it.
 

@@ -83,7 +83,7 @@ The policy scans:
 |Forwards the response and logs masked findings.
 
 |SSE streams (text/event-stream)
-|Entire stream is replaced with a single JSON-RPC error envelope and Content-Type changes to application/json.
+|Replaces each event that contains PII with a JSON-RPC error event. The stream continues, and the HTTP status and Content-Type don't change.
 |Forwards the stream unchanged and logs findings.
 |Each event's result strings are rewritten with masked variants while preserving SSE framing.
 |===
@@ -358,15 +358,13 @@ With a custom pattern configured (`name: AWS Access Key`, `pattern: AKIA[0-9A-Z]
 
 == Server-Sent Events (SSE) Considerations
 
-When the MCP server uses Server-Sent Events (text/event-stream) for streaming responses, the policy buffers and processes the entire stream:
+When the MCP server uses Server-Sent Events (text/event-stream) for streaming responses, the policy processes the stream one event at a time. It doesn't buffer the entire stream.
 
 * *Log*: The stream is forwarded unchanged with raw PII values logged.
 * *Log and mask*: Each event's result strings are rewritten with masked values while preserving SSE framing (event names, IDs, comments).
-* *Reject*: The entire stream is replaced with a single JSON-RPC error envelope, and the Content-Type changes to application/json with HTTP 403 status.
+* *Reject*: The policy replaces each event that contains PII with a JSON-RPC error event that keeps the original request ID. The stream continues, so later events are still processed.
 
-IMPORTANT: SSE buffering is suitable for short-lived tool-call responses but might not be appropriate for long-lived server-pushed streams. For notification streams or progress updates, use the *Log* action to avoid buffering.
-
-NOTE: When *Reject* is applied to an SSE stream, the response Content-Type changes from text/event-stream to application/json. Clients that strictly require SSE formatting might need to handle this change.
+NOTE: SSE responses keep their original HTTP status and the `text/event-stream` Content-Type, because the response headers are already sent to the client when the policy processes the first event. The policy doesn't return an HTTP 403 error for SSE responses.
 
 == Compliance and Data Flow
 

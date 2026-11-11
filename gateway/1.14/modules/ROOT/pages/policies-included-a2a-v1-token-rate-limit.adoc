@@ -34,11 +34,11 @@ NOTE: This policy is designed for A2A v1.0 traffic only. For pre-v1.0 A2A traffi
 [[payload-handling]]
 == Payload Handling
 
-The A2A v1 Token Based Rate Limit policy always buffers the full request body. For requests that consume tokens, it handles responses as follows:
+The A2A v1 Token Based Rate Limit policy always buffers the full request body, including gRPC requests. For `SendMessage` and `SendStreamingMessage` requests that are within the token limit, the policy also counts the tokens in the response. Other requests pass through without counting. The policy handles these responses as follows:
 
 * *JSON responses*: The policy buffers the full response body.
 * *SSE responses*: The policy processes the stream one event at a time, keeps a running token count, and doesn't buffer the full stream.
-* *gRPC responses*: The policy processes the response in chunks, up to 16 MB.
+* *gRPC responses*: The policy reads the response frame by frame and forwards it unchanged. If a single message grows larger than 16 MB before it completes, the policy stops counting tokens for the rest of that response.
 
 include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 

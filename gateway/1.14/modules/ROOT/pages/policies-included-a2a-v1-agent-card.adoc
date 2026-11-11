@@ -21,11 +21,12 @@ The Agent-to-Agent (A2A) v1 Agent Card Policy rewrites the interface URLs inside
 
 The policy rewrites the `url` field for every supported interface (`JSONRPC`, `GRPC`, `HTTP+JSON`) in the `supportedInterfaces[]` array of the agent card response. Custom protocol bindings aren't edited.
 
-The policy handles the following response formats:
+The policy rewrites URLs in the following agent card response formats:
 
 * Bare card response (`GET /.well-known/agent-card.json` or `GET /extendedAgentCard`)
 * JSON-RPC envelope responses (`GetExtendedAgentCard`)
-* Server-Sent Events (SSE) streams (`SendStreamingMessage`, `SubscribeToTask`)
+
+The policy doesn't rewrite Server-Sent Events (SSE) streams (`SendStreamingMessage`, `SubscribeToTask`). For these streams, the policy only reads the events to record whether the call succeeded.
 
 The A2A v1 Agent Card policy also enables the *Total Agent Calls* metric that tracks the total successful and unsuccessful calls made to the agent. To view *Total Agent Calls*, see xref:managed-view-api-metrics.adoc[].
 
@@ -34,8 +35,8 @@ The A2A v1 Agent Card policy also enables the *Total Agent Calls* metric that tr
 
 The A2A v1 Agent Card policy always buffers the full request body, because it needs the body to determine the A2A method. Responses are handled as follows:
 
-* *JSON responses*: The policy buffers the full response body to rewrite the URLs.
-* *Unary gRPC responses*: The policy buffers the full response body.
+* *JSON responses*: The policy buffers the full response body. It rewrites the URLs in agent card responses and uses other responses only to record metrics.
+* *Unary gRPC responses*: The policy buffers the full response body. It rewrites the URLs in `GetExtendedAgentCard` responses.
 * *Streaming gRPC responses*: The policy processes the response chunk by chunk and doesn't buffer the full stream.
 * *SSE responses*: The policy reads the stream one event at a time to record metrics and doesn't buffer the full stream.
 
