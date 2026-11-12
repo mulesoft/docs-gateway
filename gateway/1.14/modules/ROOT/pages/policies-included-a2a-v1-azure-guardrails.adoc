@@ -48,9 +48,9 @@ NOTE: This policy is designed for A2A v1.0 traffic only. gRPC traffic passes thr
 
 The A2A v1 Azure Guardrails policy handles requests and responses differently:
 
-* *Requests*: The policy buffers the full request body for JSON-RPC and HTTP+JSON requests, including requests it doesn't moderate. It moderates only `SendMessage` and `SendStreamingMessage` requests. gRPC requests aren't buffered.
-* *JSON responses*: When *Moderate Response* (`moderateResponse`) is enabled, which is the default, the policy buffers the full response body.
-* *SSE responses*: When both *Moderate Response* and *Moderate Streaming Response* (`moderateStreamingResponse`) are enabled, which is the default, the policy doesn't buffer the full stream. It accumulates event data until it reaches *Streaming Min Buffer Chars* (`streamingMinBufferChars`, default `256`), and then moderates that batch. If a single event is larger than 1 MB, the policy ends the stream with a failed status event. When either setting is disabled, SSE responses pass through unchanged.
+* Requests: The policy buffers the full request body for JSON-RPC and HTTP+JSON requests, including requests it doesn't moderate. It moderates only `SendMessage` and `SendStreamingMessage` requests. gRPC requests aren't buffered.
+* JSON responses: When *Moderate Response* (`moderateResponse`) is enabled, which is the default, the policy buffers the full response body.
+* SSE responses: When both *Moderate Response* and *Moderate Streaming Response* (`moderateStreamingResponse`) are enabled, which is the default, the policy doesn't buffer the full stream. It accumulates event data until it reaches *Streaming Min Buffer Chars* (`streamingMinBufferChars`, default `256`), and then moderates that batch. If a single event is larger than 1 MB, the policy ends the stream with a failed status event. When either setting is disabled, SSE responses pass through unchanged.
 
 include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 

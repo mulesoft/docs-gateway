@@ -31,9 +31,9 @@ The policy supports JSON-RPC over HTTP transport and returns HTTP 403 with error
 
 The A2A PII Detector policy handles requests and responses differently:
 
-* *Requests*: The policy buffers the full body of JSON `POST` requests with the `message/send`, `message/stream`, `tasks/get`, `tasks/stream`, or `tasks/resubscribe` method. Other requests pass through without inspection.
-* *JSON responses*: The policy buffers the full response body. It scans the body and logs any PII it finds, but doesn't change the response.
-* *SSE responses*: The policy reads the stream one event at a time and doesn't buffer the full stream.
+* Requests: The policy buffers the full body of JSON `POST` requests with the `message/send`, `message/stream`, `tasks/get`, `tasks/stream`, or `tasks/resubscribe` method. Other requests pass through without inspection.
+* JSON responses: The policy buffers the full response body. It scans the body and logs any PII it finds, but doesn't change the response.
+* SSE responses: The policy reads the stream one event at a time and doesn't buffer the full stream.
 
 include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 
