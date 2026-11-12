@@ -24,34 +24,14 @@ The following document applies only to Omni Gateway running in Local Mode. To co
 ====
 
 == Summary
-Omni Gateway supports outbound Transport Layer Security (TLS) and outbound mutual authentication TLS (mTLS) in Local Mode.
 
-include::partial$task-tls-config.adoc[tags=defaultOutboundTLS]
+The TLS outbound policy applies an outbound TLS or mTLS context to an upstream service in Local Mode. For how to apply the policy, and how to configure a default outbound TLS context for every HTTPS upstream service and outgoing policy request without its own TLS context, see xref:local-tls-config.adoc[].
 
-To apply outbound TLS in Local Mode, use the xref:local-tls-config.adoc[Configuring TLS Context for Omni Gateway in Local Mode] tutorial and refer to the following configuration files in this documentation.
+Apply outbound TLS contexts to each upstream service individually, because upstream services might require different certificates and CAs. If you don't apply an outbound TLS context, the default outbound TLS context or the built-in outbound TLS applies. For upstream certificate requirements, see xref:local-tls-config.adoc#certificate-requirements[Certificate Requirements].
 
-You can configure an outbound TLS context to enable authentication between an API instance and an upstream service by binding the TLS policy to the upstream service.
-
-include::partial$task-tls-config.adoc[tags=outboundAllInstances]
-
-[NOTE]
-====
-TLS policies do not support policy ordering.
-====
-
-[NOTE]
-====
-Upstream certificates must include the Subject Alternative Name (SAN) extension. The Common Name (CN) field is deprecated.
-
-Omni Gateway supports the SAN extension of type `dNSName`.
-====
-
-include::partial$task-tls-config.adoc[tag=aia-support]
+TLS policies don't support policy ordering.
 
 == Configuring Policy Parameters
-
-To enable outbound TLS between an API instance and an upstream service when using Omni Gateway as your runtime, you must manually configure the TLS context
-in a YAML configuration file.
 
 Refer to the following policy definition and table of parameters:
 
@@ -61,8 +41,9 @@ Refer to the following policy definition and table of parameters:
   config:
     skipValidation: <boolean> // REQUIRED
     certificate: // OPTIONAL
-        key: <string> // OPTIONAL
-        crt: <string> // OPTIONAL
+        key: <string> // REQUIRED
+        crt: <string> // REQUIRED
+        keyPassphrase: <string> // OPTIONAL
     alpn: <array> // OPTIONAL
     minversion: <string> // OPTIONAL
     maxversion: <string> // OPTIONAL
@@ -71,7 +52,7 @@ Refer to the following policy definition and table of parameters:
 
 Not including optional parameters in your configuration file applies the parameters default values to your TLS context.
 
-When configuring the `ciphers` parameter, ensure that your API upstream supports the listed ciphers. For the supported ciphers, see <<local-support, TLS Cipher Support on Omni Gateway>>.
+When configuring the `ciphers` parameter, ensure that your API upstream supports the listed ciphers. For the supported ciphers, see <<supported-ciphers>>.
 
 [%header%autowidth.spread,cols="a,a,a,a"]
 |===
@@ -93,14 +74,19 @@ When configuring the `ciphers` parameter, ensure that your API upstream supports
 | The client certificate to present for mTLS. To comply with security standards, all certificates must be 2048 bits or longer.
 
 | `certificate.key`
-| Optional
+| Required if `certificate` is set
 | N/A
 | The private key part of the certificate.
 
 | `certificate.crt`
-| Optional
+| Required if `certificate` is set
 | N/A
 | The public key part of the certificate.
+
+| `certificate.keyPassphrase`
+| Optional, unless the private key is encrypted
+| N/A
+| The passphrase that decrypts the private key.
 
 | `alpn`
 | Optional
@@ -119,7 +105,7 @@ When configuring the `ciphers` parameter, ensure that your API upstream supports
 
 | `ciphers`
 | Optional
-| For the default and other supported ciphers, see <<local-support, TLS Cipher Support on Omni Gateway>>.
+| For the default and other supported ciphers, see <<supported-ciphers>>.
 | A list of supported TLS ciphers (IANA format).
 
 |===
@@ -128,22 +114,17 @@ When configuring the `ciphers` parameter, ensure that your API upstream supports
 
 You can format the YAML file to configure TLS or mTLS for a upstream service.
 
-// sample config outbound TLS applied to a specific instance
-include::partial$task-tls-config.adoc[tags=sample-config-outbound-instance-intro]
-// sample config outbound TLS applied to a specific instance
-include::partial$task-tls-config.adoc[tags=sample-config-outbound-instance]
+*Sample configuration for adding outbound TLS context for a specific upstream service:*
 
-// sample config outbound mTLS applied to a specific instance
-include::partial$task-tls-config.adoc[tags=sample-config-mtls-outbound-intro]
-// sample config outbound mTLS applied to a specific instance
-include::partial$task-tls-config.adoc[tags=sample-config-mtls-outbound]
+include::partial$tls-configuration.adoc[tags=tls-sample-outbound]
 
-include::partial$tls-cipher.adoc[tags=cipherSupportLocal;outboundImportantLocal;local-ciphers]
+*Sample configuration for adding outbound mTLS context for a specific upstream service:*
 
+include::partial$tls-configuration.adoc[tags=tls-sample-outbound-mtls]
 
-
+include::partial$tls-configuration.adoc[tags=tls-ciphers]
 
 == See Also
-* xref:conn-tls-config.adoc[]
 * xref:local-tls-config.adoc[]
+* xref:conn-tls-config.adoc[]
 * xref:policies-included-tls.adoc[]

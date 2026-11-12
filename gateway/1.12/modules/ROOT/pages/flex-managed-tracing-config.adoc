@@ -1,4 +1,4 @@
-= Configuring Distributed Tracing for Managed Flex Gateway
+= Configuring and Exporting Distributed Tracing for Managed Flex Gateway
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -6,30 +6,123 @@ endif::[]
 
 include::partial$tracing-support.adoc[]
 
-== Enable and Configure Distributed Tracing for your Managed Flex Gateway
+Configure distributed tracing for Managed Flex Gateway using one of these methods:
 
-To enable distributed tracing for your Managed Flex Gateway:
+* xref:flex-managed-tracing-config.adoc#managed-deployment-config[Managed Flex Gateway deployment]: Set initial distributed tracing values when you create the gateway.
+* xref:flex-managed-tracing-config.adoc#runtime-manager-config[Runtime Manager runtime configurations]: Applies to all API instances in the gateway after the gateway is deployed.
+* xref:flex-managed-tracing-config.adoc#policy-config[Policy]: Applies to one API instance and provides granular control.
 
-. From Anypoint Platform, select *Runtime Manager > Flex Gateways*.
-. Click the Managed Flex Gateway name.
-. In the navigation menu, click Settings.
-. Click *Advanced options*.
-. Click *Tracing*.
-. Turn on *Distributed tracing*.
-. Set the *Sampling percentage* to the percentage of transactions that you want to trace.
-** This setting corresponds to the `overall` sampling percentage. The `client` and `random` sampling percentages are set to 100% by default, if the sampling percentage is set to a non-zero value here.
-** Set the *Sampling percentage* to 0 if you want to specify the sampling percentage only on a per-API basis, using the Tracing policy.
-. Click *Apply Changes*.
+Export traces from Managed Flex Gateway using one of these methods:
+
+* xref:flex-managed-tracing-config.adoc#runtime-manager-config[OpenTelemetry provider]: Managed Flex Gateway sends traces directly to your OpenTelemetry collector by using the OpenTelemetry Protocol (OTLP) over HTTP or gRPC. Traces don't pass through Anypoint Monitoring. Configure the endpoint, authentication headers, and resource attributes in the Runtime Manager tracing configuration.
+* xref:flex-managed-tracing-config.adoc#export-otel-traces-from-monitoring-telemetry-exporter[Anypoint Monitoring Telemetry Exporter]: Managed Flex Gateway sends traces to Anypoint Monitoring, and the Telemetry Exporter forwards them to third-party providers. Use this method to view traces in Anypoint Monitoring and in a third-party tool.
+
+You can export traces and logs to the same service. Traces and logs are configured separately, so to export both, configure trace export on the *Tracing* tab and log export on the *Logging* tab. See xref:flex-managed-export-logs.adoc[].
+
+[[managed-deployment-config]]
+== Configure Distributed Tracing During Managed Gateway Deployment
+
+Set distributed tracing values in the deployment flow when you create a Managed Flex Gateway.
+For the UI steps and parameter descriptions, see xref:flex-gateway-managed-set-up.adoc[].
+
+[[runtime-manager-config]]
+== Configure and Export Distributed Tracing in Runtime Manager
+
+Send traces to Anypoint Monitoring, or send them directly to a third-party observability service, such as New Relic, Splunk, or any OpenTelemetry-compliant tool, by using the OpenTelemetry Protocol (OTLP).
+
+. In Anypoint Platform, select *Runtime Manager*.
+. Select *Flex Gateways*.
+. Select your Flex Gateway.
+. Open *Runtime Configurations*.
+. Open *Tracing*.
+. Turn on *Enable Tracing*.
+. Under *Provider*, for *Type*, select where to send traces:
++
+* To send traces to Anypoint Monitoring, select *Anypoint Monitoring*.
+* To send traces directly to an OpenTelemetry endpoint, select *OpenTelemetry*, and then under *Properties*, configure the OpenTelemetry provider. See <<otel-provider-parameters>>.
+. Under *Sampling*, set the *Overall*, *Client*, and *Random* sampling percentages. See <<sampling-parameters>>.
++
+To configure sampling only on a per-API basis with the Tracing policy, set *Overall* to `0`.
+. Optionally, under *Labels*, click *Add* to add span attributes to traces. See <<label-parameters>>.
+. Click *Apply changes*.
+
+[[otel-provider-parameters]]
+=== OpenTelemetry Provider Parameters
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Parameter | Required | Description
+
+| *Service Type*
+| Yes
+| Protocol used to send traces to the OpenTelemetry collector. Supported values are *HTTP* and *gRPC*.
+
+| *Address*
+| Yes
+| Address of the OpenTelemetry collector. For HTTP, include the traces path, for example, `https://otel-collector.example.com:4318/v1/traces`.
+
+| *Service Name*
+| Yes
+| Service name reported in exported traces, for example, `my-managed-gateway`.
+
+| *Timeout (seconds)*
+| Yes
+| Connection timeout, in seconds. The default value is `10`.
+
+| *Headers*
+| No
+| Custom headers to add to requests sent to the OpenTelemetry endpoint, such as an API key for authentication. Click *Add* to add a header name and value.
+
+| *Resource Attributes*
+| No
+| Custom resource attributes to add to reported traces, such as `deployment.environment`. Click *Add* to add an attribute name and value.
+|===
+
+
+[[sampling-parameters]]
+=== Sampling Parameters
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Parameter | Default Value | Description
+
+| *Overall*
+| 100
+| Target percentage of requests that are traced after all other sampling checks are applied, such as client-directed, force tracing, and random sampling.
+
+| *Client*
+| 100
+| Target percentage of requests that are force traced if the `x-client-trace-id` header is set.
+
+| *Random*
+| 100
+| Target percentage of requests that are randomly selected for trace generation, if not requested by the client or not forced.
+|===
+
+[[label-parameters]]
+=== Label Parameters
+
+Labels add span attributes to the trace data for all API instances in the gateway.
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Parameter | Description
+
+| *Name*
+| Name of the label, used as a span attribute name.
+
+| *Type*
+| Where the value for the label is taken from. Supported values are `literal`, `environment`, and `requestHeader`.
+
+| *Key Name*
+| Key used to retrieve the value, such as an environment variable or request header name.
+
+| *Default Value*
+| Value to use if the key isn't found or the retrieved value is empty.
+|===
+
+
+[[policy-config]]
+include::partial$tracing-configuration.adoc[]
 
 include::partial$tracing-export.adoc[tags=telemtery-exporter]
-
-// == Configure Labels
-
-// To configure labels for your Managed Flex Gateway:
-
-// . From Anypoint Platform, select *Runtime Manager > Flex Gateways*.
-// . Click the Managed Flex Gateway name.
-// . In the navigation menu, click Settings.
-// . Click *Advanced options*.
-
-include::partial$tracing-configuration.adoc[]
