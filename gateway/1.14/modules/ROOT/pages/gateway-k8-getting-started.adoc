@@ -253,10 +253,7 @@ If you receive an `UPGRADE FAILED` response, see <<troubleshoot-helm-upgrade-fai
 +
 [[gateway-scope]]
 .Gateway Scope
-By default, Omni Gateway uses `Cluster` scope (`gateway.scope=Cluster`), which watches Kubernetes `Service` resources in all namespaces. If your cluster also runs other MuleSoft components, such as Runtime Fabric, `Cluster` scope has two side effects:
-+
-* Omni Gateway discovers and registers unrelated services from other namespaces, such as Runtime Fabric infrastructure services in the `rtf` namespace.
-* Logs continue to appear in Runtime Manager even when *Forward logs to Anypoint* is turned off.
+By default, Omni Gateway uses `Cluster` scope (`gateway.scope=Cluster`), which watches Kubernetes `Service` resources in all namespaces. On a cluster that also runs Runtime Fabric, this scope makes Omni Gateway discover and register services from other namespaces, such as the Runtime Fabric infrastructure services in the `rtf` namespace.
 +
 To restrict Omni Gateway to the services in its own namespace, set `gateway.scope=Namespace`:
 +
@@ -269,7 +266,7 @@ ingress flex-gateway/flex-gateway \
 --set-file registration.content=registration.yaml
 ----
 +
-On a shared cluster that also runs Runtime Fabric or other MuleSoft products, use `Namespace` scope.
+If Omni Gateway doesn't need to watch resources across the whole cluster, use `Namespace` scope, for example, on a shared cluster that also runs Runtime Fabric.
 
 . If you want to check the status of the Pod that runs your gateway, execute the following `kubectl` command:
 +
