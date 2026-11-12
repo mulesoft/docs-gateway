@@ -249,7 +249,27 @@ TEST SUITE: None
 +
 The `REVISION` value increments the `ingress` release by `1` each time you run this command with the same namespace, repository, and chart names. For example, if you run the command a second time, you find a new revision number (`REVISION: 2`). The `LAST DEPLOYED` date reflects the date of that revision.
 +
-If you receive an `UPGRADE FAILED` response, see <<troubleshoot-helm-upgrade-failed,troubleshooting>> information about this issue. 
+If you receive an `UPGRADE FAILED` response, see <<troubleshoot-helm-upgrade-failed,troubleshooting>> information about this issue.
++
+[[gateway-scope]]
+.Gateway Scope
+By default, Omni Gateway uses `Cluster` scope (`gateway.scope=Cluster`), which watches Kubernetes `Service` resources in all namespaces. If your cluster also runs other MuleSoft components, such as Runtime Fabric, `Cluster` scope has two side effects:
++
+* Omni Gateway discovers and registers unrelated services from other namespaces, such as Runtime Fabric infrastructure services in the `rtf` namespace.
+* Logs continue to appear in Runtime Manager even when *Forward logs to Anypoint* is turned off.
++
+To restrict Omni Gateway to the services in its own namespace, set `gateway.scope=Namespace`:
++
+[source,helm]
+----
+helm -n gateway upgrade -i --create-namespace \
+ingress flex-gateway/flex-gateway \
+--set gateway.mode=connected \
+--set gateway.scope=Namespace \
+--set-file registration.content=registration.yaml
+----
++
+On a shared cluster that also runs Runtime Fabric or other MuleSoft products, use `Namespace` scope.
 
 . If you want to check the status of the Pod that runs your gateway, execute the following `kubectl` command:
 +
