@@ -27,7 +27,7 @@ Use the SOAP Schema Validation policy to block incoming requests that don't conf
 
 The SOAP Schema Validation policy processes only requests. Responses pass through unchanged.
 
-The policy buffers the full request body to validate it against the WSDL. A `GET` request for the WSDL is answered without processing a body.
+The policy buffers the full request body to validate it against the WSDL. A SOAP request without a body returns a fault. The policy answers a `GET` request for the WSDL (`?wsdl`) directly with the WSDL, without processing a body. Other methods return a "Method not allowed" fault.
 
 include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 

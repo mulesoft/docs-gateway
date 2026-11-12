@@ -34,13 +34,13 @@ The JWT Validation policy validates the signature of the token and asserts the v
 
 The JWT Validation policy processes only requests. Responses pass through unchanged.
 
-The policy buffers the full request body if any of the following expressions reference `payload`:
+The policy buffers the full request body only when any of the following expressions can't be resolved from headers, attributes, or authentication data at runtime (for example, when the branch that's taken references `payload`):
 
 * The *Token Expression* (`jwtExpression`), when *JWT Origin* is *Custom Expression*.
 * The *Client ID Expression* (`clientIdExpression`), when *Skip Client ID Validation* is disabled.
 * A custom claim expression, when *Validate Custom Claim* is enabled.
 
-The policy doesn't buffer the body when *JWT Origin* is *HTTP Bearer Authentication Header* and no other expression references `payload`.
+The policy doesn't buffer the body when *JWT Origin* is *HTTP Bearer Authentication Header* and no other expression needs the payload to resolve.
 
 include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 

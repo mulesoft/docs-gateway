@@ -30,7 +30,7 @@ NOTE: The HTTP Caching policy does not support MCP and A2A server instances.
 [[payload-handling]]
 == Payload Handling
 
-The HTTP Caching policy reads the request body only when the `httpCachingKey` or `requestExpression` expression references `payload`. In that case, the policy collects the full request body.
+The HTTP Caching policy reads the request body only when the `httpCachingKey` or `requestExpression` expression can't be resolved from headers or attributes at runtime (for example, when the branch that's taken references `payload`). In that case, the policy reads the request body in streaming mode and collects the full body.
 
 The policy reads the response body only when the response can be cached:
 
@@ -38,9 +38,7 @@ The policy reads the response body only when the response can be cached:
 * If the `responseExpression` expression uses only headers and attributes, the policy doesn't read the body to evaluate it.
 * Otherwise, the policy collects the response body until it reaches 1 MB. If the body is 1 MB or larger, the policy forwards the response to the client without caching it.
 
-The 1 MB cache entry size is fixed. Changing the global payload limit doesn't change it.
-
-include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+The policy reads bodies in streaming mode, so the Omni Gateway payload limit doesn't apply to it. Instead, the policy has its own fixed limit of 1 MB for cached responses.
 
 [[cpp]]
 == Configuring Policy Parameters

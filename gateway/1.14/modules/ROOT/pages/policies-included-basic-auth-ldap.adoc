@@ -33,9 +33,9 @@ The Basic Authentication - LDAP policy processes only requests. Responses pass t
 How the policy handles the request body depends on `authorizationOrigin`:
 
 * `httpBasicAuthenticationHeader`: The policy reads only the request headers and doesn't process the body.
-* `customExpression`: The policy collects the full request body in memory only if the `authorizationExpression` expression references `payload`.
+* `customExpression`: The policy reads the request body in streaming mode and collects the full body in memory only when the `authorizationExpression` expression can't be resolved from headers or attributes at runtime (for example, when the branch that's taken references `payload`).
 
-include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+Because the policy reads the body in streaming mode, the Omni Gateway payload limit doesn't apply to it.
 
 To avoid buffering, use the HTTP Basic Authentication header, or write the `authorizationExpression` expression so it doesn't reference the payload.
 

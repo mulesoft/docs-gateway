@@ -36,7 +36,7 @@ A Rate-Limiting SLA policy applied to an Omni Gateway API is scoped to replicas,
 
 The Rate-Limiting SLA policy processes only requests. Responses pass through unchanged.
 
-The policy buffers the full request body only if the *Client ID Expression* or *Client Secret Expression* references `payload`. Otherwise, the policy reads only the request headers.
+The policy buffers the full request body only when the *Client ID Expression* or *Client Secret Expression* can't be resolved from headers, attributes, or authentication data at runtime (for example, when the branch that's taken references `payload`). Otherwise, the policy reads only the request headers.
 
 include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 

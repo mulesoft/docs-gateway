@@ -27,7 +27,7 @@ The Credential Injection API Key policy injects authentication credentials into 
 
 The Credential Injection API Key policy processes only requests. Responses pass through unchanged.
 
-When `apiKeyType` is `static` (the default), the policy reads headers only and doesn't buffer the request body. When `apiKeyType` is `expression` and the DataWeave expression in `apiKeySelector` references `payload`, the policy buffers the full request body to evaluate it. The policy also reads headers only for `clientCredentials` authentication.
+When `apiKeyType` is `static` (the default), the policy reads headers only and doesn't buffer the request body. When `apiKeyType` is `expression`, the policy buffers the full request body only when the DataWeave expression in `apiKeySelector` can't be resolved from attributes at runtime (for example, when the branch that's taken references `payload`). The policy also reads headers only for `clientCredentials` authentication.
 
 include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 

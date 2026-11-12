@@ -33,7 +33,7 @@ A Rate Limiting policy applied to an Omni Gateway API is scoped to replicas, not
 
 The Rate Limiting policy processes only requests. Responses pass through unchanged.
 
-The policy buffers the full request body only if the `keySelector` expression references `payload`. Otherwise, the policy reads only the request headers.
+The policy buffers the full request body only when the `keySelector` expression can't be resolved from headers, attributes, or authentication data at runtime (for example, when the branch that's taken references `payload`). Otherwise, the policy reads only the request headers.
 
 include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 

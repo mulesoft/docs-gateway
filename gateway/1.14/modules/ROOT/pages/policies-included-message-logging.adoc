@@ -26,11 +26,11 @@ NOTE: To use multiple log levels for different configurations, add multiple conf
 [[payload-handling]]
 == Payload Handling
 
-The Message Logging policy reads the payload only when a log item's `message` or `conditional` expression references `payload`. Otherwise, the policy doesn't process the payload.
+The Message Logging policy reads the payload only when a log item's `message` or `conditional` expression can't be resolved without it (for example, when the branch that's taken references `payload`). Otherwise, the policy doesn't process the payload.
 
-When an expression references `payload`, the policy collects the full body in memory before it logs the message. This applies to the request when *Before Calling API* (`firstSection`) is set, and to the response when *After Calling API* (`secondSection`) is set.
+When the policy reads the payload, it reads the body in streaming mode and collects the full body in memory before it logs the message. This applies to the request when *Before Calling API* (`firstSection`) is set, and to the response when *After Calling API* (`secondSection`) is set.
 
-include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+Because the policy reads the body in streaming mode, the Omni Gateway payload limit doesn't apply to it.
 
 The policy has no setting to limit how much of the payload it logs. Logging a payload can use two to three times the payload size in memory. To reduce memory use, log specific fields instead of the full payload, or log the payload only when a condition is met.
 
