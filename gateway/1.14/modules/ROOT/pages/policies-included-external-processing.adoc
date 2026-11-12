@@ -34,7 +34,7 @@ NOTE: If other policies modify the HTTP request or response, ensure that you ord
 
 The External Processing policy sends the request body and the response body independently. The `requestBodyMode` and `responseBodyMode` parameters control each one, and both default to `none`, which doesn't send the body.
 
-* `buffered`: The policy buffers the full body and then sends it to the external processing service.
+* `buffered`: The policy buffers the full body and then sends it to the external processing service. If the body exceeds the payload limit, the request fails.
 * `streamed`: The policy sends the body in chunks as it arrives and doesn't buffer the full body.
 * `bufferedPartial`: The policy buffers the body up to the configured payload limit and then sends the buffered portion to the external processing service.
 

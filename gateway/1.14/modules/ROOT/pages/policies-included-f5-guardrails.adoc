@@ -40,7 +40,10 @@ Every scan emits observability headers, a scan ID for correlation with the F5 co
 
 The F5 Guardrails policy scans the request body only when *Moderate Request* is enabled and the request is a `POST` request with a JSON body in a supported LLM format. In that case, the policy buffers the full request body. Other requests pass through without scanning.
 
-The policy processes responses only when *Moderate Response* is enabled. By default, it's disabled and responses pass through. When enabled, the policy buffers the full response, including SSE (`text/event-stream`) responses, and holds it until the scan completes. The client doesn't receive a streamed response, and the policy increases latency and memory use.
+How the policy handles responses depends on *Moderate Response*:
+
+* Disabled (the default): Responses pass through without scanning.
+* Enabled: The policy buffers the full response, including SSE (`text/event-stream`) responses, and holds it until the scan completes. The client doesn't receive a streamed response, and the policy increases latency and memory use.
 
 include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 

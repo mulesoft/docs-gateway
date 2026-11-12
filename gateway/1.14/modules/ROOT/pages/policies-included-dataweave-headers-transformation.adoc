@@ -26,7 +26,10 @@ The DataWeave Headers Transformation policy transforms request or response heade
 
 The DataWeave Headers Transformation policy processes only the side that `requestFlow` sets: `onRequest` for the request or `onResponse` for the response. The other side passes through unchanged.
 
-By default, `requiresPayload` is `false` and the policy reads headers only, without buffering the body. When `requiresPayload` is `true`, the policy buffers the full body on the configured side so that the script can read `payload`.
+How the policy handles the body on the configured side depends on `requiresPayload`:
+
+* `false` (the default): The policy reads headers only and doesn't buffer the body.
+* `true`: The policy buffers the full body so that the script can read `payload`.
 
 include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 

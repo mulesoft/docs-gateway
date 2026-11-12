@@ -27,7 +27,11 @@ The Credential Injection API Key policy injects authentication credentials into 
 
 The Credential Injection API Key policy processes only requests. Responses pass through unchanged.
 
-When `apiKeyType` is `static` (the default), the policy reads headers only and doesn't buffer the request body. When `apiKeyType` is `expression`, the policy buffers the full request body only when the DataWeave expression in `apiKeySelector` can't be resolved from attributes at runtime (for example, when the branch that's taken references `payload`). The policy also reads headers only for `clientCredentials` authentication.
+How the policy handles the request body depends on `authType` and `apiKeyType`:
+
+* `clientCredentials`: The policy reads headers only and doesn't buffer the request body.
+* `apiKey` with `apiKeyType` set to `static` (the default): The policy reads headers only and doesn't buffer the request body.
+* `apiKey` with `apiKeyType` set to `expression`: The policy buffers the full request body only when the DataWeave expression in `apiKeySelector` can't be resolved from attributes at runtime (for example, when the branch that's taken references `payload`).
 
 include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 
@@ -43,8 +47,11 @@ include::partial$policy-title-headers.adoc[tag=configFile]
   config:
     authType: <string> // REQUIRED
     overwrite: <boolean> // REQUIRED, default: true
+    headersToRemove: <array> // OPTIONAL
     # For API Key authentication:
-    apiKey: <string> // REQUIRED when authType is "apiKey"
+    apiKeyType: <string> // OPTIONAL when authType is "apiKey", default: static
+    apiKey: <string> // REQUIRED when apiKeyType is "static"
+    apiKeySelector: <dataweave> // REQUIRED when apiKeyType is "expression"
     customHeader: <string> // OPTIONAL when authType is "apiKey"
     # For Client Credentials authentication:
     clientId: <string> // REQUIRED when authType is "clientCredentials"
@@ -67,10 +74,25 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `true`
 | Overwrite authentication headers if present in the request.
 
+| `headersToRemove`
+| Optional
+| `[]`
+| Exact names of request headers to remove before the policy injects credentials.
+
+| `apiKeyType`
+| Optional
+| `static`
+| How the policy gets the API key when `authType` is `apiKey`: `static` uses the value in `apiKey`, and `expression` resolves the value at runtime from `apiKeySelector`.
+
 | `apiKey`
-| Required when `authType` is `apiKey`.
+| Required when `apiKeyType` is `static`.
 | N/A
-| The API key value to inject.
+| The static API key value to inject.
+
+| `apiKeySelector`
+| Required when `apiKeyType` is `expression`.
+| N/A
+| A DataWeave expression that resolves the API key at runtime. The expression can use `attributes` and `payload`. For example: `#[attributes.headers['x-api-key']]`.
 
 | `customHeader`
 | Optional
@@ -108,6 +130,18 @@ include::partial$policy-title-headers.adoc[tag=configFile]
   config:
     authType: apiKey
     apiKey: my-secret-api-key
+    overwrite: true
+----
+
+* API Key from a DataWeave expression:
++
+----
+- policyRef:
+    name: credential-injection-api-key-flex
+  config:
+    authType: apiKey
+    apiKeyType: expression
+    apiKeySelector: "#[attributes.headers['x-api-key']]"
     overwrite: true
 ----
 
@@ -159,7 +193,13 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 |*Overwrite headers* |Overwrite authentication headers if present in the request.
 
-|*API Key* |The API key value to inject.
+|*Headers to remove* |Exact names of request headers to remove before the policy injects credentials.
+
+|*API Key Type* |How the policy gets the API key: *Static* or *DataWeave Expression*.
+
+|*API Key* |The static API key value to inject. Required when *API Key Type* is *Static*.
+
+|*API Key Expression* |A DataWeave expression that resolves the API key at runtime. Required when *API Key Type* is *DataWeave Expression*.
 
 |*Custom header* |Use a custom header instead of Authorization for API key injection.
 

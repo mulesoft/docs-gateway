@@ -38,6 +38,7 @@ The policy buffers the full request body only when any of the following expressi
 
 * The *Token Expression* (`jwtExpression`), when *JWT Origin* is *Custom Expression*.
 * The *Client ID Expression* (`clientIdExpression`), when *Skip Client ID Validation* is disabled.
+* The *JWT Context Key Expression* (`customKeyExpression`), when *JWT Key Origin* is *Context*.
 * A custom claim expression, when *Validate Custom Claim* is enabled.
 
 The policy doesn't buffer the body when *JWT Origin* is *HTTP Bearer Authentication Header* and no other expression needs the payload to resolve.
@@ -89,7 +90,12 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `jwtKeyOrigin`
 | Optional
 | `text`
-|
+| Origin of the key that validates the token signature. Supported values: `text`, `jwks`, `customExpression`. The `jwks` and `customExpression` values are supported only when `signingMethod` is `rsa` or `es`.
+
+| `customKeyExpression`
+| Optional
+| `#[authentication.properties['key_to_your_public_pem_certificate']]`
+| DataWeave expression that gets the key from the request context. Used when `jwtKeyOrigin` is `customExpression`.
 
 | `jwksUrl`
 | Optional
@@ -208,7 +214,7 @@ Ignore this field if you selected *none* as JWT Signing Method.
 
 | JWT Key Origin
 | Specifies where to obtain the key for the Signature validation. +
-You can provide the key in the policy by selecting the *Text* option or by obtaining it from a *JWKS*. +
+You can provide the key in the policy by selecting the *Text* option, by obtaining it from a *JWKS*, or by obtaining it from the request context with the *Context* option. +
 Ignore this field if you selected *none* as JWT Signing Method.
 |
 
@@ -217,6 +223,12 @@ Ignore this field if you selected *none* as JWT Signing Method.
 Use this field to  provide the key used to check the signature of the token. +
 Ignore this field if you selected *none* as JWT Signing Method.
 | Enter a 32, 48, or 64 character string shared secret for HMAC, a 32 character string shared secret for ES, or the PEM Public Key without the header and footer for RSA.
+
+| JWT Context Key Expression
+| This field appears if you selected *Context* as JWT Key Origin. +
+A DataWeave expression that gets the key from the context of the request. +
+Ignore this field if you selected *none* as JWT Signing Method.
+| `#[authentication.properties['key_to_your_public_pem_certificate']]`
 
 | JWKS URL
 | This field appears if you selected the *JWKS* method as JWT Key Origin. +

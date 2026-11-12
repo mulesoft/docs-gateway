@@ -31,7 +31,10 @@ Result format:
 
 The DataWeave Request Filter policy processes only requests. Responses pass through unchanged.
 
-By default, `requiresPayload` is `false` and the policy reads headers only, without buffering the body. When `requiresPayload` is `true`, the policy buffers the full request body so that the script can read `payload`. If the request has no body, the policy returns a `400` error.
+How the policy handles the request body depends on `requiresPayload`:
+
+* `false` (the default): The policy reads headers only and doesn't buffer the body.
+* `true`: The policy buffers the full request body so that the script can read `payload`. If the request has no body, the policy returns a `400` error.
 
 include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 
