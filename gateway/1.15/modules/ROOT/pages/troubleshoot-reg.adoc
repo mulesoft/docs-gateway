@@ -8,6 +8,8 @@ endif::[]
 When registering Omni Gateway, you might encounter issues caused by incorrect access permissions, and so on. The following topics provide possible causes for registration issues and describe how to troubleshoot:
 
 * <<no-permissions,Performing Registration as a User Without Necessary Access Permissions>>
+* <<renew-deleted-gateway,Renewing the Registration of a Deleted Gateway>>
+* <<renew-too-old,Renewing a Registration File That Is Too Old>>
 
 [[no-permissions]]
 == Performing Registration as a User Without Necessary Access Permissions
@@ -36,6 +38,50 @@ To resolve this error, perform the following steps:
 . Click the *+* button.
 
 Re-running the registration command should now result in success.
+
+[[renew-deleted-gateway]]
+== Renewing the Registration of a Deleted Gateway
+
+Running `flexctl registration renew` with the registration file of a gateway that was deleted in Runtime Manager results in an error that starts with:
+
+----
+invalid response: HTTP/1.1 409 Conflict
+----
+
+=== Cause
+
+A deleted gateway's registration can't be renewed. Deleting a gateway in Runtime Manager also removes its configuration history, which you can't recover.
+
+=== Solution
+
+Replace the registration with a new one:
+
+. Register a new gateway with a unique name using the `flexctl registration create` command.
++
+For instructions, see xref:conn-reg-run.adoc[] or xref:local-reg-run.adoc[].
+. Run Omni Gateway with the new `registration.yaml` file, replacing the old registration file on every replica.
++
+For Omni Gateway running in Kubernetes, run the `helm upgrade` command in xref:gateway-renew-certificate.adoc#renew-kubernetes[Renew Registration for Omni Gateway Running in Kubernetes] and pass it the new registration file.
+. Assign your APIs to the new gateway.
++
+Before Runtime Manager deletes a gateway, you must move its APIs to another gateway or delete them. Move those APIs to the new gateway, or re-create the APIs you deleted.
+
+[[renew-too-old]]
+== Renewing a Registration File That Is Too Old
+
+Running `flexctl registration renew` with an old registration file results in this error:
+
+----
+The registration file is too old to be renewed. A new registration file is needed
+----
+
+=== Cause
+
+The registration file is too old to renew.
+
+=== Solution
+
+Register a new gateway and run Omni Gateway with the new registration file. Follow steps 1 and 2 in <<renew-deleted-gateway>>.
 
 == See Also
 

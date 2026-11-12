@@ -10,6 +10,7 @@ You update a certificate by renewing registration via the `flexctl registration 
 
 * The `renew` command renews an existing Omni Gateway registration with Runtime Manager.
 * For authentication, you run the `renew` command with either user credentials or with connected app credentials. Authentication with user credentials requires the `--username` and `--password` flags. Authentication with connected app credentials requires the `--client-id` and `--client-secret` flags.
+* You can't renew a registration if its gateway was deleted in Runtime Manager or if the registration file is too old. In these cases, register a new gateway. See xref:troubleshoot-reg.adoc[].
 
 You verify the renewal process via the `flexctl registration inspect` command.
 
@@ -372,6 +373,7 @@ docker run --entrypoint flexctl \
 registration inspect --file=/registration/registration.yaml
 ----
 
+[[renew-kubernetes]]
 == Renew Registration for Omni Gateway Running in Kubernetes
 
 The following example describes a scenario where Omni Gateway is installed in a `gateway` namespace with an `ingress` release name, and where registration is stored in the Kubernetes database.
@@ -478,7 +480,7 @@ Attempting to run Omni Gateway with an expired certificate in Local Mode results
 
 * Metering information fails to upload to Anypoint Platform. MuleSoft is unable to collect or report usage metrics.
 
-If a certificate expires, you can still invoke `flexctl registration renew`, which updates the expired certificate.
+If a certificate expires, you can still run `flexctl registration renew` to update the expired certificate. If the registration file is too old to renew, the command fails and you must register a new gateway. See xref:troubleshoot-reg.adoc#renew-too-old[].
 
 == See Also
 
