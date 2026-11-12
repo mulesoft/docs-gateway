@@ -21,6 +21,15 @@ include::partial$a2a-version-support.adoc[]
 
 The A2A Prompt Decorator policy injects additional content into provided prompts before they are sent to the upstream server. You can specify the content to inject either as a DataWeave string parameter or by referencing a file. Additionally, you can use a DataWeave expression to filter which requests should have prompts decorated.
 
+[[payload-handling]]
+== Payload Handling
+
+The A2A Prompt Decorator policy processes only requests. Responses pass through unchanged.
+
+The policy buffers the full body of JSON `POST` requests with the `message/send`, `message/stream`, or `tasks/stream` method so that it can decorate the prompt. Other requests pass through without changes.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

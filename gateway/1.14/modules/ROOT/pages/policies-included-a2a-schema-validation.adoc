@@ -26,3 +26,12 @@ There are no configuration parameters for this policy.
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
 The A2A Schema Validation policy isn't supported in Local Mode.
+
+[[payload-handling]]
+== Payload Handling
+
+The A2A Schema Validation policy buffers the full body of JSON `POST` requests to validate them against the A2A schema.
+
+The policy buffers a response only when it rejects the request. In that case, the policy buffers the response so that it can replace an error body that isn't in JSON-RPC format. Otherwise, responses pass through unchanged.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]

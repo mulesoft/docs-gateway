@@ -21,6 +21,13 @@ The SSE Logging policy enables logging for SSE connections. The configured SSE l
 
 NOTE: This policy only provides logs for SSE events. To log non-SSE information, see xref:policies-included-message-logging.adoc[].
 
+[[payload-handling]]
+== Payload Handling
+
+The SSE Logging policy processes only SSE (`text/event-stream`) responses. Requests and non-SSE responses pass through.
+
+The policy reads the stream without modifying it and doesn't buffer the full stream. It evaluates your log expressions one event at a time.
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
