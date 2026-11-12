@@ -30,9 +30,10 @@ LDAP is an inverted tree, and each leaf has a username-password pair and associa
 
 The Basic Authentication - LDAP policy processes only requests. Responses pass through unchanged.
 
-When `authorizationOrigin` is `httpBasicAuthenticationHeader`, the policy reads only the request headers and doesn't process the body.
+How the policy handles the request body depends on `authorizationOrigin`:
 
-When `authorizationOrigin` is `customExpression`, the policy collects the full request body in memory only if the `authorizationExpression` expression references `payload`.
+* `httpBasicAuthenticationHeader`: The policy reads only the request headers and doesn't process the body.
+* `customExpression`: The policy collects the full request body in memory only if the `authorizationExpression` expression references `payload`.
 
 include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 

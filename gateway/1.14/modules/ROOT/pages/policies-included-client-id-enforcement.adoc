@@ -39,9 +39,10 @@ Although token enforcement policies can optionally skip client validation, it is
 
 The Client ID Enforcement policy processes only requests. Responses pass through unchanged.
 
-When *Credentials origin* is *HTTP Basic Authentication Header*, the policy reads only the request headers and doesn't process the body.
+How the policy handles the request body depends on *Credentials origin*:
 
-When *Credentials origin* is *Custom Expression*, the policy buffers the full request body only if the *Client ID Expression* or *Client Secret Expression* references `payload`. Otherwise, the policy reads only the request headers.
+* *HTTP Basic Authentication Header*: The policy reads only the request headers and doesn't process the body.
+* *Custom Expression*: The policy buffers the full request body only if the *Client ID Expression* or *Client Secret Expression* references `payload`. Otherwise, the policy reads only the request headers.
 
 include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 
