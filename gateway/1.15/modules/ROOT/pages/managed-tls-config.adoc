@@ -48,7 +48,7 @@ For Managed Omni Gateway deployed on Runtime Fabric on OpenShift, terminate exte
 You must configure both of these resources together:
 
 * An `HTTPRouteTemplate` resource with `reencrypt` TLS termination, which configures the OpenShift route.
-* A `PolicyBinding` resource for the `tls-inbound` policy, which configures HTTPS on the APIs.
+* A `PolicyBinding` resource for the `tls` inbound policy, which configures HTTPS on the APIs.
 
 If you configure only the route template, the route can't connect to the APIs over HTTPS. If you configure only the policy binding, external clients don't connect to the gateway through the route with the cluster wildcard certificate.
 
@@ -109,11 +109,13 @@ oc apply -f <file-name>.yaml
 
 === Configure HTTPS on the APIs
 
-The `reencrypt` route connects to the gateway over HTTPS, so the APIs on Managed Omni Gateway must also serve HTTPS. To configure HTTPS on the APIs, bind the `tls-inbound` policy to them. You must apply this binding in addition to the `HTTPRouteTemplate` resource that you create in <<create-the-route-template, Create the Route Template>>.
+The `reencrypt` route connects to the gateway over HTTPS, so the APIs on Managed Omni Gateway must also serve HTTPS. To configure HTTPS on the APIs, bind the `tls` inbound policy to them. You must apply this binding in addition to the `HTTPRouteTemplate` resource that you create in <<create-the-route-template, Create the Route Template>>.
 
 . Create a YAML file with a `PolicyBinding` resource.
 +
-To apply HTTPS to all APIs on the gateway, use a `Selector` target with no labels:
+Inbound TLS applies to the port of each API instance that the binding selects, and to all other API instances that share that port. Select the API instances based on the traffic that the gateway serves.
++
+If the gateway serves only inbound traffic, apply HTTPS to all APIs on the gateway by using a `Selector` target with no labels:
 +
 [source,yaml]
 ----
@@ -130,12 +132,40 @@ spec:
     selector:
       kind: ApiInstance
   policyRef:
-    name: tls-inbound
+    name: tls
   config:
     # TLS inbound parameters
 ----
 +
-Replace `<omni-gateway-namespace>` with the namespace of the Managed Omni Gateway and `<omni-gateway-id>` with the gateway ID from Runtime Manager.
+If the gateway serves as both the ingress and the egress gateway, select one API instance on the inbound port `8081`, by its ID. Because inbound TLS applies to the port, all API instances on `8081` serve HTTPS, and the egress port `8082` continues to serve HTTP:
++
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: tls-inbound-ingress-port
+  namespace: <omni-gateway-namespace>
+  labels:
+    rtf.mulesoft.com/target-id: <omni-gateway-id>
+spec:
+  targetRef:
+    kind: Selector
+    selector:
+      kind: ApiInstance
+      labels:
+        flex.mulesoft.com/apiinstance-id: "<api-instance-id>"
+  policyRef:
+    name: tls
+  config:
+    # TLS inbound parameters
+----
++
+Replace `<api-instance-id>` with the ID of an API instance on the inbound port. Find the ID in API Manager.
++
+If you delete or re-create this API instance, the binding no longer selects any API instance, and the inbound port serves HTTP. After you re-create the API instance, update the ID in the binding. To avoid this dependency, deploy separate ingress and egress gateways. See xref:gateway-managed-ingress-egress.adoc[].
++
+In both examples, replace `<omni-gateway-namespace>` with the namespace of the Managed Omni Gateway and `<omni-gateway-id>` with the gateway ID from Runtime Manager.
 +
 For the parameters that you can set in `config`, see xref:policies-included-tls.adoc[].
 . Apply the resource:
