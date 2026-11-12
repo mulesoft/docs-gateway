@@ -37,6 +37,15 @@ The transforms applied within those scopes are organized into two independent fe
 
 The policy is *fail-open* throughout: any gate miss, parse failure, or result that doesn't get smaller forwards the original bytes unchanged. When compression does engage, the policy measures the tokens and bytes saved and feeds the token/cost savings to Cost Management telemetry.
 
+[[payload-handling]]
+== Payload Handling
+
+The Model Proxy Request Compression policy processes only requests. Responses pass through unchanged.
+
+The policy buffers the full request body when the request is a `POST` request with an `application/json` content type in OpenAI format. The policy rewrites the buffered body before it forwards the request upstream. Other requests pass through unchanged.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Placement
 
 Apply this policy to the inbound Model Proxy chain:

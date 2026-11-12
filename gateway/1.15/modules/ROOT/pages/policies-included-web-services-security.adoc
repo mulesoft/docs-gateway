@@ -34,6 +34,17 @@ The policy accepts plain SOAP requests with a `text/xml` or `application/soap+xm
 * To validate UsernameTokens, client applications must have a contract with the API. For more information, see xref:api-manager::manage-client-apps-latest-task.adoc[].
 * To validate XML signatures, get the PEM-encoded certificates of the CAs that issue your client signing certificates.
 
+[[payload-handling]]
+== Payload Handling
+
+The WS-Security policy processes only requests. Responses pass through unchanged.
+
+The policy rejects a request with a non-SOAP `Content-Type` before it reads the body. The policy accepts `text/xml`, `application/soap+xml`, and `multipart/related` with a boundary. For SOAP requests, the policy buffers the full request body to validate the SOAP envelope.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+The policy limits apply to certificates and tokens, not to payload size.
+
 == Configure WS-Security Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]
