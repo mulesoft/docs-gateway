@@ -55,14 +55,12 @@ Omni Gateway provides these environment variables to configure your gateway:
 |FLEX_SYNC_DEBOUNCE_TIME
 |"5s"
 |Specifies the amount of time to wait after detecting a configuration change before applying it. This prevents excessive reloading during rapid successive changes. The value must be a valid duration string, such as `"5s"` or `"500ms"`. For Kubernetes deployments, set this value with the `gateway.syncDebounceTime` Helm chart value. For more information, see <<set-env-variables>>.
-ifeval::["{page-mode}" == "conn"]
 
 |FLEX_STARTUP_DEBOUNCE_TIME
 |`"30s"`
 |Specifies the amount of time to wait for the initial batch of configuration from Anypoint Platform to settle before applying it when Omni Gateway starts. The value must be a valid duration string, such as `"30s"` or `"1m"`. For Kubernetes deployments, set this value with the `gateway.startupDebounceTime` Helm chart value. For more information, see <<set-env-variables>>. For guidance on choosing a value with a readiness probe, see xref:conn-readiness-liveness.adoc#readiness-startup-debounce[Combine the Readiness Probe with the Startup Debounce Time].
 
 In Omni Gateway versions earlier than 1.15, `FLEX_SYNC_DEBOUNCE_TIME` also controls the startup wait time.
-endif::[]
 
 |FLEX_DNS_REFRESH_RATE
 |`5s`
@@ -100,9 +98,7 @@ docker run --rm \
 -v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
 -p 8080:8080 \
 -e FLEX_SYNC_DEBOUNCE_TIME=10s \
-ifeval::["{page-mode}" == "conn"]
 -e FLEX_STARTUP_DEBOUNCE_TIME=60s \
-endif::[]
 mulesoft/flex-gateway
 ----
 
@@ -117,9 +113,7 @@ services:
     image: mulesoft/flex-gateway
     environment:
       FLEX_SYNC_DEBOUNCE_TIME: "10s"
-ifeval::["{page-mode}" == "conn"]
       FLEX_STARTUP_DEBOUNCE_TIME: "60s"
-endif::[]
 ----
 
 [[set-env-variables-linux]]
@@ -135,9 +129,7 @@ sudo mkdir -p /etc/systemd/system/flex-gateway.service.d
 sudo tee /etc/systemd/system/flex-gateway.service.d/env.conf > /dev/null <<'EOF'
 [Service]
 Environment=FLEX_SYNC_DEBOUNCE_TIME=10s
-ifeval::["{page-mode}" == "conn"]
 Environment=FLEX_STARTUP_DEBOUNCE_TIME=60s
-endif::[]
 EOF
 ----
 +
@@ -170,10 +162,8 @@ When you deploy Omni Gateway with the Helm chart, the chart sets the environment
 |`gateway.syncDebounceTime`
 |`FLEX_SYNC_DEBOUNCE_TIME`
 
-ifeval::["{page-mode}" == "conn"]
 |`gateway.startupDebounceTime`
 |`FLEX_STARTUP_DEBOUNCE_TIME`
-endif::[]
 |===
 
 Don't use `extraEnvs` to set a variable that the chart already sets from a Helm chart value. Use the Helm chart value instead.
@@ -186,13 +176,8 @@ helm -n gateway upgrade ingress \
 --wait \
 --reuse-values \
 flex-gateway/flex-gateway \
-ifeval::["{page-mode}" == "conn"]
 --set gateway.syncDebounceTime=10s \
 --set gateway.startupDebounceTime=60s
-endif::[]
-ifeval::["{page-mode}" == "local"]
---set gateway.syncDebounceTime=10s
-endif::[]
 ----
 
 Alternatively, add the values to a configuration file that you pass with the `-f` option:
@@ -201,9 +186,7 @@ Alternatively, add the values to a configuration file that you pass with the `-f
 ----
 gateway:
   syncDebounceTime: "10s"
-ifeval::["{page-mode}" == "conn"]
   startupDebounceTime: "60s"
-endif::[]
 ----
 
 To set a variable that doesn't have a Helm chart value, use `extraEnvs`, for example:
