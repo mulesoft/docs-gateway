@@ -54,7 +54,13 @@ Omni Gateway provides these environment variables to configure your gateway:
 
 |FLEX_SYNC_DEBOUNCE_TIME
 |"5s"
-|Specifies the amount of time to wait after detecting a configuration change before applying it. This prevents excessive reloading during rapid successive changes. The value must be a valid duration string, such as `"5s"` or `"500ms"`.
+|Specifies the amount of time to wait after detecting a configuration change before applying it. This prevents excessive reloading during rapid successive changes. The value must be a valid duration string, such as `"5s"` or `"500ms"`. For Kubernetes deployments, set this value with the `gateway.syncDebounceTime` Helm chart value. For more information, see <<set-env-variables>>.
+
+|FLEX_STARTUP_DEBOUNCE_TIME
+|`"30s"`
+|Specifies the amount of time to wait for the initial batch of configuration from Anypoint Platform to settle before applying it when Omni Gateway starts. The value must be a valid duration string, such as `"30s"` or `"1m"`. For Kubernetes deployments, set this value with the `gateway.startupDebounceTime` Helm chart value. For more information, see <<set-env-variables>>. For guidance on choosing a value with a readiness probe, see xref:conn-readiness-liveness.adoc#readiness-startup-debounce[Combine the Readiness Probe with the Startup Debounce Time].
+
+In Omni Gateway versions earlier than 1.15, `FLEX_SYNC_DEBOUNCE_TIME` also controls the startup wait time.
 
 |FLEX_DNS_REFRESH_RATE
 |`5s`
@@ -69,3 +75,127 @@ Omni Gateway provides these environment variables to configure your gateway:
 |Provides Omni Gateway registration and configuration as a YAML-formatted string. The YAML content must be properly escaped to preserve special characters. Provide your registration and configuration as a string if deploying environments where file mounting isn't practical, such as Amazon ECS or Azure Container Apps.
 
 |===
+
+[[set-env-variables]]
+== Set Environment Variables for Your Deployment Target
+
+How you set an environment variable depends on where Omni Gateway runs. The examples in this section set the debounce time variables, but you can use the same approach for any variable in the previous table.
+
+Omni Gateway reads environment variables only when it starts. After you set a variable, restart Omni Gateway to apply the change.
+
+* <<set-env-variables-docker>>
+* <<set-env-variables-linux>>
+* <<set-env-variables-k8s>>
+
+[[set-env-variables-docker]]
+=== Set Environment Variables in a Docker Container
+
+Pass each variable with the `-e` option in the `docker run` start command, for example:
+
+[source,ssh]
+----
+docker run --rm \
+-v "$(pwd)":/usr/local/share/mulesoft/flex-gateway/conf.d \
+-p 8080:8080 \
+-e FLEX_SYNC_DEBOUNCE_TIME=10s \
+-e FLEX_STARTUP_DEBOUNCE_TIME=60s \
+mulesoft/flex-gateway
+----
+
+Podman uses the same `-e` option in the `podman run` start command.
+
+If you use Docker Compose, add the variables to the `environment` section of the service, for example:
+
+[source,yaml]
+----
+services:
+  flex-gateway:
+    image: mulesoft/flex-gateway
+    environment:
+      FLEX_SYNC_DEBOUNCE_TIME: "10s"
+      FLEX_STARTUP_DEBOUNCE_TIME: "60s"
+----
+
+[[set-env-variables-linux]]
+=== Set Environment Variables for a Linux Service
+
+When Omni Gateway runs as a Linux service, `systemd` sets its environment variables. Add the variables in a drop-in file for the `flex-gateway` service:
+
+. Create a drop-in file named `env.conf` in the `/etc/systemd/system/flex-gateway.service.d/` directory:
++
+[source,ssh]
+----
+sudo mkdir -p /etc/systemd/system/flex-gateway.service.d
+sudo tee /etc/systemd/system/flex-gateway.service.d/env.conf > /dev/null <<'EOF'
+[Service]
+Environment=FLEX_SYNC_DEBOUNCE_TIME=10s
+Environment=FLEX_STARTUP_DEBOUNCE_TIME=60s
+EOF
+----
++
+Don't edit the `override.conf` file in the same directory. The Omni Gateway package installs and manages that file.
+
+. Reload the `systemd` configuration and restart Omni Gateway:
++
+[source,ssh]
+----
+sudo systemctl daemon-reload
+sudo systemctl restart flex-gateway
+----
+
+. Verify that the service includes the new variables:
++
+[source,ssh]
+----
+systemctl show flex-gateway --property=Environment
+----
+
+[[set-env-variables-k8s]]
+=== Set Environment Variables in Kubernetes
+
+When you deploy Omni Gateway with the Helm chart, the chart sets the environment variables on the Omni Gateway pod. Set the debounce times with these Helm chart values:
+
+[cols="2,2"]
+|===
+|Helm Chart Value |Environment Variable
+
+|`gateway.syncDebounceTime`
+|`FLEX_SYNC_DEBOUNCE_TIME`
+
+|`gateway.startupDebounceTime`
+|`FLEX_STARTUP_DEBOUNCE_TIME`
+|===
+
+Don't use `extraEnvs` to set a variable that the chart already sets from a Helm chart value. Use the Helm chart value instead.
+
+To change the values on an existing deployment, run `helm upgrade` with the `--set` option, for example:
+
+[source,helm]
+----
+helm -n gateway upgrade ingress \
+--wait \
+--reuse-values \
+flex-gateway/flex-gateway \
+--set gateway.syncDebounceTime=10s \
+--set gateway.startupDebounceTime=60s
+----
+
+Alternatively, add the values to a configuration file that you pass with the `-f` option:
+
+[source,yaml]
+----
+gateway:
+  syncDebounceTime: "10s"
+  startupDebounceTime: "60s"
+----
+
+To set a variable that doesn't have a Helm chart value, use `extraEnvs`, for example:
+
+[source,yaml]
+----
+extraEnvs:
+  - name: FLEX_REMOVE_SERVER_HEADER
+    value: "true"
+----
+
+For more information about updating Helm chart values, see xref:gateway-k8-change-helm-settings.adoc[].
