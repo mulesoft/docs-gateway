@@ -26,6 +26,18 @@ To make identity-based decisions, apply an upstream authentication policy, such 
 
 After Omni Gateway extracts the GraphQL operation text, the policy evaluates your rules against the request. The policy skips persisted queries and passes them to the upstream service without authorization checks, because Omni Gateway doesn't inspect their operation text. Non-GraphQL requests also pass through.
 
+[[payload-handling]]
+== Payload Handling
+
+The GraphQL Access Control policy processes only requests. Responses pass through unchanged.
+
+How the policy reads the operation depends on the HTTP method:
+
+* `GET` requests: The policy reads the `query` parameter from the query string. It doesn't process the request body.
+* `POST` requests: The policy buffers the full request body when the `Content-Type` header is `application/json` or `application/graphql`. Requests with other content types pass through without processing.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]

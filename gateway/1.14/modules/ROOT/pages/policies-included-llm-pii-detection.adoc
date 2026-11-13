@@ -24,6 +24,15 @@ The policy inspects incoming request bodies and outgoing response bodies for PII
 
 When PII is detected, the policy reports a policy violation. For request traffic, you configure whether to reject the request, log findings, or log masked findings. Response traffic is never blocked.
 
+[[payload-handling]]
+== Payload Handling
+
+The LLM PII Detection policy buffers the full body of JSON `POST` requests so it can scan them for PII. Other requests pass through without scanning.
+
+The policy buffers the full body of JSON responses. It doesn't inspect SSE (`text/event-stream`) responses.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

@@ -17,6 +17,15 @@ The AWS Lambda policy triggers an AWS Lambda function from a standard HTTP reque
 
 The AWS Lambda policy is an extension of the AWS Lambda filter native to Envoy. To learn more about the AWS Lambda filter, see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/aws_lambda_filter[AWS Lambda Filter]. Not all AWS Lambda filter parameters are available to the AWS Lambda policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>. 
 
+[[payload-handling]]
+== Payload Handling
+
+The AWS Lambda policy always buffers the full request body to calculate the AWS Signature Version 4 (SigV4) signature hash, whether or not `payloadPassthrough` is enabled. Requests without a body aren't buffered.
+
+The policy converts and buffers the Lambda function's JSON response only when `payloadPassthrough` is `false` and `invocationMode` is `sync`. The policy returns error responses (a status code of 300 or higher, or an `x-amz-function-error` header) as is. When `payloadPassthrough` is `true` or `invocationMode` is `async`, the policy also returns the response as is.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]
