@@ -56,6 +56,8 @@ High CPU usage can lead to increased latency. In such a case, proceed with horiz
 
 High memory consumption can lead to out-of-memory errors. To solve this issue, increase the memory allocation or the node size. Horizontal scaling might not help solve issues in this situation. You must increase memory first, and scale horizontally later.
 
+In Kubernetes deployments, the number of services that Omni Gateway discovers also affects memory usage, even if no API instance references those services. If memory usage is high while traffic is low, limit service discovery before you increase node size. See xref:gateway-k8-change-helm-settings.adoc#limit-service-discovery[Limit Kubernetes Service Discovery].
+
 These guidelines are for a cluster with an average request size of 1 KB and four policies implemented. Adjust your parameters depending on your use case. 
 
 The most commonly used out-of-the-box policies are:

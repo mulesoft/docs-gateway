@@ -27,6 +27,16 @@ Configure the policy to inject the MCP primitive as request headers toward the u
 
 NOTE: This policy must come first in policy order. If this policy doesn't come first, Omni Gateway might throw a runtime error.
 
+[[payload-handling]]
+== Payload Handling
+
+The MCP Support policy handles requests and responses differently:
+
+* Requests: The policy doesn't process `GET` requests. It buffers the full body of `POST` requests with a JSON or `text/event-stream` content type.
+* Responses: The policy processes SSE (`text/event-stream`) responses one event at a time and doesn't buffer the full stream. It buffers the full body of JSON responses.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

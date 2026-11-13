@@ -23,6 +23,16 @@ The A2A Agent Card Policy rewrites the URL in the A2A Agent Card responses so th
 
 The A2A Agent Card policy also enables the *Total Agent Calls* metric that tracks the total successful and unsuccessful calls made to the agent. To view *Total Agent Calls*, see xref:managed-view-api-metrics.adoc[].
 
+[[payload-handling]]
+== Payload Handling
+
+The A2A Agent Card policy doesn't process requests. It processes responses as follows:
+
+* JSON responses: The policy buffers the full response body to rewrite the URLs. This applies to agent card `GET` requests and to JSON `POST` responses. It also applies when the response has no `Content-Type` header.
+* SSE responses: The policy processes the stream one event at a time, rewriting the URLs in each event, and doesn't buffer the full stream.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

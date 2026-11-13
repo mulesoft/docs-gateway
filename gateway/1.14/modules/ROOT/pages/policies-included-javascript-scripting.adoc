@@ -30,6 +30,20 @@ The module must export at least one of these functions to properly load.
 
 Module-level variables persist across invocations to share state between requests (for example, to maintain a counter). The runtime provides the standard `console`, `TextEncoder`, and `TextDecoder` globals. The script runs synchronously; `async` functions and promises returned from a filter aren't awaited.
 
+[[payload-handling]]
+== Payload Handling
+
+The JavaScript Scripting policy always buffers the full body for each function that the module exports, even if the script doesn't read the body:
+
+* If the module exports `requestFilter`, the policy buffers the request body.
+* If the module exports `responseFilter`, the policy buffers the response body.
+
+To avoid buffering a body that the script doesn't use, export only the function you need.
+
+Calls to `getBody()`, `getBodyString()`, `setBody()`, and `setBodyString()` copy the full body into the script's memory.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configure Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

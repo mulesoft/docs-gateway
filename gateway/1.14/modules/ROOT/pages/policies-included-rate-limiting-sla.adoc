@@ -31,6 +31,17 @@ Each request must be identified by a client ID and an optional client secret (de
 A Rate-Limiting SLA policy applied to an Omni Gateway API is scoped to replicas, not the gateway.
 ====
 
+[[payload-handling]]
+== Payload Handling
+
+The Rate-Limiting SLA policy processes only requests. Responses pass through unchanged.
+
+The policy buffers the full request body only when the *Client ID Expression* or *Client Secret Expression* can't be resolved from headers, attributes, or authentication data at runtime (for example, when the branch that's taken references `payload`). Otherwise, the policy reads only the request headers.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+To avoid buffering, extract the client credentials from headers or query parameters instead of the payload.
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

@@ -227,3 +227,38 @@ resources:
     cpu: 260m
     memory: 384Mi
 ----
+
+
+[[limit-service-discovery]]
+== Limit Kubernetes Service Discovery
+// TODO - Need SME input here 
+By default, Omni Gateway watches Kubernetes services in <every namespace in the cluster>. Omni Gateway keeps configuration for every service that it discovers, so in clusters with many services, idle memory usage increases even when no API instance references those services.
+
+To reduce the number of services that Omni Gateway discovers, use one or both of the Helm settings in this table.
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Setting | Values | Description
+
+| `gateway.scope`
+| `Cluster` (default), `Namespace`
+| `Cluster` watches services in every namespace. `Namespace` watches services only in the namespace where Omni Gateway is installed.
+
+| `<label-selector-key>`
+| A Kubernetes label selector, such as `<example>`
+| Watches only services whose labels match the selector.
+|===
+
+For example, this command limits discovery to the installation namespace and to services labeled `<example-label>`:
+
+[source,helm]
+----
+helm -n <namespace> upgrade <release-name> \
+--wait \
+--reuse-values \
+flex-gateway/flex-gateway \
+--set gateway.scope=Namespace \
+--set <label-selector-key>=<example-selector>
+----
+
+Upstream services that your API instances reference must be in scope and match the selector. Otherwise, Omni Gateway can't route to them.
