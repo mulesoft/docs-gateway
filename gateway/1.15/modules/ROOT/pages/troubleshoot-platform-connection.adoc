@@ -46,6 +46,36 @@ $ flexctl check connections
 Error: failed connecting to https://anypoint.mulesoft.com/: dial tcp 52.22.227.22:443: connect: network is unreachable
 ----
 
+[[check-diagnostics]]
+== Run Diagnostic Checks
+
+To run the built-in diagnostic checks, use the following command:
+
+[source,ssh]
+----
+flexctl check diagnostics
+----
+
+The command checks that Omni Gateway can reach all configured Anypoint Platform endpoints with its registration credentials. The command reports any findings with remediation guidance.
+
+NOTE: The `flexctl check diagnostics` command is supported only in Connected Mode. In Local Mode, Omni Gateway doesn't connect to Anypoint Platform.
+
+To get structured output, for example, to process the results in a script, use the `--output json` option:
+
+[source,ssh]
+----
+flexctl check diagnostics --output json
+----
+
+The command returns a non-zero exit status when a diagnostic check fails, so you can use it in scripts and automated health checks.
+
+To run the command in a container without entering it, run:
+
+[source,ssh]
+----
+docker exec -it flex-gateway flexctl check diagnostics
+----
+
 == See Also
 
 * xref:troubleshoot-reg.adoc[]
