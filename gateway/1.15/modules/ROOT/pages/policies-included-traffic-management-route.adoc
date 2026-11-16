@@ -98,8 +98,9 @@ Only requests that meet all of the specified header requirements are sent to thi
 | `rules.host`
 | Optional
 | Empty
-| Request host URL that the route can service. +
-You can define only one host URL for each ruleset. Only requests made from the defined host are sent to this route.
+| Request host that the route can service. +
+You can define only one host for each ruleset. Only requests sent to the defined host are sent to this route. +
+Omni Gateway matches the host against the `X-Forwarded-Host` header. If the request doesn't include `X-Forwarded-Host`, Omni Gateway sets it from the `Host` header, so the upstream service also receives it. If the client sends `X-Forwarded-Host`, Omni Gateway matches that value instead of the `Host` header.
 
 |===
 
