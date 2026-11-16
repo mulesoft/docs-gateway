@@ -15,19 +15,19 @@ You can apply TLS contexts individually or configure default TLS contexts:
 * *Inbound TLS context* +
 Apply to an API instance. Because inbound TLS applies at the port level, the TLS context also applies to every API instance that shares the port. A default inbound TLS context applies to every HTTPS API instance that doesn't have its own inbound TLS context.
 * *Outbound TLS context* +
-Apply to an upstream service. Each upstream service can have its own TLS context. A default outbound TLS context applies to every HTTPS upstream service that doesn't have its own outbound TLS context, and to outgoing policy requests, such as the requests that the Basic Authentication - LDAP policy makes to the LDAP server.
+Apply to an upstream service. Each upstream service can have its own TLS context. A default outbound TLS context applies to every HTTPS upstream service that doesn't have its own outbound TLS context, and to outgoing policy requests.
 
 //end::tls-types[]
 
 //tag::tls-precedence[]
-. *TLS context applied to the API instance or upstream service*: A TLS context applied in API Manager, or with the xref:policies-included-tls.adoc[Transport Layer Security Policy - Inbound] (`tls`) or xref:policies-included-tls-outbound.adoc[Transport Layer Security Policy - Outbound] (`tls-outbound`). This TLS context overrides the default TLS context.
+. *TLS context applied to the API instance or upstream service*: A TLS context applied in API Manager or with a `tls` or `tls-outbound` policy binding.
 . *Default TLS context*: Used if the API instance or upstream service doesn't have its own TLS context.
 . *Built-in outbound TLS*: Used for upstream services and outgoing policy requests if no other TLS context applies. Omni Gateway validates the server certificate against the operating system CAs, uses the default ciphers, and doesn't present a client certificate.
 //end::tls-precedence[]
 
 //tag::tls-precedence-details[]
 
-Default TLS contexts apply only to API instances and upstream services whose URL uses `https://`. API instances and upstream services that use `http://` aren't affected.
+Default TLS contexts apply only to API instances and upstream services that use HTTPS. HTTP API instances and upstream services aren't affected.
 
 //end::tls-precedence-details[]
 

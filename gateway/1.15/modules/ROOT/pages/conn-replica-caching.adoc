@@ -33,24 +33,6 @@ When no shared storage is configured, Omni Gateway uses the local filesystem sto
 . If the replica restarts, it reads the cached configuration from its local filesystem instead of downloading it from Anypoint Platform again.
 . If the Omni Gateway configuration changes on Anypoint Platform, the replica downloads the updated configuration and stores it to the local filesystem.
 
-[[encryption]]
-== Configuration Cache Encryption
-
-Omni Gateway encrypts at rest the data that it caches from Anypoint Platform, such as TLS contexts, private keys, client secrets, and policy configuration. Encryption applies to Redis shared storage, distributed shared storage, and local filesystem storage.
-
-By default, Omni Gateway derives the encryption key from the registration private key. To use a different key, set the `FLEX_STORAGE_ENCRYPTION_KEY` environment variable to a base64-encoded PEM private key. Set the same key on every replica that shares the storage.
-
-To disable encryption, set the `FLEX_CONTROL_NODE_STORAGE_ENCRYPTION_ENABLED` environment variable to `false`.
-
-=== Encrypt Existing Cached Data
-
-Omni Gateway doesn't encrypt data cached by versions earlier than 1.15.0. To encrypt existing data:
-
-. Clear the cached data from storage, for example, with `flexctl reset`. See xref:troubleshoot-reset-cache.adoc[].
-. Restart all replicas.
-
-IMPORTANT: Don't run replicas of versions earlier than 1.15.0 and replicas of version 1.15.0 or later on the same Redis shared storage.
-
 == Enable Omni Gateway Configuration Caching
 
 Configuration caching is enabled by default via the `FLEX_DATASOURCE_CONTROL_NODE_ENABLED` environment variable, which is set to `true`. 
