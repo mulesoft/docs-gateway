@@ -1,4 +1,4 @@
-//tag::config-readiness-liveness-page-body[]
+//tag::config-readiness-page-body[]
 
 Omni Gateway supports two methods for ensuring reliability and efficiency.
 
@@ -124,6 +124,8 @@ Omni Gateway is preconfigured for a graceful shutdown of 30 seconds, which is 5 
 
 The default readiness probe in Kubernetes runs every 10 seconds with a failure threshold of 2, allowing shutdown detection within 20 seconds. This ensures that no new traffic is sent to the instance shutting down. Use similar configurations with readiness probes in other environments like AWS Load Balancer.
 
+//end::config-readiness-page-body[]
+//tag::readiness-startup-debounce[]
 [[readiness-startup-debounce]]
 === Combine the Readiness Probe with the Startup Debounce Time
 
@@ -161,6 +163,8 @@ The liveness probe doesn't depend on deployed configuration, so a longer startup
 
 `FLEX_SYNC_DEBOUNCE_TIME` applies only to configuration changes after the first batch, so it doesn't affect when a replica becomes ready.
 
+//end::readiness-startup-debounce[]
+//tag::config-liveness-page-body[]
 [[configure-a-liveness-probe]]
 == Configure a Liveness Probe
 
@@ -223,4 +227,4 @@ One method of running the liveness probe command with Docker is to configure `HE
 * https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/[Configure Liveness, Readiness, and Startup Probes^].
 * xref:policies-included-health-check.adoc[]
 
-//end::config-readiness-liveness-page-body[]
+//end::config-liveness-page-body[]
