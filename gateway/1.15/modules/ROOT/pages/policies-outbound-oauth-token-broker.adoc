@@ -31,7 +31,8 @@ Apply this policy to the outbound side of each upstream service. It works togeth
 == Before You Begin
 
 * Register Omni Gateway as a client at each upstream authorization server. Use this redirect URI: `\{endpointsUrl}/callback`, where `endpointsUrl` comes from the Connect policy configuration.
-* Apply an authentication policy, such as JWT Validation, before this policy so the user is identified.
+* Apply a token validation policy, such as JWT Validation or Token Introspection, before this policy so the user is identified.
+* Apply Header Removal, with *Inbound Header Map* set to `authorization`, so the user's single sign-on (SSO) token never reaches the upstream service. For the full policy order, see xref:policies-included-oauth-token-broker-connect.adoc#recommended-policy-chain[Recommended Policy Chain].
 * Apply the OAuth 2.0 Token Broker Connect policy to a dedicated API instance (`Endpoints` role) and to each MCP server API instance (`Framing` role).
 * If you run more than one Omni Gateway replica, configure shared storage (Redis) so all replicas see the same connections. Connections, authorization state, and client secrets are encrypted at rest.
 
@@ -61,7 +62,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | AS issuer
 | Optional
 |
-| The upstream authorization server's issuer identifier. When set, Omni Gateway checks it when the user returns from the authorization server. Set it only if the authorization server sends an issuer in its response.
+| The upstream authorization server's issuer identifier. When set, the authorization response must include a matching `iss` parameter. Omni Gateway rejects a missing or different value with a `400` response. Set it only if the authorization server sends an issuer in its response.
 
 | Authorization endpoint
 | Required
@@ -145,6 +146,8 @@ Omni Gateway never passes the upstream's own `WWW-Authenticate` challenge to the
 
 * When the upstream rejects a token, the policy answers with a standard HTTP response (`503` or `403`) instead of an MCP message. Some MCP clients show this as a connection error on the first attempt and show the connect link only when they retry.
 * Connections are tied to the identity Omni Gateway sees. If users sign in with different identities in different places, make sure the identity settings produce the same values.
+* Federation isn't supported in this release. Federation with per-user brokered upstreams fails.
+* This policy isn't supported with On-Behalf-Of upstreams.
 
 [[example-configurations]]
 == Example Configurations
