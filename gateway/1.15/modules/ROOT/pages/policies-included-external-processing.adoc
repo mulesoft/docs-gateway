@@ -25,7 +25,7 @@ Additionally, the external processing service can request different parts of the
 
 The parameters you set for sending the HTTP headers, trailers, and body only configure what is initially sent. The external processing service has access to all parts of the HTTP request or response regardless of what is configured. Configure the parameters to send all of the information that the processing service needs for every incoming HTTP request or response. For example, if the processing service needs the headers for every request but only needs the body for some of the requests, depending on the information found in the header, only configure the parameters to send the headers.
 
-The External Processing policy is an extension of the External Processing filter native to Envoy. To learn more about the External Processing filter, see https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_proc/v3/ext_proc.proto[External Processing Filter^]. Not all External Processing filter parameters are available for the External Processing policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>. 
+The External Processing policy is an extension of the External Processing filter native to Envoy. To learn more about the External Processing filter, see https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_proc/v3/ext_proc.proto[External Processing Filter^]. Not all External Processing filter parameters are available for the External Processing policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configure Policy Parameters>>. 
 
 NOTE: If other policies modify the HTTP request or response, ensure that you order the policies depending on if these modification should be present when the request is sent to the processing service or upstream service. For more information about ordering policies, see xref:policies-reorder.adoc[].
 
@@ -42,7 +42,7 @@ include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 
 If *Allow mode override* (`allowModeOverride`) is enabled, the external processing service can change the body mode at runtime. In that case, the policy can buffer a body even if you configure `none` or `streamed`. To prevent buffering, disable *Allow mode override* and use `none` or `streamed`.
 
-== Configuring Policy Parameters
+== Configure Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]
 
