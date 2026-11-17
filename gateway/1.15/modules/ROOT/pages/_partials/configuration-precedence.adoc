@@ -22,3 +22,32 @@ When you configure a setting in more than one place, Omni Gateway uses the first
 A policy value overrides the gateway-level value for the API instance it's applied to. API instances without the policy use the gateway-level value.
 
 //end::precedence-details[]
+
+//tag::precedence-resource-priority[]
+[[resource-priority]]
+=== Runtime Manager Runtime Configuration and Configuration Resource Priority
+
+
+To make the `Configuration` resource value take precedence, add the `flex.mulesoft.com/resource-priority` label to the `Configuration` resource with a value of `2` or higher:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Configuration
+metadata:
+  name: <configuration-name>
+  labels:
+    flex.mulesoft.com/resource-priority: "2"
+spec:
+  # configuration values
+----
+
+Omni Gateway assigns these priorities:
+
+* Runtime Manager runtime configuration: `1`
+* `Configuration` resource without the label, or with a label value that isn't an integer: `0`
+* `Configuration` resource with the label: the label value
+
+A `Configuration` resource with a priority of `2` or higher overrides the Runtime Manager runtime configuration values. If you set the `Configuration` priority to `1`, the Runtime Manager runtime configuration values take precedence.
+
+//end::precedence-resource-priority[]
