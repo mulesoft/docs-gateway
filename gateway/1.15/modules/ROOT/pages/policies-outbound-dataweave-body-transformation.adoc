@@ -1,0 +1,158 @@
+= DataWeave Body Transformation Outbound Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: dataweave, body transformation, transformation, outbound, upstream, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy name | DataWeave Body Transformation Outbound
+>s|Summary      | Transforms the body of request or response traffic for a specific upstream service with a DataWeave script
+>s|Category | Transformation
+>s| First Omni Gateway version available | v1.15.0
+>s|Release Notes| xref:release-notes::gateway/policies/outbound-dataweave-body-transformation-release-notes.adoc[]
+.1+>.^s| Returned Status Codes
+| `400` - The DataWeave script failed to execute or returned an invalid result
+|===
+
+== Summary
+
+The DataWeave Body Transformation Outbound policy transforms the body of request or response traffic for a specific upstream service with a DataWeave script. It works the same way as the xref:policies-included-dataweave-body-transformation.adoc[DataWeave Body Transformation] policy, but you apply it to an upstream service, so it transforms only the traffic for that upstream service. It can change the body of requests that Omni Gateway sends to the upstream service, or the body of responses that Omni Gateway receives from it.
+
+Use this policy when you want to:
+
+* Reshape a request body to match the format that an upstream service expects, so that clients don't need to change how they call the API.
+* Reshape an upstream response body before it reaches the client, so that you can remove, rename, or combine fields.
+* Convert a body between formats, such as JSON and XML, by declaring an output MIME type in the script.
+
+To change headers instead of the body, use the xref:policies-outbound-dataweave-headers-transformation.adoc[DataWeave Headers Transformation Outbound] policy. To transform traffic for all upstream services at once, use the xref:policies-included-dataweave-body-transformation.adoc[DataWeave Body Transformation] policy.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: PolicyBinding
+metadata:
+  name: dataweave-body-transformation-outbound
+spec:
+  targetRef:
+    kind: Service
+    name: upstream
+  policyRef:
+    name: dataweave-body-transformation-outbound-flex
+  config:
+    script: <string>        // REQUIRED - DataWeave script
+    requestFlow: <string>   // REQUIRED - "onRequest" or "onResponse"
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `script`
+| Required
+| —
+| A DataWeave script that transforms the body. The script receives `attributes.headers` and `payload`. When you need a specific output format, declare the output MIME type in the script, such as `output application/json`.
+
+| `requestFlow`
+| Required
+| —
+| Whether the policy transforms the request or the response body. Supported values: `onRequest` or `onResponse`.
+|===
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+=== Basic Configuration
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+
+| Script
+| Yes
+| The DataWeave script that transforms the body. The script receives `attributes.headers` and `payload`. To test your script, use the https://dataweave.mulesoft.com/learn/[DataWeave Playground^].
+
+| Request flow
+| Yes
+| Whether the policy transforms the request or the response body.
+|===
+
+== How This Policy Works
+
+The policy transforms the body of the traffic on the side that Request flow (`requestFlow`) sets. Set it to *On request* (`onRequest`) to transform the request that Omni Gateway sends to the upstream service. Set it to *On response* (`onResponse`) to transform the response that Omni Gateway receives from the upstream service. The other side passes through unchanged.
+
+The script receives the request or response headers in `attributes.headers` and the body in `payload`, and the value that the script returns becomes the new body. If the script declares an output MIME type, such as `output application/json`, Omni Gateway uses it as the `Content-Type` of the transformed body. Otherwise, Omni Gateway keeps the original `Content-Type`.
+
+[[payload-handling]]
+=== Payload Handling
+
+The policy buffers the full body on the configured side, runs the script, and then updates the `Content-Length` header. Server-sent event (SSE) bodies, which have the `text/event-stream` content type, aren't buffered. The policy transforms SSE bodies one event at a time and removes the `Content-Length` header instead of updating it.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+== Example Configurations
+
+These examples demonstrate common configuration patterns for the DataWeave Body Transformation Outbound policy.
+
+=== Transform the Request Body
+
+This example transforms the request body that Omni Gateway sends to the upstream service. The new body includes the value of the `custom-client-header` header and fields from the original payload:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: PolicyBinding
+metadata:
+  name: dataweave-body-transformation-outbound
+spec:
+  targetRef:
+    kind: Service
+    name: upstream
+  policyRef:
+    name: dataweave-body-transformation-outbound-flex
+  config:
+    requestFlow: onRequest
+    script: |
+      {
+        "id": attributes.headers.'custom-client-header',
+        "username": payload.name ++ payload.surname
+      }
+----
+
+=== Transform the Response Body and Set the Output Format
+
+This example transforms the response body from the upstream service and sets the output format to XML:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: PolicyBinding
+metadata:
+  name: dataweave-body-transformation-outbound
+spec:
+  targetRef:
+    kind: Service
+    name: upstream
+  policyRef:
+    name: dataweave-body-transformation-outbound-flex
+  config:
+    requestFlow: onResponse
+    script: |
+      output application/xml
+      ---
+      {
+        "trace": attributes.headers.'X-Amzn-Trace-Id',
+        "custom-data": "custom-value"
+      }
+----
+
+== See Also
+
+* xref:policies-outbound-dataweave-headers-transformation.adoc[]
+* xref:policies-included-dataweave-body-transformation.adoc[]
+* xref:policies-dataweave-support.adoc[]
+* xref:policies-outbound-directory.adoc[]
