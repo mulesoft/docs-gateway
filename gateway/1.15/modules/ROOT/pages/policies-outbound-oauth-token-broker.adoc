@@ -23,18 +23,20 @@ endif::[]
 
 The Credential Injection OAuth 2.0 Token Broker (Authorization Code) policy calls an upstream service on behalf of each individual user, using that user's own account and permissions instead of a shared credential. For example, a GitHub MCP server acts as the person who is making the request.
 
-Each user connects their account on the upstream service once, through a standard browser sign-in and consent screen. From then on, Omni Gateway adds that user's access token to every request, refreshes the token when it expires, and asks the user to reconnect if access is revoked. Your clients never see or manage the upstream tokens.
+Each user connects their account on the upstream service once, through a standard browser login and consent screen. From then on, Omni Gateway adds that user's access token to every request, refreshes the token when it expires, and asks the user to reconnect if access is revoked. Your clients never see or manage the upstream tokens.
 
-Apply this policy to the outbound side of each upstream service. It works together with the xref:policies-included-oauth-token-broker-connect.adoc[OAuth 2.0 Token Broker Connect (Authorization Code) policy], which runs the browser sign-in and consent flow.
+Apply this policy to the outbound side of each upstream service. It works together with the xref:policies-included-oauth-token-broker-connect.adoc[OAuth 2.0 Token Broker Connect (Authorization Code) policy], which runs the browser login and consent flow.
 
 [[before-you-begin]]
 == Before You Begin
 
 * Register Omni Gateway as a client at each upstream authorization server. Use this redirect URI: `\{endpointsUrl}/callback`, where `endpointsUrl` comes from the Connect policy configuration.
-* Apply a token validation policy, such as JWT Validation or Token Introspection, before this policy so the user is identified.
-* Apply Header Removal, with *Inbound Header Map* set to `authorization`, so the user's single sign-on (SSO) token never reaches the upstream service. For the full policy order, see xref:policies-included-oauth-token-broker-connect.adoc#recommended-policy-chain[Recommended Policy Chain].
+* To identify the user, apply a token validation policy, such as JWT Validation or Token Introspection, before this policy.
+* To keep the user's single sign-on (SSO) token from reaching the upstream service, apply Header Removal with Inbound Header Map set to `authorization`.
 * Apply the OAuth 2.0 Token Broker Connect policy to a dedicated API instance (`Endpoints` role) and to each MCP server API instance (`Framing` role).
 * If you run more than one Omni Gateway replica, configure shared storage (Redis) so all replicas see the same connections. Connections, authorization state, and client secrets are encrypted at rest.
+
+For the full policy order, see xref:policies-included-oauth-token-broker-connect.adoc#recommended-policy-chain[Recommended Policy Chain].
 
 [[configuring-policy-parameters]]
 == Configuring Policy Parameters
@@ -67,7 +69,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 | Authorization endpoint
 | Required
 |
-| The upstream authorization server's authorization URL. Users' browsers are sent here to sign in and approve access. Omni Gateway never calls it.
+| The upstream authorization server's authorization URL. Users' browsers are sent here to log in and approve access. Omni Gateway never calls it.
 
 | Token endpoint
 | Required
@@ -115,7 +117,7 @@ An authentication policy earlier in the chain, such as JWT Validation, identifie
 | The request goes through with the user's token.
 
 | The user hasn't connected the upstream service
-| `403` with a link to connect. When the Connect policy (`Framing` role) is applied to the API instance, MCP clients receive the link in a format they understand.
+| `403` with a link to connect. When the Connect policy (`Framing` role) is applied to the API instance, MCP clients receive the link in a format that they understand.
 
 | Omni Gateway can't identify the caller
 | `401`
@@ -145,8 +147,8 @@ Omni Gateway never passes the upstream's own `WWW-Authenticate` challenge to the
 === Limitations
 
 * When the upstream rejects a token, the policy answers with a standard HTTP response (`503` or `403`) instead of an MCP message. Some MCP clients show this as a connection error on the first attempt and show the connect link only when they retry.
-* Connections are tied to the identity Omni Gateway sees. If users sign in with different identities in different places, make sure the identity settings produce the same values.
-* Federation isn't supported in this release. Federation with per-user brokered upstreams fails.
+* Connections are tied to the identity Omni Gateway sees. If users log in with different identities in different places, make sure the identity settings produce the same values.
+* Federation isn't supported. Federation with per-user brokered upstreams fails.
 * This policy isn't supported with On-Behalf-Of upstreams.
 
 [[example-configurations]]
