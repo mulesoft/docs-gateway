@@ -64,6 +64,13 @@ include::partial$policy-title-headers.adoc[tag=configFile]
     requestTimeout: <number> // REQUIRED, default `5000`
     includePeerCertificate: <boolean> // REQUIRED, default `false`
     allowedHeaders: <string-array> // OPTIONAL
+    enableCache: <boolean> // OPTIONAL, default `false`
+    cache: <object> // OPTIONAL
+      keyHeaders: <string-array>
+      keyQueryParams: <string-array>
+      ttlSeconds: <number> // default `300`
+      maxEntries: <number> // default `10000`
+      cacheDecisions: <string> // default `allowAndDeny`
 ----
 
 [%header%autowidth.spread,cols="a,a,a,a"]
@@ -142,6 +149,36 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | N/A
 | Specifies the headers from the client HTTP request to propagate to authorization request. By default, requests sent to gRPC servers include all client headers. Requests sent to HTTP servers don't include any client headers. If you list allowed headers for either server type, requests include only the listed headers.
 
+| `enableCache`
+| Optional
+| `false`
+| If `true`, Omni Gateway caches authorization decisions and skips the call to the authorization service for matching requests. See <<authorization-decision-caching>>.
+
+| `cache.keyHeaders`
+| Optional
+| N/A
+| Request headers that identify the client. Omni Gateway uses the values of these headers to build the cache key.
+
+| `cache.keyQueryParams`
+| Optional
+| N/A
+| Request query parameters that identify the client. Omni Gateway uses the values of these query parameters to build the cache key.
+
+| `cache.ttlSeconds`
+| Optional
+| `300`
+| Time in seconds that Omni Gateway keeps a cached decision.
+
+| `cache.maxEntries`
+| Optional
+| `10000`
+| Maximum number of decisions that Omni Gateway keeps in the cache.
+
+| `cache.cacheDecisions`
+| Optional
+| `allowAndDeny`
+| Decisions to cache. Supported values are `allowAndDeny`, `allowOnly`, and `denyOnly`.
+
 |===
 
 NOTE: Leaving a required value blank configures the parameter as the default value. No value is configured for optional values left blank.
@@ -174,6 +211,12 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |Path prefix | Sets a prefix to the value of the `Path` authorization request header if present.
 |Request timeout | Maximum time in milliseconds the policy waits for a response from the authentication service. By default, the request timeout is 5000 milliseconds.
 |Allowed headers | By default, requests sent to gRPC servers include all client headers and requests sent to HTTP servers don't include any client headers. If you list allowed headers for either server type, requests include only the listed headers.
+|Enable cache | Caches authorization decisions. Disabled by default. See <<authorization-decision-caching>>.
+|Cache key headers | Request headers that identify the client. Omni Gateway uses the values of these headers to build the cache key.
+|Cache key query parameters | Request query parameters that identify the client. Omni Gateway uses the values of these query parameters to build the cache key.
+|Cache TTL (seconds) | Time in seconds that Omni Gateway keeps a cached decision. By default, the TTL is 300 seconds.
+|Cache maximum entries | Maximum number of decisions that Omni Gateway keeps in the cache. By default, the maximum is 10000 entries.
+|Cache decisions | Decisions to cache: `allowAndDeny`, `allowOnly`, or `denyOnly`. By default, Omni Gateway caches both allow and deny decisions.
 |===
 
 == How This Policy Works
@@ -189,3 +232,32 @@ image:ext-auth-policy.png["A sequence diagram that illustrates the interaction b
 ** If the request is authorized, Omni Gateway appends the header data to the client request, if necessary, and allows the request to pass to the upstream service.
 . Omni Gateway appends any necessary headers and returns the response as normal.
 
+[[authorization-decision-caching]]
+== Authorization Decision Caching
+
+By default, Omni Gateway calls the authorization service for every request. To reduce the load on the authorization service and the latency of each request, enable the cache by setting `enableCache` to `true`.
+
+When the cache is enabled, Omni Gateway builds a cache key from the values of the request headers (`cache.keyHeaders`) or query parameters (`cache.keyQueryParams`) that identify the client. If the cache contains a decision for the key, Omni Gateway applies it and skips the call to the authorization service.
+
+Omni Gateway keeps each decision for the number of seconds set in `cache.ttlSeconds`, and keeps up to `cache.maxEntries` decisions. Use `cache.cacheDecisions` to cache only allow decisions (`allowOnly`), only deny decisions (`denyOnly`), or both (`allowAndDeny`).
+
+Omni Gateway never caches authorization service errors or timeouts.
+
+In the following configuration, Omni Gateway caches only allow decisions for 60 seconds, per value of the `access-token` header:
+
+[source,yaml]
+----
+- policyRef:
+    name: native-ext-authz-flex
+  config:
+    uri: h2://ext-authz-grpc-service:9001
+    serverType: "grpc"
+    allowedHeaders:
+      - access-token
+    enableCache: true
+    cache:
+      keyHeaders:
+        - access-token
+      ttlSeconds: 60
+      cacheDecisions: allowOnly
+----
