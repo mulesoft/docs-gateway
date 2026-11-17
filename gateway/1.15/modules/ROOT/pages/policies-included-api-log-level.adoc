@@ -27,7 +27,12 @@ Use this policy when you want to:
 * Set the level to `warn` or `error` for an API that writes more runtime log messages than you need, so you can reduce noise and keep the logs for other APIs unchanged.
 * Set the level to `info` for an API after you finish troubleshooting, so the API returns to a standard level of detail.
 
-This policy applies to runtime logs only. It doesn't change access logs.
+The API Log Level policy doesn't change the access log configuration, such as outputs or format. However, the log level also applies to the messages that the Message Logging policy writes for the same API:
+
+* Messages that the Message Logging policy writes and that are less severe than the API Log Level policy's logging level aren't written. For example, if you set the API Log Level policy's logging level to `warn`, messages configured with the `INFO` level in the Message Logging policy are no longer written.
+* Messages configured with the `DEBUG` level in the Message Logging policy are written only when the API Log Level policy's logging level is `debug` or `trace`.
+
+If you apply the Message Logging policy to an API, set the API Log Level policy's logging level to `info` or a more verbose level to keep your `INFO` messages.
 
 == Configuring Policy Parameters
 
