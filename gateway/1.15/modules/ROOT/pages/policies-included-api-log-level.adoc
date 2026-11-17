@@ -1,0 +1,123 @@
+= API Log Level Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: api gateway, flex gateway, gateway, policy, log level, runtime logs, troubleshooting, debug logs
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | API Log Level
+>s|Summary | Overrides the runtime log level for a single API to increase or decrease logging detail
+>s|Category | Troubleshooting
+>s|First Omni Gateway version available | v1.15.0
+>s|Release Notes| xref:release-notes::gateway/policies/api-log-level-release-notes.adoc[]
+^s| Returned Status Codes | No return codes exist for this policy
+|===
+
+== Summary
+
+The API Log Level policy overrides the runtime log level for a single API. The runtime log level controls how much detail Omni Gateway writes to the runtime logs. By default, every API uses the global runtime log level. Use this policy to set a different level for one API, so you can change the detail of its runtime logs without affecting any other API.
+
+Use this policy when you want to:
+
+* Set the level to `debug` or `trace` for an API that you're troubleshooting, so you can see detailed runtime logs for that API without increasing the detail of the runtime logs for every API.
+* Set the level to `warn` or `error` for an API that writes more runtime log messages than you need, so you can reduce noise and keep the logs for other APIs unchanged.
+* Set the level to `info` for an API after you finish troubleshooting, so the API returns to a standard level of detail.
+
+This policy applies to runtime logs only. It doesn't change access logs.
+
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+----
+- policyRef:
+    name: api-log-level-flex
+  config:
+    level: <string> // REQUIRED
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Parameter | Required or Optional | Default Value | Description
+
+| `level`
+| Required
+| N/A
+| Runtime log level for the API. Supported values are `trace`, `debug`, `info`, `warn`, and `error`. The level can be more or less verbose than the global runtime log level. See <<log-levels>> for the supported values.
+
+|===
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+=== Basic Configuration
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+
+| Log level
+| Yes
+| Runtime log level for the API. Select Trace, Debug, Info, Warn, or Error. The level can be more or less verbose than the global runtime log level. See <<log-levels>> for the supported values.
+
+|===
+
+[[log-levels]]
+== Log Levels
+
+The following table lists the supported levels from the most detailed to the least detailed.
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Level | Description
+
+| `trace`
+| Writes the most detailed runtime logs, and all messages from the levels that follow.
+
+| `debug`
+| Writes detailed runtime logs for troubleshooting, and all messages from the levels that follow.
+
+| `info`
+| Writes general runtime log messages, warnings, and errors.
+
+| `warn`
+| Writes warnings and errors.
+
+| `error`
+| Writes errors only.
+
+|===
+
+== Example Configurations
+
+The following examples demonstrate common configuration patterns for the API Log Level policy.
+
+=== Troubleshoot an API
+
+In the following example, the API writes detailed runtime logs while the global runtime log level stays the same for all other APIs.
+
+----
+- policyRef:
+    name: api-log-level-flex
+  config:
+    level: "debug"
+----
+
+=== Reduce Runtime Log Output
+
+In the following example, the API writes only errors to the runtime logs.
+
+----
+- policyRef:
+    name: api-log-level-flex
+  config:
+    level: "error"
+----
+
+== See Also
+
+* xref:troubleshoot-debug-logs.adoc[]
+* xref:local-view-logs.adoc[]
+* xref:policies-included-message-logging.adoc[]
+* xref:policies-included-directory.adoc[]
