@@ -38,6 +38,21 @@ The policy operates in two independent phases:
 
 When content violates guardrail policies, the request is rejected with a `403` error code and never reaches the upstream agent (request phase) or the client receives a `403` instead of the agent response (response phase).
 
+[[payload-handling]]
+== Payload Handling
+
+The A2A v1 Bedrock Guardrails policy handles requests and responses differently:
+
+* Requests: The policy buffers the full request body for every request that isn't gRPC, so it can identify the A2A method. This applies even when *Moderate Request* (`moderateRequest`) is disabled. gRPC requests aren't buffered.
+* JSON responses: When *Moderate Response* (`moderateResponse`) is enabled, which is the default, the policy buffers the full response body.
+* SSE responses: The policy doesn't moderate or buffer SSE responses. They pass through unchanged.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+*Max Payload Bytes* (`maxPayloadBytes`) sets the largest request or response body that the policy sends to Bedrock. The default and maximum value is `25000` bytes. The policy still buffers the whole body before it checks the size, so this setting doesn't limit buffering. If a body is larger, the policy doesn't send it. When *Fail Open* is disabled, the policy blocks the request or response with HTTP `403`. When *Fail Open* is enabled, the body passes through without moderation.
+
+To avoid buffering responses, disable *Moderate Response*.
+
 == Before You Begin
 
 Before configuring this policy, you need:

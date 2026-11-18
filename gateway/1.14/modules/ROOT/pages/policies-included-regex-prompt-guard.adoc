@@ -31,6 +31,15 @@ For example, you can use the policy to block attacks such as:
 * SQL injection patterns
 * HTML script injection
 
+[[payload-handling]]
+== Payload Handling
+
+The Regex Prompt Guard policy processes only requests. Responses pass through unchanged.
+
+The policy buffers the full body of `POST` requests with a JSON body in a supported LLM format so it can match the prompt against the deny patterns. Other requests pass through without scanning.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

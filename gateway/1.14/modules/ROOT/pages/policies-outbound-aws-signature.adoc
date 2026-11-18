@@ -22,6 +22,17 @@ The AWS Request Signature policy signs outgoing requests with AWS Signature Vers
 
 The AWS Request Signature policy is an extension of the AWS Request Signing filter native to Envoy. To learn more about the AWS Request Signing filter, see https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/aws_request_signing/v3/aws_request_signing.proto[AWS Request Signing Filter]. Not all AWS Request Signing filter parameters are available to the AWS Request Signature policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configuring Policy Parameters>>.
 
+[[payload-handling]]
+== Payload Handling
+
+The AWS Request Signature policy processes only requests. Responses pass through unchanged.
+
+By default, the policy buffers the full request body to calculate the payload hash for the signature.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+To sign requests without buffering the body, set `useUnsignedPayload` to `true`. The policy then uses the literal string `UNSIGNED-PAYLOAD` instead of the payload hash. Not all AWS services support unsigned payloads.
+
 [[configuring-policy-parameters]]
 == Configuring Policy Parameters
 

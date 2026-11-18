@@ -29,6 +29,19 @@ The External Processing policy is an extension of the External Processing filter
 
 NOTE: If other policies modify the HTTP request or response, ensure that you order the policies depending on if these modification should be present when the request is sent to the processing service or upstream service. For more information about ordering policies, see xref:policies-reorder.adoc[].
 
+[[payload-handling]]
+== Payload Handling
+
+The External Processing policy sends the request body and the response body independently. The `requestBodyMode` and `responseBodyMode` parameters control each one, and both default to `none`, which doesn't send the body.
+
+* `buffered`: The policy buffers the full body and then sends it to the external processing service. If the body exceeds the payload limit, the request fails.
+* `streamed`: The policy sends the body in chunks as it arrives and doesn't buffer the full body.
+* `bufferedPartial`: The policy buffers the body up to the configured payload limit and then sends the buffered portion to the external processing service.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+If *Allow mode override* (`allowModeOverride`) is enabled, the external processing service can change the body mode at runtime. In that case, the policy can buffer a body even if you configure `none` or `streamed`. To prevent buffering, disable *Allow mode override* and use `none` or `streamed`.
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]
@@ -105,7 +118,7 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `responseBodyMode`
 | Optional
 | `none`
-| Mode that the HTTP response body is sent in. Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`. Selecting `none` does not send the request body.
+| Mode that the HTTP response body is sent in. Supported values are `none`, `streamed`, `buffered`, and `bufferedPartial`. Selecting `none` doesn't send the response body.
 
 | `requestTrailerMode`
 | Optional

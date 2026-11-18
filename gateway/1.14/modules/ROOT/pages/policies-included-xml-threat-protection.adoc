@@ -19,6 +19,15 @@ endif::[]
 
 Applications that process XML requests are susceptible to attacks characterized by unusual inflation of elements, attributes, and deep nesting levels. Attackers use recursive techniques to consume memory resources. Dramatic increases in the size of the application data often signal a security risk. Use the XML Threat Protection policy to reject unusual requests that exceed the defined expected size.
 
+[[payload-handling]]
+== Payload Handling
+
+The XML Threat Protection policy processes only requests. Responses pass through unchanged.
+
+The policy validates the request body incrementally as it streams and doesn't buffer the full body. It validates only when the `Content-Type` subtype is `xml` or ends in `+xml`, or when the request has no `Content-Type` header. Requests with other content types pass through without validation.
+
+The policy parameters limit the structure of the XML, such as node depth, child count, and text length. They don't limit the size of the payload.
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]

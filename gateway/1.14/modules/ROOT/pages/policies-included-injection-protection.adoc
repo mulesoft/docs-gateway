@@ -24,6 +24,17 @@ The policy checks the request against the enabled built-in and custom rules. Dep
 * Rejects the request and returns `400` (Bad Request) with the added response header `x-injection-protection: blocked`.
 * Allows the request to reach the backend service and logs a policy violation.
 
+[[payload-handling]]
+== Payload Handling
+
+The Injection Protection policy processes only requests. Responses pass through unchanged.
+
+The policy buffers the full request body only when *Protect Body* (`protectBody`) is enabled. The policy skips binary content, which it detects from the content type and by checking whether the content is valid UTF-8. For multipart requests, the policy inspects nested parts up to 4 levels deep and scans content nested deeper as plain text. When *Protect Body* is disabled, the policy reads only the request headers.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+To avoid buffering, disable *Protect Body* if you only need to check the path, query string, and headers.
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]

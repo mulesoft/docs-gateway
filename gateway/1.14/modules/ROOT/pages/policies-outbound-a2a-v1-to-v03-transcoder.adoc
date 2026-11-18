@@ -44,6 +44,18 @@ All other v1.0 methods are supported with full transcoding.
 
 NOTE: This policy supports A2A v1.0 JSON-RPC clients only. The HTTP+JSON REST binding isn't supported.
 
+[[payload-handling]]
+== Payload Handling
+
+The A2A v1 to v0.3 Transcoder policy always buffers the full request body, but it acts only on requests that have the `A2A-Version: 1.0` header. Other requests pass through unchanged.
+
+For requests that the policy acts on, response handling depends on the content type:
+
+* SSE responses: The policy transforms the stream one event at a time and doesn't buffer the full stream.
+* JSON responses: The policy buffers the full response body and rewrites it.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
