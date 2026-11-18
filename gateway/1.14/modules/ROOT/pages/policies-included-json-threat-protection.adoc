@@ -24,6 +24,17 @@ If you find that attacks on your Anypoint Platform setup are difficult to detect
 
 NOTE: The JSON Threat Protection policy doesn't support multi-part form requests.
 
+[[payload-handling]]
+== Payload Handling
+
+The JSON Threat Protection policy processes only requests. Responses pass through unchanged.
+
+The policy buffers the full request body and then validates it when the `Content-Type` header starts with `application/json` or when the request has no `Content-Type` header. Requests with other content types pass through without validation.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+The policy parameters limit the structure of the JSON, such as nesting depth and string length. They don't limit the size of the payload.
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]

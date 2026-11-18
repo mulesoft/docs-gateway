@@ -49,6 +49,17 @@ For example, if a schema specifies a property as an integer, the request must in
 +
 For example, if the `pattern` keyword is specified, the policy validates the property as a regular expression.
 
+[[payload-handling]]
+== Payload Handling
+
+The Schema Validation policy processes only requests. Responses pass through unchanged.
+
+The policy validates request headers and query parameters first. If validation fails, the policy rejects the request before it reads the body.
+
+Otherwise, the policy buffers the full request body to validate it against the API specification. Requests without a body aren't buffered.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]

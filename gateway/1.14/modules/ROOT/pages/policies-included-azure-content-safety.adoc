@@ -34,6 +34,15 @@ The policy operates in two independent phases:
 
 When content violates safety policies, the request is rejected with a `403` error code and never reaches the LLM (request phase) or the client receives a `403` instead of the LLM response (response phase).
 
+[[payload-handling]]
+== Payload Handling
+
+The Azure Content Safety policy scans the request body only when *Moderate Request* is enabled and the request is a `POST` request with a JSON body in a supported LLM format. In that case, the policy buffers the full request body. Other requests pass through without scanning.
+
+When *Moderate Response* is enabled, the policy buffers the full body of JSON responses before it evaluates them. The policy doesn't moderate SSE (`text/event-stream`) responses. They stream through to the client unchanged.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Before You Begin
 
 Before configuring this policy, you need:

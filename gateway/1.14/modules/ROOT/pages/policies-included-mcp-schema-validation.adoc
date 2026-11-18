@@ -63,3 +63,15 @@ For each detection type, configure an *Action* that determines how the policy ha
 | Prompt Injection Detection | Scans tool descriptor text fields for prompt-injection heuristics. Disabled by default because it is the lowest-confidence, highest-false-positive-risk finding type. Configure *Enabled* to activate detection and *Action* to set the response handling. | Disabled
 | Max Tools Per Response | Sets the upper bound on how many tools in a single `tools/list` response the policy evaluates. Tools beyond this bound pass through unexamined, and the policy logs the truncation. The minimum value is `1`. | `200`
 |===
+
+[[payload-handling]]
+== Payload Handling
+
+The MCP Schema Validation policy handles requests and responses differently:
+
+* Requests: The policy buffers the full request body.
+* Responses: The policy processes responses only when at least one *Tool Poisoning Detection* type (descriptor drift, shadow tool name, or prompt injection) is enabled. Detection is inactive when *Validate Tool Schema* is enabled and the API is bound to an Anypoint Exchange asset. When the policy processes responses, it buffers the full body of JSON responses and processes SSE (`text/event-stream`) responses one event at a time without buffering the full stream. Otherwise, responses pass through.
+
+If you enable a *Tool Poisoning Detection* type and the API isn't bound to an Anypoint Exchange asset, such as in Local Mode, the policy replaces every `tools/list` response with a JSON-RPC error (code `-32603`).
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]

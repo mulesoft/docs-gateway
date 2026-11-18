@@ -24,6 +24,15 @@ It counts request, response, and reasoning token (if applicable). When the token
 
 The policy supports both streaming and non-streaming responses.
 
+[[payload-handling]]
+== Payload Handling
+
+The LLM Token Based Rate Limit policy buffers the full body of JSON `POST` requests.
+
+The policy buffers the full body of JSON responses to read the token usage. For SSE (`text/event-stream`) responses, the policy reads the stream without modifying it and doesn't buffer the full stream. It stops reading once it finds the token usage.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

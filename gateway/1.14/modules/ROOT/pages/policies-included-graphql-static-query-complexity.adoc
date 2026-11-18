@@ -32,6 +32,18 @@ If Omni Gateway can't resolve the full operation text, as with persisted queries
 If a system error occurs during analysis, even if the schema loads into memory, Omni Gateway logs a warning and forwards the request instead of blocking it.
 
 
+[[payload-handling]]
+== Payload Handling
+
+The GraphQL Static Query Complexity policy processes only requests. Responses pass through unchanged.
+
+How the policy reads the operation depends on the HTTP method:
+
+* `GET` requests: The policy reads the `query` parameter from the query string. It doesn't process the request body.
+* `POST` requests: The policy buffers the full request body when the `Content-Type` header is `application/json` or `application/graphql`. Requests with other content types pass through without processing.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFile]

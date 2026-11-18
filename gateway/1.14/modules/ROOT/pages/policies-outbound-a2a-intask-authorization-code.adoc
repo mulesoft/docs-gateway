@@ -41,6 +41,15 @@ To ensure agent discovery works uninterrupted, requests to these agent card endp
 * Any path ending in `agent-card.json`
 ====
 
+[[payload-handling]]
+== Payload Handling
+
+The In-Task Authorization Code policy processes only requests. Responses pass through unchanged.
+
+The policy buffers the full request body for every request except requests to the agent card endpoints, which pass through without buffering. The policy also removes the `Content-Length` header from the requests it processes.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
 == Configuring Policy Parameters
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]

@@ -29,6 +29,24 @@ JSON Web Token (JWT) is a URL-secure method of representing claims to be transfe
 
 The JWT Validation policy validates the signature of the token and asserts the values of the claims of all incoming requests by using a JWT with JWS format. The policy does not validate JWT that uses JWE.
 
+[[payload-handling]]
+== Payload Handling
+
+The JWT Validation policy processes only requests. Responses pass through unchanged.
+
+The policy buffers the full request body only when any of the following expressions can't be resolved from headers, attributes, or authentication data at runtime (for example, when the branch that's taken references `payload`):
+
+* The *Token Expression* (`jwtExpression`), when *JWT Origin* is *Custom Expression*.
+* The *Client ID Expression* (`clientIdExpression`), when *Skip Client ID Validation* is disabled.
+* The *JWT Context Key Expression* (`customKeyExpression`), when *JWT Key Origin* is *Context*.
+* A custom claim expression, when *Validate Custom Claim* is enabled.
+
+The policy doesn't buffer the body when *JWT Origin* is *HTTP Bearer Authentication Header* and no other expression needs the payload to resolve.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+To avoid buffering, read the token, client ID, and claim values from headers or from the JWT claims instead of the payload.
+
 [[agent-network-version]]
 == Use the Policy in Agent Network
 
@@ -72,7 +90,12 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `jwtKeyOrigin`
 | Optional
 | `text`
-|
+| Origin of the key that validates the token signature. Supported values: `text`, `jwks`, `customExpression`. The `jwks` and `customExpression` values are supported only when `signingMethod` is `rsa` or `es`.
+
+| `customKeyExpression`
+| Optional
+| `#[authentication.properties['key_to_your_public_pem_certificate']]`
+| DataWeave expression that gets the key from the request context. Used when `jwtKeyOrigin` is `customExpression`.
 
 | `jwksUrl`
 | Optional
@@ -191,7 +214,7 @@ Ignore this field if you selected *none* as JWT Signing Method.
 
 | JWT Key Origin
 | Specifies where to obtain the key for the Signature validation. +
-You can provide the key in the policy by selecting the *Text* option or by obtaining it from a *JWKS*. +
+You can provide the key in the policy by selecting the *Text* option, by obtaining it from a *JWKS*, or by obtaining it from the request context with the *Context* option. +
 Ignore this field if you selected *none* as JWT Signing Method.
 |
 
@@ -200,6 +223,12 @@ Ignore this field if you selected *none* as JWT Signing Method.
 Use this field to  provide the key used to check the signature of the token. +
 Ignore this field if you selected *none* as JWT Signing Method.
 | Enter a 32, 48, or 64 character string shared secret for HMAC, a 32 character string shared secret for ES, or the PEM Public Key without the header and footer for RSA.
+
+| JWT Context Key Expression
+| This field appears if you selected *Context* as JWT Key Origin. +
+A DataWeave expression that gets the key from the context of the request. +
+Ignore this field if you selected *none* as JWT Signing Method.
+| `#[authentication.properties['key_to_your_public_pem_certificate']]`
 
 | JWKS URL
 | This field appears if you selected the *JWKS* method as JWT Key Origin. +
@@ -238,11 +267,17 @@ The default value is 10 seconds.
 
 | Validate Custom Claim
 | Enables the usage of custom validations in the policy. The JWT will be valid only if all DataWeave expressions are fulfilled.
-| The policy provides a _claimSet_ variable that contains all the claims present in the incoming JWT. For example:
+| Each custom claim validation has a *Key* and a *Value*:
 
-`foo : #[vars.claimSet.foo == 'fooValue']`
+* *Key*: The literal name of the claim, for example `scp`. The key isn't a DataWeave expression.
+* *Value*: Either a literal string or a DataWeave expression `#[...]`. Use a literal string only for scalar claims. For array and object claims, you must use a DataWeave expression.
 
-Note that all DataWeave expressions must return a boolean value or they will always fail.
+The policy provides a _claimSet_ variable that contains all the claims present in the incoming JWT. Use `vars.claimSet` in DataWeave expressions when you configure custom claim validations. For example:
+
+* Key: `role`, Value: `admin`
+* Key: `scp`, Value: `#[vars.claimSet.scp contains "myscope"]`
++
+All DataWeave expressions must return a boolean value or they always fail
 
 | Enable Protected Resource Metadata
 | If you check this field, the policy serves the OAuth 2.0 Protected Resource Metadata document at `{API_Path}/.well-known/oauth-protected-resource` and includes a `resource_metadata` hint in `401` responses, per https://datatracker.ietf.org/doc/html/rfc9728[RFC 9728^].
@@ -282,7 +317,7 @@ In addition to these _provided claims_, you can also specify other claims to use
 * The name of the claim you want to validate. +
 For example *iss*, for the issuer of the token.
 * The value used to test. +
-You can provide a simple literal value if you only need to verify it, or you can provide a DataWeave expression for more complex comparisons.
+You can provide a simple literal string if the claim is scalar, or you can provide a DataWeave expression that returns a boolean for more complex comparisons. A DataWeave expression is required for array and object claims, for example `#[vars.claimSet.scp contains "myscope"]` validates that the `scp` claim is present.
 
 You can define each claim validation as mandatory or non-mandatory. If a claim is defined as mandatory and is not present in the incoming JWT, the policy rejects this token. If a claim is defined as non-mandatory and is not present in the incoming JWT, the policy does not reject the token for that specific validation. +
 For both cases, if a claim is present, the policy validates the token value. If the validation fails, the JWT will be rejected.
@@ -291,7 +326,9 @@ For both cases, if a claim is present, the policy validates the token value. If 
 
 After the policy parses and validates the JWT, the claims are propagated to downstream policies and flows through the *claims* property in the authentication object.
 
-To access the claim values you can use the following Dataweave 2.0 expression by replacing `<claimName>` with the name of the desired claim to access:
+NOTE: Use `vars.claimSet` only in the custom claim validation expressions that you configure in the policy. Policies that run after this policy can't access `vars.claimSet`; they must use `authentication.properties.claims`.
+
+To access the claim values from a policy that runs after this policy, you can use the following Dataweave 2.0 expression by replacing `<claimName>` with the name of the desired claim to access:
 
 `#[authentication.properties.claims.<claimName>]`
 
