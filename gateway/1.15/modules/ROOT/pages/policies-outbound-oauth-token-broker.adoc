@@ -1,4 +1,4 @@
-= Credential Injection OAuth 2.0 Token Broker (Authorization Code) Policy
+= Credential Injection OAuth 2.1 Token Broker (Authorization Code) Policy
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -6,7 +6,7 @@ endif::[]
 
 [width="100%", cols="5,15"]
 |===
->s| Policy Name | Credential Injection OAuth 2.0 Token Broker (Authorization Code)
+>s| Policy Name | Credential Injection OAuth 2.1 Token Broker (Authorization Code)
 >s|Summary      | Adds each user's own upstream access token to outbound requests, and returns a link to connect their account when no token is available
 >s|Category | Security
 >s|First Omni Gateway version available | v1.15.0
@@ -21,11 +21,11 @@ endif::[]
 [[summary]]
 == Summary
 
-The Credential Injection OAuth 2.0 Token Broker (Authorization Code) policy calls an upstream service on behalf of each individual user, using that user's own account and permissions instead of a shared credential. For example, a GitHub MCP server acts as the person who is making the request.
+The Credential Injection OAuth 2.1 Token Broker (Authorization Code) policy calls an upstream service on behalf of each individual user, using that user's own account and permissions instead of a shared credential. For example, a GitHub MCP server acts as the person who is making the request.
 
 Each user connects their account on the upstream service once, through a standard browser login and consent screen. From then on, Omni Gateway adds that user's access token to every request, refreshes the token when it expires, and asks the user to reconnect if access is revoked. Your clients never see or manage the upstream tokens.
 
-Apply this policy to the outbound side of each upstream service. It works together with the xref:policies-included-oauth-token-broker-connect.adoc[OAuth 2.0 Token Broker Connect (Authorization Code) policy], which runs the browser login and consent flow.
+Apply this policy to the outbound side of each upstream service. It works together with the xref:policies-included-oauth-token-broker-connect.adoc[OAuth 2.1 Token Broker Connect (Authorization Code) policy], which runs the browser login and consent flow.
 
 [[before-you-begin]]
 == Before You Begin
@@ -33,7 +33,7 @@ Apply this policy to the outbound side of each upstream service. It works togeth
 * Register Omni Gateway as a client at each upstream authorization server. Use this redirect URI: `\{endpointsUrl}/callback`, where `endpointsUrl` comes from the Connect policy configuration.
 * To identify the user, apply a token validation policy, such as JWT Validation or Token Introspection, before this policy.
 * To keep the user's single sign-on (SSO) token from reaching the upstream service, apply Header Removal with Inbound Header Map set to `authorization`.
-* Apply the OAuth 2.0 Token Broker Connect policy to a dedicated API instance (`Endpoints` role) and to each MCP server API instance (`Framing` role).
+* Apply the OAuth 2.1 Token Broker Connect policy to a dedicated API instance (`Endpoints` role) and to each MCP server API instance (`Framing` role).
 * If you run more than one Omni Gateway replica, configure shared storage (Redis) so all replicas see the same connections. Connections, authorization state, and client secrets are encrypted at rest.
 
 For the full policy order, see xref:policies-included-oauth-token-broker-connect.adoc#recommended-policy-chain[Recommended Policy Chain].
@@ -43,7 +43,7 @@ For the full policy order, see xref:policies-included-oauth-token-broker-connect
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
-The Credential Injection OAuth 2.0 Token Broker (Authorization Code) policy isn't supported in Local Mode.
+The Credential Injection OAuth 2.1 Token Broker (Authorization Code) policy isn't supported in Local Mode.
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
@@ -154,7 +154,7 @@ Omni Gateway never passes the upstream's own `WWW-Authenticate` challenge to the
 [[example-configurations]]
 == Example Configurations
 
-These examples show common configuration patterns for the Credential Injection OAuth 2.0 Token Broker (Authorization Code) policy.
+These examples show common configuration patterns for the Credential Injection OAuth 2.1 Token Broker (Authorization Code) policy.
 
 [[public-client-with-pkce]]
 === Public Client with PKCE

@@ -1,4 +1,4 @@
-= OAuth 2.0 Token Broker Connect (Authorization Code) Policy
+= OAuth 2.1 Token Broker Connect (Authorization Code) Policy
 ifndef::env-site,env-github[]
 include::_attributes.adoc[]
 endif::[]
@@ -6,7 +6,7 @@ endif::[]
 
 [width="100%", cols="5,15"]
 |===
->s| Policy Name | OAuth 2.0 Token Broker Connect (Authorization Code)
+>s| Policy Name | OAuth 2.1 Token Broker Connect (Authorization Code)
 >s|Summary      | Hosts the browser login and consent flow for connecting upstream accounts, and presents authorization-required responses in a format that MCP clients understand
 >s|Category | Security
 >s|First Omni Gateway version available | v1.15.0
@@ -21,7 +21,7 @@ endif::[]
 [[summary]]
 == Summary
 
-The OAuth 2.0 Token Broker Connect (Authorization Code) policy is the inbound half of the OAuth 2.0 Token Broker. It works together with the xref:policies-outbound-oauth-token-broker.adoc[Credential Injection OAuth 2.0 Token Broker (Authorization Code) policy], which adds each user's own upstream token to outbound requests.
+The OAuth 2.1 Token Broker Connect (Authorization Code) policy is the inbound half of the OAuth 2.1 Token Broker. It works together with the xref:policies-outbound-oauth-token-broker.adoc[Credential Injection OAuth 2.1 Token Broker (Authorization Code) policy], which adds each user's own upstream token to outbound requests.
 
 You apply this policy to two kinds of API instances, one per role:
 
@@ -41,7 +41,7 @@ When a user hasn't connected an upstream account yet:
 * Register Omni Gateway as a client at each upstream authorization server, with this redirect URI: `\{endpointsUrl}/callback`.
 * Register Omni Gateway as a client at your company identity provider, with this redirect URI: `\{endpointsUrl}/login-callback`.
 * To identify the user, apply a token validation policy, such as JWT Validation or Token Introspection, to each MCP server API instance.
-* Apply the Credential Injection OAuth 2.0 Token Broker (Authorization Code) policy to each upstream service.
+* Apply the Credential Injection OAuth 2.1 Token Broker (Authorization Code) policy to each upstream service.
 * If you run more than one Omni Gateway replica, configure shared storage (Redis) so all replicas see the same connections. Connections, authorization state, and client secrets are encrypted at rest.
 
 [[recommended-policy-chain]]
@@ -49,12 +49,12 @@ When a user hasn't connected an upstream account yet:
 
 Apply these policies in this order on each MCP server API instance:
 
-. OAuth 2.0 Token Broker Connect (Authorization Code), with the role set to `Framing`
+. OAuth 2.1 Token Broker Connect (Authorization Code), with the role set to `Framing`
 . Token validation, such as JWT Validation or Token Introspection, to identify the caller
 . Header Removal, with Inbound Header Map set to `authorization`
 . MCP Support
 . MCP Schema Validation (strongly recommended)
-. Credential Injection OAuth 2.0 Token Broker (Authorization Code), on the upstream service
+. Credential Injection OAuth 2.1 Token Broker (Authorization Code), on the upstream service
 
 For more about MCP Schema Validation, see <<use-mcp-schema-validation>>. The dedicated API instance that hosts the connect flow needs only the Connect policy with the `Endpoints` role.
 
@@ -77,7 +77,7 @@ The user's single sign-on (SSO) token must never reach the upstream service. Hea
 
 include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
 
-The OAuth 2.0 Token Broker Connect (Authorization Code) policy isn't supported in Local Mode.
+The OAuth 2.1 Token Broker Connect (Authorization Code) policy isn't supported in Local Mode.
 
 include::partial$policy-title-headers.adoc[tag=ui]
 
@@ -228,7 +228,7 @@ Register the last two addresses exactly as shown at the upstream authorization s
 [[example-configurations]]
 == Example Configurations
 
-These examples show common configuration patterns for the OAuth 2.0 Token Broker Connect (Authorization Code) policy.
+These examples show common configuration patterns for the OAuth 2.1 Token Broker Connect (Authorization Code) policy.
 
 [[dedicated-instance-endpoints-role]]
 === Dedicated Instance That Hosts the Connect Flow
