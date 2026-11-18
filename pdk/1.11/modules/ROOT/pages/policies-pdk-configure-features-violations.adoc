@@ -1,0 +1,49 @@
+= Reporting Policy Violations
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+NOTE: For an example of reporting policy violations, see https://github.com/mulesoft/pdk-custom-policy-examples/blob/{template-policies-url-ver-var}/stream-payload/README.md[Stream Payload Policy].
+
+PDK provides functions to report a policy violation. Reported policy violations appear in Anypoint Monitoring.
+
+Only one policy violation can be active for a request at a time. When a new violation occurs, it overides any existing violation. If multiple policies generate violations for a single request, only one violation appears in Anypoint Monitoring.
+
+Reporting a policy violation doesn't reject the request. To reject requests, see xref:policies-pdk-configure-features-stop.adoc[].
+
+To view the current policy violation or generate a new policy violation, use these PDK functions:
+
+[source,Rust]
+----
+/// Returns the existing policy violation of the current request. Returns None if no violation exists.
+pub fn policy_violation(&self) -> Option<PolicyViolation>;
+
+/// Generates a new policy violation for the current request. If a violation was previously generated, the previous violation is overridden.
+pub fn generate_policy_violation(&self);
+
+/// Generates a new policy violation with the client application details for the current request. This overwrites any previous policy violations.
+pub fn generate_policy_violation_for_client_app<T: Into<String>, K: Into<String>>(
+   &self,
+   client_name: T,
+   client_id: K,
+);
+----
+
+To retrieve information about the current policy violation, use these PDK functions:
+
+[source,Rust]
+----
+    /// The name of the policy that generated the violation
+   pub fn get_policy_name(&self) -> &str;
+
+   /// Client name associated with the violation, only available if a previous policy reported the client ID
+   pub fn get_client_name(&self) -> Option<&str>;
+
+   /// Client ID associated with the violation, only available if a previous policy reported the client ID
+   pub fn get_client_id(&self) -> Option<&str>;
+----
+
+== See Also
+
+* xref:policies-pdk-configure-features-inject-parameters.adoc[]

@@ -1,0 +1,20 @@
+= Creating a New Policy Project
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+The source code for Omni Gateway Policy Development Kit (PDK) policies is comprised of two versioned parts:
+
+* *Definition*: The policy's metadata and configuration properties. The definition contains the policy's parameters specified in `gcl.yaml` and the related JSON schema. It does not contain the code that runs at runtime. 
+* *Implementation*: The policy's runtime behavior. It is the code (Rust, compiled to WebAssembly) that runs on Omni Gateway when the policy is applied. The implementation uses the definition so its configuration matches the schema's parameters and publishes a separate Exchange asset that gateways use to execute the policy.
+
+PDK enables you to version and manage the two parts of the policy source code using two project models:
+
+* Unified-Model (Regular) Policy: The policy definition and implementation are versioned together and share a version number. When you publish the policy, the definition and implementation are published together.
+* Split-Model Policy: The policy definition and implementation are versioned separately. When you publish the policy, the definition and implementation are published separately. This enables you to update the policy implementation for bug fixes or performance updates without updating the policy definition.
+
+To create a new policy project, choose the project model that best fits your needs:
+
+* xref:policies-pdk-create-project.adoc[Creating a Unified-Model Policy Project]
+* xref:policies-pdk-create-project-split.adoc[Creating a Split-Model Policy Project]
