@@ -6,6 +6,16 @@ endif::[]
 
 For Managed Omni Gateway on Runtime Fabric, you can add custom labels to the gateway's Kubernetes resources and control which nodes run the gateway pods. Define these customizations in a Runtime Fabric `KubernetesTemplate` custom resource (`kubernetestemplates.rtf.mulesoft.com`).
 
+Name the `KubernetesTemplate` resource `managed-flex-gateway`. You can define the template in either of these namespaces:
+
+* Gateway namespace +
+The template applies to all Managed Omni Gateways deployed to the namespace.
+
+* Runtime Fabric agent namespace (usually `rtf`) +
+The template applies to all Managed Omni Gateways that the Runtime Fabric agent manages.
+
+To customize Mule app resources instead, see xref:runtime-fabric::customize-kubernetes-crd.adoc[].
+
 == Supported Customizations
 
 Managed Omni Gateway uses only these fields of the `KubernetesTemplate` resource:
@@ -44,14 +54,13 @@ Make sure that you have:
 
 . Create a YAML file with your `KubernetesTemplate` configuration, for example:
 +
-// TODO(engineering): Confirm the template name and namespace that the Runtime Fabric agent reads for Managed Omni Gateway. Mule apps use `mule-application` in the app namespace or the agent namespace.
 [source,yaml]
 ----
 apiVersion: rtf.mulesoft.com/v1
 kind: KubernetesTemplate
 metadata:
-  name: <template-name>
-  namespace: <namespace>
+  name: managed-flex-gateway
+  namespace: rtf
 spec:
   deployment:
     metadata:
