@@ -1,0 +1,124 @@
+= Customize Kubernetes Resources for Managed Omni Gateway on Runtime Fabric
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+For Managed Omni Gateway on Runtime Fabric, you can add custom labels to the gateway's Kubernetes resources and control which nodes run the gateway pods. Define these customizations in a Runtime Fabric `KubernetesTemplate` custom resource (`kubernetestemplates.rtf.mulesoft.com`).
+
+Name the `KubernetesTemplate` resource `managed-flex-gateway`. You can define the template in either of these namespaces:
+
+* Gateway namespace +
+The template applies to all Managed Omni Gateways deployed to the namespace.
+
+* Runtime Fabric agent namespace (usually `rtf`) +
+The template applies to all Managed Omni Gateways that the Runtime Fabric agent manages.
+
+To customize Mule app resources instead, see xref:runtime-fabric::customize-kubernetes-crd.adoc[].
+
+== Supported Customizations
+
+Managed Omni Gateway uses only these fields of the `KubernetesTemplate` resource:
+
+[%header,cols="1a,2a,1a"]
+|===
+| Field | Description | Minimum Omni Gateway Version
+| `spec.deployment.metadata.labels`
+| Custom labels. Omni Gateway applies these labels to the gateway deployment, its pods, its service, its registration secret, its `Configuration` resource, and its horizontal pod autoscaler (HPA).
+
+Omni Gateway ignores the `app` and `version` labels because it sets them itself. Don't set labels that Runtime Fabric manages, such as `type` and labels with the `rtf.mulesoft.com/` prefix.
+| 1.15.0
+| `spec.pod.nodeSelector`
+| https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/[Node selector^] for the gateway pods.
+| 1.14.0
+| `spec.pod.tolerations`
+| https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/[Tolerations^] for the gateway pods.
+| 1.14.0
+| `spec.pod.affinity`
+| https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity[Affinity rules^] for the gateway pods.
+| 1.14.0
+|===
+
+A node selector, tolerations, or affinity rules that you define in the template replace the corresponding Helm chart setting of the gateway. Omni Gateway doesn't merge the two.
+
+Omni Gateway ignores other `KubernetesTemplate` fields, such as annotations, pod and service labels, and security context settings.
+
+== Before You Begin
+
+Make sure that you have:
+
+* A Managed Omni Gateway deployed to Runtime Fabric. See xref:gateway-managed-set-up.adoc[].
+* Permission to create `KubernetesTemplate` resources in the Runtime Fabric cluster.
+
+== Create a KubernetesTemplate
+
+. Create a YAML file with your `KubernetesTemplate` configuration, for example:
++
+[source,yaml]
+----
+apiVersion: rtf.mulesoft.com/v1
+kind: KubernetesTemplate
+metadata:
+  name: managed-flex-gateway
+  namespace: rtf
+spec:
+  deployment:
+    metadata:
+      labels:
+        team: payments
+        cost-center: "1234"
+  pod:
+    nodeSelector:
+      node-role: gateway
+    tolerations:
+    - key: dedicated
+      operator: Equal
+      value: gateway
+      effect: NoSchedule
+----
+
+. Apply the resource:
++
+[tabs]
+====
+Kubernetes::
++
+[source,ssh]
+----
+kubectl apply -f <template-file>.yaml
+----
+OpenShift::
++
+[source,ssh]
+----
+oc apply -f <template-file>.yaml
+----
+====
+
+. Redeploy the gateway in Runtime Manager to apply the template.
++
+Omni Gateway applies the template, and any later changes to it, only when the gateway is deployed or redeployed.
+
+. Verify that the gateway deployment and pods have your labels:
++
+[tabs]
+====
+Kubernetes::
++
+[source,ssh]
+----
+kubectl get deployments,pods -n <omni-gateway-namespace> --show-labels
+----
+OpenShift::
++
+[source,ssh]
+----
+oc get deployments,pods -n <omni-gateway-namespace> --show-labels
+----
+====
+
+== See Also
+
+* xref:runtime-fabric::customize-kubernetes-crd.adoc[]
+* xref:gateway-managed-set-up.adoc[]
+* xref:managed-forward-proxy.adoc[]
