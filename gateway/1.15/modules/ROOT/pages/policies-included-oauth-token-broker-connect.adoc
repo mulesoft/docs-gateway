@@ -1,0 +1,314 @@
+= OAuth 2.0 Token Broker Connect (Authorization Code) Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:keywords: oauth, token broker, authorization code, connect, mcp, login, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | OAuth 2.0 Token Broker Connect (Authorization Code)
+>s|Summary      | Hosts the browser login and consent flow for connecting upstream accounts, and presents authorization-required responses in a format that MCP clients understand
+>s|Category | Security
+>s|First Omni Gateway version available | v1.15.0
+>s|Release Notes| xref:release-notes::gateway/policies/oauth-token-broker-connect-release-notes.adoc[]
+.4+>.^s| Returned Status Codes
+|400 - The authorization link or login state is unknown, expired, or doesn't match the browser. Also returned when the issuer from the upstream authorization server doesn't match
+|403 - Authorization required, or the login failed or doesn't match the user who made the request
+|502 - The identity provider or the upstream authorization server is unreachable or returned an unusable response, or the connection couldn't be stored
+|503 - The upstream authorization server's configuration isn't available, or the policy configuration is invalid
+|===
+
+[[summary]]
+== Summary
+
+The OAuth 2.0 Token Broker Connect (Authorization Code) policy is the inbound half of the OAuth 2.0 Token Broker. It works together with the xref:policies-outbound-oauth-token-broker.adoc[Credential Injection OAuth 2.0 Token Broker (Authorization Code) policy], which adds each user's own upstream token to outbound requests.
+
+You apply this policy to two kinds of API instances, one per role:
+
+* *`Endpoints` role: a single dedicated API instance* (for example, with the base path `/oauth2`) that hosts the connect flow. When a user hasn't connected an upstream account yet, they open a link. The policy asks them to log in with your company identity provider, so Omni Gateway knows the person opening the link is the person who made the request. It then sends them to the upstream service to approve access, and stores the resulting connection securely.
+* *`Framing` role: each MCP server API instance* that clients call. It presents the "authorization required" response in the format the client understands best. It needs no secrets.
+
+When a user hasn't connected an upstream account yet:
+
+* MCP clients that support URL prompts receive a prompt that opens the connect page.
+* Other MCP clients receive a tool result that contains the link and the text from the authorization message. After the user approves access, they retry the request.
+* Other clients receive a `403` response with a JSON body containing `authorization_url` and `authorization_id`, and an `x-flex-authorization-url` header.
+
+[[before-you-begin]]
+== Before You Begin
+
+* Create the dedicated API instance that hosts the connect flow (for example, with the base path `/oauth2`) and decide its public address.
+* Register Omni Gateway as a client at each upstream authorization server, with this redirect URI: `\{endpointsUrl}/callback`.
+* Register Omni Gateway as a client at your company identity provider, with this redirect URI: `\{endpointsUrl}/login-callback`.
+* To identify the user, apply a token validation policy, such as JWT Validation or Token Introspection, to each MCP server API instance.
+* Apply the Credential Injection OAuth 2.0 Token Broker (Authorization Code) policy to each upstream service.
+* If you run more than one Omni Gateway replica, configure shared storage (Redis) so all replicas see the same connections. Connections, authorization state, and client secrets are encrypted at rest.
+
+[[recommended-policy-chain]]
+== Recommended Policy Chain
+
+Apply these policies in this order on each MCP server API instance:
+
+. OAuth 2.0 Token Broker Connect (Authorization Code), with the role set to `Framing`
+. Token validation, such as JWT Validation or Token Introspection, to identify the caller
+. Header Removal, with Inbound Header Map set to `authorization`
+. MCP Support
+. MCP Schema Validation (strongly recommended)
+. Credential Injection OAuth 2.0 Token Broker (Authorization Code), on the upstream service
+
+For more about MCP Schema Validation, see <<use-mcp-schema-validation>>. The dedicated API instance that hosts the connect flow needs only the Connect policy with the `Endpoints` role.
+
+[[use-mcp-schema-validation]]
+=== Use MCP Schema Validation
+
+Set *Validate Tool Schema* to `true` and select the MCP server's Exchange asset. Omni Gateway then answers `tools/list`, `resources/list`, and `prompts/list` from the asset without requiring the user to connect first. Users see the real tools before they authorize.
+
+The first denied request is usually a `tools/call`. Clients that support URL prompts, such as Claude Code and MCP Inspector, receive a native `-32042` response and prompt the user to connect.
+
+Without MCP Schema Validation, Omni Gateway falls back to a synthetic `get_authorization_link` tool, empty lists, and a mocked `initialize` response until the user authorizes. Clients that don't support URL prompts show a connection error on the first attempt.
+
+[[prevent-token-passthrough]]
+=== Prevent Token Passthrough
+
+The user's single sign-on (SSO) token must never reach the upstream service. Header Removal makes the Credential Injection policy the only source of the upstream `Authorization` header. If your clients send the token in another header, add that header to *Inbound Header Map* in the Header Removal policy.
+
+[[configuring-policy-parameters]]
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The OAuth 2.0 Token Broker Connect (Authorization Code) policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Parameter | Required or Optional | Default Value | Description
+
+| Role
+| Optional
+| `Both`
+| Which part of the job this policy does. Use `Endpoints` on the dedicated instance that hosts the connect flow, or `Framing` on each MCP server instance. Use `Both` only for federation, which isn't supported. The default is `Both`, so always set the role explicitly.
+
+| Endpoints URL
+| Required for `Framing`
+|
+| The full public address of the dedicated instance that hosts the connect flow, including its base path, for example `\https://gateway.example/oauth2`. Use the same value on every instance. +
+On `Endpoints`, if you leave it empty, Omni Gateway uses the address of the API's consumer endpoint. Set it explicitly when you use a custom domain name or a load balancer, or when the API has no consumer endpoint. Any load balancer must keep the path unchanged. +
+The policy is rejected if the address can't be determined.
+
+| Browser login
+| Required for `Endpoints`
+|
+| How users prove who they are before connecting an account. The `Framing` role ignores this setting.
+
+| Browser login > Mode
+| Optional
+| `OIDC`
+| `OIDC` (OpenID Connect) logs the user in with your identity provider. `None` skips login and is for development only: anyone with the link can connect their account to someone else's session.
+
+| Browser login > Discovery URL
+| Required for `OIDC`
+|
+| Your identity provider's OpenID Connect discovery document URL.
+
+| Browser login > Token endpoint
+| Optional
+|
+| Overrides the token endpoint found through discovery. Set it when the endpoint isn't on the same host as the discovery document.
+
+| Browser login > JWKS URI
+| Optional
+|
+| Overrides the JSON Web Key Set (JWKS) address found through discovery. Set it when the address isn't on the same host as the discovery document.
+
+| Browser login > Authorization endpoint
+| Optional
+|
+| The address browsers use to reach the identity provider, if it differs from the address Omni Gateway uses.
+
+| Browser login > Client ID
+| Required for `OIDC`
+|
+| The client ID of Omni Gateway at your identity provider.
+
+| Browser login > Client secret
+| Optional
+|
+| The client secret of Omni Gateway at your identity provider.
+
+| Browser login > Scopes
+| Optional
+| `openid`
+| The scopes requested at your identity provider. Add `profile` or `email` if your identity mapping needs them.
+
+| Browser login > Identity > Preset
+| Optional
+| `OIDC`
+| How Omni Gateway identifies the user from the login: `OIDC`, `Entra`, `Okta`, or `Custom`. It must produce the same user ID and issuer as the Credential Injection policy's *Subject expression* and *Issuer expression*.
+
+| Browser login > Identity > Subject expression
+| Required for `Custom`
+|
+| A DataWeave expression that returns the user's unique ID.
+
+| Browser login > Identity > Issuer expression
+| Required for `Custom`
+|
+| A DataWeave expression that returns the user's issuer.
+
+| Authorization message
+| Optional
+| Authorization required. Open this link in your browser, approve access, then retry:
+| The text shown with the connect link.
+|===
+
+[[how-this-policy-works]]
+== How This Policy Works
+
+This diagram shows the two API instances and the services they connect to.
+
+----
+MCP client ──► MCP server API instance (Connect: Framing)
+                    │  Credential Injection policy on the upstream service
+                    ▼
+             Upstream service (for example, GitHub)
+
+User's browser ──► Dedicated API instance, for example /oauth2 (Connect: Endpoints)
+                    ├─ /authorize       starts the flow
+                    ├─ /login-callback  returns from your identity provider
+                    └─ /callback        returns from the upstream authorization server
+----
+
+. A client calls an MCP server API instance. Your authentication policy identifies the user, and the Credential Injection policy looks for that user's connection to the upstream service.
+. If there's no connection, the request isn't forwarded. The `Framing` instance answers with a link to the `/authorize` page of the dedicated instance.
+. The user opens the link, logs in with your identity provider, and approves access at the upstream service.
+. Omni Gateway stores the connection. The user retries the request, and it succeeds.
+
+[[browser-login]]
+=== Browser Login
+
+The user who logs in at the identity provider must be the same user who made the original request. Otherwise, Omni Gateway rejects the callback with a `403` response.
+
+[[addresses]]
+=== Addresses
+
+Omni Gateway builds these addresses from the *Endpoints URL*. These examples use `\https://gateway.example/oauth2`:
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Purpose | Address | Example
+
+| Link users open
+| `\{endpointsUrl}/authorize`
+| `\https://gateway.example/oauth2/authorize`
+
+| Return from the upstream service
+| `\{endpointsUrl}/callback`
+| `\https://gateway.example/oauth2/callback`
+
+| Return from your company identity provider
+| `\{endpointsUrl}/login-callback`
+| `\https://gateway.example/oauth2/login-callback`
+|===
+
+Register the last two addresses exactly as shown at the upstream authorization server and at your company identity provider. If the address that users' browsers reach differs from the *Endpoints URL*, login fails when the browser returns to Omni Gateway.
+
+[[limitations]]
+=== Limitations
+
+* Browsers keep the login cookies only over HTTPS (or `localhost`), so use an `https` address for the *Endpoints URL*. The policy logs a warning when the address is plain `http` to another host.
+* A proxy or load balancer in front of Omni Gateway must keep the path unchanged: the path in the *Endpoints URL* is both matched and published. Changing only the host, port, or scheme doesn't affect the policy.
+* Federation isn't supported. Federation is a single instance that aggregates several upstream servers, and it's the use case for the `Both` role. Federation with per-user brokered upstreams fails.
+* The policy defaults to the `Both` role, so always set the role explicitly to `Endpoints` or `Framing`.
+* This policy isn't supported with On-Behalf-Of upstreams.
+* When the upstream rejects a user's token, clients receive a standard HTTP response (`503` or `403`) instead of an MCP message. Some MCP clients show this as a connection error on the first attempt and show the connect link only when they retry.
+* Connections are tied to the identity Omni Gateway sees. If users log in with different identities in different places, make sure the identity settings produce the same values.
+
+[[example-configurations]]
+== Example Configurations
+
+These examples show common configuration patterns for the OAuth 2.0 Token Broker Connect (Authorization Code) policy.
+
+[[dedicated-instance-endpoints-role]]
+=== Dedicated Instance That Hosts the Connect Flow
+
+Apply this configuration to the dedicated API instance, for example with the base path `/oauth2`.
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Parameter | Value
+
+| Role
+| `Endpoints`
+
+| Endpoints URL
+| `\https://gateway.example/oauth2`
+
+| Browser login > Mode
+| `OIDC`
+
+| Browser login > Discovery URL
+| `\https://login.example.com/.well-known/openid-configuration`
+
+| Browser login > Client ID
+| `omni-gateway-browser`
+
+| Browser login > Client secret
+| Your client secret
+|===
+
+[[mcp-server-instance-framing-role]]
+=== MCP Server Instance
+
+Apply this configuration to each MCP server API instance. It needs no secrets.
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Parameter | Value
+
+| Role
+| `Framing`
+
+| Endpoints URL
+| `\https://gateway.example/oauth2`
+|===
+
+[[microsoft-entra-identity]]
+=== Identity Provider with a Preset
+
+Use this configuration on the dedicated instance when your identity provider is Microsoft Entra ID. With Entra, the Credential Injection policy's *Subject expression* must read the `oid` claim so both policies produce the same user ID.
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Parameter | Value
+
+| Role
+| `Endpoints`
+
+| Endpoints URL
+| `\https://gateway.example/oauth2`
+
+| Browser login > Discovery URL
+| `\https://login.microsoftonline.com/<tenant-id>/v2.0/.well-known/openid-configuration`
+
+| Browser login > Client ID
+| `omni-gateway-browser`
+
+| Browser login > Client secret
+| Your client secret
+
+| Browser login > Identity > Preset
+| `Entra`
+|===
+
+[[see-also]]
+== See Also
+
+* xref:policies-outbound-oauth-token-broker.adoc[]
+* xref:policies-included-jwt-validation.adoc[]
+* xref:policies-included-oauth-token-introspection.adoc[]
+* xref:policies-included-header-removal.adoc[]
+* xref:policies-included-mcp-support.adoc[]
+* xref:policies-included-mcp-schema-validation.adoc[]
+* xref:policies-included-oauth-protected-resource-metadata.adoc[]
