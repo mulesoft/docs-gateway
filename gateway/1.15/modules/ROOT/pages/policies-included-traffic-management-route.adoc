@@ -26,7 +26,7 @@ Omni Gateway manages request traffic by using different routes that can each dir
 
 To allow routing requests to a `Service` when an `ApiInstance` does not include `spec.services`, you must define a `PolicyBinding` configuration with the Traffic Management for Multiple Upstream Services (`route`) policy. You don't need to configure a `route` policy if a custom policy is managing requests.
 
-== Configuring Policy Parameters
+== Configure Policy Parameters
 
 Refer to the following policy definition and table of parameters:
 
@@ -98,8 +98,9 @@ Only requests that meet all of the specified header requirements are sent to thi
 | `rules.host`
 | Optional
 | Empty
-| Request host URL that the route can service. +
-You can define only one host URL for each ruleset. Only requests made from the defined host are sent to this route.
+| Request host that the route can service. +
+You can define only one host for each ruleset. Only requests sent to the defined host are sent to this route. +
+Omni Gateway matches the host against the `X-Forwarded-Host` header. If the request doesn't include `X-Forwarded-Host`, Omni Gateway sets it from the `Host` header, so the upstream service also receives it. If the client sends `X-Forwarded-Host`, Omni Gateway matches that value instead of the `Host` header.
 
 |===
 

@@ -285,7 +285,7 @@ Multiple capture groups can be specified, and the replacement will be the concat
 |`spec.rules[#].host`
 |Optional
 |`.*`
-|A regular expression to match the request host.
+|A regular expression to match the request host. Omni Gateway matches against the `X-Forwarded-Host` header. If the request doesn't include `X-Forwarded-Host`, Omni Gateway sets it from the `Host` header. If the client sends `X-Forwarded-Host`, Omni Gateway matches that value instead of the `Host` header.
 
 |`spec.rules[#].methods`
 |Optional
@@ -450,6 +450,8 @@ spec:
 === Logging
 
 include::partial$logging-config-file.adoc[]
+
+NOTE: The `runtimeLogs.logLevel` setting applies to every API on the gateway. To override the runtime log level for a single API, use the xref:policies-included-api-log-level.adoc[API Log Level policy].
 
 ==== Logging Example
 
