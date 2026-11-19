@@ -487,6 +487,8 @@ The `sharedStorage` object configures the gateway for shared storage. Omni Gatew
 * *Redis shared storage*: Provides persistent storage when all replicas go down (scaled to zero replicas). Requires https://redis.io/[Redis^] (minimum version 4.0.0).
 * *Local shared storage*: File-based implementation. Data is persisted to disk, so it is retained when Omni Gateway is stopped or restarted. This is the default when no `sharedStorage` configuration is provided.
 
+NOTE: In Omni Gateway 1.14.5 and later versions, disk and distributed shared storage don't remove entries from stores configured without expiration (TTL `0`) after 14 days. Stores created in earlier versions keep the 14-day expiration. To apply this change to existing stores, remove the Omni Gateway container and start a new one.
+
 Optionally, you can use Redis with Transport Layer Security (TLS) to protect sensitive data, prevent unauthorized access, and maintain the reliability of your services.
 
 ==== Distributed Shared Storage
@@ -527,6 +529,8 @@ spec:
      username: <string> // OPTIONAL
      password: <string> // OPTIONAL
      db: <string> // OPTIONAL
+     timeoutMilliseconds: <number> // OPTIONAL
+     maxRetries: <number> // OPTIONAL
      tls: // OPTIONAL
        trustedCA: <string> // OPTIONAL
        certificate: // OPTIONAL
@@ -563,6 +567,16 @@ spec:
 |Optional 
 |0
 |The Redis database number to use
+
+|`sharedStorage.redis.timeoutMilliseconds`
+|Optional
+|`2000`
+|Maximum time, in milliseconds, that Omni Gateway waits for Redis to respond to an operation. To match the behavior before this field was available, set this value to `3000`.
+
+|`sharedStorage.redis.maxRetries`
+|Optional
+|`1`
+|Number of times Omni Gateway retries a failed Redis operation. To match the behavior before this field was available, set this value to `3`.
 
 |`sharedStorage.redis.tls`
 |Optional
@@ -620,6 +634,8 @@ spec:
 |
 
 |===
+
+NOTE: Before Omni Gateway 1.12.13, 1.13.9, and 1.14.5, Omni Gateway uses a five-second connect timeout, a three-second read and write timeout, and three retries, and ignores the `timeoutMilliseconds` and `maxRetries` fields.
 
 [NOTE]
 ====

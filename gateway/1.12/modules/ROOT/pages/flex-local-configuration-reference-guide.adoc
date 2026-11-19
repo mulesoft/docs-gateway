@@ -495,6 +495,8 @@ spec:
      username: <string> // OPTIONAL
      password: <string> // OPTIONAL
      db: <string> // OPTIONAL
+     timeoutMilliseconds: <number> // OPTIONAL
+     maxRetries: <number> // OPTIONAL
      tls: // OPTIONAL
        trustedCA: <string> // OPTIONAL
        certificate: // OPTIONAL
@@ -531,6 +533,16 @@ spec:
 |Optional 
 |0
 |The Redis database number to use
+
+|`sharedStorage.redis.timeoutMilliseconds`
+|Optional
+|`2000`
+|Maximum time, in milliseconds, that Flex Gateway waits for Redis to respond to an operation. To match the behavior before this field was available, set this value to `3000`.
+
+|`sharedStorage.redis.maxRetries`
+|Optional
+|`1`
+|Number of times Flex Gateway retries a failed Redis operation. To match the behavior before this field was available, set this value to `3`.
 
 |`sharedStorage.redis.tls`
 |Optional
@@ -588,6 +600,8 @@ spec:
 |
 
 |===
+
+NOTE: The `timeoutMilliseconds` and `maxRetries` fields are available in Flex Gateway 1.12.13 and later. In earlier versions, Flex Gateway uses a five-second connect timeout, a three-second read and write timeout, and three retries, and ignores these fields.
 
 [NOTE]
 ====

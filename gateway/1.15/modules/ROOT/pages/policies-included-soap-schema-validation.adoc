@@ -29,6 +29,8 @@ The SOAP Schema Validation policy processes only requests. Responses pass throug
 
 The policy buffers the full request body to validate it against the WSDL. A SOAP request without a body returns a fault. The policy answers a `GET` request for the WSDL (`?wsdl`) directly with the WSDL, without processing a body. Other methods return a "Method not allowed" fault.
 
+The policy chooses the SOAP version of its fault responses from the configured service port binding, not from the `SOAPAction` header (Omni Gateway 1.14.5 and later versions).
+
 include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 
 == Configure Policy Parameters
