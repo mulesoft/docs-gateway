@@ -1,0 +1,223 @@
+= Credential Injection OAuth 2.1 Token Broker (Authorization Code) Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:keywords: oauth, token broker, authorization code, credential injection, mcp, outbound, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy Name | Credential Injection OAuth 2.1 Token Broker (Authorization Code)
+>s|Summary      | Adds each user's own upstream access token to outbound requests, and returns a link to connect their account when no token is available
+>s|Category | Security
+>s|First Omni Gateway version available | v1.15.0
+>s|Release Notes| xref:release-notes::gateway/policies/outbound-oauth-token-broker-release-notes.adoc[]
+.4+>.^s| Returned Status Codes
+|401 - Omni Gateway can't identify the caller
+|403 - The user hasn't connected the upstream service, or the connection can't be refreshed
+|502 - The upstream authorization server rejected a token refresh, or the upstream rejected a token that was just issued
+|503 - The connection store or the upstream authorization server is unavailable, or the upstream rejected a token that the next request refreshes
+|===
+
+[[summary]]
+== Summary
+
+The Credential Injection OAuth 2.1 Token Broker (Authorization Code) policy calls an upstream service on behalf of each individual user, using that user's own account and permissions instead of a shared credential. For example, a GitHub MCP server acts as the person who is making the request.
+
+Each user connects their account on the upstream service once, through a standard browser login and consent screen. From then on, Omni Gateway adds that user's access token to every request, refreshes the token when it expires, and asks the user to reconnect if access is revoked. Your clients never see or manage the upstream tokens.
+
+Apply this policy to the outbound side of each upstream service. It works together with the xref:policies-included-oauth-token-broker-connect.adoc[OAuth 2.1 Token Broker Connect (Authorization Code) policy], which runs the browser login and consent flow.
+
+[[before-you-begin]]
+== Before You Begin
+
+* Register Omni Gateway as a client at each upstream authorization server. Use this redirect URI: `\{endpointsUrl}/callback`, where `endpointsUrl` comes from the Connect policy configuration.
+* To identify the user, apply a token validation policy, such as JWT Validation or Token Introspection, before this policy.
+* To keep the user's single sign-on (SSO) token from reaching the upstream service, apply Header Removal with Inbound Header Map set to `authorization`.
+* Apply the OAuth 2.1 Token Broker Connect policy to a dedicated API instance (`Endpoints` role) and to each MCP server API instance (`Framing` role).
+* If you run more than one Omni Gateway replica, configure shared storage (Redis) so all replicas see the same connections. Connections, authorization state, and client secrets are encrypted at rest.
+
+For the full policy order, see xref:policies-included-oauth-token-broker-connect.adoc#recommended-policy-chain[Recommended Policy Chain].
+
+[[configuring-policy-parameters]]
+== Configuring Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFileTitleOnly]
+
+The Credential Injection OAuth 2.1 Token Broker (Authorization Code) policy isn't supported in Local Mode.
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+| Parameter | Required or Optional | Default Value | Description
+
+| Subject expression
+| Optional
+| The `sub` claim of the validated JWT
+| A DataWeave expression that returns the caller's unique ID. Set it if you authenticate another way, such as token introspection. It must produce the same value as the Connect policy's *Identity* setting.
+
+| Issuer expression
+| Optional
+| The `iss` claim of the validated JWT
+| A DataWeave expression, or a fixed text value, that returns the caller's issuer. It must produce the same value as the Connect policy's *Identity* setting.
+
+| AS issuer
+| Optional
+|
+| The upstream authorization server's issuer identifier. When set, the authorization response must include a matching `iss` parameter. Omni Gateway rejects a missing or different value with a `400` response. Set it only if the authorization server sends an issuer in its response.
+
+| Authorization endpoint
+| Required
+|
+| The upstream authorization server's authorization URL. Users' browsers are sent here to log in and approve access. Omni Gateway never calls it.
+
+| Token endpoint
+| Required
+|
+| The upstream authorization server's token URL, used to exchange authorization codes and refresh tokens.
+
+| Client ID
+| Required
+|
+| The client ID of Omni Gateway at the upstream authorization server.
+
+| Client secret
+| Optional
+|
+| The client secret of Omni Gateway at the upstream authorization server. Leave empty for a public client that uses Proof Key for Code Exchange (PKCE).
+
+| Scopes
+| Optional
+|
+| The scopes to request at the upstream authorization server.
+
+| Additional authorization parameters
+| Optional
+|
+| Extra name and value parameters added to the authorization request, such as `resource` or `audience`.
+|===
+
+[[how-this-policy-works]]
+== How This Policy Works
+
+An authentication policy earlier in the chain, such as JWT Validation, identifies the user. The policy then handles each request as follows:
+
+. If the user has connected the upstream service, the policy adds the user's token to the request and forwards it. If the token is about to expire, the policy refreshes it first.
+. If the user hasn't connected the upstream service, the policy doesn't call the upstream. It returns a response with a link that the user opens to connect their account.
+. If the upstream later rejects the token, for example because the user revoked access, the policy discards the connection. On the next attempt, the user gets a new link to connect.
+
+[[responses-returned-to-clients]]
+=== Responses Returned to Clients
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Situation | Response
+
+| The user has connected the upstream service
+| The request goes through with the user's token.
+
+| The user hasn't connected the upstream service
+| `403` with a link to connect. When the Connect policy (`Framing` role) is applied to the API instance, MCP clients receive the link in a format that they understand.
+
+| Omni Gateway can't identify the caller
+| `401`
+
+| The connection store is temporarily unavailable
+| `503`. The request is never forwarded without the user's token.
+
+| The token couldn't be refreshed and the upstream authorization server is unreachable
+| `503`
+
+| The token couldn't be refreshed and the upstream authorization server rejected the request
+| `502`
+
+| The upstream rejected the user's token and the next request refreshes it
+| `503` with a `Retry-After` header. The client should retry.
+
+| The upstream rejected the user's token and a refresh can't help
+| `403` with a new link to connect.
+
+| The upstream rejected a token that was just issued
+| `502`
+|===
+
+Omni Gateway never passes the upstream's own `WWW-Authenticate` challenge to the client, because the client can't act on it. Other upstream errors, such as `403` or `500`, pass through unchanged.
+
+[[limitations]]
+=== Limitations
+
+* When the upstream rejects a token, the policy answers with a standard HTTP response (`503` or `403`) instead of an MCP message. Some MCP clients show this as a connection error on the first attempt and show the connect link only when they retry.
+* Connections are tied to the identity Omni Gateway sees. If users log in with different identities in different places, make sure the identity settings produce the same values.
+* Federation isn't supported. Federation with per-user brokered upstreams fails.
+* This policy isn't supported with On-Behalf-Of upstreams.
+
+[[example-configurations]]
+== Example Configurations
+
+These examples show common configuration patterns for the Credential Injection OAuth 2.1 Token Broker (Authorization Code) policy.
+
+[[public-client-with-pkce]]
+=== Public Client with PKCE
+
+Use this configuration when Omni Gateway is registered as a public client at the upstream authorization server. The caller is identified by the default JWT claims.
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Parameter | Value
+
+| Authorization endpoint
+| `\https://github.com/login/oauth/authorize`
+
+| Token endpoint
+| `\https://github.com/login/oauth/access_token`
+
+| Client ID
+| `omni-gateway-github`
+
+| Scopes
+| `repo`, `read:user`
+|===
+
+[[confidential-client-with-introspection]]
+=== Confidential Client with Token Introspection
+
+Use this configuration when the caller is authenticated with token introspection instead of JWT validation, so the policy can't read the `sub` claim of a validated JWT. The subject expression reads the user ID from the authentication context, and the issuer expression is a fixed value.
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| Parameter | Value
+
+| Authorization endpoint
+| `\https://auth.example.com/oauth2/authorize`
+
+| Token endpoint
+| `\https://auth.example.com/oauth2/token`
+
+| Client ID
+| `omni-gateway`
+
+| Client secret
+| Your client secret
+
+| AS issuer
+| `\https://auth.example.com`
+
+| Scopes
+| `openid`, `offline_access`
+
+| Additional authorization parameters
+| Name: `audience`, Value: `\https://api.example.com`
+
+| Subject expression
+| A DataWeave expression that returns the user ID, matching the Connect policy's *Identity* setting
+
+| Issuer expression
+| `\https://login.example.com`
+|===
+
+[[see-also]]
+== See Also
+
+* xref:policies-included-oauth-token-broker-connect.adoc[]
+* xref:policies-outbound-directory.adoc[]
+* xref:policies-included-oauth-token-introspection.adoc[]

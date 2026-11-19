@@ -1,0 +1,178 @@
+= DataWeave Headers Transformation Outbound Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: dataweave, headers transformation, transformation, outbound, upstream, api gateway, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s| Policy name | DataWeave Headers Transformation Outbound
+>s|Summary      | Transforms the headers of request or response traffic for a specific upstream service with a DataWeave script
+>s|Category | Transformation
+>s| First Omni Gateway version available | v1.15.0
+>s|Release Notes| xref:release-notes::gateway/policies/outbound-dataweave-headers-transformation-release-notes.adoc[]
+.1+>.^s| Returned Status Codes
+| `400` - The DataWeave script failed to execute or returned an invalid result
+|===
+
+== Summary
+
+The DataWeave Headers Transformation Outbound policy transforms the headers of request or response traffic for a specific upstream service with a DataWeave script. It works the same way as the xref:policies-included-dataweave-headers-transformation.adoc[DataWeave Headers Transformation] policy, but you apply it to an upstream service, so it transforms only the traffic for that upstream service. It can change the headers of requests that Omni Gateway sends to the upstream service, or the headers of responses that Omni Gateway receives from it.
+
+Use this policy when you want to:
+
+* Add headers that an upstream service requires, so that clients don't need to send them.
+* Rename or remove headers before a request reaches the upstream service, so that the upstream service receives only the headers it expects.
+* Set headers on an upstream response, based on values from the response body, so that the client can read them without parsing the body.
+
+To change the body instead of the headers, use the xref:policies-outbound-dataweave-body-transformation.adoc[DataWeave Body Transformation Outbound] policy. To transform traffic for all upstream services at once, use the xref:policies-included-dataweave-headers-transformation.adoc[DataWeave Headers Transformation] policy.
+
+== Configure Policy Parameters
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: PolicyBinding
+metadata:
+  name: dataweave-headers-transformation-outbound
+spec:
+  targetRef:
+    kind: Service
+    name: upstream
+  policyRef:
+    name: dataweave-headers-transformation-outbound-flex
+  config:
+    script: <string>           // REQUIRED - DataWeave script
+    requestFlow: <string>      // REQUIRED - "onRequest" or "onResponse"
+    requiresPayload: <boolean> // REQUIRED
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+|Parameter | Required or Optional | Default Value | Description
+
+| `script`
+| Required
+| —
+| A DataWeave script that returns a map of header names to values. The script receives `attributes.headers`. If `requiresPayload` is `true`, the script also receives the message body in the `payload` binding.
+
+| `requestFlow`
+| Required
+| —
+| Whether the policy transforms the request or the response headers. Supported values: `onRequest` or `onResponse`.
+
+| `requiresPayload`
+| Required
+| false
+| If `true`, the script receives the message body in the `payload` binding, and Omni Gateway buffers the body for the transformation. Enabling this setting can reduce performance.
+|===
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+=== Basic Configuration
+
+[%header%autowidth.spread,cols="a,a,a"]
+|===
+| Element | Required | Description
+
+| Script
+| Yes
+| The DataWeave script that returns a map of header names to values. The script receives `attributes.headers`. To test your script, use the https://dataweave.mulesoft.com/learn/[DataWeave Playground^].
+
+| Requires payload
+| Yes
+| Whether the script requires the message body. Enabling this setting can reduce performance.
+
+| Request flow
+| Yes
+| Whether the policy transforms the request or the response headers.
+|===
+
+== How This Policy Works
+
+The policy transforms the headers of the traffic on the side that Request flow (`requestFlow`) sets. Set it to *On request* (`onRequest`) to transform the request that Omni Gateway sends to the upstream service. Set it to *On response* (`onResponse`) to transform the response that Omni Gateway receives from the upstream service. The other side passes through unchanged.
+
+On the configured side, Omni Gateway removes the existing headers and runs the script. The script must return a map. Each entry in the map becomes a header. For a header with multiple values, use a list of values.
+
+[[payload-handling]]
+=== Payload Handling
+
+How the policy handles the body on the configured side depends on Requires payload (`requiresPayload`):
+
+* `false`: The policy reads headers only and doesn't buffer the body.
+* `true`: The policy buffers the full body so that the script can read `payload`.
+
+include::partial$policy-payload-handling.adoc[tag=bufferLimit]
+
+To avoid buffering, set `requiresPayload` to `false` and write the script to use only `attributes.headers`.
+
+== Example Configurations
+
+The following examples demonstrate common configuration patterns for the DataWeave Headers Transformation Outbound policy.
+
+=== Add Headers Conditionally
+
+This example sets headers on the request that Omni Gateway sends to the upstream service. When the `custom-client-header` header is `fixed_client`, the script replaces it with `custom-123123231231231231`. Otherwise, the script uses the header value, or `client-id-not-set` if the header is missing:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: PolicyBinding
+metadata:
+  name: dataweave-headers-transformation-outbound
+spec:
+  targetRef:
+    kind: Service
+    name: upstream
+  policyRef:
+    name: dataweave-headers-transformation-outbound-flex
+  config:
+    requestFlow: onRequest
+    requiresPayload: false
+    script: |
+      {
+        "custom_client_secret": "fixed_secret_123123231231231231",
+        "custom_client_id": if (attributes.headers.'custom-client-header'?)
+          attributes.headers.'custom-client-header' match {
+            case literalMatch: "fixed_client" -> "custom-123123231231231231"
+            else -> attributes.headers.'custom-client-header'
+          }
+        else "client-id-not-set"
+      }
+----
+
+=== Add Headers from the Payload
+
+This example appends headers that use values from the payload. Because the script reads `payload`, `requiresPayload` is `true`:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: PolicyBinding
+metadata:
+  name: dataweave-headers-transformation-outbound
+spec:
+  targetRef:
+    kind: Service
+    name: upstream
+  policyRef:
+    name: dataweave-headers-transformation-outbound-flex
+  config:
+    requestFlow: onRequest
+    requiresPayload: true
+    script: |
+      attributes.headers ++ {
+        "custom_client_id_from_payload": payload.id,
+        "custom_client_secret_from_payload": payload.secret
+      }
+----
+
+== See Also
+
+* xref:policies-outbound-dataweave-body-transformation.adoc[]
+* xref:policies-included-dataweave-headers-transformation.adoc[]
+* xref:policies-dataweave-support.adoc[]
+* xref:policies-outbound-directory.adoc[]

@@ -1,0 +1,52 @@
+= Resetting the Control Node Cache with the CLI
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+
+If the control node cache becomes corrupted or you encounter other critical issues that affect the integrity of the cache, use the `flexctl reset` CLI to erase the cache state.
+
+Resetting the control node cache can't be undone. Use `flexctl reset` only to recover from data corruption or other critical cache issues.
+
+The command deletes only the control node's data from the configured shared storage. When the shared storage is Redis, other keys in the same Redis instance, such as those used by policies, aren't deleted.
+
+NOTE: To run `flexctl reset` for Linux deployments, either add the user to the `flex` user group or run `flexctl reset` with the `sudo` command. To learn more, see xref:troubleshoot-linux-permissions.adoc[].
+
+== Run the CLI
+
+. Run the following command:
++
+[source,ssh]
+----
+flexctl reset
+----
++
+To run the command in a container without entering it, run:
++
+[source,ssh]
+----
+docker exec -it flex-gateway flexctl reset
+----
+
+. When prompted to confirm, type `yes`. Any other input cancels the operation.
++
+If the reset succeeds, the CLI returns the following message:
++
+----
+Storage was reset successfully. You can restart flex now!
+----
+
+. Restart Omni Gateway.
+
+== Change the Admin API Address
+
+By default, `flexctl reset` connects to the gateway's Admin API through the Unix socket `/var/tmp/mulesoft/flex-gateway/flex-agent-status-api.sock`. To use a different Admin API address, use the `--flex-admin-api-url` flag:
+
+[source,ssh]
+----
+flexctl reset --flex-admin-api-url <ADMIN_API_URL>
+----
+
+== See Also
+
+* xref:troubleshoot-admin-api.adoc[]
+include::release-notes::partial$release-notes/rn-known-issues.adoc[tag=knownIssuesSeeAlsoLink]

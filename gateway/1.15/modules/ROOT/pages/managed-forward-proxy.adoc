@@ -1,0 +1,68 @@
+= Configure a Forward Proxy for Managed Omni Gateway on Runtime Fabric
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+
+Managed Omni Gateway on Runtime Fabric inherits the forward proxy settings of Runtime Fabric. If your Runtime Fabric cluster reaches the internet through a forward proxy, Managed Omni Gateway uses the same proxy automatically. You don't need to configure a forward proxy for each gateway. 
+
+To configure the proxy for Runtime Fabric, see xref:runtime-fabric::manage-proxy-self.adoc[].
+
+include::partial$forward-proxy-config.adoc[tags=connections]
+
+== Requirements
+
+Make sure that:
+
+* The forward proxy allows the hosts and ports listed in xref:review-prerequisites.adoc[] for your control plane.
+* The forward proxy doesn't inspect TLS traffic (SSL passthrough) on the endpoints that use mTLS. These endpoints include:
+** The Anypoint Platform control plane endpoints that the Runtime Fabric agent connects to. Managed Omni Gateway receives its configuration through the Runtime Fabric agent.
+** The external endpoints that Managed Omni Gateway connects to over mTLS, such as Anypoint Monitoring.
++
+For the endpoints that require SSL passthrough, see xref:review-prerequisites.adoc[].
+
+== Verify the Forward Proxy Configuration
+
+Optionally, to confirm that the Managed Omni Gateway reaches external hosts through the forward proxy:
+
+. Find the egress gateway pod:
++
+[tabs]
+====
+Kubernetes::
++
+[source,ssh]
+----
+kubectl get pods -n <omni-gateway-namespace>
+----
+OpenShift::
++
+[source,ssh]
+----
+oc get pods -n <omni-gateway-namespace>
+----
+====
+. Check the connection to an external upstream:
++
+[tabs]
+====
+Kubernetes::
++
+[source,ssh]
+----
+kubectl exec -n <omni-gateway-namespace> <omni-egress-pod> -c app -- flexctl check http https://<upstream-host>
+----
+OpenShift::
++
+[source,ssh]
+----
+oc exec -n <omni-gateway-namespace> <omni-egress-pod> -c app -- flexctl check http https://<upstream-host>
+----
+====
+
+== See Also
+
+* xref:review-prerequisites.adoc[]
+* xref:runtime-fabric::manage-proxy-self.adoc[]
+* xref:managed-tls-config.adoc[]
+* xref:conn-forward-proxy.adoc[]

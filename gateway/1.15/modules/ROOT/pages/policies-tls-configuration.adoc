@@ -1,0 +1,36 @@
+= Configuring TLS for Outgoing Policy Requests
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:keywords: policy, tls, default tls, outbound tls
+
+Some Omni Gateway policies make outgoing requests to HTTP and gRPC services. For example, the xref:policies-included-oauth-token-introspection.adoc[] sends token validation requests to an OAuth 2.0 service, and the xref:policies-included-external-authorization.adoc[] forwards incoming client requests to an authorization service.
+
+== How TLS Works for Outgoing Policy Requests
+
+Omni Gateway protects outgoing policy requests with the default outbound TLS context:
+
+* If you configure a default outbound TLS context, Omni Gateway uses it for outgoing policy requests. The same default outbound TLS context also applies to every HTTPS upstream service that doesn't have its own outbound TLS context.
+* If you don't configure a default outbound TLS context, Omni Gateway uses built-in outbound TLS. Built-in outbound TLS validates the server certificate against the operating system CAs, uses the default ciphers, and doesn't present a client certificate.
+
+Configure a default outbound TLS context when the services that your policies call require mTLS, use certificates signed by a private CA, or require specific TLS versions or ciphers.
+
+== Configure a Default Outbound TLS Context
+
+* Managed Omni Gateway: xref:managed-tls-config.adoc#default-tls[Configure Default TLS Contexts in Runtime Manager]
+* Self-Managed Omni Gateway in Connected Mode: xref:conn-tls-config.adoc#default-tls[Configure Default TLS Contexts in Runtime Manager] or xref:conn-tls-config.adoc#default-tls-config-file[Configure Default TLS Contexts with a Configuration Resource]
+* Self-Managed Omni Gateway in Local Mode: xref:local-tls-config.adoc#default-tls[Configure Default TLS Contexts with a Configuration Resource]
+
+[[deprecated-outbound-policy-calls]]
+== Deprecated `outboundPolicyCalls` Parameter
+
+In earlier versions, you configured TLS for outgoing policy requests with the `defaultTLS.outboundPolicyCalls` parameter of the `Configuration` resource. This parameter is deprecated. Use `defaultTLS.outbound` instead, which accepts the same parameters and applies to both outgoing policy requests and upstream services.
+
+* If you configure only `outboundPolicyCalls`, Omni Gateway applies it to outgoing policy requests only and logs a deprecation warning.
+* If you configure both `outboundPolicyCalls` and `outbound`, Omni Gateway ignores `outboundPolicyCalls` and logs a warning.
+
+== See Also
+
+* xref:managed-tls-config.adoc[]
+* xref:conn-tls-config.adoc[]
+* xref:local-tls-config.adoc[]

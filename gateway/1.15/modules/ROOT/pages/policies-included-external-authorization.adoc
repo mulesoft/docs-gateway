@@ -1,0 +1,287 @@
+= External Authorization Policy
+ifndef::env-site,env-github[]
+include::_attributes.adoc[]
+endif::[]
+:imagesdir: ../assets/images
+:keywords: external authorization, authorization, flex gateway, gateway, policy
+
+[width="100%", cols="5,15"]
+|===
+>s|Policy name | External Authorization
+>s|Summary | Authenticates requests with an external gRPC or HTTP authorization service
+>s|Category | Security
+>s| First Omni Gateway version available | v1.6.0
+>s|Release Notes| xref:release-notes::gateway/policies/external-authorization-release-notes.adoc[]
+>s| Returned Status Codes | 403 - Forbidden, invalid client application credentials
+|===
+
+== Summary
+
+The External Authorization policy forwards incoming client HTTP requests to an external gRPC or HTTP authorization service to determine if the client HTTP request is authorized to access the upstream service. If the request is authorized, Omni Gateway allows the request to pass to the upstream service. For unauthorized accesses, Omni Gateway returns a `403` forbidden request error. 
+
+To forward request headers, such as an authorization token header, from the client HTTP request to the authorization service, configure the *Allowed Headers* parameter. Additionally, for HTTP authorization servers, use the *Headers to add* parameter to inject new headers into the authorization request.
+
+[IMPORTANT]
+====
+Omni Gateway sends headers to the authorization service encoded in bytes. To send headers encoded in utf8, set the environment variable `FLEX_HEADER_RAW_VALUE_ENABLE=false`.
+====
+
+The External Authorization policy can also modify the client HTTP request and response headers with additional information returned from the authorization service. For example, if an authorized user makes a request with an access token header that corresponds to a username, the authorization service can return a `username` header for Omni Gateway to append to the client HTTP request.
+
+For gRPC authorization servers, if the authorization service returns headers with the authorization response, Omni Gateway either appends these headers to the client HTTP request or overwrites the header if it is present in the client request. 
+
+For HTTP authorization servers, you can configure what headers to append, overwrite, or ignore. Policies with an HTTP server configured can also modify the client response returned from the upstream service. 
+
+The External Authorization policy is an extension of the External Authorization filter native to Envoy. To learn more about the External Authorization filter, see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_authz_filter[External Authorization Filter^]. Not all External Authorization filter parameters are available to the External Authorization policy. To find what parameters are configurable, see <<configuring-policy-parameters, Configure Policy Parameters>>. 
+
+NOTE: If other policies modify the incoming HTTP request, ensure that you order the policies depending on if these modification must be present before sending the request to the authorization service. For more information about ordering policies, see xref:policies-reorder.adoc[].
+
+== Configure Policy Parameters
+
+To configure your policy parameters, see the following parameter references for the mode your Omni Gateway is running in:
+
+* <<local-mode>>
+* <<connected-mode>>
+
+include::partial$policy-title-headers.adoc[tag=configFile]
+
+[source,yaml]
+----
+- policyRef:
+    name: native-ext-authz-flex
+  config:
+    uri: <string> // REQUIRED
+    serverType: <string> // REQUIRED, default "grpc"
+    serverApiVersion: <string> // REQUIRED, default `v3`
+    serviceRequestHeadersToAdd: <object-array> // OPTIONAL
+      - key: <string>
+        value: <string>
+    serviceResponseUpstreamHeaders: <string-array> // OPTIONAL
+    serviceResponseUpstreamHeadersToAppend: <string-array> // OPTIONAL
+    serviceResponseClientHeaders: <string-array> // OPTIONAL
+    serviceResponseClientHeadersOnSuccess: <string-array> // OPTIONAL
+    pathPrefix: <string> // OPTIONAL
+    requestTimeout: <number> // REQUIRED, default `5000`
+    includePeerCertificate: <boolean> // REQUIRED, default `false`
+    allowedHeaders: <string-array> // OPTIONAL
+    enableCache: <boolean> // OPTIONAL, default `false`
+    cache: <object> // OPTIONAL
+      keyHeaders: <string-array>
+      keyQueryParams: <string-array>
+      ttlSeconds: <number> // default `300`
+      maxEntries: <number> // default `10000`
+      cacheDecisions: <string> // default `allowAndDeny`
+----
+
+[%header%autowidth.spread,cols="a,a,a,a"]
+|===
+
+|Parameter | Required or Optional | Default Value | Description
+
+| `uri`
+| Required
+| N/A
+| External authorization service URI. With a gRPC type server, define the URI by using this format: `h2://<ext.authz.com>:<port>`.
+
+| `serverType`
+| Required
+| `grpc`
+| Type of external server. Supported values are `grpc` and `http`.
+
+| `serverApiVersion`
+| Optional
+| `v3`
+| Transport protocol API version. Supported values are `v3` and `v2`.
+
+| `includePeerCertificate`
+| Optional
+| `false`
+| If `true`, includes peer certificates in the authorization server request. Supported values are `true` and `false`.
+
+| `serviceRequestHeadersToAdd`
+| Optional
+| N/A
+| Defines custom headers and their value to inject into the authorization service request. This parameter is available for `HTTP` type serves.
+
+| `serviceRequestHeadersToAdd.key`
+| Optional
+| N/A
+| Name of the new header to add.
+
+| `serviceRequestHeadersToAdd.value`
+| Optional
+| N/A
+| Value of the new header to add.
+
+| `serviceResponseUpstreamHeaders`
+| Optional
+| N/A
+| Specifies the headers from the authorization response to add to the client request to the upstream service. Omni Gateway overwrites coexisting headers. This parameter is available for `HTTP` type serves.
+
+| `serviceResponseUpstreamHeadersToAppend`
+| Optional
+| N/A
+| Specifies the headers from the authorization response to add to the client request to the upstream service. Omni Gateway appends coexisting headers. This parameter is available for `HTTP` type serves.
+
+| `serviceResponseClientHeaders`
+| Optional
+| N/A
+| Specifies the headers from the authorization response to add to the client response returned from the upstream service. Omni Gateway overwrites existing headers. This parameter is available for `HTTP` type serves.
+
+
+| `serviceResponseClientHeadersOnSuccess`
+| Optional
+| N/A
+| Specifies the headers from the authorization response to add to the client response returned from the upstream service if the request is successfully authorized. Omni Gateway overwrites existing headers. This parameter is available for `HTTP` type serves.
+
+| `pathPrefix`
+| Optional
+| N/A
+| Sets a prefix to the value of the `Path` authorization request header if present.
+
+| `requestTimeout`
+| Optional
+| `5000`
+| Maximum time in milliseconds the policy waits for a response from the authentication service.
+
+| `allowedHeaders`
+| Optional
+| N/A
+| Specifies the headers from the client HTTP request to propagate to authorization request. By default, requests sent to gRPC servers include all client headers. Requests sent to HTTP servers don't include any client headers. If you list allowed headers for either server type, requests include only the listed headers.
+
+| `enableCache`
+| Optional
+| `false`
+| If `true`, Omni Gateway caches authorization decisions and skips the call to the authorization service for matching requests. See <<authorization-decision-caching>>.
+
+If `enableCache` is `true` and you set any of `serviceResponseUpstreamHeaders`, `serviceResponseUpstreamHeadersToAppend`, `serviceResponseClientHeaders`, or `serviceResponseClientHeadersOnSuccess`, the policy logs a warning and runs without the cache. These parameters copy headers from the authorization service response, and a cached decision has no response to copy them from.
+
+| `cache.keyHeaders`
+| Required unless `cache.keyQueryParams` is set
+| `[]`
+| Request headers that identify the client. Omni Gateway uses the values of these headers to build the cache key. If you set neither `cache.keyHeaders` nor `cache.keyQueryParams`, the policy logs a warning and runs without the cache.
+
+| `cache.keyQueryParams`
+| Required unless `cache.keyHeaders` is set
+| `[]`
+| Request query parameters that identify the client. Omni Gateway uses the values of these query parameters to build the cache key. If you set neither `cache.keyHeaders` nor `cache.keyQueryParams`, the policy logs a warning and runs without the cache.
+
+| `cache.ttlSeconds`
+| Optional
+| `300`
+| Time in seconds that Omni Gateway keeps a cached decision. The maximum is `3600`, and Omni Gateway reduces larger values to `3600`. A value of `0` means decisions are never cached.
+
+| `cache.maxEntries`
+| Optional
+| `10000`
+| Maximum number of decisions each worker thread keeps in the cache. When the limit is reached, Omni Gateway discards the least recently used decision.
+
+| `cache.cacheDecisions`
+| Optional
+| `allowAndDeny`
+| Decisions to cache. Supported values are `allowAndDeny`, `allowOnly`, and `denyOnly`.
+
+|===
+
+NOTE: Leaving a required value blank configures the parameter as the default value. No value is configured for optional values left blank.
+
+=== Resource Configuration Example
+
+In the following configuration, a gRPC authorization service receives a request that includes the peer certificates and authorization token header:
+
+[source,yaml]
+----
+- policyRef:
+    name: native-ext-authz-flex
+  config:
+    uri: h2://ext-authz-grpc-service:9001
+    serverType: "grpc"
+    includePeerCertificate: "true"
+    allowedHeaders:
+      - access-token
+----
+
+include::partial$policy-title-headers.adoc[tag=ui]
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+| *Parameter* | *Description*
+|External authorization service URI  | External authorization service URI. With a gRPC type server, define the URI as `\h2://<ext.authz.com>:<port>`.
+|External authorization server type  | Type of external server.
+|Server API version  | Transport protocol API version.
+|Include peer certificates in the authorization server request | Includes peer certificates in the authorization server request.
+|Path prefix | Sets a prefix to the value of the `Path` authorization request header if present.
+|Request timeout | Maximum time in milliseconds the policy waits for a response from the authentication service. By default, the request timeout is 5000 milliseconds.
+|Allowed headers | By default, requests sent to gRPC servers include all client headers and requests sent to HTTP servers don't include any client headers. If you list allowed headers for either server type, requests include only the listed headers.
+|Enable cache | Caches authorization decisions. Disabled by default. See <<authorization-decision-caching>>.
+|Cache | Group of cache parameters. Shown only when *Enable cache* is selected.
+|TTL (seconds) | Time in seconds that Omni Gateway keeps a cached decision. By default, the TTL is 300 seconds. The maximum is 3600 seconds, and Omni Gateway reduces larger values to 3600. A value of 0 means decisions are never cached.
+|Max entries | Maximum number of decisions each worker thread keeps in the cache. By default, the maximum is 10000 entries. When the limit is reached, Omni Gateway discards the least recently used decision.
+|Key headers | Request headers that identify the client. Omni Gateway uses the values of these headers to build the cache key. Required unless *Key query parameters* is set.
+|Key query parameters | Request query parameters that identify the client. Omni Gateway uses the values of these query parameters to build the cache key. Required unless *Key headers* is set.
+|Cache decisions | Decisions to cache: *Allow and deny*, *Allow only*, or *Deny only*. By default, Omni Gateway caches both allow and deny decisions.
+|===
+
+== How This Policy Works
+
+The following diagram demonstrates the order in which requests and responses flow during the External Authorization policy execution:
+
+image:ext-auth-policy.png["A sequence diagram that illustrates the interaction between a user, an API gateway, a database, and an API",80%,80%,align="center"]
+
+. The client makes an HTTP request to the API instance exposed by Omni Gateway.
+. Omni Gateway forwards the request consisting of the client's request and headers to the authorization service.
+. The authorization services sends the authorization response back to Omni Gateway:
+** If the request isn't authorized, Omni Gateway appends any necessary headers and returns a `403` forbidden access code to the client.
+** If the request is authorized, Omni Gateway appends the header data to the client request, if necessary, and allows the request to pass to the upstream service.
+. Omni Gateway appends any necessary headers and returns the response as normal.
+
+[[authorization-decision-caching]]
+== Authorization Decision Caching
+
+The policy can cache authorization decisions. By default, Omni Gateway calls the authorization service for every request. To reduce load on the service and request latency, set `enableCache` to `true`.
+
+Omni Gateway builds a cache key from the values of all configured request headers (`cache.keyHeaders`) and query parameters (`cache.keyQueryParams`). Two requests share a cached decision only if every configured value matches. If the cache has a decision for the key, Omni Gateway applies it and skips the call to the authorization service.
+
+* A request with none of the configured values isn't cached.
+* A missing header and an empty header are different values.
+* For a repeated query parameter, Omni Gateway uses the first value.
+* Omni Gateway doesn't cache errors, timeouts, or invalid responses.
+
+Include every value the authorization service uses to decide, such as a tenant header and the token. Otherwise, Omni Gateway can reuse a decision for a request it shouldn't apply to.
+
+=== Cache Behavior
+
+The cache is best effort and per worker thread:
+
+* Each worker thread in each replica has its own cache, so the first request from a caller on each worker still calls the authorization service. Expect up to one call per caller, per worker thread, per replica, every `cache.ttlSeconds`. Use this to size the authorization service.
+* `cache.maxEntries` applies to each worker thread separately.
+* Each policy instance has its own cache. A restart or policy configuration change clears it.
+
+=== Cached Decision Limitations
+
+A cached decision doesn't reproduce everything from the original authorization response:
+
+* Headers the authorization service adds to allowed requests aren't added on a cache hit. A gRPC service can add these even if you set no `serviceResponse*` parameter. If the upstream service relies on such a header, such as a user ID, don't enable caching.
+* A cached deny returns only the original status code, with an empty body and no headers.
+* Upstream responses never change a cached decision. If the service allows a request and the upstream returns `401` or `500`, the caller stays cached as allowed.
+
+A revoked credential keeps working until its cached decision expires, on every worker thread that cached it. You can't remove a single entry. To reduce the risk, set a shorter `cache.ttlSeconds`, or set `cache.cacheDecisions` to `denyOnly` so valid callers are always checked.
+
+=== Caching Configuration Example
+
+In the following configuration, Omni Gateway caches only allow decisions for 60 seconds, per value of the `access-token` header:
+
+[source,yaml]
+----
+- policyRef:
+    name: native-ext-authz-flex
+  config:
+    uri: h2://ext-authz-grpc-service:9001
+    serverType: "grpc"
+    enableCache: true
+    cache:
+      keyHeaders:
+        - access-token
+      ttlSeconds: 60
+      cacheDecisions: allowOnly
+----

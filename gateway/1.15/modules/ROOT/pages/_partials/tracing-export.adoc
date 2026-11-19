@@ -1,0 +1,163 @@
+//tag::tracing-runtime-manager[]
+[[runtime-manager-config]]
+== Configuring Omni Gateway Distributed Tracing in Runtime Manager
+
+. In Anypoint Platform, select *Runtime Manager*.
+. Select *Omni Gateways*.
+. Select your Omni Gateway.
+. Open *Runtime Configurations*.
+. Open *Distributed Tracing*.
+. Enable *Distributed tracing*.
+. Set the *Sampling percentage* to the percentage of transactions to trace.
++
+To configure sampling only on a per-API basis with the Tracing policy, set *Sampling percentage* to `0`.
+. Apply the changes.
+
+NOTE: The *Sampling percentage* corresponds to the `overall` sampling percentage. The `client` and `random` sampling percentages default to `100` when *Sampling percentage* is set to a non-zero value.
+
+//end::tracing-runtime-manager[]
+
+//tag::telemetry-exporter[]
+[[export-otel-traces-from-monitoring-telemetry-exporter]]
+== Export Traces from Anypoint Monitoring to Third Parties
+
+To export traces to third-party providers using the Anypoint Monitoring Telemetry Exporter, see xref:monitoring::telemetry-exporter.adoc[].
+
+//end::telemetry-exporter[]
+
+//tag::telemetry-exporter-note[]
+
+To export traces using the Anypoint Monitoring Telemetry Exporter, first configure the Telemetry Exporter in Anypoint Monitoring.
+
+//end::telemetry-exporter-note[]
+
+//tag::export-anypoint[]
+[[export-traces-to-anypoint-monitoring]]
+=== Export Traces to Anypoint Monitoring
+
+Edit and apply this configuration resource to enable distributed tracing. This configuration resource applies to all API instances.
+This example sets global sampling to 0% and policies configure sampling per API.
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: Configuration
+metadata:
+  name: tracing
+  namespace: test-ns
+spec:
+  tracing:
+    provider:
+      type: anypoint
+      properties:
+        timeout: 10s
+    sampling:
+      client: 0
+      random: 0
+      overall: 0
+    labels:
+    - name: c-env-tag
+      type: environment
+      keyName: FLEX_NAME
+      defaultValue: DEFAULT_VAL
+    - name: c-header-tag
+      type: requestHeader
+      keyName: :method
+      defaultValue: DEFAULT_METHOD
+    - name: c-literal-tag
+      type: literal
+      defaultValue: the-tag
+----
+
+//end::export-anypoint[]
+
+//tag::export-grpc[]
+[[export-traces-to-a-grpc-open-telemetry-endpoint]]
+=== Export Traces to a gRPC OpenTelemetry Endpoint
+
+To configure OpenTelemetry tracing with a gRPC endpoint in Omni, apply this YAML configuration:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: Configuration
+metadata:
+  name: tracing
+  namespace: test-ns
+spec:
+  tracing:
+    provider:
+      type: opentelemetry
+      properties:
+        address: h2://splunk-otel-collector-agent.default.svc.cluster.local:4317
+        serviceType: grpc
+        serviceName: my-flex-name
+        timeout: 10s
+        resourceAttributes:
+          any-key: any-value
+    sampling:
+      client: 100
+      random: 100
+      overall: 100
+    labels:
+    - name: c-env-tag
+      type: environment
+      keyName: FLEX_NAME
+      defaultValue: DEFAULT_VAL
+    - name: c-header-tag
+      type: requestHeader
+      keyName: :method
+      defaultValue: DEFAULT_METHOD
+    - name: c-literal-tag
+      type: literal
+      defaultValue: the-tag
+----
+
+//end::export-grpc[]
+
+//tag::export-http[]
+[[export-traces-to-an-http-open-telemetry-endpoint]]
+=== Export Traces to an HTTP OpenTelemetry Endpoint
+
+To configure OpenTelemetry tracing with an HTTP endpoint, apply this YAML configuration:
+
+[source,yaml]
+----
+apiVersion: gateway.mulesoft.com/v1beta1
+kind: Configuration
+metadata:
+  name: tracing
+  namespace: test-ns
+spec:
+  tracing:
+    provider:
+      type: opentelemetry
+      properties:
+        address: http://opentelemetry:4318
+        tracesUri: http://opentelemetry:4318/v1/traces
+        serviceType: http
+        serviceName: the-name
+        timeout: 10s
+        httpHeaders:
+          auth: samething
+        resourceAttributes:
+          nay-key: nay-value
+    sampling:
+      client: 100
+      random: 100
+      overall: 100
+    labels:
+    - name: c-env-tag
+      type: environment
+      keyName: FLEX_NAME
+      defaultValue: DEFAULT_VAL
+    - name: c-header-tag
+      type: requestHeader
+      keyName: :method
+      defaultValue: DEFAULT_METHOD
+    - name: c-literal-tag
+      type: literal
+      defaultValue: the-tag
+----
+
+//end::export-http[]
