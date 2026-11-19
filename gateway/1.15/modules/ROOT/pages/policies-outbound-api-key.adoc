@@ -77,7 +77,7 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `headersToRemove`
 | Optional
 | `[]`
-| Exact names of request headers to remove before the policy injects credentials.
+| Names of request headers to remove before the policy injects credentials. Header names are case-insensitive. For `clientCredentials`, if you list either the client ID header or the client secret header, the policy injects both headers, even when `overwrite` is `false`.
 
 | `apiKeyType`
 | Optional
@@ -92,7 +92,7 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `apiKeySelector`
 | Required when `apiKeyType` is `expression`.
 | N/A
-| A DataWeave expression that resolves the API key at runtime. The expression can use `attributes` and `payload`. For example: `#[attributes.headers['x-api-key']]`.
+| A DataWeave expression that resolves the API key at runtime. The expression can use `attributes` and `payload`. The expression must resolve to a non-empty string, and the policy trims leading and trailing whitespace from the result. For example: `#[attributes.headers['x-api-key']]`. The policy ignores this field unless `apiKeyType` is `expression`.
 
 | `customHeader`
 | Optional
@@ -119,6 +119,8 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | N/A
 | Use a custom header instead of `client_secret` for client secret injection.
 |===
+
+NOTE: Anypoint API Manager shows the *Headers to remove*, *API Key Type*, and *API Key Expression* fields (`headersToRemove`, `apiKeyType`, and `apiKeySelector`) for every Omni Gateway version, but the policy ignores them in Omni Gateway 1.13.0 through 1.13.8 and 1.14.0 through 1.14.4. To use these fields, update Omni Gateway to the latest patch release of your version.
 
 ==== Resource Configuration Examples
 
@@ -193,7 +195,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 
 |*Overwrite headers* |Overwrite authentication headers if present in the request.
 
-|*Headers to remove* |Exact names of request headers to remove before the policy injects credentials.
+|*Headers to remove* |Names of request headers to remove before the policy injects credentials. Header names are case-insensitive. For client credentials, if you list either the client ID header or the client secret header, the policy injects both headers, even when *Overwrite headers* is disabled.
 
 |*API Key Type* |How the policy gets the API key: *Static* or *DataWeave Expression*.
 
