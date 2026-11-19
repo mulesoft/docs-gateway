@@ -17,9 +17,9 @@ endif::[]
 
 == Summary
 
-The Injection Protection policy scans incoming request headers, path, query string, and body for SQL injection, XSS (Cross-Site Scripting), and custom injection attacks. The policy provides built-in protections againt SQL and XSS attacks. Configure custom protections by defining regex patterns that the policy should scan for.
+The Injection Protection policy scans incoming request headers, path, query string, and body for SQL injection, XSS (Cross-Site Scripting), and custom injection attacks. The policy provides built-in protections against SQL and XSS attacks. Configure custom protections by defining regex patterns that the policy should scan for.
 
-The policy checks the request against the enabled built-in and custom rules. Depending on wether *Reject Requests* is enabled, the policy either:
+The policy checks the request against the enabled built-in and custom rules. Depending on whether *Reject Requests* is enabled, the policy either:
 
 * Rejects the request and returns `400` (Bad Request) with the added response header `x-injection-protection: blocked`.
 * Allows the request to reach the backend service and logs a policy violation.
@@ -34,6 +34,120 @@ The policy buffers the full request body only when *Protect Body* (`protectBody`
 include::partial$policy-payload-handling.adoc[tag=bufferLimit]
 
 To avoid buffering, disable *Protect Body* if you only need to check the path, query string, and headers.
+
+[[built-in-patterns]]
+== Built-in Protection Patterns
+
+Each built-in protection is a single case-insensitive regular expression. The policy flags a request if any part of a scanned value matches the expression. The following tables list the pattern categories that each built-in protection detects, with example values that match.
+
+To detect patterns that aren't listed, or to apply stricter rules, add custom protections.
+
+=== SQL Injection Patterns
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+|Pattern Category |Example Matching Values
+
+|`UNION` and `UNION ALL` followed by `SELECT`, including variations obfuscated with `+`, `/**/`, or `!`
+|`+1 UNION SELECT username+`, `+1 UNION ALL SELECT name+`
+
+|A single or double quote followed by `OR`, `AND`, or `XOR`
+|`+' OR 'a'='a+`
+
+|Tautologies: `OR` or `AND` followed by a numeric comparison, a string comparison, `true`, or `false`
+|`+OR 1=1+`, `+AND true+`
+
+|A single or double quote followed by a SQL comment (`--`, `#`, or `/*`)
+|`+admin'--+`, `+admin'#+`
+
+|Time-based functions: `SLEEP`, `PG_SLEEP`, `BENCHMARK`, and `WAITFOR DELAY`
+|`+SLEEP(5)+`, `+WAITFOR DELAY '0:0:5'+`
+
+|`EXEC` or `EXECUTE` followed by a system procedure prefix (`master.`, `xp_`, `sp_`, or `sys.`)
+|`+EXEC xp_cmdshell 'dir'+`
+
+|Stacked queries: a semicolon followed by `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `CREATE`, or `TRUNCATE`
+|`+1; DROP TABLE users+`
+
+|Type conversion with `CAST` or `CONVERT`
+|`+CAST(password AS int)+`
+
+|`DROP`, `ALTER`, or `TRUNCATE` followed by `TABLE`, `DATABASE`, `SCHEMA`, `INDEX`, or `COLUMN`
+|`+DROP TABLE users+`, `+TRUNCATE TABLE logs+`
+
+|MySQL versioned comments that contain a SQL statement
+|`+/*!50000 SELECT*/+`
+
+|Optimizer hint comments
+|`+/*+ ordered */+`
+
+|`SELECT ... FROM` followed by `WHERE`, `LIMIT`, `HAVING`, or `GROUP BY`
+|`+SELECT name FROM users WHERE id=1+`
+
+|Subqueries: `SELECT ... FROM` followed by a closing parenthesis
+|`+(SELECT password FROM users)+`
+
+|Data modification statements: `INSERT INTO`, `DELETE FROM`, and `UPDATE ... SET`
+|`+INSERT INTO users+`, `+DELETE FROM users+`, `+UPDATE users SET role+`
+
+|Hexadecimal-encoded values of 8 or more hex digits
+|`+id=0x61646d696e+`
+|===
+
+The SQL patterns require SQL context, which reduces false positives. For example, the values `drop shipping`, `item #42`, `select a product`, and `O'Brien` don't match.
+
+=== XSS Patterns
+
+[%header%autowidth.spread,cols="a,a"]
+|===
+|Pattern Category |Example Matching Values
+
+|`<script>` tags
+|`+<script>alert(1)</script>+`
+
+|`<iframe>` tags
+|`+<iframe src=x>+`
+
+|Event handler attributes, such as `onerror` and `onload`, in any HTML tag
+|`+<img src=x onerror=alert(1)>+`, `+<body onload=alert(1)>+`
+
+|Script URI schemes: `javascript:`, `vbscript:`, and `livescript:`
+|`+javascript:alert(1)+`
+
+|HTML data URIs
+|`+data:text/html,<b>+`
+
+|`eval()` calls
+|`+eval(atob(x))+`
+
+|CSS `expression()` calls
+|`+width: expression(alert(1))+`
+
+|Cookie access through `document.cookie`
+|`+document.cookie+`
+|===
+
+=== Built-in Regular Expressions
+
+Use the full regular expressions to test your requests or as a starting point for custom protections.
+
+.SQL injection regular expression
+[%collapsible]
+====
+[source,text]
+----
+(?i)\bunion\b[\s\x0b+/\*!]+(?:all[\s\x0b+]+)?select\b|(?:'|")\s*(?:or|and|xor)\b|\b(?:or|and)\b\s+(?:\d+\s*[=<>!]+\s*\d+|'[^']*'\s*=\s*'[^']*'|true|false)\b|(?:'|")\s*(?:--|#|/\*)|\b(?:sleep|pg_sleep|benchmark|waitfor[\s\x0b+]+delay)[\s\x0b+]*['(]|\bexec(?:ute)?\s+(?:master\.|xp_|sp_|sys\.)|\s*;\s*(?:select|insert|update|delete|drop|alter|create|truncate)\b|\b(?:cast|convert)\s*\(\s*.{1,50}\s+as\s+\w|\b(?:drop|alter|truncate)\s+(?:table|database|schema|index|column)\b|/\*![\d]*\s*(?:select|union|insert|update|delete|drop|alter|exec)\b|/\*\+[\s\w]{0,30}\*/|\bselect\b.{1,200}?\bfrom\b.{0,100}?\b(?:where|limit|having|group\s+by)\b|\bselect\b.{1,100}?\bfrom\b[^)]{0,50}?\)|\b(?:insert\s+into|delete\s+from|update\s+\w+\s+set)\b|(?:[=(<,\s])0x[0-9a-f]{8,}\b
+----
+====
+
+.XSS regular expression
+[%collapsible]
+====
+[source,text]
+----
+(?i)<script[\s>\/]|<script$|<iframe[\s>\/]|<iframe$|<[^>]*[/\s]+on\w+\s*=|javascript\s*:|vbscript\s*:|livescript\s*:|data\s*:\s*text/html|\beval\s*\(|\bexpression\s*\(|document\.cookie
+----
+====
 
 == Configuring Policy Parameters
 
@@ -60,7 +174,7 @@ include::partial$policy-title-headers.adoc[tag=configFile]
 | `builtInProtections`
 | Yes (at least one protection required)
 | —
-| The built-in protection types to enable. Valid values are `"sql"`, `"xss"`, or both. SQL protection detects patterns such as tautologies (for example, `OR 1=1`), comment-based injection (`--`, `#`), union/select statements, and keywords such as `DROP` and `DELETE`. XSS protection detects patterns such as script and iframe tags, event handlers, and common script schemes.
+| The built-in protection types to enable. Valid values are `"sql"`, `"xss"`, or both. SQL protection detects patterns such as tautologies (for example, `OR 1=1`), quote-terminated comments (for example, `admin'--`), `UNION SELECT` statements, and destructive statements such as `DROP TABLE`. XSS protection detects patterns such as script and iframe tags, event handlers, and script URI schemes. For the full list of patterns, see <<built-in-patterns>>.
 
 | `customProtections`
 | No
@@ -117,7 +231,7 @@ include::partial$policy-title-headers.adoc[tag=ui]
 |Built-in Protections | The built-in SQL and XSS injection protection settings.
 |Custom Protections | The rules defined with a name and regex pattern for custom injection types.
 |Protect Path and Query | If enabled, the gateway checks the request path and query string.
-|Protect Headers | If enadbled, the gateway checks the request headers.
+|Protect Headers | If enabled, the gateway checks the request headers.
 |Headers to Protect | List of header names to check. Leave empty to check all headers.
 |Protect Body | If enabled, the gateway checks the request body.
 |Reject Requests | If enabled, the gateway rejects matching requests with a `400` response code. Otherwise, the gateway allows them to reach the upstream service and logs a policy violation.
