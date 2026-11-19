@@ -122,9 +122,13 @@ For more information, see <<severity-levels>>.
 | `dataMasking.customPatterns`
 | Optional
 | `[]`
-| List of custom patterns to mask when built-in PII detection doesn't cover the value. Each pattern must have a `name` and a `pattern` (regular expression) property.
+| List of custom patterns to mask when built-in PII detection doesn't cover the value. Each pattern must have a `name` and a `pattern` (regular expression) property. If the regular expression has a capture group, the policy masks only the captured text.
+
+When `enableDataMasking` is `true`, `dataMasking` must include at least one entry in `entities` or `customPatterns`. `entities` can't contain duplicates, and every custom pattern needs a non-empty `name` and a valid regular expression. Otherwise, the policy configuration is rejected.
 
 |===
+
+NOTE: Anypoint API Manager can show the `enableDataMasking` and `dataMasking` fields when you apply the policy to an API instance that runs on an Omni Gateway version that doesn't support them: 1.13.0 through 1.13.9 and 1.14.0 through 1.14.5. In these versions, the fields have no effect on the policy. To use the fields, update Omni Gateway to the latest patch release.
 
 ==== Resource Configuration Example
 
