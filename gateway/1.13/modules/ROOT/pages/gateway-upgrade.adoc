@@ -25,30 +25,7 @@ You can upgrade Omni Gateway as a Linux service, in a Docker container, or in a 
 
 If you upgrade from a version earlier than 1.13.6, the main Redis store for configuration caching (control node) retains its previous 14-day time to live (TTL). When the store expires, `custom.wasm` can expire and WASM filter loading can fail.
 
-To recreate the store without a TTL, clear the Redis data or run the `flexctl reset` command in one pod. To learn more about `flexctl reset`, see xref:troubleshoot-reset-cache.adoc[].
-
-After you reset the store in one pod, restart all pods:
-
-* Linux service:
-+
-[source,ssh]
-----
-sudo systemctl restart flex-gateway
-----
-
-* Docker container:
-+
-[source,ssh]
-----
-docker restart <container-name>
-----
-
-* Kubernetes cluster:
-+
-[source,ssh]
-----
-kubectl rollout restart deployment/<deployment-name> -n <namespace>
-----
+To recreate the store without a TTL, clear the Redis data or run the `flexctl reset` command in one replica. Then restart all replicas.
 
 [[linux]]
 == Upgrade as a Linux Service
