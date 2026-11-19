@@ -7,6 +7,8 @@ If the control node cache becomes corrupted or you encounter other critical issu
 
 Resetting the control node cache can't be undone. Use `flexctl reset` only to recover from data corruption or other critical cache issues.
 
+Run `flexctl reset` on only one replica. Resetting the cache from a single replica is enough to reset it for all replicas that share the storage. After the reset, you must restart all replicas.
+
 The command deletes only the control node's data from the configured shared storage. When the shared storage is Redis, other keys in the same Redis instance, such as those used by policies, aren't deleted.
 
 NOTE: To run `flexctl reset` for Linux deployments, either add the user to the `flex` user group or run `flexctl reset` with the `sudo` command. To learn more, see xref:troubleshoot-linux-permissions.adoc[].
@@ -35,7 +37,7 @@ If the reset succeeds, the CLI returns the following message:
 Storage was reset successfully. You can restart flex now!
 ----
 
-. Restart Omni Gateway.
+. Restart all Omni Gateway replicas, not only the replica where you ran the command.
 
 == Change the Admin API Address
 
