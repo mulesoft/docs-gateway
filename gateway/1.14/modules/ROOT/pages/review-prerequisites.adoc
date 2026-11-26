@@ -120,32 +120,26 @@ Omni Gateway requires either an Intel or AMD-64 processor.
 
 == Ports, IPs, and Hostnames Allowlist Requirements
 
-For Omni Gateway to communicate with MuleSoft-managed online Anypoint Platform APIs and services, you must add these hostnames and ports of external resources to the allowlist:
- 
+For Omni Gateway to communicate with MuleSoft-managed online Anypoint Platform APIs and services, you must add these hostnames and ports of external resources to the allowlist. Select the tab for your control plane region.
+
+[tabs]
+====
+US::
++
+--
 [%header%autowidth.spread]
 |===
-|Plane |Host |Port| Mode| Description| Protocol
-|*US*|*anypoint.mulesoft.com* | 443| Both| Required to connect with the control plane, push internal metrics, and download custom policy binaries.|  HTTPS
-|*US*|*arm-mcm2-service.kprod.msap.io* | 443| Both| Required to communicate with the transport layer.| mTLS
-|*US*|*logging.ingestion.us-east-1.prod.cloudhub.io* | 443| Both| Required to send analytics data to the control plane.|  HTTPS
-|*US*|*metering.ingestion.us-east-1.prod.cloudhub.io* | 443| Both| Required to send analytics data to the control plane.|  HTTPS
-|*US*|*monitoring.ingestion.us-east-1.prod.cloudhub.io* | 443| Both| Required to send analytics data to the control plane.|  HTTPS
-|*US*|*exchange-files.anypoint.mulesoft.com* | 443| Connected| Required to download policies.|  HTTPS
-|*US*|*exchange2-asset-manager-kprod.s3.amazonaws.com* | 443| Connected| Required to download policies.|  HTTPS
-|*US*|*configuration-resolver.prod.cloudhub.io* | 443| Connected| Required to download policies.| mTLS
-|*US*|*us1.ingest.mulesoft.com* | 443| Both| Required to send analytics data to the control plane.| HTTPS
-|*US*|*flex-packages.anypoint.mulesoft.com* | 443| Both| Required to download and install Omni Gateway.|  HTTPS
-|*EU*|*eu1.anypoint.mulesoft.com* | 443| Both| Required to connect with the control plane, push internal metrics, and download custom policy binaries.|  HTTPS
-|*EU*|*arm-mcm2-service.kprod-eu.msap.io* | 443| Both| Required to communicate with the transport layer.| mTLS
-|*EU*|*logging.ingestion.eu-central-1.prod-eu.msap.io* | 443| Both| Required to send analytics data to the control plane.|  HTTPS
-|*EU*|*metering.ingestion.eu-central-1.prod-eu.msap.io* | 443| Both| Required to send analytics data to the control plane.|  HTTPS
-|*EU*|*eu1.ingest.mulesoft.com* | 443| Both| Required to send analytics data to the control plane.| HTTPS
-|*EU*|*monitoring.ingestion.eu-central-1.prod-eu.msap.io* | 443| Both| Required to send analytics data to the control plane.|  HTTPS
-|*EU*|*configuration-resolver.prod-eu.msap.io* | 443| Connected| Required to download policies.| mTLS
-|*EU*|*exchange-files.eu1.anypoint.mulesoft.com* | 443| Connected| Required to download policies.|  HTTPS
-|*EU*|*exchange2-asset-manager-kprod-eu.s3.eu-central-1.amazonaws.com* | 443| Connected| Required to download policies.|  HTTPS
-|*EU*|*flex-packages.anypoint.mulesoft.com* | 443| Both| Required to download and install Omni Gateway.|  HTTPS
-|*EU*|*flex-packages.eu1.anypoint.mulesoft.com* | 443| Both| Required to download and install Omni Gateway.|  HTTPS
+|Host |Port| Mode| Description| Protocol
+|*anypoint.mulesoft.com* | 443| Both| Required to connect with the control plane, push internal metrics, and download custom policy binaries.| HTTPS
+|*arm-mcm2-service.kprod.msap.io* | 443| Both| Required to communicate with the transport layer.| mTLS
+|*logging.ingestion.us-east-1.prod.cloudhub.io* | 443| Both| Required to send analytics data to the control plane.| HTTPS
+|*metering.ingestion.us-east-1.prod.cloudhub.io* | 443| Both| Required to send analytics data to the control plane.| HTTPS
+|*monitoring.ingestion.us-east-1.prod.cloudhub.io* | 443| Both| Required to send analytics data to the control plane.| HTTPS
+|*us1.ingest.mulesoft.com* | 443| Both| Required to send analytics data to the control plane.| HTTPS
+|*exchange-files.anypoint.mulesoft.com* | 443| Connected| Required to download policies.| HTTPS
+|*exchange2-asset-manager-kprod.s3.amazonaws.com* | 443| Connected| Required to download policies.| HTTPS
+|*configuration-resolver.prod.cloudhub.io* | 443| Connected| Required to download policies.| mTLS
+|*flex-packages.anypoint.mulesoft.com* | 443| Both| Required to download and install Omni Gateway.| HTTPS
 |===
 
 To establish connection for these endpoints, you must configure SSL passthrough:
@@ -156,12 +150,154 @@ To establish connection for these endpoints, you must configure SSL passthrough:
 * monitoring.ingestion.us-east-1.prod.cloudhub.io
 * configuration-resolver.prod.cloudhub.io
 * us1.ingest.mulesoft.com
+--
+
+EU::
++
+--
+[%header%autowidth.spread]
+|===
+|Host |Port| Mode| Description| Protocol
+|*eu1.anypoint.mulesoft.com* | 443| Both| Required to connect with the control plane, push internal metrics, and download custom policy binaries.| HTTPS
+|*arm-mcm2-service.kprod-eu.msap.io* | 443| Both| Required to communicate with the transport layer.| mTLS
+|*logging.ingestion.eu-central-1.prod-eu.msap.io* | 443| Both| Required to send analytics data to the control plane.| HTTPS
+|*metering.ingestion.eu-central-1.prod-eu.msap.io* | 443| Both| Required to send analytics data to the control plane.| HTTPS
+|*monitoring.ingestion.eu-central-1.prod-eu.msap.io* | 443| Both| Required to send analytics data to the control plane.| HTTPS
+|*eu1.ingest.mulesoft.com* | 443| Both| Required to send analytics data to the control plane.| HTTPS
+|*exchange-files.eu1.anypoint.mulesoft.com* | 443| Connected| Required to download policies.| HTTPS
+|*exchange2-asset-manager-kprod-eu.s3.eu-central-1.amazonaws.com* | 443| Connected| Required to download policies.| HTTPS
+|*configuration-resolver.prod-eu.msap.io* | 443| Connected| Required to download policies.| mTLS
+|*flex-packages.anypoint.mulesoft.com* | 443| Both| Required to download and install Omni Gateway.| HTTPS
+|*flex-packages.eu1.anypoint.mulesoft.com* | 443| Both| Required to download and install Omni Gateway.| HTTPS
+|===
+
+To establish connection for these endpoints, you must configure SSL passthrough:
+
 * arm-mcm2-service.kprod-eu.msap.io
 * logging.ingestion.eu-central-1.prod-eu.msap.io
 * metering.ingestion.eu-central-1.prod-eu.msap.io
-* eu1.ingest.mulesoft.com
 * monitoring.ingestion.eu-central-1.prod-eu.msap.io
 * configuration-resolver.prod-eu.msap.io
+* eu1.ingest.mulesoft.com
+--
+
+Canada::
++
+--
+// TODO: Replace the TODO rows with the regional exchange-files, exchange2-asset-manager S3 bucket, configuration-resolver, and flex-packages hostnames (or remove them if the region does not use them).
+[%header%autowidth.spread]
+|===
+|Host |Port| Mode| Description| Protocol
+|*ca1.platform.mulesoft.com* | 443| Both| Required to connect with the control plane, push internal metrics, and download custom policy binaries.| HTTPS
+|*runtime-manager.ca1.platform.mulesoft.com* | 443| Both| Required to register Omni Gateway with the control plane.| HTTPS
+|*runtime-manager.ca1.platform.mulesoft.com* | 8443| Both| Required to communicate with the transport layer.| TODO
+|*ingest.ca1.platform.mulesoft.com* | 8443| Both| Required to send analytics data to the control plane.| HTTPS
+|TODO: exchange-files host | TODO| Connected| Required to download policies.| HTTPS
+|TODO: exchange2-asset-manager S3 bucket | TODO| Connected| Required to download policies.| HTTPS
+|TODO: configuration-resolver host | TODO| Connected| Required to download policies.| mTLS
+|*flex-packages.anypoint.mulesoft.com* | 443| Both| Required to download and install Omni Gateway.| HTTPS
+|TODO: regional flex-packages host | TODO| Both| Required to download and install Omni Gateway.| HTTPS
+|===
+
+To establish connection for these endpoints, you must configure SSL passthrough:
+
+* TODO: confirm which hosts require SSL passthrough (likely runtime-manager and ingest)
+--
+
+Japan::
++
+--
+// TODO: Replace the TODO rows with the regional exchange-files, exchange2-asset-manager S3 bucket, configuration-resolver, and flex-packages hostnames (or remove them if the region does not use them).
+[%header%autowidth.spread]
+|===
+|Host |Port| Mode| Description| Protocol
+|*jp1.platform.mulesoft.com* | 443| Both| Required to connect with the control plane, push internal metrics, and download custom policy binaries.| HTTPS
+|*runtime-manager.jp1.platform.mulesoft.com* | 443| Both| Required to register Omni Gateway with the control plane.| HTTPS
+|*runtime-manager.jp1.platform.mulesoft.com* | 8443| Both| Required to communicate with the transport layer.| TODO
+|*ingest.jp1.platform.mulesoft.com* | 8443| Both| Required to send analytics data to the control plane.| HTTPS
+|TODO: exchange-files host | TODO| Connected| Required to download policies.| HTTPS
+|TODO: exchange2-asset-manager S3 bucket | TODO| Connected| Required to download policies.| HTTPS
+|TODO: configuration-resolver host | TODO| Connected| Required to download policies.| mTLS
+|*flex-packages.anypoint.mulesoft.com* | 443| Both| Required to download and install Omni Gateway.| HTTPS
+|TODO: regional flex-packages host | TODO| Both| Required to download and install Omni Gateway.| HTTPS
+|===
+
+To establish connection for these endpoints, you must configure SSL passthrough:
+
+* TODO: confirm which hosts require SSL passthrough (likely runtime-manager and ingest)
+--
+
+India::
++
+--
+// TODO: Replace the TODO rows with the regional exchange-files, exchange2-asset-manager S3 bucket, configuration-resolver, and flex-packages hostnames (or remove them if the region does not use them).
+[%header%autowidth.spread]
+|===
+|Host |Port| Mode| Description| Protocol
+|*in1.platform.mulesoft.com* | 443| Both| Required to connect with the control plane, push internal metrics, and download custom policy binaries.| HTTPS
+|*runtime-manager.in1.platform.mulesoft.com* | 443| Both| Required to register Omni Gateway with the control plane.| HTTPS
+|*runtime-manager.in1.platform.mulesoft.com* | 8443| Both| Required to communicate with the transport layer.| TODO
+|*ingest.in1.platform.mulesoft.com* | 8443| Both| Required to send analytics data to the control plane.| HTTPS
+|TODO: exchange-files host | TODO| Connected| Required to download policies.| HTTPS
+|TODO: exchange2-asset-manager S3 bucket | TODO| Connected| Required to download policies.| HTTPS
+|TODO: configuration-resolver host | TODO| Connected| Required to download policies.| mTLS
+|*flex-packages.anypoint.mulesoft.com* | 443| Both| Required to download and install Omni Gateway.| HTTPS
+|TODO: regional flex-packages host | TODO| Both| Required to download and install Omni Gateway.| HTTPS
+|===
+
+To establish connection for these endpoints, you must configure SSL passthrough:
+
+* TODO: confirm which hosts require SSL passthrough (likely runtime-manager and ingest)
+--
+
+UK::
++
+--
+// TODO: Replace the TODO rows with the regional exchange-files, exchange2-asset-manager S3 bucket, configuration-resolver, and flex-packages hostnames (or remove them if the region does not use them).
+// TODO: Confirm Omni Gateway registration is available in this region. The managed-gateway-api-falcon repo has no prod FI for eu-west-2.
+[%header%autowidth.spread]
+|===
+|Host |Port| Mode| Description| Protocol
+|*gb1.platform.mulesoft.com* | 443| Both| Required to connect with the control plane, push internal metrics, and download custom policy binaries.| HTTPS
+|*runtime-manager.gb1.platform.mulesoft.com* | 443| Both| Required to register Omni Gateway with the control plane.| HTTPS
+|*runtime-manager.gb1.platform.mulesoft.com* | 8443| Both| Required to communicate with the transport layer.| TODO
+|*ingest.gb1.platform.mulesoft.com* | 8443| Both| Required to send analytics data to the control plane.| HTTPS
+|TODO: exchange-files host | TODO| Connected| Required to download policies.| HTTPS
+|TODO: exchange2-asset-manager S3 bucket | TODO| Connected| Required to download policies.| HTTPS
+|TODO: configuration-resolver host | TODO| Connected| Required to download policies.| mTLS
+|*flex-packages.anypoint.mulesoft.com* | 443| Both| Required to download and install Omni Gateway.| HTTPS
+|TODO: regional flex-packages host | TODO| Both| Required to download and install Omni Gateway.| HTTPS
+|===
+
+To establish connection for these endpoints, you must configure SSL passthrough:
+
+* TODO: confirm which hosts require SSL passthrough (likely runtime-manager and ingest)
+--
+
+Australia::
++
+--
+// TODO: Replace the TODO rows with the regional exchange-files, exchange2-asset-manager S3 bucket, configuration-resolver, and flex-packages hostnames (or remove them if the region does not use them).
+// TODO: Confirm Omni Gateway registration is available in this region. The managed-gateway-api-falcon repo has no prod FI for ap-southeast-2.
+[%header%autowidth.spread]
+|===
+|Host |Port| Mode| Description| Protocol
+|*au1.platform.mulesoft.com* | 443| Both| Required to connect with the control plane, push internal metrics, and download custom policy binaries.| HTTPS
+|*runtime-manager.au1.platform.mulesoft.com* | 443| Both| Required to register Omni Gateway with the control plane.| HTTPS
+|*runtime-manager.au1.platform.mulesoft.com* | 8443| Both| Required to communicate with the transport layer.| TODO
+|*ingest.au1.platform.mulesoft.com* | 8443| Both| Required to send analytics data to the control plane.| HTTPS
+|TODO: exchange-files host | TODO| Connected| Required to download policies.| HTTPS
+|TODO: exchange2-asset-manager S3 bucket | TODO| Connected| Required to download policies.| HTTPS
+|TODO: configuration-resolver host | TODO| Connected| Required to download policies.| mTLS
+|*flex-packages.anypoint.mulesoft.com* | 443| Both| Required to download and install Omni Gateway.| HTTPS
+|TODO: regional flex-packages host | TODO| Both| Required to download and install Omni Gateway.| HTTPS
+|===
+
+To establish connection for these endpoints, you must configure SSL passthrough:
+
+* TODO: confirm which hosts require SSL passthrough (likely runtime-manager and ingest)
+--
+====
 
 [NOTE]
 ====
